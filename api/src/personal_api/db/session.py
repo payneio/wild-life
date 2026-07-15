@@ -10,6 +10,9 @@ from sqlalchemy.ext.asyncio import (
 
 from personal_api.config import DB_SCHEMA, settings
 
+# Registers the before_flush audit listener (import for side effect).
+import personal_api.db.audit  # noqa: E402,F401
+
 engine = create_async_engine(
     settings.database_url,
     pool_pre_ping=True,

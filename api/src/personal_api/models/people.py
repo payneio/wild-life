@@ -1,10 +1,10 @@
 """People and interactions (the CRM surface)."""
 
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import DateTime, ForeignKey, Text
-from sqlalchemy.dialects.postgresql import ARRAY, UUID
+from sqlalchemy import Date, DateTime, ForeignKey, Text
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from personal_api.db.base import Base
@@ -17,12 +17,33 @@ class Person(UUIDPrimaryKey, TimestampMixin, Base):
     __tablename__ = "people"
 
     name: Mapped[str] = mapped_column(Text, nullable=False)
+    nickname: Mapped[str | None] = mapped_column(Text)
     relationship: Mapped[str | None] = mapped_column(Text)
-    organization: Mapped[str | None] = mapped_column(Text)
     role: Mapped[str | None] = mapped_column(Text)
-    emails: Mapped[list[str]] = mapped_column(ARRAY(Text), server_default="{}")
-    phones: Mapped[list[str]] = mapped_column(ARRAY(Text), server_default="{}")
+    job_title: Mapped[str | None] = mapped_column(Text)
+    # Provider fields (null for ordinary contacts): medical specialty, my patient
+    # identifier with them, and their patient-portal URL.
+    specialty: Mapped[str | None] = mapped_column(Text)
+    patient_id: Mapped[str | None] = mapped_column(Text)
+    portal_url: Mapped[str | None] = mapped_column(Text)
+    # Typed contact methods: list of {"value": str, "label": str|None}.
+    phones: Mapped[list[dict]] = mapped_column(
+        JSONB, server_default="[]", nullable=False
+    )
+    emails: Mapped[list[dict]] = mapped_column(
+        JSONB, server_default="[]", nullable=False
+    )
+    addresses: Mapped[list[dict]] = mapped_column(
+        JSONB, server_default="[]", nullable=False
+    )
+    websites: Mapped[list[str]] = mapped_column(ARRAY(Text), server_default="{}")
     preferred_contact: Mapped[str | None] = mapped_column(Text)
+    birthday: Mapped[date | None] = mapped_column(Date)
+    # Other dated milestones: list of {"label": str, "date": str}.
+    important_dates: Mapped[list[dict]] = mapped_column(
+        JSONB, server_default="[]", nullable=False
+    )
+    photo_url: Mapped[str | None] = mapped_column(Text)
     notes: Mapped[str | None] = mapped_column(Text)
 
 

@@ -13,9 +13,11 @@ from personal_api.routers import (
     calendar,
     core,
     goals,
+    history,
     knowledge,
     metrics,
     notes,
+    organizations,
     people,
     reviews,
     routines,
@@ -23,6 +25,7 @@ from personal_api.routers import (
     tasks,
     tracking,
 )
+from personal_api.routers import health as health_routes
 
 
 @asynccontextmanager
@@ -59,6 +62,7 @@ async def health() -> dict[str, str]:
 app.include_router(core.router)
 app.include_router(tasks.router)
 app.include_router(people.router)
+app.include_router(organizations.router)
 app.include_router(routines.router)
 app.include_router(goals.router)
 app.include_router(metrics.router)
@@ -68,6 +72,8 @@ app.include_router(tracking.router)
 app.include_router(reviews.router)
 app.include_router(knowledge.router)
 app.include_router(tags.router)
+app.include_router(health_routes.router)
+app.include_router(history.router)
 
 
 def run() -> None:

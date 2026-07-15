@@ -3,9 +3,20 @@
 from personal_api.models.calendar import Event
 from personal_api.models.core import Area, Program, Project, ProjectContributor
 from personal_api.models.goals import Goal, GoalProject
+from personal_api.models.health import (
+    Allergy,
+    Condition,
+    HealthEvent,
+    InsurancePlan,
+    Medication,
+    Protocol,
+    ProtocolItem,
+)
+from personal_api.models.history import ChangeLog
 from personal_api.models.knowledge import Decision, Resource
 from personal_api.models.metrics import Metric, MetricEntry
 from personal_api.models.notes import Note
+from personal_api.models.organizations import Affiliation, Organization
 from personal_api.models.people import Interaction, Person
 from personal_api.models.reviews import Review
 from personal_api.models.routines import Routine, RoutineInstance
@@ -23,12 +34,21 @@ __all__ = [
     "RoutineInstance",
     "Goal",
     "GoalProject",
+    "Condition",
+    "Medication",
+    "Protocol",
+    "ProtocolItem",
+    "HealthEvent",
+    "InsurancePlan",
+    "Allergy",
     "Metric",
     "MetricEntry",
     "Event",
     "Note",
     "Person",
     "Interaction",
+    "Organization",
+    "Affiliation",
     "Commitment",
     "WaitingItem",
     "Delegation",
@@ -37,4 +57,5 @@ __all__ = [
     "Decision",
     "Tag",
     "EntityTag",
+    "ChangeLog",
 ]
