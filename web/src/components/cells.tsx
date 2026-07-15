@@ -3,11 +3,15 @@ import { humanize, isOverdue, PRIORITY_CLASS, statusClass } from "@/lib/format"
 import { formatDate } from "@/lib/utils"
 import {
   useAreaLookup,
+  useConditionLookup,
   useGoalLookup,
+  useMedicationLookup,
   useMetricLookup,
+  useOrganizationLookup,
   usePeopleLookup,
   useProgramLookup,
   useProjectLookup,
+  useProtocolLookup,
   type LookupKey,
 } from "@/services/api/lookups"
 import type { Priority } from "@/services/api/types"
@@ -27,6 +31,10 @@ const LOOKUP_HOOKS = {
   people: usePeopleLookup,
   goal: useGoalLookup,
   metric: useMetricLookup,
+  organization: useOrganizationLookup,
+  condition: useConditionLookup,
+  medication: useMedicationLookup,
+  protocol: useProtocolLookup,
 } as const
 
 export function RefName({

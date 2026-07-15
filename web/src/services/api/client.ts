@@ -72,6 +72,29 @@ class ApiClient {
     })
     return handle<T>(resp)
   }
+
+  /** Fetch a bearer-protected binary resource (e.g. a photo) as a Blob. */
+  async getBlob(path: string): Promise<Blob> {
+    const resp = await fetch(`${BASE_URL}${path}`, { headers: authHeaders(false) })
+    if (resp.status === 401) {
+      clearStoredToken()
+      window.location.reload()
+      throw new ApiError(401, "Unauthorized")
+    }
+    if (!resp.ok) throw new ApiError(resp.status, await resp.text())
+    return resp.blob()
+  }
+
+  /** Multipart POST — lets the browser set the multipart boundary itself. */
+  async postForm<T>(path: string, form: FormData): Promise<T> {
+    const headers = authHeaders(false) // no JSON Content-Type
+    const resp = await fetch(`${BASE_URL}${path}`, {
+      method: "POST",
+      headers,
+      body: form,
+    })
+    return handle<T>(resp)
+  }
 }
 
 export const apiClient = new ApiClient()

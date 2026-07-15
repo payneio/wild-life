@@ -77,6 +77,58 @@ export type EntityType =
   | "review"
   | "resource"
   | "decision"
+  | "condition"
+  | "medication"
+  | "protocol"
+  | "protocol_item"
+  | "health_event"
+  | "insurance_plan"
+  | "allergy"
+
+// --- health enums ---
+export type ConditionCategory =
+  | "gastrointestinal"
+  | "cardiovascular"
+  | "dermatologic"
+  | "musculoskeletal"
+  | "urologic"
+  | "auditory"
+  | "mental_health"
+  | "other"
+export type ConditionStatus =
+  | "active"
+  | "monitoring"
+  | "chronic"
+  | "resolved"
+  | "ruled_out"
+export type MedType = "prescription" | "otc" | "supplement"
+export type MedStatus =
+  | "active"
+  | "discontinued"
+  | "as_needed"
+  | "planned"
+  | "completed"
+export type ProtocolStatus =
+  | "planned"
+  | "active"
+  | "paused"
+  | "completed"
+  | "abandoned"
+export type HealthEventType =
+  | "appointment"
+  | "lab"
+  | "procedure"
+  | "surgery"
+  | "imaging"
+  | "test"
+  | "vaccination"
+  | "injury"
+  | "symptom"
+  | "note"
+export type PlanType = "medical" | "dental" | "vision" | "pharmacy"
+export type AllergyType = "medication" | "food" | "environmental" | "other"
+export type AllergySeverity = "mild" | "moderate" | "severe" | "unknown"
+export type AllergyStatus = "active" | "suspected" | "resolved"
 
 // --- entities ---
 export interface Area extends Entity {
@@ -147,14 +199,33 @@ export interface Task extends Entity {
   completed_at: string | null
 }
 
+export interface ContactMethod {
+  value: string
+  label: string | null
+}
+
+export interface ImportantDate {
+  label: string | null
+  date: string
+}
+
 export interface Person extends Entity {
   name: string
+  nickname: string | null
   relationship: string | null
-  organization: string | null
   role: string | null
-  emails: string[]
-  phones: string[]
+  job_title: string | null
+  specialty: string | null
+  patient_id: string | null
+  portal_url: string | null
+  phones: ContactMethod[]
+  emails: ContactMethod[]
+  addresses: ContactMethod[]
+  websites: string[]
   preferred_contact: string | null
+  birthday: string | null
+  important_dates: ImportantDate[]
+  photo_url: string | null
   notes: string | null
 }
 
@@ -163,6 +234,28 @@ export interface Interaction extends Entity {
   occurred_at: string
   kind: string
   summary: string | null
+}
+
+export interface Organization extends Entity {
+  name: string
+  org_type: string | null
+  industry: string | null
+  website: string | null
+  email: string | null
+  phone: string | null
+  address: string | null
+  description: string | null
+  status: string
+  notes: string | null
+}
+
+export interface Affiliation extends Entity {
+  person_id: ID
+  organization_id: ID
+  role: string | null
+  is_primary: boolean
+  start_date: string | null
+  end_date: string | null
 }
 
 export interface Routine extends Entity {
@@ -350,6 +443,115 @@ export interface Decision extends Entity {
 export interface Tag extends Entity {
   name: string
   color: string | null
+}
+
+// --- health domain ---
+export interface Condition extends Entity {
+  name: string
+  category: ConditionCategory | null
+  status: ConditionStatus
+  area_id: ID | null
+  program_id: ID | null
+  severity: string | null
+  onset_date: string | null
+  resolved_date: string | null
+  diagnosed_by_id: ID | null
+  description: string | null
+  notes: string | null
+}
+
+export interface DoseSlot {
+  slot: string
+  amount: string | null
+}
+
+export interface Medication extends Entity {
+  name: string
+  brand: string | null
+  generic_name: string | null
+  med_type: MedType
+  form: string | null
+  strength: string | null
+  dose: string | null
+  schedule: DoseSlot[]
+  reason: string | null
+  condition_id: ID | null
+  prescriber_id: ID | null
+  pharmacy_id: ID | null
+  status: MedStatus
+  start_date: string | null
+  end_date: string | null
+  instructions: string | null
+  notes: string | null
+}
+
+export interface Protocol extends Entity {
+  name: string
+  category: string | null
+  intended_outcome: string | null
+  status: ProtocolStatus
+  area_id: ID | null
+  program_id: ID | null
+  start_date: string | null
+  end_date: string | null
+  duration: string | null
+  condition_id: ID | null
+  provider_id: ID | null
+  notes: string | null
+}
+
+export interface ProtocolItem extends Entity {
+  protocol_id: ID
+  medication_id: ID | null
+  substance: string | null
+  amount: string | null
+  timing: string[]
+  frequency: string | null
+  trigger: string | null
+  sort_order: number
+  notes: string | null
+}
+
+export interface HealthEvent extends Entity {
+  occurred_on: string
+  event_type: HealthEventType
+  title: string
+  provider_id: ID | null
+  organization_id: ID | null
+  condition_id: ID | null
+  summary: string | null
+  findings: string | null
+  recommendations: string | null
+  follow_up: string | null
+  follow_up_date: string | null
+  location: string | null
+  external_ref: string | null
+  notes: string | null
+}
+
+export interface InsurancePlan extends Entity {
+  name: string
+  plan_type: PlanType | null
+  organization_id: ID | null
+  network: string | null
+  member_id: string | null
+  group_number: string | null
+  rx_bin: string | null
+  rx_pcn: string | null
+  rx_group: string | null
+  phone: string | null
+  status: string
+  notes: string | null
+}
+
+export interface Allergy extends Entity {
+  substance: string
+  allergy_type: AllergyType | null
+  reaction: string | null
+  severity: AllergySeverity | null
+  status: AllergyStatus
+  noted_on: string | null
+  notes: string | null
 }
 
 // --- review dashboard ---

@@ -1,10 +1,14 @@
 import { NavLink, Outlet } from "react-router-dom"
 import {
+  Activity,
   Bookmark,
+  Building2,
   Calendar,
   ClipboardCheck,
   FolderKanban,
   HeartHandshake,
+  HeartPulse,
+  History,
   Home,
   Hourglass,
   Layers,
@@ -12,12 +16,16 @@ import {
   ListChecks,
   LogOut,
   NotebookPen,
+  Pill,
   Repeat,
   Rocket,
   Scale,
   Send,
+  ShieldPlus,
+  Stethoscope,
   Tag as TagIcon,
   Target,
+  TriangleAlert,
   Users,
 } from "lucide-react"
 import type { ComponentType } from "react"
@@ -39,8 +47,18 @@ const PLAN: Item[] = [
   { to: "/reviews", label: "Review", icon: ClipboardCheck },
 ]
 
+const HEALTH: Item[] = [
+  { to: "/conditions", label: "Conditions", icon: Activity },
+  { to: "/medications", label: "Medications", icon: Pill },
+  { to: "/protocols", label: "Protocols", icon: HeartPulse },
+  { to: "/health-events", label: "Health events", icon: Stethoscope },
+  { to: "/insurance", label: "Insurance", icon: ShieldPlus },
+  { to: "/allergies", label: "Allergies", icon: TriangleAlert },
+]
+
 const REFERENCE: Item[] = [
   { to: "/people", label: "People", icon: Users },
+  { to: "/organizations", label: "Organizations", icon: Building2 },
   { to: "/metrics", label: "Metrics", icon: LineChart },
   { to: "/notes", label: "Notes", icon: NotebookPen },
   { to: "/events", label: "Events", icon: Calendar },
@@ -48,6 +66,7 @@ const REFERENCE: Item[] = [
   { to: "/decisions", label: "Decisions", icon: Scale },
   { to: "/resources", label: "Resources", icon: Bookmark },
   { to: "/tags", label: "Tags", icon: TagIcon },
+  { to: "/history", label: "History", icon: History },
 ]
 
 function NavItem({ item }: { item: Item }) {
@@ -78,6 +97,12 @@ export function Layout() {
         <div className="px-3 pb-3 text-sm font-semibold text-slate-900">Personal</div>
         <nav className="flex-1 space-y-0.5 overflow-y-auto">
           {PLAN.map((i) => (
+            <NavItem key={i.to} item={i} />
+          ))}
+          <div className="px-3 pt-4 pb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
+            Health
+          </div>
+          {HEALTH.map((i) => (
             <NavItem key={i.to} item={i} />
           ))}
           <div className="px-3 pt-4 pb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">

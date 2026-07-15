@@ -9,7 +9,9 @@ import { GoalsPage } from "@/pages/GoalsPage"
 import { DelegationsPage } from "@/pages/DelegationsPage"
 import { ReviewsPage } from "@/pages/ReviewsPage"
 import { PeoplePage } from "@/pages/PeoplePage"
+import { OrganizationsPage } from "@/pages/OrganizationsPage"
 import { MetricsPage } from "@/pages/MetricsPage"
+import { HistoryPage } from "@/pages/HistoryPage"
 import {
   CommitmentsPage,
   DecisionsPage,
@@ -20,6 +22,14 @@ import {
   TagsPage,
   WaitingPage,
 } from "@/pages/simple"
+import {
+  AllergiesPage,
+  ConditionsPage,
+  HealthEventsPage,
+  InsurancePage,
+  MedicationsPage,
+  ProtocolsPage,
+} from "@/pages/health"
 
 export const router = createBrowserRouter([
   {
@@ -38,13 +48,21 @@ export const router = createBrowserRouter([
       { path: "waiting", element: <WaitingPage /> },
       { path: "reviews", element: <ReviewsPage /> },
       { path: "people", element: <PeoplePage /> },
+      { path: "organizations", element: <OrganizationsPage /> },
       { path: "metrics", element: <MetricsPage /> },
+      { path: "conditions", element: <ConditionsPage /> },
+      { path: "medications", element: <MedicationsPage /> },
+      { path: "protocols", element: <ProtocolsPage /> },
+      { path: "health-events", element: <HealthEventsPage /> },
+      { path: "insurance", element: <InsurancePage /> },
+      { path: "allergies", element: <AllergiesPage /> },
       { path: "notes", element: <NotesPage /> },
       { path: "events", element: <EventsPage /> },
       { path: "commitments", element: <CommitmentsPage /> },
       { path: "decisions", element: <DecisionsPage /> },
       { path: "resources", element: <ResourcesPage /> },
       { path: "tags", element: <TagsPage /> },
+      { path: "history", element: <HistoryPage /> },
     ],
   },
 ])

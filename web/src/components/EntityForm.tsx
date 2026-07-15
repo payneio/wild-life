@@ -2,11 +2,15 @@ import { useMemo, useState } from "react"
 import { Button, Field, Input, Select, Textarea } from "@/components/ui/primitives"
 import {
   useAreaLookup,
+  useConditionLookup,
   useGoalLookup,
+  useMedicationLookup,
   useMetricLookup,
+  useOrganizationLookup,
   usePeopleLookup,
   useProgramLookup,
   useProjectLookup,
+  useProtocolLookup,
   type LookupKey,
   type Option,
 } from "@/services/api/lookups"
@@ -71,6 +75,10 @@ export function EntityForm({
     people: usePeopleLookup(),
     goal: useGoalLookup(),
     metric: useMetricLookup(),
+    organization: useOrganizationLookup(),
+    condition: useConditionLookup(),
+    medication: useMedicationLookup(),
+    protocol: useProtocolLookup(),
   }
 
   const [values, setValues] = useState<Values>(() => {

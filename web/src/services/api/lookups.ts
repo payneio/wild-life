@@ -1,12 +1,33 @@
 import { useMemo } from "react"
-import { areas, goals, metrics, people, programs, projects } from "@/services/api/hooks"
+import {
+  areas,
+  conditions,
+  goals,
+  medications,
+  metrics,
+  organizations,
+  people,
+  programs,
+  projects,
+  protocols,
+} from "@/services/api/hooks"
 
 export interface Option {
   id: string
   label: string
 }
 
-export type LookupKey = "area" | "program" | "project" | "people" | "goal" | "metric"
+export type LookupKey =
+  | "area"
+  | "program"
+  | "project"
+  | "people"
+  | "goal"
+  | "metric"
+  | "organization"
+  | "condition"
+  | "medication"
+  | "protocol"
 
 /** Fetch a resource's rows and expose {options, nameOf}. */
 function useLookup(
@@ -34,3 +55,7 @@ export const useProjectLookup = () => useLookup(projects.useList, "name")
 export const usePeopleLookup = () => useLookup(people.useList, "name")
 export const useGoalLookup = () => useLookup(goals.useList, "name")
 export const useMetricLookup = () => useLookup(metrics.useList, "name")
+export const useOrganizationLookup = () => useLookup(organizations.useList, "name")
+export const useConditionLookup = () => useLookup(conditions.useList, "name")
+export const useMedicationLookup = () => useLookup(medications.useList, "name")
+export const useProtocolLookup = () => useLookup(protocols.useList, "name")
