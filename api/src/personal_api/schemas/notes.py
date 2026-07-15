@@ -49,3 +49,10 @@ class NoteRead(Entity):
     entity_type: str | None
     entity_id: uuid.UUID | None
     links: list[EntityRef] = []
+
+
+class NoteImageRead(Entity):
+    note_id: uuid.UUID
+    filename: str | None
+    content_type: str | None
+    sort_order: int

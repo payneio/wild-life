@@ -13,6 +13,7 @@ dependencies = [
     "alembic>=1.13.0",
     "greenlet>=3.0.0",
     "python-multipart>=0.0.9",
+    "sse-starlette>=2.1.0",
 ]
 
 [project.scripts]

@@ -7,7 +7,7 @@ target may be any table). ``entry_date`` supports the daily-journal use case.
 import uuid
 from datetime import date
 
-from sqlalchemy import Date, ForeignKey, Index, Text
+from sqlalchemy import Date, ForeignKey, Index, Integer, Text
 from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -49,3 +49,25 @@ class NoteMention(Base):
     )
     target_type: Mapped[str] = mapped_column(Text, primary_key=True)
     target_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+
+
+class NoteImage(UUIDPrimaryKey, TimestampMixin, Base):
+    """An image attached to a note.
+
+    Bytes live on disk at ``$DATA_DIR/note_images/<note_id>/<image_id>``; this row
+    holds the metadata. Referenced inline in the note body as the markdown image
+    ``![alt](note-image:<image_id>)`` and served (bearer-protected) from
+    ``GET /note-images/<image_id>``.
+    """
+
+    __tablename__ = "note_images"
+    __table_args__ = (Index("ix_note_images_note", "note_id"),)
+
+    note_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("notes.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    filename: Mapped[str | None] = mapped_column(Text)
+    content_type: Mapped[str | None] = mapped_column(Text)
+    sort_order: Mapped[int] = mapped_column(Integer, server_default="0", nullable=False)

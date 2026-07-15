@@ -11,7 +11,7 @@ Priority = Literal["low", "medium", "high", "urgent"]
 AreaStatus = Literal["active", "inactive", "archived"]
 ProgramStatus = Literal["proposed", "active", "paused", "completed", "cancelled"]
 ProjectStatus = Literal[
-    "proposed", "active", "waiting", "paused", "completed", "cancelled"
+    "proposed", "active", "waiting", "paused", "completed", "cancelled", "archived"
 ]
 TaskStatus = Literal[
     "inbox",
