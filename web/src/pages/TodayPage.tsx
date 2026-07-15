@@ -1,5 +1,6 @@
 import { CheckCircle2 } from "lucide-react"
 import { Link } from "react-router-dom"
+import { GlobalSearch } from "@/components/GlobalSearch"
 import { NoteComposer } from "@/components/NoteComposer"
 import { ReviewDashboardView } from "@/components/ReviewDashboard"
 import { TaskRow } from "@/pages/TasksPage"
@@ -55,6 +56,8 @@ export function TodayPage() {
           })}
         </p>
       </div>
+
+      <GlobalSearch />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">

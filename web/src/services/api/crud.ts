@@ -2,7 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query"
 import { apiClient } from "@/services/api/client"
 import type { Entity } from "@/services/api/types"
 
-type Params = Record<string, string | undefined>
+type Params = Record<string, string | string[] | undefined>
 export type Body = Record<string, unknown>
 
 /**

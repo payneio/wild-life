@@ -27,6 +27,7 @@ import {
   Scale,
   Send,
   ShieldPlus,
+  StickyNote,
   Stethoscope,
   Tag as TagIcon,
   Target,
@@ -42,6 +43,7 @@ type Item = { to: string; label: string; icon: ComponentType<{ size?: number }> 
 
 const PLAN: Item[] = [
   { to: "/today", label: "Today", icon: Home },
+  { to: "/whiteboard", label: "Whiteboard", icon: StickyNote },
   { to: "/areas", label: "Areas", icon: Layers },
   { to: "/programs", label: "Programs", icon: Rocket },
   { to: "/projects", label: "Projects", icon: FolderKanban },

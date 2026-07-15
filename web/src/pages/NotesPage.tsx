@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { ChevronLeft, ChevronRight, Link2, Pencil, Trash2 } from "lucide-react"
 import { Backlinks } from "@/components/Backlinks"
@@ -9,7 +9,8 @@ import { NoteComposer } from "@/components/NoteComposer"
 import { Badge, Card, EmptyState } from "@/components/ui/primitives"
 import { useListFilter, type ListConfig } from "@/lib/listFilter"
 import type { Body } from "@/services/api/crud"
-import { notes, useCreateNoteWithImages, useNotesCalendar } from "@/services/api/hooks"
+import { notes, useCreateNoteWithImages, useNoteCorpus, useNotesCalendar } from "@/services/api/hooks"
+import { formatDate } from "@/lib/utils"
 import { useEntityResolver } from "@/services/api/mentions"
 import type { Note } from "@/services/api/types"
 import { groupNotesByDay } from "@/lib/format"
@@ -19,6 +20,10 @@ const NOTE_TYPES = ["note", "journal", "idea", "meeting", "reference"] as const
 // Notes carrying this tag are the imported Microsoft work stream; the Journal
 // (personal) and Work Journal pages are the same component scoped by its presence.
 const WORK_TAG = "work:microsoft"
+
+// The Whiteboard is a third notes scope: notes carrying this tag. The personal
+// Journal excludes both this and the work tag so leftovers don't leak into it.
+const WHITEBOARD_TAG = "whiteboard"
 
 const NOTE_CONFIG: ListConfig = {
   searchKeys: ["title", "body"],
@@ -112,11 +117,81 @@ function JournalEntry({
   )
 }
 
+// --- search results (compact, highlighted) ---------------------------------
+const MENTION_TOKEN = /\[@([^\]]+)\]\(\w+:[0-9a-fA-F-]+\)/g
+const IMAGE_TOKEN = /!\[[^\]]*\]\(note-image:[^)]+\)/g
+
+function plain(body: string): string {
+  return body.replace(IMAGE_TOKEN, "").replace(MENTION_TOKEN, "@$1").replace(/\s+/g, " ").trim()
+}
+
+function snippet(body: string, q: string): string {
+  const text = plain(body)
+  const i = text.toLowerCase().indexOf(q.toLowerCase())
+  if (i < 0) return text.slice(0, 140) + (text.length > 140 ? "…" : "")
+  const start = Math.max(0, i - 50)
+  const end = Math.min(text.length, i + q.length + 90)
+  return (start > 0 ? "…" : "") + text.slice(start, end).trim() + (end < text.length ? "…" : "")
+}
+
+function Highlight({ text, q }: { text: string; q: string }) {
+  if (!q) return <>{text}</>
+  const out: ReactNode[] = []
+  const low = text.toLowerCase()
+  const ql = q.toLowerCase()
+  let i = 0
+  let idx = low.indexOf(ql)
+  while (idx >= 0) {
+    if (idx > i) out.push(text.slice(i, idx))
+    out.push(
+      <mark key={idx} className="rounded bg-amber-200/70 px-0.5 text-slate-900">
+        {text.slice(idx, idx + q.length)}
+      </mark>,
+    )
+    i = idx + q.length
+    idx = low.indexOf(ql, i)
+  }
+  out.push(text.slice(i))
+  return <>{out}</>
+}
+
+function SearchResultRow({ note, q, onOpen }: { note: Note; q: string; onOpen: () => void }) {
+  return (
+    <button
+      onClick={onOpen}
+      className="block w-full rounded-lg border border-slate-100 bg-white p-3 text-left hover:bg-slate-50"
+    >
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="truncate font-medium text-slate-800">
+          <Highlight text={note.title || "(untitled)"} q={q} />
+        </span>
+        {note.entry_date && (
+          <span className="shrink-0 text-xs text-slate-400">{formatDate(note.entry_date)}</span>
+        )}
+      </div>
+      <p className="mt-0.5 line-clamp-2 text-sm text-slate-600">
+        <Highlight text={snippet(note.body, q)} q={q} />
+      </p>
+    </button>
+  )
+}
+
 // --- page -------------------------------------------------------------------
-export function NotesPage({ scope = "personal" }: { scope?: "personal" | "work" }) {
+export function NotesPage({
+  scope = "personal",
+}: {
+  scope?: "personal" | "work" | "whiteboard"
+}) {
   const { id } = useParams()
   const navigate = useNavigate()
-  const scopeParam = scope === "work" ? { tag: WORK_TAG } : { no_tag: WORK_TAG }
+  const scopeParam =
+    scope === "work"
+      ? { tag: WORK_TAG }
+      : scope === "whiteboard"
+        ? { tag: WHITEBOARD_TAG }
+        : { no_tag: [WORK_TAG, WHITEBOARD_TAG] }
+  // Tag stamped onto notes composed in a tagged scope (personal adds nothing).
+  const scopeTag = scope === "work" ? WORK_TAG : scope === "whiteboard" ? WHITEBOARD_TAG : null
 
   const { data: calendar } = useNotesCalendar(scopeParam)
   const years = useMemo(
@@ -126,7 +201,8 @@ export function NotesPage({ scope = "personal" }: { scope?: "personal" | "work" 
   const [picked, setPicked] = useState<number | null>(null)
   const [search, setSearch] = useState("")
   const searchQ = search.trim()
-  const searching = searchQ.length > 0
+  const searching = searchQ.length >= 3
+  const partial = searchQ.length > 0 && searchQ.length < 3
   // A deep-linked note pins the view to its year; otherwise the user's pick,
   // else the most recent year with entries (derived — no effects needed).
   const { data: focusedNote } = notes.useGet(id ?? undefined)
@@ -135,10 +211,17 @@ export function NotesPage({ scope = "personal" }: { scope?: "personal" | "work" 
     : null
   const year = permalinkYear ?? picked ?? years[0] ?? new Date().getFullYear()
 
-  // Search hits the server across ALL years; browse is year-scoped. Both server-side.
-  const { data, isLoading } = notes.useList(
-    searching ? { q: searchQ, ...scopeParam } : { year: String(year), ...scopeParam },
-  )
+  // Browse: year-scoped (fast first paint). Search (≥3 chars): fetch the whole scoped
+  // corpus once and filter on the client so typing is instant.
+  const { data, isLoading } = notes.useList({ year: String(year), ...scopeParam })
+  const corpus = useNoteCorpus(scopeParam, searching)
+  const results = useMemo(() => {
+    if (!searching) return [] as Note[]
+    const ql = searchQ.toLowerCase()
+    return (corpus.data ?? []).filter((n) =>
+      `${n.title ?? ""} ${n.body}`.toLowerCase().includes(ql),
+    )
+  }, [searching, searchQ, corpus.data])
   const submitNote = useCreateNoteWithImages()
   const update = notes.useUpdate()
   const remove = notes.useRemove()
@@ -147,7 +230,9 @@ export function NotesPage({ scope = "personal" }: { scope?: "personal" | "work" 
   const focusedRef = useRef<HTMLDivElement>(null)
   const monthRefs = useRef<Record<number, HTMLDivElement | null>>({})
 
-  const base = scope === "work" ? "/work-journal" : "/notes"
+  const base =
+    scope === "work" ? "/work-journal" : scope === "whiteboard" ? "/whiteboard" : "/notes"
+  const heading = scope === "work" ? "Work Journal" : scope === "whiteboard" ? "Whiteboard" : "Journal"
   // Merge in a cross-scope permalinked note so its link never dead-ends.
   const rows = useMemo(() => {
     const list = data ?? []
@@ -177,12 +262,10 @@ export function NotesPage({ scope = "personal" }: { scope?: "personal" | "work" 
     <div className="mx-auto max-w-2xl space-y-4">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-lg font-semibold text-slate-900">
-            {scope === "work" ? "Work Journal" : "Journal"}
-          </h1>
+          <h1 className="text-lg font-semibold text-slate-900">{heading}</h1>
           <p className="text-sm text-slate-500">
             {searching
-              ? `${notesList.length} result${notesList.length === 1 ? "" : "s"}`
+              ? `${results.length} result${results.length === 1 ? "" : "s"}`
               : `${(data ?? []).length} in ${year}`}
           </p>
         </div>
@@ -225,11 +308,11 @@ export function NotesPage({ scope = "personal" }: { scope?: "personal" | "work" 
           autoFocus
           onSubmit={(b, pending) =>
             submitNote(
-              scope === "work"
+              scopeTag
                 ? {
                     ...b,
                     tags: Array.from(
-                      new Set([...((b.tags as string[] | undefined) ?? []), WORK_TAG]),
+                      new Set([...((b.tags as string[] | undefined) ?? []), scopeTag]),
                     ),
                   }
                 : b,
@@ -263,10 +346,32 @@ export function NotesPage({ scope = "personal" }: { scope?: "personal" | "work" 
 
       <ListToolbar {...toolbarProps} search={search} onSearch={setSearch} />
 
-      {isLoading ? (
+      {partial ? (
+        <EmptyState>Type 3+ characters to search…</EmptyState>
+      ) : searching ? (
+        corpus.isFetching && !corpus.data ? (
+          <EmptyState>Searching…</EmptyState>
+        ) : results.length === 0 ? (
+          <EmptyState>No matches.</EmptyState>
+        ) : (
+          <div className="space-y-1.5">
+            {results.map((n) => (
+              <SearchResultRow
+                key={n.id}
+                note={n}
+                q={searchQ}
+                onOpen={() => {
+                  setSearch("")
+                  navigate(`${base}/${n.id}`)
+                }}
+              />
+            ))}
+          </div>
+        )
+      ) : isLoading ? (
         <EmptyState>Loading…</EmptyState>
       ) : notesList.length === 0 ? (
-        <EmptyState>{searching ? "No matches." : `No entries in ${year}.`}</EmptyState>
+        <EmptyState>{`No entries in ${year}.`}</EmptyState>
       ) : (
         <div className="space-y-5">
           {groups.map((g) => {

@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { apiClient } from "@/services/api/client"
 import { createCrud, type Body } from "@/services/api/crud"
 import { finalizePendingImages, type PendingImage } from "@/services/api/noteImages"
@@ -155,7 +155,7 @@ export interface CalendarBucket {
   count: number
 }
 
-export function useNotesCalendar(params?: { tag?: string; no_tag?: string }) {
+export function useNotesCalendar(params?: { tag?: string; no_tag?: string | string[] }) {
   return useQuery({
     queryKey: ["notes", "calendar", params?.tag ?? "", params?.no_tag ?? ""],
     queryFn: () =>
@@ -163,6 +163,45 @@ export function useNotesCalendar(params?: { tag?: string; no_tag?: string }) {
         tag: params?.tag,
         no_tag: params?.no_tag,
       }),
+  })
+}
+
+/** All scoped notes (every year), fetched once for instant client-side journal
+ * search. `keepPreviousData` avoids flashing while the query key changes. */
+export function useNoteCorpus(
+  params: { tag?: string; no_tag?: string | string[] },
+  enabled: boolean,
+) {
+  return useQuery({
+    queryKey: ["notes", "corpus", params.tag ?? "", params.no_tag ?? ""],
+    queryFn: () =>
+      apiClient.get<Note[]>("/notes", { tag: params.tag, no_tag: params.no_tag }),
+    enabled,
+    placeholderData: keepPreviousData,
+    staleTime: 60_000,
+  })
+}
+
+// --- global cross-entity search (/search) ---
+export interface SearchHit {
+  type: EntityType
+  id: string
+  label: string
+  snippet: string | null
+  rank: number
+}
+
+export function useSearch(q: string, opts?: { types?: string; limit?: number }) {
+  return useQuery({
+    queryKey: ["search", q, opts?.types ?? "", opts?.limit ?? 20],
+    queryFn: () =>
+      apiClient.get<SearchHit[]>("/search", {
+        q,
+        types: opts?.types,
+        limit: String(opts?.limit ?? 20),
+      }),
+    enabled: q.length >= 3,
+    placeholderData: keepPreviousData,
   })
 }
 

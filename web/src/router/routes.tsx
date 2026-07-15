@@ -76,6 +76,7 @@ export const router = createBrowserRouter([
       // personal Journal and the Microsoft Work Journal, scoped by the work tag.
       { path: "notes", element: <NotesPage scope="personal" />, children: [{ path: ":id", element: <></> }] },
       { path: "work-journal", element: <NotesPage scope="work" />, children: [{ path: ":id", element: <></> }] },
+      { path: "whiteboard", element: <NotesPage scope="whiteboard" />, children: [{ path: ":id", element: <></> }] },
       withDetail("events", <EventsPage />, "event"),
       withDetail("commitments", <CommitmentsPage />, "commitment"),
       withDetail("decisions", <DecisionsPage />, "decision"),

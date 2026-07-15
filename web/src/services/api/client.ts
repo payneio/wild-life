@@ -31,16 +31,24 @@ async function handle<T>(resp: Response): Promise<T> {
   return resp.json() as Promise<T>
 }
 
-function qs(params?: Record<string, string | undefined>): string {
+type QueryParams = Record<string, string | string[] | undefined>
+
+function qs(params?: QueryParams): string {
   if (!params) return ""
-  const entries = Object.entries(params).filter(([, v]) => v != null && v !== "")
-  if (entries.length === 0) return ""
-  const sp = new URLSearchParams(entries as [string, string][])
-  return `?${sp.toString()}`
+  const sp = new URLSearchParams()
+  for (const [k, v] of Object.entries(params)) {
+    if (Array.isArray(v)) {
+      for (const item of v) if (item != null && item !== "") sp.append(k, item)
+    } else if (v != null && v !== "") {
+      sp.append(k, v)
+    }
+  }
+  const out = sp.toString()
+  return out ? `?${out}` : ""
 }
 
 class ApiClient {
-  async get<T>(path: string, params?: Record<string, string | undefined>): Promise<T> {
+  async get<T>(path: string, params?: QueryParams): Promise<T> {
     const resp = await fetch(`${BASE_URL}${path}${qs(params)}`, {
       headers: authHeaders(false),
     })
