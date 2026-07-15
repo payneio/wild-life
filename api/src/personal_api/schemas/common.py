@@ -67,6 +67,8 @@ EntityType = Literal[
     "event",
     "note",
     "person",
+    "organization",
+    "location",
     "commitment",
     "waiting_item",
     "delegation",

@@ -95,7 +95,14 @@ async def goal_computed_progress(
     total, done = totals.one()
     from_projects = round(100.0 * done / total, 1) if total else None
 
-    from_metric = None
+    # Metric-derived progress. Works in either direction: 0% at the baseline,
+    # 100% at (or past) the target. If no explicit baseline is set, the earliest
+    # recorded entry stands in as the starting point.
+    latest_value = None
+    metric_pct = None
+    baseline_val = goal.baseline
+    direction = None
+    met = None
     if goal.metric_id is not None:
         latest = await session.execute(
             select(MetricEntry.value)
@@ -103,14 +110,51 @@ async def goal_computed_progress(
             .order_by(MetricEntry.entry_date.desc())
             .limit(1)
         )
-        from_metric = latest.scalar_one_or_none()
+        latest_value = latest.scalar_one_or_none()
+        if baseline_val is None:
+            earliest = await session.execute(
+                select(MetricEntry.value)
+                .where(MetricEntry.metric_id == goal.metric_id)
+                .order_by(MetricEntry.entry_date.asc())
+                .limit(1)
+            )
+            baseline_val = earliest.scalar_one_or_none()
+        if (
+            latest_value is not None
+            and goal.target_value is not None
+            and baseline_val is not None
+        ):
+            direction = "down" if goal.target_value < baseline_val else "up"
+            met = (
+                latest_value <= goal.target_value
+                if direction == "down"
+                else latest_value >= goal.target_value
+            )
+            denom = goal.target_value - baseline_val
+            if denom == 0:
+                metric_pct = 100.0 if met else 0.0
+            else:
+                raw = (latest_value - baseline_val) / denom * 100.0
+                metric_pct = round(min(100.0, max(0.0, raw)), 1)
+
+    # Single headline number: explicit manual override, else metric, else projects.
+    overall = next(
+        (p for p in (goal.progress, metric_pct, from_projects) if p is not None),
+        None,
+    )
 
     return {
         "manual": goal.progress,
         "from_projects": from_projects,
         "linked_projects": total,
         "completed_projects": done,
-        "latest_metric_value": from_metric,
+        "latest_metric_value": latest_value,
+        "from_metric": metric_pct,
+        "metric_baseline": baseline_val,
+        "metric_target": goal.target_value,
+        "metric_direction": direction,
+        "metric_met": met,
+        "overall": overall,
     }
 
 

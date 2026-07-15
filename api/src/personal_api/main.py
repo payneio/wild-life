@@ -15,6 +15,7 @@ from personal_api.routers import (
     goals,
     history,
     knowledge,
+    locations,
     metrics,
     notes,
     organizations,
@@ -63,6 +64,7 @@ app.include_router(core.router)
 app.include_router(tasks.router)
 app.include_router(people.router)
 app.include_router(organizations.router)
+app.include_router(locations.router)
 app.include_router(routines.router)
 app.include_router(goals.router)
 app.include_router(metrics.router)

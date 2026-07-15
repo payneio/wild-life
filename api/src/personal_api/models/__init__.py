@@ -15,7 +15,8 @@ from personal_api.models.health import (
 from personal_api.models.history import ChangeLog
 from personal_api.models.knowledge import Decision, Resource
 from personal_api.models.metrics import Metric, MetricEntry
-from personal_api.models.notes import Note
+from personal_api.models.locations import Location
+from personal_api.models.notes import Note, NoteMention
 from personal_api.models.organizations import Affiliation, Organization
 from personal_api.models.people import Interaction, Person
 from personal_api.models.reviews import Review
@@ -47,8 +48,10 @@ __all__ = [
     "Note",
     "Person",
     "Interaction",
+    "NoteMention",
     "Organization",
     "Affiliation",
+    "Location",
     "Commitment",
     "WaitingItem",
     "Delegation",
