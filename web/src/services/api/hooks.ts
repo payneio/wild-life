@@ -148,6 +148,24 @@ export function useDuplicates(type?: EntityType) {
   })
 }
 
+// --- journal year/month navigation ---
+export interface CalendarBucket {
+  year: number
+  month: number
+  count: number
+}
+
+export function useNotesCalendar(params?: { tag?: string; no_tag?: string }) {
+  return useQuery({
+    queryKey: ["notes", "calendar", params?.tag ?? "", params?.no_tag ?? ""],
+    queryFn: () =>
+      apiClient.get<CalendarBucket[]>("/notes/calendar", {
+        tag: params?.tag,
+        no_tag: params?.no_tag,
+      }),
+  })
+}
+
 // --- notes that mention a given entity (backlinks) ---
 export function useNotesLinkedTo(type: EntityType | null, id: string | null) {
   return useQuery({
@@ -187,29 +205,18 @@ export function useOrganizationAffiliations(orgId: string | null) {
   })
 }
 
-/** Invalidate every affiliation view (list + both nested sides). */
-function invalidateAffiliations(qc: ReturnType<typeof useQueryClient>) {
-  qc.invalidateQueries({ queryKey: ["affiliations"] })
-  qc.invalidateQueries({ queryKey: ["people"] })
-  qc.invalidateQueries({ queryKey: ["organizations"] })
-}
-
 export function useSaveAffiliation() {
-  const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, body }: { id?: string; body: Body }) =>
       id
         ? apiClient.patch<Affiliation>(`/affiliations/${id}`, body)
         : apiClient.post<Affiliation>("/affiliations", body),
-    onSuccess: () => invalidateAffiliations(qc),
   })
 }
 
 export function useDeleteAffiliation() {
-  const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => apiClient.delete<void>(`/affiliations/${id}`),
-    onSuccess: () => invalidateAffiliations(qc),
   })
 }
 
@@ -230,14 +237,9 @@ export function useRoutineInstances(routineId: string | null) {
 }
 
 export function useCompleteRoutine() {
-  const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, on }: { id: string; on?: string }) =>
       apiClient.post(`/routines/${id}/complete${on ? `?on=${on}` : ""}`),
-    onSuccess: (_d, { id }) => {
-      qc.invalidateQueries({ queryKey: ["routines", id, "instances"] })
-      qc.invalidateQueries({ queryKey: ["routine-instances"] })
-    },
   })
 }
 
@@ -260,26 +262,16 @@ export function useGoalProgress(goalId: string | null) {
 }
 
 export function useLinkGoalProject() {
-  const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ goalId, projectId }: { goalId: string; projectId: string }) =>
       apiClient.post(`/goals/${goalId}/projects/${projectId}`),
-    onSuccess: (_d, { goalId }) => {
-      qc.invalidateQueries({ queryKey: ["goals", goalId, "projects"] })
-      qc.invalidateQueries({ queryKey: ["goals", goalId, "progress"] })
-    },
   })
 }
 
 export function useUnlinkGoalProject() {
-  const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ goalId, projectId }: { goalId: string; projectId: string }) =>
       apiClient.delete(`/goals/${goalId}/projects/${projectId}`),
-    onSuccess: (_d, { goalId }) => {
-      qc.invalidateQueries({ queryKey: ["goals", goalId, "projects"] })
-      qc.invalidateQueries({ queryKey: ["goals", goalId, "progress"] })
-    },
   })
 }
 
@@ -297,47 +289,37 @@ export function useEntityTags(entityType: string, entityId: string | null) {
 }
 
 export function useAttachTag() {
-  const qc = useQueryClient()
   return useMutation({
     mutationFn: (v: { tagId: string; entityType: string; entityId: string }) =>
       apiClient.post(`/tags/${v.tagId}/attach`, {
         entity_type: v.entityType,
         entity_id: v.entityId,
       }),
-    onSuccess: (_d, v) =>
-      qc.invalidateQueries({ queryKey: ["entity-tags", v.entityType, v.entityId] }),
   })
 }
 
 export function useDetachTag() {
-  const qc = useQueryClient()
   return useMutation({
     mutationFn: (v: { tagId: string; entityType: string; entityId: string }) =>
       apiClient.delete(
         `/tags/${v.tagId}/attach?entity_type=${v.entityType}&entity_id=${v.entityId}`,
       ),
-    onSuccess: (_d, v) =>
-      qc.invalidateQueries({ queryKey: ["entity-tags", v.entityType, v.entityId] }),
   })
 }
 
 // --- person photos (multipart upload / delete) ---
 export function useUploadPersonPhoto() {
-  const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, file }: { id: string; file: File }) => {
       const form = new FormData()
       form.append("file", file)
       return apiClient.postForm<Person>(`/people/${id}/photo`, form)
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["people"] }),
   })
 }
 
 export function useDeletePersonPhoto() {
-  const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => apiClient.delete(`/people/${id}/photo`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["people"] }),
   })
 }
