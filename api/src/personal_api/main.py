@@ -23,6 +23,7 @@ from personal_api.routers import (
     people,
     reviews,
     routines,
+    stream,
     tags,
     tasks,
     tracking,
@@ -79,6 +80,7 @@ app.include_router(knowledge.router)
 app.include_router(tags.router)
 app.include_router(health_routes.router)
 app.include_router(history.router)
+app.include_router(stream.router)
 
 
 def run() -> None:
