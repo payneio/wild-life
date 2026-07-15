@@ -15,6 +15,7 @@ import { LocationsPage } from "@/pages/LocationsPage"
 import { MetricsPage } from "@/pages/MetricsPage"
 import { HistoryPage } from "@/pages/HistoryPage"
 import { NotesPage } from "@/pages/NotesPage"
+import { DuplicatesPage } from "@/pages/DuplicatesPage"
 import {
   CommitmentsPage,
   DecisionsPage,
@@ -71,14 +72,17 @@ export const router = createBrowserRouter([
       withDetail("insurance", <InsurancePage />, "insurancePlan"),
       withDetail("allergies", <AllergiesPage />, "allergy"),
       // Notes is a bespoke page (markdown + @-mentions); it self-renders its
-      // detail from the :id param like People.
-      { path: "notes", element: <NotesPage />, children: [{ path: ":id", element: <></> }] },
+      // detail from the :id param like People. The same component backs the
+      // personal Journal and the Microsoft Work Journal, scoped by the work tag.
+      { path: "notes", element: <NotesPage scope="personal" />, children: [{ path: ":id", element: <></> }] },
+      { path: "work-journal", element: <NotesPage scope="work" />, children: [{ path: ":id", element: <></> }] },
       withDetail("events", <EventsPage />, "event"),
       withDetail("commitments", <CommitmentsPage />, "commitment"),
       withDetail("decisions", <DecisionsPage />, "decision"),
       withDetail("resources", <ResourcesPage />, "resource"),
       withDetail("tags", <TagsPage />, "tag"),
       { path: "history", element: <HistoryPage /> },
+      { path: "duplicates", element: <DuplicatesPage /> },
     ],
   },
 ])

@@ -1,20 +1,25 @@
 import { useState } from "react"
 import { Input } from "@/components/ui/primitives"
 import { typeLabel, useEntitySearch, type MentionResult } from "@/services/api/mentions"
+import type { EntityType } from "@/services/api/types"
 
-/** Typeahead over every mentionable entity. Calls onSelect with the picked entity. */
+/** Typeahead over mentionable entities. Optionally restrict to one type / exclude an id. */
 export function EntityCombobox({
   onSelect,
   onClose,
   placeholder = "Search people, places, projects…",
+  type,
+  excludeId,
 }: {
   onSelect: (r: MentionResult) => void
   onClose?: () => void
   placeholder?: string
+  type?: EntityType
+  excludeId?: string
 }) {
   const [q, setQ] = useState("")
   const [active, setActive] = useState(0)
-  const results = useEntitySearch(q).slice(0, 20)
+  const results = useEntitySearch(q, { type, excludeId }).slice(0, 20)
 
   function key(e: React.KeyboardEvent) {
     if (e.key === "ArrowDown") {

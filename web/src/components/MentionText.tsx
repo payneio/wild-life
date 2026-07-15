@@ -1,9 +1,12 @@
 import Markdown, { type Components } from "react-markdown"
 import remarkGfm from "remark-gfm"
+import { AuthImage } from "@/components/AuthImage"
 import { MentionChip } from "@/components/MentionChip"
 import type { EntityType } from "@/services/api/types"
 
 const MENTION_HREF = /^(\w+):([0-9a-fA-F-]{36})$/
+const NOTE_IMAGE = /^note-image:([0-9a-fA-F-]{36})$/
+const IMG_CLS = "my-2 max-h-96 max-w-full rounded-lg border border-slate-200"
 
 // Minimal markdown styling (no @tailwindcss/typography in this app).
 const COMPONENTS: Components = {
@@ -23,6 +26,14 @@ const COMPONENTS: Components = {
     <code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-[0.85em] text-slate-700">{children}</code>
   ),
   hr: () => <hr className="my-3 border-slate-100" />,
+  img: ({ src, alt }) => {
+    const s = typeof src === "string" ? src : ""
+    const m = s.match(NOTE_IMAGE)
+    if (m) return <AuthImage imageId={m[1]} alt={typeof alt === "string" ? alt : undefined} />
+    if (s.startsWith("note-image:pending"))
+      return <span className="my-2 inline-block rounded bg-slate-100 px-2 py-1 text-xs text-slate-400">🖼 image (uploads on save)</span>
+    return <img src={s} alt={alt ?? ""} className={IMG_CLS} />
+  },
   a: ({ href, children }) => {
     const m = href?.match(MENTION_HREF)
     if (m) {

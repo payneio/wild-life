@@ -338,7 +338,7 @@ export const AREA_FIELDS: FieldSpec[] = [
 
 export const PROJECT_FIELDS: FieldSpec[] = [
   { name: "name", label: "Name", full: true },
-  { name: "status", label: "Status", type: "select", options: ["proposed", "active", "waiting", "paused", "completed", "cancelled"] },
+  { name: "status", label: "Status", type: "select", options: ["proposed", "active", "waiting", "paused", "completed", "cancelled", "archived"] },
   { name: "priority", label: "Priority", type: "select", options: PRIORITIES },
   { name: "area_id", label: "Area", type: "entity", lookup: "area" },
   { name: "program_id", label: "Program", type: "entity", lookup: "program" },

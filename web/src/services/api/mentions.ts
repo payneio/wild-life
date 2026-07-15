@@ -84,13 +84,20 @@ export const typeLabel = (type: EntityType): string => LABEL_BY_TYPE[type] ?? ty
 
 /** Typeahead across every mentionable source (client-side, registry-driven).
  * Cheap enough (single-user data) to recompute each render — no memo. */
-export function useEntitySearch(query: string, limitPerType = 6): MentionResult[] {
+export function useEntitySearch(
+  query: string,
+  opts: { type?: EntityType; excludeId?: string; limitPerType?: number } = {},
+): MentionResult[] {
+  const { type, excludeId, limitPerType = 6 } = opts
+  // NB: call useList for every source (stable hook count); filter afterwards.
   const lists = MENTION_SOURCES.map((s) => ({ s, data: s.useList().data ?? [] }))
   const q = query.trim().toLowerCase()
   const out: MentionResult[] = []
   for (const { s, data } of lists) {
+    if (type && s.type !== type) continue
     let n = 0
     for (const e of data) {
+      if (excludeId && e.id === excludeId) continue
       const label = s.title(e) ?? ""
       if (q && !label.toLowerCase().includes(q)) continue
       out.push({ type: s.type, id: e.id, label })

@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react"
-import { Pencil, Trash2 } from "lucide-react"
+import { GitMerge, Pencil, Trash2 } from "lucide-react"
+import { MergeDialog } from "@/components/MergeDialog"
 import { Backlinks } from "@/components/Backlinks"
 import { DateText, PriorityBadge, RefName, StatusBadge } from "@/components/cells"
 import { EntityForm, type FieldSpec } from "@/components/EntityForm"
@@ -73,6 +74,7 @@ export function DetailView({
   const update = def.crud.useUpdate()
   const remove = def.crud.useRemove()
   const [editing, setEditing] = useState(false)
+  const [merging, setMerging] = useState(false)
   const row = entity as unknown as Record<string, unknown>
 
   function submit(body: Body) {
@@ -97,7 +99,20 @@ export function DetailView({
         >
           <Trash2 size={15} /> Delete
         </Button>
+        {def.entityType && (
+          <Button variant="ghost" onClick={() => setMerging(true)}>
+            <GitMerge size={15} /> Merge…
+          </Button>
+        )}
       </div>
+
+      {merging && def.entityType && (
+        <MergeDialog
+          type={def.entityType}
+          survivor={{ id: entity.id, label: def.title(entity) }}
+          onClose={() => setMerging(false)}
+        />
+      )}
 
       <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
         {def.fields.map((f) => (

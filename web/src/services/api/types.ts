@@ -19,6 +19,7 @@ export type ProjectStatus =
   | "paused"
   | "completed"
   | "cancelled"
+  | "archived"
 export type TaskStatus =
   | "inbox"
   | "planned"
@@ -372,6 +373,13 @@ export interface Note extends Entity {
   entity_type: EntityType | null
   entity_id: ID | null
   links: NoteLink[]
+}
+
+export interface NoteImage extends Entity {
+  note_id: ID
+  filename: string | null
+  content_type: string | null
+  sort_order: number
 }
 
 export interface Commitment extends Entity {

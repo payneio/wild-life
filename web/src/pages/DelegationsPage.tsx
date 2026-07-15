@@ -1,10 +1,13 @@
-import { useState } from "react"
-import { Outlet, useNavigate } from "react-router-dom"
+import { useMemo, useState } from "react"
+import { Outlet, useNavigate, useParams } from "react-router-dom"
 import { Plus } from "lucide-react"
 import { EntityForm, type FieldSpec } from "@/components/EntityForm"
+import { ListToolbar } from "@/components/ListToolbar"
 import { DateText, PriorityBadge, RefName, StatusBadge } from "@/components/cells"
-import { Button, Card, EmptyState, Modal } from "@/components/ui/primitives"
+import { Button, EmptyState, Modal } from "@/components/ui/primitives"
+import { useListFilter, type ListConfig } from "@/lib/listFilter"
 import { isOverdue } from "@/lib/format"
+import { cn } from "@/lib/utils"
 import { delegations } from "@/services/api/hooks"
 import type { Body } from "@/services/api/crud"
 import type { Delegation, DelegationStatus } from "@/services/api/types"
@@ -23,13 +26,14 @@ const DELEGATION_STATUS: DelegationStatus[] = [
   "reassigned",
   "cancelled",
 ]
+const PRIORITIES = ["low", "medium", "high", "urgent"] as const
 
 const FIELDS: FieldSpec[] = [
   { name: "requested_outcome", label: "Requested outcome", type: "textarea", full: true },
   { name: "responsible_id", label: "Responsible", type: "entity", lookup: "people" },
   { name: "accountable_owner_id", label: "Accountable", type: "entity", lookup: "people" },
   { name: "status", label: "Status", type: "select", options: DELEGATION_STATUS },
-  { name: "priority", label: "Priority", type: "select", options: ["low", "medium", "high", "urgent"] },
+  { name: "priority", label: "Priority", type: "select", options: PRIORITIES },
   { name: "date_delegated", label: "Delegated on", type: "date" },
   { name: "expected_completion_date", label: "Expected", type: "date" },
   { name: "follow_up_date", label: "Follow up", type: "date" },
@@ -41,6 +45,16 @@ const FIELDS: FieldSpec[] = [
   { name: "notes", label: "Notes", type: "textarea", full: true },
 ]
 
+const CONFIG: ListConfig = {
+  searchKeys: ["requested_outcome", "instructions", "latest_update", "notes"],
+  filters: [
+    { field: "status", label: "Status", options: DELEGATION_STATUS },
+    { field: "priority", label: "Priority", options: PRIORITIES },
+  ],
+  sorts: [],
+}
+
+// Open statuses in the order they should surface; everything else is "closed".
 const OPEN_ORDER: DelegationStatus[] = [
   "blocked",
   "waiting_for_update",
@@ -51,16 +65,35 @@ const OPEN_ORDER: DelegationStatus[] = [
   "delivered",
   "draft",
 ]
+const CLOSED = new Set<DelegationStatus>([
+  "accepted_as_complete",
+  "declined",
+  "reassigned",
+  "cancelled",
+])
 
-function Item({ d, onEdit }: { d: Delegation; onEdit: (d: Delegation) => void }) {
+function Item({
+  d,
+  selected,
+  onOpen,
+}: {
+  d: Delegation
+  selected: boolean
+  onOpen: () => void
+}) {
   const late = isOverdue(d.expected_completion_date) && d.status !== "accepted_as_complete"
   return (
     <button
-      onClick={() => onEdit(d)}
-      className="w-full rounded-lg border border-slate-100 p-3 text-left hover:bg-slate-50"
+      onClick={onOpen}
+      className={cn(
+        "w-full rounded-lg border border-slate-100 p-2.5 text-left hover:bg-slate-50",
+        selected && "border-indigo-200 bg-indigo-50 hover:bg-indigo-50",
+      )}
     >
       <div className="flex items-start justify-between gap-2">
-        <span className="text-sm font-medium text-slate-800">{d.requested_outcome}</span>
+        <span className="line-clamp-2 text-sm font-medium text-slate-800">
+          {d.requested_outcome}
+        </span>
         <PriorityBadge priority={d.priority} />
       </div>
       <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
@@ -70,11 +103,6 @@ function Item({ d, onEdit }: { d: Delegation; onEdit: (d: Delegation) => void })
         {d.expected_completion_date && (
           <span className={late ? "font-medium text-red-600" : ""}>
             due <DateText value={d.expected_completion_date} />
-          </span>
-        )}
-        {d.follow_up_date && (
-          <span>
-            follow-up <DateText value={d.follow_up_date} overdue />
           </span>
         )}
         {d.escalation_level > 0 && <span className="text-amber-600">esc {d.escalation_level}</span>}
@@ -88,19 +116,22 @@ function Item({ d, onEdit }: { d: Delegation; onEdit: (d: Delegation) => void })
 
 export function DelegationsPage() {
   const navigate = useNavigate()
+  const { id: selectedId } = useParams()
   const { data } = delegations.useList()
   const create = delegations.useCreate()
   const [creating, setCreating] = useState(false)
-  const rows = data ?? []
+  const rows = useMemo(() => data ?? [], [data])
+  const { filtered, toolbarProps } = useListFilter(
+    rows as unknown as Record<string, unknown>[],
+    CONFIG,
+  )
+  const list = filtered as unknown as Delegation[]
 
   const groups = OPEN_ORDER.map((s) => ({
     status: s,
-    items: rows.filter((d) => d.status === s),
+    items: list.filter((d) => d.status === s),
   })).filter((g) => g.items.length > 0)
-  const closed = rows.filter(
-    (d) => !OPEN_ORDER.includes(d.status) && d.status !== "accepted_as_complete",
-  )
-  const complete = rows.filter((d) => d.status === "accepted_as_complete")
+  const closed = list.filter((d) => CLOSED.has(d.status))
 
   function submit(body: Body) {
     create.mutate(body)
@@ -108,56 +139,80 @@ export function DelegationsPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-semibold text-slate-900">Delegations</h1>
-          <p className="text-sm text-slate-500">Work you've handed off — oversight without doing it yourself</p>
+    <div className="flex flex-col gap-4 lg:flex-row">
+      <div className="space-y-3 lg:w-[28rem] lg:shrink-0">
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <h1 className="text-lg font-semibold text-slate-900">Delegations</h1>
+            <p className="truncate text-sm text-slate-500">Work you've handed off</p>
+          </div>
+          <Button onClick={() => setCreating(true)}>
+            <Plus size={16} />
+            New
+          </Button>
         </div>
-        <Button onClick={() => setCreating(true)}>
-          <Plus size={16} />
-          New delegation
-        </Button>
+
+        <ListToolbar {...toolbarProps} />
+
+        {rows.length === 0 ? (
+          <EmptyState>No delegations yet.</EmptyState>
+        ) : list.length === 0 ? (
+          <EmptyState>No matches.</EmptyState>
+        ) : (
+          <div className="max-h-[75vh] space-y-4 overflow-y-auto pr-1">
+            {groups.map((g) => (
+              <div key={g.status}>
+                <div className="mb-1.5 flex items-center gap-2">
+                  <StatusBadge status={g.status} />
+                  <span className="text-xs text-slate-400">{g.items.length}</span>
+                </div>
+                <div className="space-y-2">
+                  {g.items.map((d) => (
+                    <Item
+                      key={d.id}
+                      d={d}
+                      selected={d.id === selectedId}
+                      onOpen={() => navigate(d.id)}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+            {closed.length > 0 && (
+              <div>
+                <div className="mb-1.5 text-xs font-medium tracking-wide text-slate-400 uppercase">
+                  Closed
+                </div>
+                <div className="space-y-2">
+                  {closed.map((d) => (
+                    <Item
+                      key={d.id}
+                      d={d}
+                      selected={d.id === selectedId}
+                      onOpen={() => navigate(d.id)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {rows.length === 0 ? (
-        <EmptyState>No delegations yet.</EmptyState>
-      ) : (
-        <div className="space-y-4">
-          {groups.map((g) => (
-            <div key={g.status}>
-              <div className="mb-1.5 flex items-center gap-2">
-                <StatusBadge status={g.status} />
-                <span className="text-xs text-slate-400">{g.items.length}</span>
-              </div>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {g.items.map((d) => (
-                  <Item key={d.id} d={d} onEdit={(x) => navigate(x.id)} />
-                ))}
-              </div>
-            </div>
-          ))}
-          {(closed.length > 0 || complete.length > 0) && (
-            <Card className="p-3 text-sm text-slate-500">
-              {complete.length} completed · {closed.length} closed
-            </Card>
-          )}
+      {!selectedId && (
+        <div className="hidden flex-1 lg:block">
+          <EmptyState>Select a delegation to see its details.</EmptyState>
         </div>
       )}
+      <Outlet />
 
       {creating && (
         <Modal title="New delegation" onClose={() => setCreating(false)}>
           <div className="max-h-[70vh] overflow-y-auto pr-1">
-            <EntityForm
-              fields={FIELDS}
-              onSubmit={submit}
-              onCancel={() => setCreating(false)}
-            />
+            <EntityForm fields={FIELDS} onSubmit={submit} onCancel={() => setCreating(false)} />
           </div>
         </Modal>
       )}
-
-      <Outlet />
     </div>
   )
 }

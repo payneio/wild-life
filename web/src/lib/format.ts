@@ -45,3 +45,44 @@ export function statusClass(status: string): string {
     return "bg-indigo-100 text-indigo-700"
   return "bg-slate-100 text-slate-600"
 }
+
+// --- journal day grouping ---------------------------------------------------
+/** A friendly header for a day: "Today" | "Yesterday" | "Mon, Jul 14". */
+export function dayLabel(dateStr: string | null | undefined): string {
+  if (!dateStr) return "Undated"
+  const iso = dateStr.slice(0, 10)
+  const today = todayISO()
+  if (iso === today) return "Today"
+  const d = new Date(`${today}T00:00:00`)
+  d.setDate(d.getDate() - 1)
+  const p = (n: number) => String(n).padStart(2, "0")
+  const yesterday = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+  if (iso === yesterday) return "Yesterday"
+  return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: iso.slice(0, 4) === today.slice(0, 4) ? undefined : "numeric",
+  })
+}
+
+/** Bucket notes into day groups (by entry_date, falling back to created_at),
+ * preserving the incoming (newest-first) order. */
+export function groupNotesByDay<
+  T extends { entry_date: string | null; created_at: string },
+>(notes: T[]): { key: string; label: string; notes: T[] }[] {
+  const groups: { key: string; label: string; notes: T[] }[] = []
+  const byKey = new Map<string, { key: string; label: string; notes: T[] }>()
+  for (const n of notes) {
+    const stamp = n.entry_date ?? n.created_at
+    const key = stamp.slice(0, 10)
+    let g = byKey.get(key)
+    if (!g) {
+      g = { key, label: dayLabel(stamp), notes: [] }
+      byKey.set(key, g)
+      groups.push(g)
+    }
+    g.notes.push(n)
+  }
+  return groups
+}

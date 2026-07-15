@@ -3,10 +3,12 @@ import { NavLink, Outlet } from "react-router-dom"
 import {
   Activity,
   Bookmark,
+  Briefcase,
   Building2,
   Calendar,
   ClipboardCheck,
   FolderKanban,
+  GitMerge,
   HeartHandshake,
   HeartPulse,
   History,
@@ -65,13 +67,15 @@ const REFERENCE: Item[] = [
   { to: "/organizations", label: "Organizations", icon: Building2 },
   { to: "/locations", label: "Locations", icon: MapPin },
   { to: "/metrics", label: "Metrics", icon: LineChart },
-  { to: "/notes", label: "Notes", icon: NotebookPen },
+  { to: "/notes", label: "Journal", icon: NotebookPen },
+  { to: "/work-journal", label: "Work Journal", icon: Briefcase },
   { to: "/events", label: "Events", icon: Calendar },
   { to: "/commitments", label: "Commitments", icon: HeartHandshake },
   { to: "/decisions", label: "Decisions", icon: Scale },
   { to: "/resources", label: "Resources", icon: Bookmark },
   { to: "/tags", label: "Tags", icon: TagIcon },
   { to: "/history", label: "History", icon: History },
+  { to: "/duplicates", label: "Duplicates", icon: GitMerge },
 ]
 
 function NavItem({ item, onNavigate }: { item: Item; onNavigate?: () => void }) {

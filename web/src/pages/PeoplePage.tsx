@@ -5,6 +5,7 @@ import { DetailDrawer } from "@/components/DetailDrawer"
 import {
   Cake,
   Copy,
+  GitMerge,
   Globe,
   ImageUp,
   Mail,
@@ -12,11 +13,13 @@ import {
   Pencil,
   Phone,
   Plus,
+  Search,
   Trash2,
   X,
 } from "lucide-react"
 import { AffiliationsEditor } from "@/components/AffiliationsEditor"
 import { Backlinks } from "@/components/Backlinks"
+import { MergeDialog } from "@/components/MergeDialog"
 import { Avatar } from "@/components/AuthedImage"
 import { PersonForm } from "@/components/PersonForm"
 import { StatusBadge } from "@/components/cells"
@@ -389,6 +392,7 @@ function PersonDetail({
   const update = people.useUpdate()
   const [notes, setNotes] = useState(person.notes ?? "")
   const [notesDirty, setNotesDirty] = useState(false)
+  const [merging, setMerging] = useState(false)
   const bday = birthdayInfo(person.birthday)
 
   return (
@@ -419,11 +423,22 @@ function PersonDetail({
           <Button variant="secondary" onClick={onEdit}>
             <Pencil size={14} /> Edit
           </Button>
+          <Button variant="ghost" onClick={() => setMerging(true)} title="Merge duplicate">
+            <GitMerge size={14} />
+          </Button>
           <Button variant="danger" onClick={onDelete}>
             <Trash2 size={14} />
           </Button>
         </div>
       </div>
+
+      {merging && (
+        <MergeDialog
+          type="person"
+          survivor={{ id: person.id, label: person.name }}
+          onClose={() => setMerging(false)}
+        />
+      )}
 
       <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-4">
@@ -669,11 +684,18 @@ export function PeoplePage() {
       <div className="flex flex-col gap-4 lg:flex-row">
         <div className="lg:w-80 lg:shrink-0">
           <div className="space-y-2">
-            <Input
-              placeholder="Search name, email, phone…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+            <div className="relative">
+              <Search
+                size={15}
+                className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-slate-400"
+              />
+              <Input
+                className="pl-8"
+                placeholder="Search name, email, phone…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
             <div className="flex gap-2">
               <Select
                 className="text-xs"

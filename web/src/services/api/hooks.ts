@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { apiClient } from "@/services/api/client"
 import { createCrud, type Body } from "@/services/api/crud"
+import { finalizePendingImages, type PendingImage } from "@/services/api/noteImages"
 import type {
   Affiliation,
   Allergy,
@@ -54,6 +55,24 @@ export const metrics = createCrud<Metric>("metrics")
 export const metricEntries = createCrud<MetricEntry>("metric-entries")
 export const events = createCrud<EventItem>("events")
 export const notes = createCrud<Note>("notes")
+
+/**
+ * Create a note, then upload any images that were attached while composing (a
+ * new note has no id to attach to yet) and rewrite their body tokens to the real
+ * refs. Returns a `(body, pending) => Promise<Note>` submit handler.
+ */
+export function useCreateNoteWithImages() {
+  const create = notes.useCreate()
+  const update = notes.useUpdate()
+  return async (body: Body, pending: PendingImage[]): Promise<Note> => {
+    const note = await create.mutateAsync(body)
+    if (pending.length) {
+      const finalBody = await finalizePendingImages(note.id, String(body.body ?? ""), pending)
+      await update.mutateAsync({ id: note.id, body: { body: finalBody } })
+    }
+    return note
+  }
+}
 export const commitments = createCrud<Commitment>("commitments")
 export const waitingItems = createCrud<WaitingItem>("waiting-items")
 export const delegations = createCrud<Delegation>("delegations")
@@ -85,6 +104,47 @@ export function useReviewDashboard() {
   return useQuery({
     queryKey: ["review-dashboard"],
     queryFn: () => apiClient.get<ReviewDashboard>("/review-dashboard"),
+  })
+}
+
+// --- entity merge (combine duplicates) ---
+export interface MergePreview {
+  total_references: number
+  by_site: Record<string, number>
+  note_bodies: number
+}
+
+export function useMergeEntities() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (v: {
+      type: EntityType
+      survivor_id: string
+      loser_id: string
+      fill_fields?: boolean
+    }) => apiClient.post("/merge", v),
+    // Merge repoints references across many tables — invalidate everything.
+    onSuccess: () => qc.invalidateQueries(),
+  })
+}
+
+export function useMergePreview() {
+  return useMutation({
+    mutationFn: (v: { type: EntityType; survivor_id: string; loser_id: string }) =>
+      apiClient.post<MergePreview>("/merge/preview", v),
+  })
+}
+
+export interface DuplicateGroup {
+  type: EntityType
+  members: { id: string; name: string }[]
+}
+
+export function useDuplicates(type?: EntityType) {
+  return useQuery({
+    queryKey: ["duplicates", type ?? "all"],
+    queryFn: () =>
+      apiClient.get<DuplicateGroup[]>("/merge/duplicates", type ? { type } : undefined),
   })
 }
 

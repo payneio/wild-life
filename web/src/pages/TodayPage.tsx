@@ -1,5 +1,6 @@
 import { CheckCircle2 } from "lucide-react"
 import { Link } from "react-router-dom"
+import { NoteComposer } from "@/components/NoteComposer"
 import { ReviewDashboardView } from "@/components/ReviewDashboard"
 import { TaskRow } from "@/pages/TasksPage"
 import { Card, EmptyState } from "@/components/ui/primitives"
@@ -10,6 +11,7 @@ import {
   routines,
   tasks,
   useCompleteRoutine,
+  useCreateNoteWithImages,
   useReviewDashboard,
 } from "@/services/api/hooks"
 
@@ -33,6 +35,7 @@ export function TodayPage() {
   const { data: eventData } = events.useList()
   const { data: dash } = useReviewDashboard()
   const complete = useCompleteRoutine()
+  const submitNote = useCreateNoteWithImages()
 
   const todays = (taskData ?? [])
     .filter((t) => (t.scheduled_date && t.scheduled_date <= today) || (t.due_date && t.due_date <= today))
@@ -55,6 +58,18 @@ export function TodayPage() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
+          <section>
+            <SectionTitle to="/notes">Journal</SectionTitle>
+            <Card className="p-3">
+              <NoteComposer
+                mode="create"
+                compact
+                placeholder="Jot an entry for today…"
+                onSubmit={(b, pending) => submitNote(b, pending)}
+              />
+            </Card>
+          </section>
+
           <section>
             <SectionTitle to="/tasks">Today's tasks</SectionTitle>
             {todays.length === 0 ? (
