@@ -5,12 +5,13 @@ from datetime import date, datetime, timedelta, timezone
 from typing import Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from personal_api.db.session import get_session
 from personal_api.models.tasks import Task
+from personal_api.query import apply_query
 from personal_api.schemas.common import Priority, TaskStatus
 from personal_api.schemas.tasks import TaskCreate, TaskRead, TaskUpdate
 
@@ -107,6 +108,7 @@ async def create_task(
 
 @router.get("", response_model=list[TaskRead])
 async def list_tasks(
+    request: Request,
     session: AsyncSession = Depends(get_session),
     queue: Literal["personal", "delegated", "all"] = "all",
     status_filter: TaskStatus | None = None,
@@ -138,14 +140,21 @@ async def list_tasks(
     if not include_closed and queue != "delegated":
         stmt = stmt.where(Task.status.notin_(_CLOSED_STATUSES))
 
+    stmt, limit, offset = apply_query(stmt, Task, request.query_params)
+    if offset is not None:
+        stmt = stmt.offset(offset)
+    if limit is not None:
+        stmt = stmt.limit(limit)
     result = await session.execute(stmt)
     items = list(result.scalars().all())
-    items.sort(
-        key=lambda t: (
-            _PRIORITY_ORDER.get(t.priority, 99),
-            t.due_date or date.max,
+    if "sort" not in request.query_params:
+        # default: priority then due date (unless the caller supplied ?sort=)
+        items.sort(
+            key=lambda t: (
+                _PRIORITY_ORDER.get(t.priority, 99),
+                t.due_date or date.max,
+            )
         )
-    )
     return items
 
 

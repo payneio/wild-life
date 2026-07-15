@@ -8,11 +8,12 @@ of these per resource and add anything extra on top.
 from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from personal_api.db.session import get_session
+from personal_api.query import apply_query
 
 
 def crud_router(
@@ -40,10 +41,24 @@ def crud_router(
         return obj
 
     @router.get("", response_model=list[read_schema])
-    async def list_all(session: AsyncSession = Depends(get_session)) -> Any:
+    async def list_all(
+        request: Request,
+        response: Response,
+        session: AsyncSession = Depends(get_session),
+    ) -> Any:
         stmt = select(model)
         if order_by is not None:
             stmt = stmt.order_by(order_by)
+        stmt, limit, offset = apply_query(stmt, model, request.query_params)
+        if limit is not None or offset is not None:
+            total = await session.scalar(
+                select(func.count()).select_from(stmt.order_by(None).subquery())
+            )
+            response.headers["X-Total-Count"] = str(total or 0)
+            if offset is not None:
+                stmt = stmt.offset(offset)
+            if limit is not None:
+                stmt = stmt.limit(limit)
         result = await session.execute(stmt)
         return result.scalars().all()
 

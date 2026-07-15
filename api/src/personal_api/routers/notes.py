@@ -1,17 +1,19 @@
 """Routes for notes (with entity-link + type filters + backlinks)."""
 
 from collections import defaultdict
+from datetime import date
 from pathlib import Path
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
 from fastapi.responses import Response
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from personal_api.config import settings
 from personal_api.db.session import get_session
 from personal_api.models.notes import Note, NoteImage, NoteMention
+from personal_api.query import apply_query
 from personal_api.schemas.common import EntityType
 from personal_api.schemas.notes import (
     EntityRef,
@@ -98,12 +100,16 @@ async def create_note(
 
 @router.get("", response_model=list[NoteRead])
 async def list_notes(
+    request: Request,
     session: AsyncSession = Depends(get_session),
     entity_type: EntityType | None = None,
     entity_id: UUID | None = None,
     note_type: str | None = None,
     linked_type: EntityType | None = None,
     linked_id: UUID | None = None,
+    year: int | None = None,
+    tag: str | None = None,
+    no_tag: str | None = None,
 ) -> list[NoteRead]:
     stmt = select(Note)
     if entity_type is not None:
@@ -112,6 +118,12 @@ async def list_notes(
         stmt = stmt.where(Note.entity_id == entity_id)
     if note_type is not None:
         stmt = stmt.where(Note.note_type == note_type)
+    if year is not None:
+        stmt = stmt.where(Note.entry_date.between(date(year, 1, 1), date(year, 12, 31)))
+    if tag is not None:
+        stmt = stmt.where(Note.tags.contains([tag]))
+    if no_tag is not None:
+        stmt = stmt.where(~Note.tags.contains([no_tag]))
     if linked_type is not None and linked_id is not None:
         stmt = stmt.where(
             Note.id.in_(
@@ -122,10 +134,39 @@ async def list_notes(
             )
         )
     stmt = stmt.order_by(Note.entry_date.desc().nulls_last(), Note.updated_at.desc())
+    stmt, limit, offset = apply_query(stmt, Note, request.query_params)
+    if offset is not None:
+        stmt = stmt.offset(offset)
+    if limit is not None:
+        stmt = stmt.limit(limit)
     result = await session.execute(stmt)
     notes = list(result.scalars().all())
     links = await _links_for(session, [n.id for n in notes])
     return [_read(n, links[n.id]) for n in notes]
+
+
+@router.get("/calendar")
+async def notes_calendar(
+    session: AsyncSession = Depends(get_session),
+    tag: str | None = None,
+    no_tag: str | None = None,
+) -> list[dict]:
+    """Per-(year, month) entry counts for the journal's year/month navigation."""
+    y = func.extract("year", Note.entry_date)
+    m = func.extract("month", Note.entry_date)
+    stmt = select(
+        y.label("year"), m.label("month"), func.count().label("count")
+    ).where(Note.entry_date.is_not(None))
+    if tag is not None:
+        stmt = stmt.where(Note.tags.contains([tag]))
+    if no_tag is not None:
+        stmt = stmt.where(~Note.tags.contains([no_tag]))
+    stmt = stmt.group_by(y, m).order_by(y.desc(), m.desc())
+    rows = (await session.execute(stmt)).all()
+    return [
+        {"year": int(r.year), "month": int(r.month), "count": int(r.count)}
+        for r in rows
+    ]
 
 
 @router.get("/{item_id}", response_model=NoteRead)

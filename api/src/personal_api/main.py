@@ -23,6 +23,7 @@ from personal_api.routers import (
     people,
     reviews,
     routines,
+    search,
     stream,
     tags,
     tasks,
@@ -68,6 +69,7 @@ app.include_router(people.router)
 app.include_router(organizations.router)
 app.include_router(locations.router)
 app.include_router(merge.router)
+app.include_router(search.router)
 app.include_router(routines.router)
 app.include_router(goals.router)
 app.include_router(metrics.router)
