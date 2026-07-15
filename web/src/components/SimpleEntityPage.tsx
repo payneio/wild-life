@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react"
-import { Pencil, Plus, Trash2 } from "lucide-react"
+import { Outlet, useNavigate } from "react-router-dom"
+import { Plus } from "lucide-react"
 import { Button, Card, EmptyState, Modal } from "@/components/ui/primitives"
 import { EntityForm, type FieldSpec } from "@/components/EntityForm"
 import type { createCrud } from "@/services/api/crud"
@@ -13,6 +14,10 @@ export interface Column<T> {
   label: string
   render?: (row: T) => ReactNode
   className?: string
+}
+
+function cellValue<T>(c: Column<T>, row: T): ReactNode {
+  return c.render ? c.render(row) : String((row as Record<string, unknown>)[c.key] ?? "—")
 }
 
 export function SimpleEntityPage<T extends Entity>({
@@ -36,25 +41,19 @@ export function SimpleEntityPage<T extends Entity>({
   emptyText?: string
   rowActions?: (row: T) => ReactNode
 }) {
+  const navigate = useNavigate()
   const { data, isLoading } = crud.useList(listParams)
   const create = crud.useCreate()
-  const update = crud.useUpdate()
-  const remove = crud.useRemove()
-  const [editing, setEditing] = useState<T | null>(null)
   const [creating, setCreating] = useState(false)
-
   const rows = data ?? []
 
-  function submit(body: Body) {
-    if (editing) update.mutate({ id: editing.id, body })
-    else create.mutate(body)
-    setEditing(null)
-    setCreating(false)
+  function open(id: string) {
+    navigate(id)
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex items-end justify-between">
+      <div className="flex items-end justify-between gap-3">
         <div>
           <h1 className="text-lg font-semibold text-slate-900">{title}</h1>
           {subtitle && <p className="text-sm text-slate-500">{subtitle}</p>}
@@ -70,76 +69,95 @@ export function SimpleEntityPage<T extends Entity>({
       ) : rows.length === 0 ? (
         <EmptyState>{emptyText}</EmptyState>
       ) : (
-        <Card className="overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-100 text-left text-xs uppercase tracking-wide text-slate-400">
-                {columns.map((c) => (
-                  <th key={c.key} className="px-4 py-2 font-medium">
-                    {c.label}
-                  </th>
-                ))}
-                <th className="px-4 py-2" />
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className="border-b border-slate-50 last:border-0 hover:bg-slate-50/60"
-                >
+        <>
+          {/* Table on ≥md */}
+          <Card className="hidden overflow-hidden md:block">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-100 text-left text-xs uppercase tracking-wide text-slate-400">
                   {columns.map((c) => (
-                    <td key={c.key} className={`px-4 py-2 align-top ${c.className ?? ""}`}>
-                      {c.render
-                        ? c.render(row)
-                        : String((row as Record<string, unknown>)[c.key] ?? "—")}
-                    </td>
+                    <th key={c.key} className="px-4 py-2 font-medium">
+                      {c.label}
+                    </th>
                   ))}
-                  <td className="px-4 py-2 text-right whitespace-nowrap">
-                    {rowActions?.(row)}
-                    <button
-                      className="ml-1 rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-                      onClick={() => setEditing(row)}
-                      title="Edit"
-                    >
-                      <Pencil size={15} />
-                    </button>
-                    <button
-                      className="ml-1 rounded p-1 text-slate-400 hover:bg-red-50 hover:text-red-600"
-                      onClick={() => {
-                        if (confirm("Delete this item?")) remove.mutate(row.id)
-                      }}
-                      title="Delete"
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </td>
+                  {rowActions && <th className="px-4 py-2" />}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </Card>
+              </thead>
+              <tbody>
+                {rows.map((row) => (
+                  <tr
+                    key={row.id}
+                    onClick={() => open(row.id)}
+                    className="cursor-pointer border-b border-slate-50 last:border-0 hover:bg-slate-50/60"
+                  >
+                    {columns.map((c) => (
+                      <td key={c.key} className={`px-4 py-2 align-top ${c.className ?? ""}`}>
+                        {cellValue(c, row)}
+                      </td>
+                    ))}
+                    {rowActions && (
+                      <td
+                        className="px-4 py-2 text-right whitespace-nowrap"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {rowActions(row)}
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Card>
+
+          {/* Cards on mobile */}
+          <div className="space-y-2 md:hidden">
+            {rows.map((row) => (
+              <Card
+                key={row.id}
+                className="cursor-pointer p-3 active:bg-slate-50"
+              >
+                <div onClick={() => open(row.id)} className="space-y-1">
+                  {columns.map((c, i) => (
+                    <div key={c.key} className={i === 0 ? "" : "flex justify-between gap-2 text-xs"}>
+                      {i === 0 ? (
+                        <div className="text-sm font-medium text-slate-800">{cellValue(c, row)}</div>
+                      ) : (
+                        <>
+                          <span className="text-slate-400">{c.label}</span>
+                          <span className="text-right text-slate-600">{cellValue(c, row)}</span>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                {rowActions && (
+                  <div className="mt-2 flex justify-end" onClick={(e) => e.stopPropagation()}>
+                    {rowActions(row)}
+                  </div>
+                )}
+              </Card>
+            ))}
+          </div>
+        </>
       )}
 
-      {(creating || editing) && (
-        <Modal
-          title={editing ? `Edit ${title}` : `New ${title}`}
-          onClose={() => {
-            setEditing(null)
-            setCreating(false)
-          }}
-        >
-          <EntityForm
-            fields={fields}
-            initial={editing ?? undefined}
-            onSubmit={submit}
-            onCancel={() => {
-              setEditing(null)
-              setCreating(false)
-            }}
-          />
+      {creating && (
+        <Modal title={`New ${title}`} onClose={() => setCreating(false)}>
+          <div className="max-h-[70vh] overflow-y-auto pr-1">
+            <EntityForm
+              fields={fields}
+              onSubmit={(body: Body) => {
+                create.mutate(body)
+                setCreating(false)
+              }}
+              onCancel={() => setCreating(false)}
+            />
+          </div>
         </Modal>
       )}
+
+      {/* Deep-linked detail drawer renders here */}
+      <Outlet />
     </div>
   )
 }

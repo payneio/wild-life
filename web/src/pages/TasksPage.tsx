@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { Outlet, useNavigate } from "react-router-dom"
 import { Check, Plus } from "lucide-react"
 import { EntityForm, type FieldSpec } from "@/components/EntityForm"
 import { PriorityBadge, RefName } from "@/components/cells"
@@ -83,11 +84,11 @@ export function TaskRow({ task, onEdit }: { task: Task; onEdit?: (t: Task) => vo
 }
 
 export function TasksPage() {
+  const navigate = useNavigate()
   const [queue, setQueue] = useState<"personal" | "delegated" | "all">("personal")
   const [statusFilter, setStatusFilter] = useState("")
   const [priority, setPriority] = useState("")
   const [includeClosed, setIncludeClosed] = useState(false)
-  const [editing, setEditing] = useState<Task | null>(null)
   const [creating, setCreating] = useState(false)
 
   const { data, isLoading } = tasks.useList({
@@ -97,13 +98,10 @@ export function TasksPage() {
     include_closed: String(includeClosed),
   })
   const create = tasks.useCreate()
-  const update = tasks.useUpdate()
   const rows = data ?? []
 
   function submit(body: Body) {
-    if (editing) update.mutate({ id: editing.id, body })
-    else create.mutate(body)
-    setEditing(null)
+    create.mutate(body)
     setCreating(false)
   }
 
@@ -161,32 +159,24 @@ export function TasksPage() {
       ) : (
         <Card>
           {rows.map((t) => (
-            <TaskRow key={t.id} task={t} onEdit={setEditing} />
+            <TaskRow key={t.id} task={t} onEdit={(task) => navigate(task.id)} />
           ))}
         </Card>
       )}
 
-      {(creating || editing) && (
-        <Modal
-          title={editing ? "Edit task" : "New task"}
-          onClose={() => {
-            setEditing(null)
-            setCreating(false)
-          }}
-        >
+      {creating && (
+        <Modal title="New task" onClose={() => setCreating(false)}>
           <div className="max-h-[70vh] overflow-y-auto pr-1">
             <EntityForm
               fields={FIELDS}
-              initial={editing ?? undefined}
               onSubmit={submit}
-              onCancel={() => {
-                setEditing(null)
-                setCreating(false)
-              }}
+              onCancel={() => setCreating(false)}
             />
           </div>
         </Modal>
       )}
+
+      <Outlet />
     </div>
   )
 }

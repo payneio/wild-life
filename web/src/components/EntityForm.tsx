@@ -4,6 +4,7 @@ import {
   useAreaLookup,
   useConditionLookup,
   useGoalLookup,
+  useLocationLookup,
   useMedicationLookup,
   useMetricLookup,
   useOrganizationLookup,
@@ -76,6 +77,7 @@ export function EntityForm({
     goal: useGoalLookup(),
     metric: useMetricLookup(),
     organization: useOrganizationLookup(),
+    location: useLocationLookup(),
     condition: useConditionLookup(),
     medication: useMedicationLookup(),
     protocol: useProtocolLookup(),
@@ -118,7 +120,7 @@ export function EntityForm({
 
   return (
     <form
-      className="grid grid-cols-2 gap-3"
+      className="grid grid-cols-1 gap-3 sm:grid-cols-2"
       onSubmit={(e) => {
         e.preventDefault()
         submit()
@@ -216,7 +218,7 @@ export function EntityForm({
           return (
             <label
               key={f.name}
-              className="col-span-2 flex items-center gap-2 text-sm text-slate-600"
+              className="flex items-center gap-2 text-sm text-slate-600 sm:col-span-2"
             >
               {control()}
               <span className="font-medium">{f.label}</span>
@@ -227,13 +229,13 @@ export function EntityForm({
           <Field
             key={f.name}
             label={f.label}
-            className={f.full || f.type === "textarea" ? "col-span-2" : ""}
+            className={f.full || f.type === "textarea" ? "sm:col-span-2" : ""}
           >
             {control()}
           </Field>
         )
       })}
-      <div className="col-span-2 mt-2 flex justify-end gap-2">
+      <div className="mt-2 flex justify-end gap-2 sm:col-span-2">
         <Button type="button" variant="secondary" onClick={onCancel}>
           Cancel
         </Button>

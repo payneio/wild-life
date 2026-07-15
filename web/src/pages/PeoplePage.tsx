@@ -1,5 +1,7 @@
 import { useMemo, useRef, useState } from "react"
+import { useNavigate, useParams } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
+import { DetailDrawer } from "@/components/DetailDrawer"
 import {
   Cake,
   Copy,
@@ -14,6 +16,7 @@ import {
   X,
 } from "lucide-react"
 import { AffiliationsEditor } from "@/components/AffiliationsEditor"
+import { Backlinks } from "@/components/Backlinks"
 import { Avatar } from "@/components/AuthedImage"
 import { PersonForm } from "@/components/PersonForm"
 import { StatusBadge } from "@/components/cells"
@@ -520,6 +523,8 @@ function PersonDetail({
       <Section title="Related">
         <RelatedSection personId={person.id} />
       </Section>
+
+      <Backlinks type="person" id={person.id} />
     </Card>
   )
 }
@@ -556,13 +561,15 @@ function BirthdayStrip({
 
 // --- page -------------------------------------------------------------------
 export function PeoplePage() {
+  const navigate = useNavigate()
+  const { id } = useParams()
   const { data, isLoading } = people.useList()
   const create = people.useCreate()
   const update = people.useUpdate()
   const remove = people.useRemove()
   const { data: allTags } = tags.useList()
+  const getOne = people.useGet(id)
 
-  const [selectedId, setSelectedId] = useState<string | null>(null)
   const [search, setSearch] = useState("")
   const [relFilter, setRelFilter] = useState("")
   const [tagFilter, setTagFilter] = useState("")
@@ -620,14 +627,28 @@ export function PeoplePage() {
     )
   }, [rows, search, relFilter, tagFilter, tagPersonIds, sort])
 
-  const selected = rows.find((p) => p.id === selectedId) ?? null
+  const selected = rows.find((p) => p.id === id) ?? getOne.data ?? null
 
   function submit(body: Body) {
     if (editing) update.mutate({ id: editing.id, body })
-    else create.mutate(body, { onSuccess: (p) => setSelectedId((p as Person).id) })
+    else create.mutate(body, { onSuccess: (p) => navigate(`/people/${(p as Person).id}`) })
     setEditing(null)
     setCreating(false)
   }
+
+  const detail = selected ? (
+    <PersonDetail
+      key={selected.id}
+      person={selected}
+      onEdit={() => setEditing(selected)}
+      onDelete={() => {
+        if (confirm(`Delete ${selected.name}?`)) {
+          remove.mutate(selected.id)
+          navigate("/people")
+        }
+      }}
+    />
+  ) : null
 
   return (
     <div className="space-y-3">
@@ -643,7 +664,7 @@ export function PeoplePage() {
         </Button>
       </div>
 
-      <BirthdayStrip list={rows} onPick={(p) => setSelectedId(p.id)} />
+      <BirthdayStrip list={rows} onPick={(p) => navigate(`/people/${p.id}`)} />
 
       <div className="flex flex-col gap-4 lg:flex-row">
         <div className="lg:w-80 lg:shrink-0">
@@ -700,9 +721,9 @@ export function PeoplePage() {
                   <li key={p.id}>
                     <button
                       className={`flex w-full items-center gap-3 border-b border-slate-50 px-3 py-2 text-left last:border-0 hover:bg-slate-50 ${
-                        p.id === selectedId ? "bg-indigo-50" : ""
+                        p.id === id ? "bg-indigo-50" : ""
                       }`}
-                      onClick={() => setSelectedId(p.id)}
+                      onClick={() => navigate(`/people/${p.id}`)}
                     >
                       <Avatar name={p.name} photoUrl={p.photo_url} size="sm" />
                       <span className="min-w-0 flex-1">
@@ -724,24 +745,20 @@ export function PeoplePage() {
           </Card>
         </div>
 
-        <div className="min-w-0 flex-1">
-          {selected ? (
-            <PersonDetail
-              key={selected.id}
-              person={selected}
-              onEdit={() => setEditing(selected)}
-              onDelete={() => {
-                if (confirm(`Delete ${selected.name}?`)) {
-                  remove.mutate(selected.id)
-                  setSelectedId(null)
-                }
-              }}
-            />
-          ) : (
-            <EmptyState>Select a contact to see their details.</EmptyState>
-          )}
+        {/* Desktop: inline detail pane */}
+        <div className="hidden min-w-0 flex-1 lg:block">
+          {detail ?? <EmptyState>Select a contact to see their details.</EmptyState>}
         </div>
       </div>
+
+      {/* Mobile: full-screen detail drawer */}
+      {detail && (
+        <div className="lg:hidden">
+          <DetailDrawer title={selected?.name ?? "Contact"} onClose={() => navigate("/people")}>
+            {detail}
+          </DetailDrawer>
+        </div>
+      )}
 
       {(creating || editing) && (
         <Modal

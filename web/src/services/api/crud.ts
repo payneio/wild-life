@@ -16,6 +16,15 @@ export function createCrud<T extends Entity>(resource: string) {
     })
   }
 
+  /** Fetch a single row by id (for deep-linked detail views). */
+  function useGet(id: string | undefined) {
+    return useQuery({
+      queryKey: [resource, "one", id],
+      queryFn: () => apiClient.get<T>(`${base}/${id}`),
+      enabled: !!id,
+    })
+  }
+
   function useCreate() {
     const qc = useQueryClient()
     return useMutation({
@@ -41,5 +50,5 @@ export function createCrud<T extends Entity>(resource: string) {
     })
   }
 
-  return { resource, useList, useCreate, useUpdate, useRemove }
+  return { resource, useList, useGet, useCreate, useUpdate, useRemove }
 }

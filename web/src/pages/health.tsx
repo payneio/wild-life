@@ -1,9 +1,7 @@
-import { useState } from "react"
-import { ListOrdered } from "lucide-react"
 import { DateText, RefName, StatusBadge } from "@/components/cells"
 import { SimpleEntityPage, type Column } from "@/components/SimpleEntityPage"
-import { EntityForm, type FieldSpec } from "@/components/EntityForm"
-import { Badge, Button, EmptyState, Modal } from "@/components/ui/primitives"
+import { type FieldSpec } from "@/components/EntityForm"
+import { Badge } from "@/components/ui/primitives"
 import { humanize } from "@/lib/format"
 import {
   allergies,
@@ -11,11 +9,8 @@ import {
   healthEvents,
   insurancePlans,
   medications,
-  protocolItems,
   protocols,
-  useProtocolItems,
 } from "@/services/api/hooks"
-import type { Body } from "@/services/api/crud"
 import type {
   Allergy,
   Condition,
@@ -24,7 +19,6 @@ import type {
   InsurancePlan,
   Medication,
   Protocol,
-  ProtocolItem,
 } from "@/services/api/types"
 
 const CONDITION_CATEGORY = [
@@ -143,84 +137,8 @@ export function MedicationsPage() {
   )
 }
 
-// --- Protocols (+ items) ----------------------------------------------------
-function ItemsModal({ protocol, onClose }: { protocol: Protocol; onClose: () => void }) {
-  const { data } = useProtocolItems(protocol.id)
-  const create = protocolItems.useCreate()
-  const update = protocolItems.useUpdate()
-  const remove = protocolItems.useRemove()
-  const [editing, setEditing] = useState<ProtocolItem | null>(null)
-  const [adding, setAdding] = useState(false)
-  const list = data ?? []
-
-  const itemFields: FieldSpec[] = [
-    { name: "substance", label: "Substance" },
-    { name: "medication_id", label: "Or link medication", type: "entity", lookup: "medication" },
-    { name: "amount", label: "Amount", placeholder: "1" },
-    { name: "timing", label: "Timing", type: "tags", full: true, placeholder: "breakfast, dinner" },
-    { name: "frequency", label: "Frequency" },
-    { name: "trigger", label: "Trigger / condition", full: true },
-    { name: "notes", label: "Notes", type: "textarea", full: true },
-  ]
-
-  function submit(body: Body) {
-    if (editing) update.mutate({ id: editing.id, body })
-    else create.mutate({ ...body, protocol_id: protocol.id, sort_order: list.length })
-    setEditing(null)
-    setAdding(false)
-  }
-
-  return (
-    <Modal title={`${protocol.name} — steps`} onClose={onClose}>
-      <div className="space-y-3">
-        {list.length === 0 ? (
-          <EmptyState>No steps yet.</EmptyState>
-        ) : (
-          <ul className="space-y-1 text-sm">
-            {list.map((it) => (
-              <li key={it.id} className="flex items-start justify-between gap-2 border-b border-slate-50 py-1.5">
-                <div>
-                  <span className="font-medium">
-                    {it.substance || <RefName kind="medication" id={it.medication_id} />}
-                  </span>
-                  {it.amount ? <span className="text-slate-400"> · {it.amount}</span> : null}
-                  {it.timing?.length ? (
-                    <span className="text-slate-500"> @ {it.timing.join(", ")}</span>
-                  ) : null}
-                  {it.trigger ? <div className="text-xs text-amber-600">{it.trigger}</div> : null}
-                </div>
-                <div className="whitespace-nowrap">
-                  <button className="rounded px-1 text-xs text-slate-400 hover:text-slate-700" onClick={() => { setEditing(it); setAdding(false) }}>
-                    edit
-                  </button>
-                  <button className="rounded px-1 text-xs text-slate-400 hover:text-red-600" onClick={() => remove.mutate(it.id)}>
-                    delete
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-        {adding || editing ? (
-          <EntityForm
-            fields={itemFields}
-            initial={editing ?? undefined}
-            onSubmit={submit}
-            onCancel={() => { setEditing(null); setAdding(false) }}
-            submitLabel={editing ? "Save" : "Add step"}
-          />
-        ) : (
-          <Button variant="secondary" onClick={() => setAdding(true)}>
-            Add step
-          </Button>
-        )}
-      </div>
-    </Modal>
-  )
-}
-
+// --- Protocols --------------------------------------------------------------
 export function ProtocolsPage() {
-  const [selected, setSelected] = useState<Protocol | null>(null)
   const fields: FieldSpec[] = [
     { name: "name", label: "Name" },
     { name: "category", label: "Category" },
@@ -242,25 +160,13 @@ export function ProtocolsPage() {
     { key: "condition_id", label: "For", render: (r) => <RefName kind="condition" id={r.condition_id} /> },
   ]
   return (
-    <>
-      <SimpleEntityPage
-        title="Protocols"
-        subtitle="Treatment regimens and their dosed steps"
-        crud={protocols}
-        fields={fields}
-        columns={columns}
-        rowActions={(row) => (
-          <button
-            className="ml-1 rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-            title="Steps"
-            onClick={() => setSelected(row)}
-          >
-            <ListOrdered size={15} />
-          </button>
-        )}
-      />
-      {selected && <ItemsModal protocol={selected} onClose={() => setSelected(null)} />}
-    </>
+    <SimpleEntityPage
+      title="Protocols"
+      subtitle="Treatment regimens and their dosed steps"
+      crud={protocols}
+      fields={fields}
+      columns={columns}
+    />
   )
 }
 

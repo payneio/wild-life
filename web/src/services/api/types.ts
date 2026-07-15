@@ -71,6 +71,8 @@ export type EntityType =
   | "event"
   | "note"
   | "person"
+  | "organization"
+  | "location"
   | "commitment"
   | "waiting_item"
   | "delegation"
@@ -249,6 +251,15 @@ export interface Organization extends Entity {
   notes: string | null
 }
 
+export interface Location extends Entity {
+  name: string
+  category: string | null
+  address: string | null
+  city: string | null
+  region: string | null
+  notes: string | null
+}
+
 export interface Affiliation extends Entity {
   person_id: ID
   organization_id: ID
@@ -303,6 +314,12 @@ export interface ComputedProgress {
   linked_projects: number
   completed_projects: number
   latest_metric_value: number | null
+  from_metric: number | null
+  metric_baseline: number | null
+  metric_target: number | null
+  metric_direction: "up" | "down" | null
+  metric_met: boolean | null
+  overall: number | null
 }
 
 export interface Metric extends Entity {
@@ -340,6 +357,11 @@ export interface EventItem extends Entity {
   notes: string | null
 }
 
+export interface NoteLink {
+  target_type: EntityType
+  target_id: ID
+}
+
 export interface Note extends Entity {
   title: string | null
   body: string
@@ -349,6 +371,7 @@ export interface Note extends Entity {
   tags: string[]
   entity_type: EntityType | null
   entity_id: ID | null
+  links: NoteLink[]
 }
 
 export interface Commitment extends Entity {

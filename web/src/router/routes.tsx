@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router-dom"
 import { Layout } from "@/router/Layout"
+import { EntityDetailRoute } from "@/components/EntityDetailRoute"
 import { TodayPage } from "@/pages/TodayPage"
 import { AreasPage } from "@/pages/AreasPage"
 import { ProjectsPage } from "@/pages/ProjectsPage"
@@ -10,13 +11,14 @@ import { DelegationsPage } from "@/pages/DelegationsPage"
 import { ReviewsPage } from "@/pages/ReviewsPage"
 import { PeoplePage } from "@/pages/PeoplePage"
 import { OrganizationsPage } from "@/pages/OrganizationsPage"
+import { LocationsPage } from "@/pages/LocationsPage"
 import { MetricsPage } from "@/pages/MetricsPage"
 import { HistoryPage } from "@/pages/HistoryPage"
+import { NotesPage } from "@/pages/NotesPage"
 import {
   CommitmentsPage,
   DecisionsPage,
   EventsPage,
-  NotesPage,
   ProgramsPage,
   ResourcesPage,
   TagsPage,
@@ -31,6 +33,15 @@ import {
   ProtocolsPage,
 } from "@/pages/health"
 
+/** A list route with a deep-linkable `/:id` detail child. */
+function withDetail(path: string, element: React.ReactNode, entityKey: string) {
+  return {
+    path,
+    element,
+    children: [{ path: ":id", element: <EntityDetailRoute entityKey={entityKey} /> }],
+  }
+}
+
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -38,30 +49,35 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/today" replace /> },
       { path: "today", element: <TodayPage /> },
-      { path: "areas", element: <AreasPage /> },
-      { path: "programs", element: <ProgramsPage /> },
-      { path: "projects", element: <ProjectsPage /> },
-      { path: "tasks", element: <TasksPage /> },
-      { path: "routines", element: <RoutinesPage /> },
-      { path: "goals", element: <GoalsPage /> },
-      { path: "delegations", element: <DelegationsPage /> },
-      { path: "waiting", element: <WaitingPage /> },
+      withDetail("areas", <AreasPage />, "area"),
+      withDetail("programs", <ProgramsPage />, "program"),
+      withDetail("projects", <ProjectsPage />, "project"),
+      withDetail("tasks", <TasksPage />, "task"),
+      withDetail("routines", <RoutinesPage />, "routine"),
+      withDetail("goals", <GoalsPage />, "goal"),
+      withDetail("delegations", <DelegationsPage />, "delegation"),
+      { path: "waiting", element: <WaitingPage />, children: [{ path: ":id", element: <EntityDetailRoute entityKey="waitingItem" /> }] },
       { path: "reviews", element: <ReviewsPage /> },
-      { path: "people", element: <PeoplePage /> },
-      { path: "organizations", element: <OrganizationsPage /> },
-      { path: "metrics", element: <MetricsPage /> },
-      { path: "conditions", element: <ConditionsPage /> },
-      { path: "medications", element: <MedicationsPage /> },
-      { path: "protocols", element: <ProtocolsPage /> },
-      { path: "health-events", element: <HealthEventsPage /> },
-      { path: "insurance", element: <InsurancePage /> },
-      { path: "allergies", element: <AllergiesPage /> },
-      { path: "notes", element: <NotesPage /> },
-      { path: "events", element: <EventsPage /> },
-      { path: "commitments", element: <CommitmentsPage /> },
-      { path: "decisions", element: <DecisionsPage /> },
-      { path: "resources", element: <ResourcesPage /> },
-      { path: "tags", element: <TagsPage /> },
+      // People self-renders its detail from the :id param (keeps list state on
+      // navigate); the empty child only makes /people/:id match + expose the param.
+      { path: "people", element: <PeoplePage />, children: [{ path: ":id", element: <></> }] },
+      withDetail("organizations", <OrganizationsPage />, "organization"),
+      withDetail("locations", <LocationsPage />, "location"),
+      withDetail("metrics", <MetricsPage />, "metric"),
+      withDetail("conditions", <ConditionsPage />, "condition"),
+      withDetail("medications", <MedicationsPage />, "medication"),
+      withDetail("protocols", <ProtocolsPage />, "protocol"),
+      withDetail("health-events", <HealthEventsPage />, "healthEvent"),
+      withDetail("insurance", <InsurancePage />, "insurancePlan"),
+      withDetail("allergies", <AllergiesPage />, "allergy"),
+      // Notes is a bespoke page (markdown + @-mentions); it self-renders its
+      // detail from the :id param like People.
+      { path: "notes", element: <NotesPage />, children: [{ path: ":id", element: <></> }] },
+      withDetail("events", <EventsPage />, "event"),
+      withDetail("commitments", <CommitmentsPage />, "commitment"),
+      withDetail("decisions", <DecisionsPage />, "decision"),
+      withDetail("resources", <ResourcesPage />, "resource"),
+      withDetail("tags", <TagsPage />, "tag"),
       { path: "history", element: <HistoryPage /> },
     ],
   },

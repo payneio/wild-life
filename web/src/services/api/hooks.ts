@@ -10,11 +10,13 @@ import type {
   Condition,
   Decision,
   Delegation,
+  EntityType,
   EventItem,
   Goal,
   HealthEvent,
   InsurancePlan,
   Interaction,
+  Location,
   Medication,
   Metric,
   MetricEntry,
@@ -43,6 +45,7 @@ export const tasks = createCrud<Task>("tasks")
 export const people = createCrud<Person>("people")
 export const interactions = createCrud<Interaction>("interactions")
 export const organizations = createCrud<Organization>("organizations")
+export const locations = createCrud<Location>("locations")
 export const affiliations = createCrud<Affiliation>("affiliations")
 export const routines = createCrud<Routine>("routines")
 export const routineInstances = createCrud<RoutineInstance>("routine-instances")
@@ -82,6 +85,19 @@ export function useReviewDashboard() {
   return useQuery({
     queryKey: ["review-dashboard"],
     queryFn: () => apiClient.get<ReviewDashboard>("/review-dashboard"),
+  })
+}
+
+// --- notes that mention a given entity (backlinks) ---
+export function useNotesLinkedTo(type: EntityType | null, id: string | null) {
+  return useQuery({
+    queryKey: ["notes", "linked", type, id],
+    queryFn: () =>
+      apiClient.get<Note[]>("/notes", {
+        linked_type: type ?? undefined,
+        linked_id: id ?? undefined,
+      }),
+    enabled: !!type && !!id,
   })
 }
 
