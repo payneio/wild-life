@@ -64,20 +64,83 @@ pnpm lint
   (`web/src/services/api/crud.ts`) + a registry (`web/src/services/api/registry.ts`).
   Add an entity by extending both, not by hand-writing a bespoke stack.
 
-## Deploy
+## Deploy & operate (castle)
 
-Two castle programs point at the subdirectories (manifests in
-`~/.castle/programs/personal-api.yaml` and `personal.yaml`):
+This box runs [castle](https://github.com/payneio/castle) (`/data/repos/castle`,
+CLI: `castle`). It builds, runs, routes, and supervises every app on the machine
+from source. You don't hand-write systemd units, Caddy routes, or env files —
+you edit **manifests** and run `castle apply`, which renders and reconciles the
+running system. Full model + docs: `/data/repos/castle/AGENTS.md`.
 
-```bash
-castle apply personal-api   # systemd service on :9005 → https://personal-api.civil.payne.io
-castle apply personal       # pnpm build → web/dist, served by the caddy gateway → https://personal.civil.payne.io
+### The two layers (where this app is declared)
+
+Castle splits each app into *what it is* (program) and *how it runs here*
+(deployment). Both live under `~/.castle/`, keyed by program name:
+
+| File | Role | This app |
+| ---- | ---- | -------- |
+| `~/.castle/programs/personal-api.yaml` | catalog: `source`, `stack`, build | `source: /data/repos/personal/api`, `stack: python-fastapi` |
+| `~/.castle/programs/personal.yaml` | catalog for the web app | `source: /data/repos/personal/web`, `stack: react-vite`, build `pnpm build → dist/` |
+| `~/.castle/deployments/services/personal-api.yaml` | run as a **systemd service** | `manager: systemd`, port 9005, health `/health`, `requires: postgres`, env below |
+| `~/.castle/deployments/statics/personal.yaml` | serve built SPA via **caddy** | `manager: caddy`, `root: dist`, `requires: personal-api` |
+
+The service manifest's `defaults.env` is where the backend's config comes from
+(not files in this repo). It uses castle templating — `${port}`, `${data_dir}`,
+and `${secret:NAME}` (resolved from the OpenBao secret backend):
+
+```yaml
+PERSONAL_API_PORT: ${port}
+PERSONAL_API_DATA_DIR: ${data_dir}
+PERSONAL_API_DATABASE_URL: postgresql+asyncpg://castle:${secret:POSTGRES_PASSWORD}@localhost:5432/castle
+PERSONAL_API_TOKEN: ${secret:PERSONAL_API_TOKEN}
+PERSONAL_API_CORS_ORIGINS: https://personal.civil.payne.io
 ```
 
-The `personal` static build runs `pnpm build` but not `pnpm install`, so keep
-`web/node_modules` present (run `pnpm install` after a clean checkout before the
-first `castle apply personal`). Backend data dir and secrets are supplied by the
-systemd unit (`PERSONAL_API_*` env), not from files in this repo.
+Rendered artifacts (do not edit by hand — regenerated on apply): the systemd unit
+`castle-personal-api.service` (a **user** service: `systemctl --user …`), its env
+file `~/.castle/secrets/env/castle-personal-api.service.env`, and the gateway
+routes in `~/.castle/artifacts/specs/Caddyfile`. Live URLs go through the caddy
+gateway (`civil.payne.io`, exposed via a cloudflared tunnel):
+`https://personal-api.civil.payne.io` and `https://personal.civil.payne.io`.
+
+### Everyday commands
+
+```bash
+castle apply --plan             # dry-run: show what would change (do this first)
+castle apply personal-api       # build + (re)start the API service from api/
+castle apply personal           # build web/dist + publish caddy route from web/
+castle apply                    # converge everything
+
+castle status                   # health of all deployments
+castle list --kind service      # what's registered
+castle service logs personal-api        # tail API logs  (also: journalctl --user -u castle-personal-api.service)
+castle service restart personal-api     # imperative bounce (no rebuild)
+castle program info personal-api        # resolved manifest + paths
+castle program build|test|lint|check personal-api   # run the stack's commands
+castle doctor                   # diagnose setup/runtime; castle graph shows relationships
+```
+
+Secrets live in the OpenBao backend, never in the repo:
+
+```bash
+castle secret list
+castle secret get PERSONAL_API_TOKEN      # e.g. to auth a curl against :9005
+castle secret set PERSONAL_API_TOKEN      # prompts for value
+```
+
+### Making common changes
+
+- **Code change** → just `castle apply personal-api` (or `personal`). Reads the
+  current `main` in this repo's subdir.
+- **Backend env / new setting** → edit `deployments/services/personal-api.yaml`
+  `defaults.env`, then `castle apply personal-api`.
+- **New secret** → `castle secret set NAME`, reference it as `${secret:NAME}` in
+  the manifest env, `castle apply`.
+- **Change a port / route / CORS** → edit the deployment manifest (`expose.http`,
+  `reach`) and/or the CORS env line, `castle apply`.
+- **Gotcha:** the `personal` static build runs `pnpm build` but *not*
+  `pnpm install`. After a clean checkout, run `pnpm install` in `web/` once
+  before the first `castle apply personal`, or `dist/` won't be produced.
 
 ## Conventions
 
