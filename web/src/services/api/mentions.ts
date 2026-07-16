@@ -18,9 +18,16 @@ export interface MentionResult {
 interface Source {
   type: EntityType
   label: string
-  useList: (params?: any) => { data?: any[] }
+  useList: (params?: any, options?: { staleTime?: number }) => { data?: any[] }
   title: (e: any) => string
 }
+
+// The resolver/typeahead only READ these lists to label existing chips and power
+// the mention picker; they must never trigger a refetch just by mounting (that's
+// the 24-endpoint fan-out on every note render / edit-toggle). Pin staleTime so
+// mounting is free; explicit invalidation (own writes + SSE) still refetches them
+// on real change, so labels stay current.
+const RESOLVER_OPTS = { staleTime: Infinity }
 
 // Every mentionable source: registry entries that carry an `entityType`, plus
 // `person` (People is a bespoke page, absent from the registry).
@@ -90,7 +97,7 @@ export function useEntitySearch(
 ): MentionResult[] {
   const { type, excludeId, limitPerType = 6 } = opts
   // NB: call useList for every source (stable hook count); filter afterwards.
-  const lists = MENTION_SOURCES.map((s) => ({ s, data: s.useList().data ?? [] }))
+  const lists = MENTION_SOURCES.map((s) => ({ s, data: s.useList(undefined, RESOLVER_OPTS).data ?? [] }))
   const q = query.trim().toLowerCase()
   const out: MentionResult[] = []
   for (const { s, data } of lists) {
@@ -114,7 +121,7 @@ export function useEntitySearch(
 
 /** Resolve any (type,id) → current display label from the loaded lists. */
 export function useEntityResolver(): (type: EntityType, id: string) => string | undefined {
-  const lists = MENTION_SOURCES.map((s) => ({ s, data: s.useList().data ?? [] }))
+  const lists = MENTION_SOURCES.map((s) => ({ s, data: s.useList(undefined, RESOLVER_OPTS).data ?? [] }))
   const map = new Map<string, string>()
   for (const { s, data } of lists) {
     for (const e of data) map.set(`${s.type}:${e.id}`, s.title(e))

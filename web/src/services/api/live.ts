@@ -30,12 +30,17 @@ export function useLiveUpdates(token: string | null): void {
     const ctrl = new AbortController()
     let debounce: ReturnType<typeof setTimeout> | null = null
     let opened = false
+    // Resources changed since the last flush; coalesced over the debounce window.
+    const pending = new Set<string>()
 
-    const invalidateSoon = () => {
+    const invalidateSoon = (resource: string) => {
+      pending.add(resource)
       if (debounce) return
       debounce = setTimeout(() => {
         debounce = null
-        void qc.invalidateQueries()
+        const batch = new Set(pending)
+        pending.clear()
+        for (const r of batch) void qc.invalidateQueries({ queryKey: [r] })
       }, 200)
     }
 
@@ -61,8 +66,14 @@ export function useLiveUpdates(token: string | null): void {
         } catch {
           return
         }
-        if (env.kind === "change") invalidateSoon()
-        else if (env.kind === "connected") return
+        if (env.kind === "change") {
+          // entity_type is the backend tablename (snake_plural); the frontend
+          // resource is the same with hyphens. Scope invalidation to it so one
+          // change doesn't refetch the whole app.
+          const resource = String(env.entity_type ?? "").replace(/_/g, "-")
+          if (resource) invalidateSoon(resource)
+          else void qc.invalidateQueries() // unknown type → safe global fallback
+        } else if (env.kind === "connected") return
         else appEventHandlers[env.kind]?.(env)
       },
       onerror(err) {

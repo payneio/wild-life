@@ -107,6 +107,18 @@ export function useReviewDashboard() {
   })
 }
 
+/**
+ * Returns an `invalidate(...resources)` for custom (non-`createCrud`) mutations,
+ * so their own writes refresh deterministically like the generic CRUD hooks.
+ * Each resource string prefix-matches every list/detail/derived key under it.
+ */
+function useInvalidator() {
+  const qc = useQueryClient()
+  return (...resources: string[]) => {
+    for (const r of resources) void qc.invalidateQueries({ queryKey: [r] })
+  }
+}
+
 // --- entity merge (combine duplicates) ---
 export interface MergePreview {
   total_references: number
@@ -245,17 +257,21 @@ export function useOrganizationAffiliations(orgId: string | null) {
 }
 
 export function useSaveAffiliation() {
+  const invalidate = useInvalidator()
   return useMutation({
     mutationFn: ({ id, body }: { id?: string; body: Body }) =>
       id
         ? apiClient.patch<Affiliation>(`/affiliations/${id}`, body)
         : apiClient.post<Affiliation>("/affiliations", body),
+    onSuccess: () => invalidate("affiliations", "people", "organizations"),
   })
 }
 
 export function useDeleteAffiliation() {
+  const invalidate = useInvalidator()
   return useMutation({
     mutationFn: (id: string) => apiClient.delete<void>(`/affiliations/${id}`),
+    onSuccess: () => invalidate("affiliations", "people", "organizations"),
   })
 }
 
@@ -276,9 +292,11 @@ export function useRoutineInstances(routineId: string | null) {
 }
 
 export function useCompleteRoutine() {
+  const invalidate = useInvalidator()
   return useMutation({
     mutationFn: ({ id, on }: { id: string; on?: string }) =>
       apiClient.post(`/routines/${id}/complete${on ? `?on=${on}` : ""}`),
+    onSuccess: () => invalidate("routines", "routine-instances"),
   })
 }
 
@@ -301,16 +319,21 @@ export function useGoalProgress(goalId: string | null) {
 }
 
 export function useLinkGoalProject() {
+  const invalidate = useInvalidator()
   return useMutation({
     mutationFn: ({ goalId, projectId }: { goalId: string; projectId: string }) =>
       apiClient.post(`/goals/${goalId}/projects/${projectId}`),
+    // Goal computed-progress derives from linked projects — refresh goals too.
+    onSuccess: () => invalidate("goals"),
   })
 }
 
 export function useUnlinkGoalProject() {
+  const invalidate = useInvalidator()
   return useMutation({
     mutationFn: ({ goalId, projectId }: { goalId: string; projectId: string }) =>
       apiClient.delete(`/goals/${goalId}/projects/${projectId}`),
+    onSuccess: () => invalidate("goals"),
   })
 }
 
@@ -328,37 +351,45 @@ export function useEntityTags(entityType: string, entityId: string | null) {
 }
 
 export function useAttachTag() {
+  const invalidate = useInvalidator()
   return useMutation({
     mutationFn: (v: { tagId: string; entityType: string; entityId: string }) =>
       apiClient.post(`/tags/${v.tagId}/attach`, {
         entity_type: v.entityType,
         entity_id: v.entityId,
       }),
+    onSuccess: () => invalidate("entity-tags", "tag-entities", "tags"),
   })
 }
 
 export function useDetachTag() {
+  const invalidate = useInvalidator()
   return useMutation({
     mutationFn: (v: { tagId: string; entityType: string; entityId: string }) =>
       apiClient.delete(
         `/tags/${v.tagId}/attach?entity_type=${v.entityType}&entity_id=${v.entityId}`,
       ),
+    onSuccess: () => invalidate("entity-tags", "tag-entities", "tags"),
   })
 }
 
 // --- person photos (multipart upload / delete) ---
 export function useUploadPersonPhoto() {
+  const invalidate = useInvalidator()
   return useMutation({
     mutationFn: ({ id, file }: { id: string; file: File }) => {
       const form = new FormData()
       form.append("file", file)
       return apiClient.postForm<Person>(`/people/${id}/photo`, form)
     },
+    onSuccess: () => invalidate("people"),
   })
 }
 
 export function useDeletePersonPhoto() {
+  const invalidate = useInvalidator()
   return useMutation({
     mutationFn: (id: string) => apiClient.delete(`/people/${id}/photo`),
+    onSuccess: () => invalidate("people"),
   })
 }
