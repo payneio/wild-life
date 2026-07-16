@@ -27,7 +27,7 @@ export const PRIORITY_RANK: Record<Priority, number> = {
 
 export const PRIORITY_CLASS: Record<Priority, string> = {
   urgent: "bg-red-100 text-red-700",
-  high: "bg-orange-100 text-orange-700",
+  high: "bg-amber-100 text-amber-700",
   medium: "bg-slate-100 text-slate-600",
   low: "bg-slate-100 text-slate-400",
 }

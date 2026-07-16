@@ -7,7 +7,7 @@ import { useHistory, type ChangeAction, type ChangeLog } from "@/services/api/hi
 const ACTION_META: Record<ChangeAction, { label: string; className: string }> = {
   insert: { label: "Created", className: "bg-emerald-100 text-emerald-700" },
   update: { label: "Updated", className: "bg-indigo-100 text-indigo-700" },
-  delete: { label: "Deleted", className: "bg-rose-100 text-rose-700" },
+  delete: { label: "Deleted", className: "bg-red-100 text-red-700" },
 }
 
 // Fields that carry no signal in a change feed.

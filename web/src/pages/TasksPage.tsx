@@ -91,22 +91,33 @@ export function TaskRow({
         {done && <Check size={13} />}
       </button>
       <button
-        className={cn("min-w-0 flex-1 text-left text-sm", done && "text-slate-400 line-through")}
+        className={cn(
+          "flex min-w-0 flex-1 items-baseline gap-2 text-left text-sm",
+          done && "text-slate-400 line-through",
+        )}
         onClick={() => onEdit?.(task)}
       >
-        <span className="truncate">{task.title}</span>
-        {task.context && <span className="ml-2 text-xs text-slate-400">{task.context}</span>}
+        <span className="min-w-0 truncate">{task.title}</span>
+        {task.context && (
+          <span className="shrink-0 text-xs text-slate-400">{task.context}</span>
+        )}
       </button>
       {task.project_id && (
-        <span className="hidden text-xs text-slate-400 sm:inline">
+        <span className="hidden max-w-[9rem] shrink-0 truncate text-xs text-slate-400 sm:block">
           <RefName kind="project" id={task.project_id} />
         </span>
       )}
       {(task.status === "delegated" || task.status === "delivered") && (
-        <span className="text-xs font-medium text-amber-600">delegated</span>
+        <span className="shrink-0 text-xs font-medium text-amber-600">delegated</span>
       )}
-      <PriorityBadge priority={task.priority} />
-      {task.due_date && <DateText value={task.due_date} overdue />}
+      <span className="shrink-0">
+        <PriorityBadge priority={task.priority} />
+      </span>
+      {task.due_date && (
+        <span className="shrink-0">
+          <DateText value={task.due_date} overdue />
+        </span>
+      )}
     </div>
   )
 }
@@ -155,7 +166,9 @@ export function TasksPage() {
                 onClick={() => setQueue(q)}
                 className={cn(
                   "rounded-md px-3 py-1 text-sm capitalize",
-                  queue === q ? "bg-indigo-600 text-white" : "text-slate-500 hover:text-slate-800",
+                  queue === q
+                    ? "bg-indigo-600 text-on-accent"
+                    : "text-slate-500 hover:text-slate-800",
                 )}
               >
                 {q}
