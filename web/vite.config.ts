@@ -13,5 +13,8 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    // Allow reaching the dev server by LAN hostname (e.g. http://civil:5199)
+    // and through the payne.io gateway, not just localhost.
+    allowedHosts: ["civil", ".payne.io", "localhost"],
   },
 })
