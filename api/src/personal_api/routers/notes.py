@@ -5,7 +5,7 @@ from datetime import date
 from pathlib import Path
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
 from fastapi.responses import Response
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -109,7 +109,7 @@ async def list_notes(
     linked_id: UUID | None = None,
     year: int | None = None,
     tag: str | None = None,
-    no_tag: str | None = None,
+    no_tag: list[str] | None = Query(None),
 ) -> list[NoteRead]:
     stmt = select(Note)
     if entity_type is not None:
@@ -122,8 +122,8 @@ async def list_notes(
         stmt = stmt.where(Note.entry_date.between(date(year, 1, 1), date(year, 12, 31)))
     if tag is not None:
         stmt = stmt.where(Note.tags.contains([tag]))
-    if no_tag is not None:
-        stmt = stmt.where(~Note.tags.contains([no_tag]))
+    for t in no_tag or []:
+        stmt = stmt.where(~Note.tags.contains([t]))
     if linked_type is not None and linked_id is not None:
         stmt = stmt.where(
             Note.id.in_(
@@ -149,7 +149,7 @@ async def list_notes(
 async def notes_calendar(
     session: AsyncSession = Depends(get_session),
     tag: str | None = None,
-    no_tag: str | None = None,
+    no_tag: list[str] | None = Query(None),
 ) -> list[dict]:
     """Per-(year, month) entry counts for the journal's year/month navigation."""
     y = func.extract("year", Note.entry_date)
@@ -159,8 +159,8 @@ async def notes_calendar(
     ).where(Note.entry_date.is_not(None))
     if tag is not None:
         stmt = stmt.where(Note.tags.contains([tag]))
-    if no_tag is not None:
-        stmt = stmt.where(~Note.tags.contains([no_tag]))
+    for t in no_tag or []:
+        stmt = stmt.where(~Note.tags.contains([t]))
     stmt = stmt.group_by(y, m).order_by(y.desc(), m.desc())
     rows = (await session.execute(stmt)).all()
     return [
