@@ -13,6 +13,7 @@ import {
   TaskDetail,
 } from "@/components/detail/planning"
 import { DelegationDetail, WaitingDetail } from "@/components/detail/followup"
+import { ConditionDetail, MedicationDetail } from "@/components/detail/health"
 import type { createCrud } from "@/services/api/crud"
 import type { Entity, EntityType } from "@/services/api/types"
 import {
@@ -421,8 +422,8 @@ export const REGISTRY: Record<string, EntityDef> = {
   decision: { key: "decision", label: "Decision", crud: decisions, fields: DECISION_FIELDS, title: (e) => e.question, entityType: "decision" },
   resource: { key: "resource", label: "Resource", crud: resources, fields: RESOURCE_FIELDS, title: (e) => e.title, entityType: "resource" },
   tag: { key: "tag", label: "Tag", crud: tags, fields: TAG_FIELDS, title: (e) => e.name },
-  condition: { key: "condition", label: "Condition", crud: conditions, fields: CONDITION_FIELDS, title: (e) => e.name, entityType: "condition" },
-  medication: { key: "medication", label: "Medication", crud: medications, fields: MEDICATION_FIELDS, title: (e) => e.name, entityType: "medication" },
+  condition: { key: "condition", label: "Condition", crud: conditions, fields: CONDITION_FIELDS, title: (e) => e.name, entityType: "condition", extra: ConditionDetail },
+  medication: { key: "medication", label: "Medication", crud: medications, fields: MEDICATION_FIELDS, title: (e) => e.name, entityType: "medication", extra: MedicationDetail, detailHide: ["strength", "dose"] },
   healthEvent: { key: "healthEvent", label: "Health event", crud: healthEvents, fields: HEALTH_EVENT_FIELDS, title: (e) => e.title, entityType: "health_event" },
   insurancePlan: { key: "insurancePlan", label: "Insurance plan", crud: insurancePlans, fields: INSURANCE_FIELDS, title: (e) => e.name, entityType: "insurance_plan" },
   allergy: { key: "allergy", label: "Allergy", crud: allergies, fields: ALLERGY_FIELDS, title: (e) => e.substance, entityType: "allergy" },
