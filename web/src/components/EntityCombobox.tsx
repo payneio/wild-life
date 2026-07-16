@@ -39,7 +39,7 @@ export function EntityCombobox({
   }
 
   return (
-    <div className="w-72 rounded-lg border border-slate-200 bg-white shadow-lg">
+    <div className="w-72 rounded-lg border border-slate-200 bg-surface shadow-lg">
       <div className="p-1.5">
         <Input
           autoFocus

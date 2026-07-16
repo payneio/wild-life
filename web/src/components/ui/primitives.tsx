@@ -3,23 +3,37 @@ import { X } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 type Variant = "primary" | "secondary" | "ghost" | "danger"
+type Size = "sm" | "md"
 
 const VARIANTS: Record<Variant, string> = {
-  primary: "bg-indigo-600 text-white hover:bg-indigo-700",
-  secondary: "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50",
+  primary:
+    "bg-indigo-600 text-on-accent shadow-sm hover:bg-indigo-700 active:bg-indigo-700",
+  secondary:
+    "border border-slate-200 bg-surface text-slate-700 shadow-sm hover:bg-slate-50 hover:border-slate-300",
   ghost: "text-slate-500 hover:bg-slate-100 hover:text-slate-800",
-  danger: "border border-red-200 bg-white text-red-600 hover:bg-red-50",
+  danger:
+    "border border-red-200 bg-surface text-red-600 shadow-sm hover:bg-red-50",
+}
+
+const SIZES: Record<Size, string> = {
+  sm: "px-2.5 py-1 text-xs",
+  md: "px-3.5 py-1.5 text-sm",
 }
 
 export function Button({
   variant = "primary",
+  size = "md",
   className,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: Variant
+  size?: Size
+}) {
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50",
+        "inline-flex items-center justify-center gap-1.5 rounded-lg font-medium transition-[background,border,box-shadow,transform] duration-150 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100",
+        SIZES[size],
         VARIANTS[variant],
         className,
       )}
@@ -38,7 +52,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-xl border border-slate-200 bg-white shadow-sm",
+        "rounded-2xl border border-slate-200/80 bg-surface shadow-soft",
         className,
       )}
     >
@@ -92,7 +106,7 @@ export function Field({
 }
 
 const CONTROL =
-  "w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+  "w-full rounded-lg border border-slate-300 bg-surface px-3 py-1.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
 
 export function Input({
   className,
@@ -126,18 +140,18 @@ export function Modal({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4 pt-16"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/50 p-4 pt-16 backdrop-blur-sm motion-safe:animate-[fadeIn_120ms_ease-out]"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg rounded-xl border border-slate-200 bg-white shadow-xl"
+        className="w-full max-w-lg rounded-2xl border border-slate-200/80 bg-surface shadow-floating motion-safe:animate-[popIn_140ms_ease-out]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3">
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3.5">
           <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
           <button
             onClick={onClose}
-            className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+            className="rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
           >
             <X size={18} />
           </button>
@@ -150,7 +164,7 @@ export function Modal({
 
 export function EmptyState({ children }: { children: ReactNode }) {
   return (
-    <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-500">
+    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 p-8 text-center text-sm text-slate-500">
       {children}
     </div>
   )

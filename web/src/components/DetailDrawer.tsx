@@ -28,18 +28,18 @@ export function DetailDrawer({
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div
-        className="absolute inset-0 bg-slate-900/40"
+        className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm motion-safe:animate-[fadeIn_120ms_ease-out]"
         onClick={onClose}
         aria-hidden
       />
-      <div className="relative flex h-full w-full flex-col bg-white shadow-xl md:max-w-xl">
+      <div className="relative flex h-full w-full flex-col border-l border-slate-200 bg-surface shadow-floating motion-safe:animate-[slideInRight_220ms_cubic-bezier(0.32,0.72,0,1)] md:max-w-xl">
         <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-5 py-3">
           <h2 className="truncate text-sm font-semibold text-slate-900">{title}</h2>
           <div className="flex shrink-0 items-center gap-1">
             {actions}
             <button
               onClick={onClose}
-              className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+              className="rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
               title="Close (Esc)"
             >
               <X size={18} />

@@ -1,7 +1,159 @@
 @import "tailwindcss";
 
+/* Class-based dark mode: toggled by adding `.dark` to <html>. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------------------------------------------------------------------------
+   Design tokens.
+
+   The whole palette is driven by CSS variables so the app can flip between
+   light and dark at runtime. `@theme inline` remaps Tailwind's default color
+   scales (slate / indigo / a few accent tints) onto these variables, which
+   means every existing `bg-slate-50`, `text-slate-900`, `border-slate-200`,
+   … utility across the app becomes theme-aware for free.
+
+   In LIGHT mode the variables resolve to Tailwind's stock values, so light
+   mode is unchanged. `.dark` overrides only what needs to change.
+--------------------------------------------------------------------------- */
 :root {
   color-scheme: light;
+
+  /* App frame */
+  --background: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --on-accent: #ffffff;
+
+  /* Elevation — soft, layered shadows for a premium feel */
+  --shadow-sm: 0 1px 2px -1px rgb(15 23 42 / 0.08), 0 1px 3px 0 rgb(15 23 42 / 0.06);
+  --shadow-md: 0 4px 12px -2px rgb(15 23 42 / 0.10), 0 2px 6px -2px rgb(15 23 42 / 0.06);
+  --shadow-lg: 0 12px 32px -8px rgb(15 23 42 / 0.18), 0 4px 12px -4px rgb(15 23 42 / 0.10);
+  --ring: 99 102 241; /* indigo-500 rgb, for focus rings */
+
+  /* Slate ramp — light = Tailwind defaults */
+  --slate-50: #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-700: #334155;
+  --slate-800: #1e293b;
+  --slate-900: #0f172a;
+  --slate-950: #020617;
+
+  /* Indigo ramp — light = Tailwind defaults */
+  --indigo-50: #eef2ff;
+  --indigo-100: #e0e7ff;
+  --indigo-200: #c7d2fe;
+  --indigo-300: #a5b4fc;
+  --indigo-400: #818cf8;
+  --indigo-500: #6366f1;
+  --indigo-600: #4f46e5;
+  --indigo-700: #4338ca;
+
+  /* Accent tints used as chip backgrounds — light = Tailwind defaults */
+  --emerald-50: #ecfdf5;
+  --emerald-100: #d1fae5;
+  --red-50: #fef2f2;
+  --red-100: #fee2e2;
+  --amber-50: #fffbeb;
+  --amber-100: #fef3c7;
+  --blue-50: #eff6ff;
+  --blue-100: #dbeafe;
+}
+
+.dark {
+  color-scheme: dark;
+
+  --background: #0c0e13;
+  --surface: #15181f;
+  --surface-2: #1b1f27;
+  --on-accent: #ffffff;
+
+  --shadow-sm: 0 1px 2px -1px rgb(0 0 0 / 0.5), 0 1px 3px 0 rgb(0 0 0 / 0.4);
+  --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.55), 0 2px 6px -2px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 12px 32px -8px rgb(0 0 0 / 0.7), 0 4px 12px -4px rgb(0 0 0 / 0.5);
+  --ring: 129 140 248; /* indigo-400 — a touch brighter on dark */
+
+  /* Slate ramp inverted: 50 = subtle raised surface … 900 = primary text */
+  --slate-50: #1c1f27;
+  --slate-100: #232733;
+  --slate-200: #2b303c;
+  --slate-300: #3b414f;
+  --slate-400: #697180;
+  --slate-500: #8b93a2;
+  --slate-600: #a8afbc;
+  --slate-700: #c4cad3;
+  --slate-800: #dee1e7;
+  --slate-900: #f2f4f7;
+  --slate-950: #fafbfc;
+
+  /* Indigo: dark, tinted "soft" backgrounds; vivid buttons */
+  --indigo-50: #20233a;
+  --indigo-100: #282c4a;
+  --indigo-200: #343a6b;
+  --indigo-300: #a5b4fc;
+  --indigo-400: #818cf8;
+  --indigo-500: #6366f1;
+  --indigo-600: #6366f1;
+  --indigo-700: #7378f5;
+
+  /* Accent tints → deep, saturated backgrounds legible under colored text */
+  --emerald-50: #0f2820;
+  --emerald-100: #143529;
+  --red-50: #2b1517;
+  --red-100: #3a1a1d;
+  --amber-50: #2a2010;
+  --amber-100: #372a12;
+  --blue-50: #12213c;
+  --blue-100: #172a4d;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-on-accent: var(--on-accent);
+
+  --shadow-soft: var(--shadow-sm);
+  --shadow-elevated: var(--shadow-md);
+  --shadow-floating: var(--shadow-lg);
+
+  --color-slate-50: var(--slate-50);
+  --color-slate-100: var(--slate-100);
+  --color-slate-200: var(--slate-200);
+  --color-slate-300: var(--slate-300);
+  --color-slate-400: var(--slate-400);
+  --color-slate-500: var(--slate-500);
+  --color-slate-600: var(--slate-600);
+  --color-slate-700: var(--slate-700);
+  --color-slate-800: var(--slate-800);
+  --color-slate-900: var(--slate-900);
+  --color-slate-950: var(--slate-950);
+
+  --color-indigo-50: var(--indigo-50);
+  --color-indigo-100: var(--indigo-100);
+  --color-indigo-200: var(--indigo-200);
+  --color-indigo-300: var(--indigo-300);
+  --color-indigo-400: var(--indigo-400);
+  --color-indigo-500: var(--indigo-500);
+  --color-indigo-600: var(--indigo-600);
+  --color-indigo-700: var(--indigo-700);
+
+  --color-emerald-50: var(--emerald-50);
+  --color-emerald-100: var(--emerald-100);
+  --color-red-50: var(--red-50);
+  --color-red-100: var(--red-100);
+  --color-amber-50: var(--amber-50);
+  --color-amber-100: var(--amber-100);
+  --color-blue-50: var(--blue-50);
+  --color-blue-100: var(--blue-100);
+
+  --font-sans:
+    "Inter", "Inter var", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, Helvetica, Arial, sans-serif;
 }
 
 html,
@@ -12,9 +164,89 @@ body,
 
 body {
   margin: 0;
-  background-color: #f8fafc;
-  color: #0f172a;
-  font-family:
-    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica,
-    Arial, sans-serif;
+  background-color: var(--background);
+  color: var(--slate-900);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* Smooth the light↔dark flip without animating every navigation. */
+body,
+body * {
+  transition-property: background-color, border-color;
+  transition-duration: 150ms;
+  transition-timing-function: ease;
+}
+
+/* Themed, unobtrusive scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--slate-300) transparent;
+}
+*::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: var(--slate-300);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--slate-400);
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::selection {
+  background-color: rgb(var(--ring) / 0.25);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Consistent focus-visible ring for interactive elements */
+:where(a, button, [role="button"], input, textarea, select):focus-visible {
+  outline: 2px solid rgb(var(--ring) / 0.55);
+  outline-offset: 1px;
 }

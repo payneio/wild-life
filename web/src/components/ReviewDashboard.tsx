@@ -41,7 +41,7 @@ export function ReviewDashboardView({
               key={c.key}
               className={cn(
                 "rounded-lg border px-3 py-2",
-                n > 0 ? "border-amber-200 bg-amber-50" : "border-slate-100 bg-white",
+                n > 0 ? "border-amber-200 bg-amber-50" : "border-slate-100 bg-surface",
               )}
             >
               <div className={cn("text-lg font-semibold", n > 0 ? "text-amber-700" : "text-slate-300")}>

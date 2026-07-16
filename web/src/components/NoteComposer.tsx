@@ -23,7 +23,7 @@ import type { Note } from "@/services/api/types"
 const NOTE_TYPES = ["note", "journal", "idea", "meeting", "reference"] as const
 
 const BODY_CLS =
-  "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+  "w-full rounded-lg border border-slate-300 bg-surface px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
 
 /**
  * The journal composer: a minimal body box with inline @-mentions, a collapsible
@@ -190,7 +190,13 @@ export function NoteComposer({
         ) : (
           <AutoTextarea
             ref={taRef}
-            autoFocus={autoFocus}
+            // Only auto-focus on desktop: on mobile it pops the on-screen
+            // keyboard on page load, which hides the fixed bottom nav.
+            autoFocus={
+              autoFocus &&
+              typeof window !== "undefined" &&
+              window.matchMedia("(min-width: 1024px)").matches
+            }
             className={`${BODY_CLS} ${compact ? "min-h-10" : "min-h-16"}`}
             value={body}
             placeholder={placeholder}

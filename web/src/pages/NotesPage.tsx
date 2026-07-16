@@ -159,7 +159,7 @@ function SearchResultRow({ note, q, onOpen }: { note: Note; q: string; onOpen: (
   return (
     <button
       onClick={onOpen}
-      className="block w-full rounded-lg border border-slate-100 bg-white p-3 text-left hover:bg-slate-50"
+      className="block w-full rounded-lg border border-slate-100 bg-surface p-3 text-left hover:bg-slate-50"
     >
       <div className="flex items-baseline justify-between gap-3">
         <span className="truncate font-medium text-slate-800">
@@ -280,7 +280,7 @@ export function NotesPage({
             <ChevronLeft size={18} />
           </button>
           <select
-            className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm"
+            className="rounded-lg border border-slate-300 bg-surface px-2 py-1 text-sm"
             value={year}
             onChange={(e) => setPicked(Number(e.target.value))}
           >

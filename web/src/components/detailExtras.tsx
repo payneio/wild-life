@@ -186,7 +186,7 @@ export function GoalExtra({ entity }: { entity: Entity }) {
         )}
         <div className="mt-2 flex gap-2">
           <select
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm"
+            className="w-full rounded-lg border border-slate-300 bg-surface px-3 py-1.5 text-sm"
             value={pick}
             onChange={(e) => setPick(e.target.value)}
           >

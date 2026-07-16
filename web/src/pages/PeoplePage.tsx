@@ -147,7 +147,7 @@ function PhotoControl({ person }: { person: Person }) {
         }}
       />
       <button
-        className="absolute -right-1 -bottom-1 rounded-full border border-slate-200 bg-white p-1 text-slate-500 shadow-sm hover:text-indigo-600"
+        className="absolute -right-1 -bottom-1 rounded-full border border-slate-200 bg-surface p-1 text-slate-500 shadow-sm hover:text-indigo-600"
         title="Upload photo"
         onClick={() => inputRef.current?.click()}
       >
@@ -155,7 +155,7 @@ function PhotoControl({ person }: { person: Person }) {
       </button>
       {person.photo_url && (
         <button
-          className="absolute -top-1 -right-1 rounded-full border border-slate-200 bg-white p-0.5 text-slate-400 shadow-sm hover:text-red-600"
+          className="absolute -top-1 -right-1 rounded-full border border-slate-200 bg-surface p-0.5 text-slate-400 shadow-sm hover:text-red-600"
           title="Remove photo"
           onClick={() => remove.mutate(person.id)}
         >
