@@ -1,0 +1,365 @@
+"""Pydantic schemas for the health domain."""
+
+import uuid
+from datetime import date
+from typing import Literal
+
+from pydantic import BaseModel
+
+from personal_api.schemas.common import Entity
+
+# --- enums ------------------------------------------------------------------
+ConditionCategory = Literal[
+    "gastrointestinal",
+    "cardiovascular",
+    "dermatologic",
+    "musculoskeletal",
+    "urologic",
+    "auditory",
+    "mental_health",
+    "other",
+]
+ConditionStatus = Literal["active", "monitoring", "chronic", "resolved", "ruled_out"]
+MedType = Literal["prescription", "otc", "supplement"]
+MedStatus = Literal["active", "discontinued", "as_needed", "planned", "completed"]
+ProtocolStatus = Literal["planned", "active", "paused", "completed", "abandoned"]
+HealthEventType = Literal[
+    "appointment",
+    "lab",
+    "procedure",
+    "surgery",
+    "imaging",
+    "test",
+    "vaccination",
+    "injury",
+    "symptom",
+    "note",
+]
+PlanType = Literal["medical", "dental", "vision", "pharmacy"]
+PlanStatus = Literal["active", "inactive"]
+AllergyType = Literal["medication", "food", "environmental", "other"]
+AllergySeverity = Literal["mild", "moderate", "severe", "unknown"]
+AllergyStatus = Literal["active", "suspected", "resolved"]
+
+
+class DoseSlot(BaseModel):
+    """One entry in a medication's dosing schedule: an amount at a time of day."""
+
+    slot: str  # wake/breakfast/morning/lunch/afternoon/dinner/evening/bedtime
+    amount: str | None = None
+
+
+# --- Condition --------------------------------------------------------------
+class ConditionCreate(BaseModel):
+    name: str
+    category: ConditionCategory | None = None
+    status: ConditionStatus = "active"
+    area_id: uuid.UUID | None = None
+    program_id: uuid.UUID | None = None
+    severity: str | None = None
+    onset_date: date | None = None
+    resolved_date: date | None = None
+    diagnosed_by_id: uuid.UUID | None = None
+    description: str | None = None
+    notes: str | None = None
+
+
+class ConditionUpdate(BaseModel):
+    name: str | None = None
+    category: ConditionCategory | None = None
+    status: ConditionStatus | None = None
+    area_id: uuid.UUID | None = None
+    program_id: uuid.UUID | None = None
+    severity: str | None = None
+    onset_date: date | None = None
+    resolved_date: date | None = None
+    diagnosed_by_id: uuid.UUID | None = None
+    description: str | None = None
+    notes: str | None = None
+
+
+class ConditionRead(Entity):
+    name: str
+    category: str | None
+    status: str
+    area_id: uuid.UUID | None
+    program_id: uuid.UUID | None
+    severity: str | None
+    onset_date: date | None
+    resolved_date: date | None
+    diagnosed_by_id: uuid.UUID | None
+    description: str | None
+    notes: str | None
+
+
+# --- Medication -------------------------------------------------------------
+class MedicationCreate(BaseModel):
+    name: str
+    brand: str | None = None
+    generic_name: str | None = None
+    med_type: MedType = "supplement"
+    form: str | None = None
+    strength: str | None = None
+    dose: str | None = None
+    schedule: list[DoseSlot] = []
+    reason: str | None = None
+    condition_id: uuid.UUID | None = None
+    prescriber_id: uuid.UUID | None = None
+    pharmacy_id: uuid.UUID | None = None
+    status: MedStatus = "active"
+    start_date: date | None = None
+    end_date: date | None = None
+    instructions: str | None = None
+    notes: str | None = None
+
+
+class MedicationUpdate(BaseModel):
+    name: str | None = None
+    brand: str | None = None
+    generic_name: str | None = None
+    med_type: MedType | None = None
+    form: str | None = None
+    strength: str | None = None
+    dose: str | None = None
+    schedule: list[DoseSlot] | None = None
+    reason: str | None = None
+    condition_id: uuid.UUID | None = None
+    prescriber_id: uuid.UUID | None = None
+    pharmacy_id: uuid.UUID | None = None
+    status: MedStatus | None = None
+    start_date: date | None = None
+    end_date: date | None = None
+    instructions: str | None = None
+    notes: str | None = None
+
+
+class MedicationRead(Entity):
+    name: str
+    brand: str | None
+    generic_name: str | None
+    med_type: str
+    form: str | None
+    strength: str | None
+    dose: str | None
+    schedule: list[DoseSlot]
+    reason: str | None
+    condition_id: uuid.UUID | None
+    prescriber_id: uuid.UUID | None
+    pharmacy_id: uuid.UUID | None
+    status: str
+    start_date: date | None
+    end_date: date | None
+    instructions: str | None
+    notes: str | None
+
+
+# --- Protocol ---------------------------------------------------------------
+class ProtocolCreate(BaseModel):
+    name: str
+    category: str | None = None
+    intended_outcome: str | None = None
+    status: ProtocolStatus = "planned"
+    area_id: uuid.UUID | None = None
+    program_id: uuid.UUID | None = None
+    start_date: date | None = None
+    end_date: date | None = None
+    duration: str | None = None
+    condition_id: uuid.UUID | None = None
+    provider_id: uuid.UUID | None = None
+    notes: str | None = None
+
+
+class ProtocolUpdate(BaseModel):
+    name: str | None = None
+    category: str | None = None
+    intended_outcome: str | None = None
+    status: ProtocolStatus | None = None
+    area_id: uuid.UUID | None = None
+    program_id: uuid.UUID | None = None
+    start_date: date | None = None
+    end_date: date | None = None
+    duration: str | None = None
+    condition_id: uuid.UUID | None = None
+    provider_id: uuid.UUID | None = None
+    notes: str | None = None
+
+
+class ProtocolRead(Entity):
+    name: str
+    category: str | None
+    intended_outcome: str | None
+    status: str
+    area_id: uuid.UUID | None
+    program_id: uuid.UUID | None
+    start_date: date | None
+    end_date: date | None
+    duration: str | None
+    condition_id: uuid.UUID | None
+    provider_id: uuid.UUID | None
+    notes: str | None
+
+
+# --- ProtocolItem -----------------------------------------------------------
+class ProtocolItemCreate(BaseModel):
+    protocol_id: uuid.UUID
+    medication_id: uuid.UUID | None = None
+    substance: str | None = None
+    amount: str | None = None
+    timing: list[str] = []
+    frequency: str | None = None
+    trigger: str | None = None
+    sort_order: int = 0
+    notes: str | None = None
+
+
+class ProtocolItemUpdate(BaseModel):
+    protocol_id: uuid.UUID | None = None
+    medication_id: uuid.UUID | None = None
+    substance: str | None = None
+    amount: str | None = None
+    timing: list[str] | None = None
+    frequency: str | None = None
+    trigger: str | None = None
+    sort_order: int | None = None
+    notes: str | None = None
+
+
+class ProtocolItemRead(Entity):
+    protocol_id: uuid.UUID
+    medication_id: uuid.UUID | None
+    substance: str | None
+    amount: str | None
+    timing: list[str]
+    frequency: str | None
+    trigger: str | None
+    sort_order: int
+    notes: str | None
+
+
+# --- HealthEvent ------------------------------------------------------------
+class HealthEventCreate(BaseModel):
+    occurred_on: date
+    event_type: HealthEventType = "appointment"
+    title: str
+    provider_id: uuid.UUID | None = None
+    organization_id: uuid.UUID | None = None
+    condition_id: uuid.UUID | None = None
+    summary: str | None = None
+    findings: str | None = None
+    recommendations: str | None = None
+    follow_up: str | None = None
+    follow_up_date: date | None = None
+    location: str | None = None
+    external_ref: str | None = None
+    notes: str | None = None
+
+
+class HealthEventUpdate(BaseModel):
+    occurred_on: date | None = None
+    event_type: HealthEventType | None = None
+    title: str | None = None
+    provider_id: uuid.UUID | None = None
+    organization_id: uuid.UUID | None = None
+    condition_id: uuid.UUID | None = None
+    summary: str | None = None
+    findings: str | None = None
+    recommendations: str | None = None
+    follow_up: str | None = None
+    follow_up_date: date | None = None
+    location: str | None = None
+    external_ref: str | None = None
+    notes: str | None = None
+
+
+class HealthEventRead(Entity):
+    occurred_on: date
+    event_type: str
+    title: str
+    provider_id: uuid.UUID | None
+    organization_id: uuid.UUID | None
+    condition_id: uuid.UUID | None
+    summary: str | None
+    findings: str | None
+    recommendations: str | None
+    follow_up: str | None
+    follow_up_date: date | None
+    location: str | None
+    external_ref: str | None
+    notes: str | None
+
+
+# --- InsurancePlan ----------------------------------------------------------
+class InsurancePlanCreate(BaseModel):
+    name: str
+    plan_type: PlanType | None = None
+    organization_id: uuid.UUID | None = None
+    network: str | None = None
+    member_id: str | None = None
+    group_number: str | None = None
+    rx_bin: str | None = None
+    rx_pcn: str | None = None
+    rx_group: str | None = None
+    phone: str | None = None
+    status: PlanStatus = "active"
+    notes: str | None = None
+
+
+class InsurancePlanUpdate(BaseModel):
+    name: str | None = None
+    plan_type: PlanType | None = None
+    organization_id: uuid.UUID | None = None
+    network: str | None = None
+    member_id: str | None = None
+    group_number: str | None = None
+    rx_bin: str | None = None
+    rx_pcn: str | None = None
+    rx_group: str | None = None
+    phone: str | None = None
+    status: PlanStatus | None = None
+    notes: str | None = None
+
+
+class InsurancePlanRead(Entity):
+    name: str
+    plan_type: str | None
+    organization_id: uuid.UUID | None
+    network: str | None
+    member_id: str | None
+    group_number: str | None
+    rx_bin: str | None
+    rx_pcn: str | None
+    rx_group: str | None
+    phone: str | None
+    status: str
+    notes: str | None
+
+
+# --- Allergy ----------------------------------------------------------------
+class AllergyCreate(BaseModel):
+    substance: str
+    allergy_type: AllergyType | None = None
+    reaction: str | None = None
+    severity: AllergySeverity | None = None
+    status: AllergyStatus = "active"
+    noted_on: date | None = None
+    notes: str | None = None
+
+
+class AllergyUpdate(BaseModel):
+    substance: str | None = None
+    allergy_type: AllergyType | None = None
+    reaction: str | None = None
+    severity: AllergySeverity | None = None
+    status: AllergyStatus | None = None
+    noted_on: date | None = None
+    notes: str | None = None
+
+
+class AllergyRead(Entity):
+    substance: str
+    allergy_type: str | None
+    reaction: str | None
+    severity: str | None
+    status: str
+    noted_on: date | None
+    notes: str | None

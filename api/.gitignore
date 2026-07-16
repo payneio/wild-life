@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Local data (DB lives in postgres; this is a placeholder mount)
+data/
+
+# Env
+.env
+.env.local
