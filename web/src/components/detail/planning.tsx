@@ -19,6 +19,7 @@ import type {
   Goal,
   MetricEntry,
   Priority,
+  Program,
   Project,
   Routine,
   Task,
@@ -27,6 +28,7 @@ import type {
 import {
   Heatmap,
   ProgressRing,
+  RelatedRow,
   ScheduleChips,
   Section,
   Segmented,
@@ -180,6 +182,56 @@ export function ProjectDetail({ entity }: { entity: Entity }) {
           }}
         />
       </Section>
+    </div>
+  )
+}
+
+// --- Program: a portfolio of projects ---------------------------------------
+export function ProgramDetail({ entity }: { entity: Entity }) {
+  const prog = entity as Program
+  const projs = projects.useList({ program_id: prog.id }).data ?? []
+  const cancelled = projs.filter((p) => p.status === "cancelled")
+  const done = projs.filter((p) => p.status === "completed")
+  const active = projs.filter(
+    (p) => !["completed", "cancelled", "archived"].includes(p.status),
+  )
+  const denom = projs.length - cancelled.length || 1
+  const pct = projs.length ? Math.round((done.length / denom) * 100) : 0
+  const targetD = daysFromToday(prog.target_date)
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center gap-4">
+        <ProgressRing value={pct}>
+          <span className="text-base font-semibold text-slate-900">{pct}%</span>
+        </ProgressRing>
+        <div className="grid flex-1 grid-cols-3 gap-2">
+          <StatTile value={active.length} label="Active" />
+          <StatTile value={done.length} label="Done" />
+          {prog.target_date ? (
+            <StatTile
+              value={Math.abs(targetD ?? 0)}
+              label={targetD !== null && targetD < 0 ? "days over" : "days to target"}
+              tone={targetD !== null && targetD < 0 ? "danger" : "default"}
+            />
+          ) : (
+            <StatTile value={projs.length} label="Projects" />
+          )}
+        </div>
+      </div>
+      {projs.length > 0 && (
+        <Section title={`Projects · ${projs.length}`}>
+          <div className="space-y-1.5">
+            {projs.map((p) => (
+              <RelatedRow
+                key={p.id}
+                to={`/projects/${p.id}`}
+                title={p.name}
+                badge={<StatusBadge status={p.status} />}
+              />
+            ))}
+          </div>
+        </Section>
+      )}
     </div>
   )
 }

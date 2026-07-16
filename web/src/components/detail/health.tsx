@@ -1,11 +1,15 @@
 import { StatusBadge } from "@/components/cells"
 import { healthEvents, medications, protocols } from "@/services/api/hooks"
 import type {
+  Allergy,
   Condition,
   Entity,
+  HealthEvent,
+  InsurancePlan,
   Medication,
 } from "@/services/api/types"
-import { RelatedRow, Section, Timeline, type TimelineItem } from "@/components/detail/kit"
+import { DaysBadge, RelatedRow, Section, Timeline, type TimelineItem } from "@/components/detail/kit"
+import { cn } from "@/lib/utils"
 import { humanize } from "@/lib/format"
 
 // --- Condition: a care record with a timeline -------------------------------
@@ -116,6 +120,89 @@ export function MedicationDetail({ entity }: { entity: Entity }) {
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+// --- Health event: a clinical note ------------------------------------------
+export function HealthEventDetail({ entity }: { entity: Entity }) {
+  const e = entity as HealthEvent
+  if (!e.follow_up && !e.follow_up_date) return null
+  return (
+    <div className="rounded-xl border-l-4 border-amber-400 bg-amber-50 px-4 py-3">
+      <div className="flex items-center gap-2">
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">
+          Follow-up
+        </span>
+        {e.follow_up_date && <DaysBadge date={e.follow_up_date} />}
+      </div>
+      {e.follow_up && (
+        <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">{e.follow_up}</p>
+      )}
+    </div>
+  )
+}
+
+// --- Insurance: a member card -----------------------------------------------
+function CardField({ label, value }: { label: string; value: string | null }) {
+  if (!value) return null
+  return (
+    <div>
+      <div className="text-[10px] font-medium uppercase tracking-wider text-slate-400">
+        {label}
+      </div>
+      <div className="font-mono text-sm text-slate-800">{value}</div>
+    </div>
+  )
+}
+
+export function InsuranceDetail({ entity }: { entity: Entity }) {
+  const p = entity as InsurancePlan
+  return (
+    <div className="space-y-3">
+      <div className="rounded-2xl border border-slate-200 bg-surface-2 p-4">
+        <div className="flex items-start justify-between gap-2">
+          <CardField label="Member ID" value={p.member_id} />
+          <CardField label="Group" value={p.group_number} />
+        </div>
+        {(p.rx_bin || p.rx_pcn || p.rx_group) && (
+          <div className="mt-4 grid grid-cols-3 gap-2 border-t border-slate-200 pt-3">
+            <CardField label="RX BIN" value={p.rx_bin} />
+            <CardField label="RX PCN" value={p.rx_pcn} />
+            <CardField label="RX Group" value={p.rx_group} />
+          </div>
+        )}
+        {p.network && <div className="mt-3 text-xs text-slate-500">Network: {p.network}</div>}
+      </div>
+      {p.phone && (
+        <a
+          href={`tel:${p.phone}`}
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:underline"
+        >
+          Call {p.phone}
+        </a>
+      )}
+    </div>
+  )
+}
+
+// --- Allergy: severity-forward ----------------------------------------------
+const SEVERITY_TONE: Record<string, string> = {
+  severe: "border-red-400 bg-red-50 text-red-700",
+  moderate: "border-amber-400 bg-amber-50 text-amber-700",
+  mild: "border-slate-300 bg-slate-50 text-slate-600",
+}
+
+export function AllergyDetail({ entity }: { entity: Entity }) {
+  const a = entity as Allergy
+  if (!a.severity && !a.reaction) return null
+  const tone = SEVERITY_TONE[(a.severity ?? "").toLowerCase()] ?? SEVERITY_TONE.mild
+  return (
+    <div className={cn("rounded-xl border-l-4 px-4 py-3", tone)}>
+      {a.severity && (
+        <div className="text-sm font-semibold capitalize">{a.severity} reaction</div>
+      )}
+      {a.reaction && <p className="mt-0.5 text-sm text-slate-700">{a.reaction}</p>}
     </div>
   )
 }
