@@ -52,6 +52,8 @@ export interface EntityDef {
   entityType?: EntityType
   /** Optional rich section shown below the shared field list in the detail view. */
   extra?: ComponentType<{ entity: Entity }>
+  /** Fields the `extra` already renders — hidden from the generic facts grid. */
+  detailHide?: string[]
 }
 
 // --- option lists -----------------------------------------------------------
@@ -397,8 +399,8 @@ export const ROUTINE_FIELDS: FieldSpec[] = [
 // --- the registry -----------------------------------------------------------
 export const REGISTRY: Record<string, EntityDef> = {
   area: { key: "area", label: "Area", crud: areas, fields: AREA_FIELDS, title: (e) => e.name, entityType: "area", extra: AreaExtra },
-  project: { key: "project", label: "Project", crud: projects, fields: PROJECT_FIELDS, title: (e) => e.name, entityType: "project", extra: ProjectExtra },
-  goal: { key: "goal", label: "Goal", crud: goals, fields: GOAL_FIELDS, title: (e) => e.name, entityType: "goal", extra: GoalExtra },
+  project: { key: "project", label: "Project", crud: projects, fields: PROJECT_FIELDS, title: (e) => e.name, entityType: "project", extra: ProjectExtra, detailHide: ["next_action"] },
+  goal: { key: "goal", label: "Goal", crud: goals, fields: GOAL_FIELDS, title: (e) => e.name, entityType: "goal", extra: GoalExtra, detailHide: ["progress"] },
   metric: { key: "metric", label: "Metric", crud: metrics, fields: METRIC_FIELDS, title: (e) => e.name, entityType: "metric", extra: MetricExtra },
   routine: { key: "routine", label: "Routine", crud: routines, fields: ROUTINE_FIELDS, title: (e) => e.name, entityType: "routine", extra: RoutineExtra },
   program: { key: "program", label: "Program", crud: programs, fields: PROGRAM_FIELDS, title: (e) => e.name, entityType: "program" },
