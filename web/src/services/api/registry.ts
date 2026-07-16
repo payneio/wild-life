@@ -12,6 +12,7 @@ import {
   RoutineDetail,
   TaskDetail,
 } from "@/components/detail/planning"
+import { DelegationDetail, WaitingDetail } from "@/components/detail/followup"
 import type { createCrud } from "@/services/api/crud"
 import type { Entity, EntityType } from "@/services/api/types"
 import {
@@ -408,7 +409,7 @@ export const REGISTRY: Record<string, EntityDef> = {
   routine: { key: "routine", label: "Routine", crud: routines, fields: ROUTINE_FIELDS, title: (e) => e.name, entityType: "routine", extra: RoutineDetail },
   program: { key: "program", label: "Program", crud: programs, fields: PROGRAM_FIELDS, title: (e) => e.name, entityType: "program" },
   task: { key: "task", label: "Task", crud: tasks, fields: TASK_FIELDS, title: (e) => e.title, entityType: "task", extra: TaskDetail, detailHide: ["status", "priority", "scheduled_date", "due_date"] },
-  delegation: { key: "delegation", label: "Delegation", crud: delegations, fields: DELEGATION_FIELDS, title: (e) => e.requested_outcome, entityType: "delegation" },
+  delegation: { key: "delegation", label: "Delegation", crud: delegations, fields: DELEGATION_FIELDS, title: (e) => e.requested_outcome, entityType: "delegation", extra: DelegationDetail, detailHide: ["status", "priority", "date_delegated", "expected_completion_date", "follow_up_date", "escalation_level"] },
   review: { key: "review", label: "Review", crud: reviews, fields: REVIEW_FIELDS, title: (e) => `${e.review_type} review`, entityType: "review" },
   organization: { key: "organization", label: "Organization", crud: organizations, fields: ORGANIZATION_FIELDS, title: (e) => e.name, entityType: "organization", extra: OrganizationExtra },
   location: { key: "location", label: "Location", crud: locations, fields: LOCATION_FIELDS, title: (e) => e.name, entityType: "location" },
@@ -416,7 +417,7 @@ export const REGISTRY: Record<string, EntityDef> = {
   note: { key: "note", label: "Note", crud: notes, fields: NOTE_FIELDS, title: (e) => e.title || "(untitled)", entityType: "note" },
   event: { key: "event", label: "Event", crud: events, fields: EVENT_FIELDS, title: (e) => e.title, entityType: "event" },
   commitment: { key: "commitment", label: "Commitment", crud: commitments, fields: COMMITMENT_FIELDS, title: (e) => e.description, entityType: "commitment" },
-  waitingItem: { key: "waitingItem", label: "Waiting item", crud: waitingItems, fields: WAITING_FIELDS, title: (e) => e.expected_result, entityType: "waiting_item" },
+  waitingItem: { key: "waitingItem", label: "Waiting item", crud: waitingItems, fields: WAITING_FIELDS, title: (e) => e.expected_result, entityType: "waiting_item", extra: WaitingDetail, detailHide: ["status", "date_requested", "expected_date", "follow_up_date"] },
   decision: { key: "decision", label: "Decision", crud: decisions, fields: DECISION_FIELDS, title: (e) => e.question, entityType: "decision" },
   resource: { key: "resource", label: "Resource", crud: resources, fields: RESOURCE_FIELDS, title: (e) => e.title, entityType: "resource" },
   tag: { key: "tag", label: "Tag", crud: tags, fields: TAG_FIELDS, title: (e) => e.name },

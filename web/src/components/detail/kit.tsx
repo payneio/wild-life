@@ -63,6 +63,40 @@ export function StatTile({
   )
 }
 
+/** A stat tile showing whole days until a future date (or "over" if past). */
+export function DeltaTile({
+  date,
+  futureLabel = "days left",
+  pastLabel = "days over",
+}: {
+  date: string | null | undefined
+  futureLabel?: string
+  pastLabel?: string
+}) {
+  const d = daysFromToday(date)
+  if (d === null) return null
+  return (
+    <StatTile
+      value={Math.abs(d)}
+      label={d < 0 ? pastLabel : futureLabel}
+      tone={d < 0 ? "danger" : "default"}
+    />
+  )
+}
+
+/** A stat tile showing how many days have elapsed since a past date. */
+export function AgeTile({
+  date,
+  label = "days",
+}: {
+  date: string | null | undefined
+  label?: string
+}) {
+  const d = daysFromToday(date)
+  if (d === null) return null
+  return <StatTile value={Math.abs(d)} label={label} />
+}
+
 // --- progress ring ----------------------------------------------------------
 export function ProgressRing({
   value,
