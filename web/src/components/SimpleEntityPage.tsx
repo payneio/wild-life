@@ -23,6 +23,12 @@ function cellValue<T>(c: Column<T>, row: T): ReactNode {
   return c.render ? c.render(row) : String((row as Record<string, unknown>)[c.key] ?? "—")
 }
 
+const slug = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+
 /**
  * Master/detail list page: a compact list on the left (search/filter toolbar +
  * rows) and a persistent detail pane on the right (desktop) / full-screen overlay
@@ -39,6 +45,7 @@ export function SimpleEntityPage<T extends Entity>({
   listParams,
   emptyText = "Nothing here yet.",
   rowActions,
+  storageKey,
 }: {
   title: string
   subtitle?: string
@@ -49,6 +56,7 @@ export function SimpleEntityPage<T extends Entity>({
   listParams?: Record<string, string | undefined>
   emptyText?: string
   rowActions?: (row: T) => ReactNode
+  storageKey?: string
 }) {
   const navigate = useNavigate()
   const { id: selectedId } = useParams()
@@ -64,6 +72,7 @@ export function SimpleEntityPage<T extends Entity>({
   const { filtered, toolbarProps } = useListFilter(
     rows as unknown as Record<string, unknown>[],
     config,
+    `list:${storageKey ?? slug(title)}`,
   )
   const list = filtered as unknown as T[]
 

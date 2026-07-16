@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react"
+import { useMemo } from "react"
 import { Card, EmptyState, Select } from "@/components/ui/primitives"
 import { humanize } from "@/lib/format"
+import { usePersistentState } from "@/lib/persistentState"
 import { cn } from "@/lib/utils"
 import { useHistory, type ChangeAction, type ChangeLog } from "@/services/api/history"
 
@@ -95,8 +96,8 @@ function ChangeRow({ change }: { change: ChangeLog }) {
 
 export function HistoryPage() {
   const { data, isLoading, isError } = useHistory(200)
-  const [action, setAction] = useState<ChangeAction | "all">("all")
-  const [entityType, setEntityType] = useState<string>("all")
+  const [action, setAction] = usePersistentState<ChangeAction | "all">("history:action", "all")
+  const [entityType, setEntityType] = usePersistentState<string>("history:entityType", "all")
 
   const entityTypes = useMemo(() => {
     const set = new Set((data ?? []).map((c) => c.entity_type))

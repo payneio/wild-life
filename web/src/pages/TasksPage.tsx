@@ -6,6 +6,7 @@ import { ListToolbar } from "@/components/ListToolbar"
 import { DateText, PriorityBadge, RefName } from "@/components/cells"
 import { Button, Card, EmptyState, Modal } from "@/components/ui/primitives"
 import { useListFilter, type ListConfig } from "@/lib/listFilter"
+import { usePersistentState } from "@/lib/persistentState"
 import { cn } from "@/lib/utils"
 import { tasks } from "@/services/api/hooks"
 import type { Body } from "@/services/api/crud"
@@ -125,8 +126,11 @@ export function TaskRow({
 export function TasksPage() {
   const navigate = useNavigate()
   const { id: selectedId } = useParams()
-  const [queue, setQueue] = useState<"personal" | "delegated" | "all">("personal")
-  const [includeClosed, setIncludeClosed] = useState(false)
+  const [queue, setQueue] = usePersistentState<"personal" | "delegated" | "all">(
+    "tasks:queue",
+    "personal",
+  )
+  const [includeClosed, setIncludeClosed] = usePersistentState("tasks:includeClosed", false)
   const [creating, setCreating] = useState(false)
 
   const { data, isLoading } = tasks.useList({
@@ -138,6 +142,7 @@ export function TasksPage() {
   const { filtered, toolbarProps } = useListFilter(
     rows as unknown as Record<string, unknown>[],
     CONFIG,
+    "tasks",
   )
   const list = filtered as unknown as Task[]
 

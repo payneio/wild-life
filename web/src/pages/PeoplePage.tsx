@@ -34,6 +34,7 @@ import {
   Select,
   Textarea,
 } from "@/components/ui/primitives"
+import { usePersistentState } from "@/lib/persistentState"
 import { formatDate, formatDateTime } from "@/lib/utils"
 import { apiClient } from "@/services/api/client"
 import type { Body } from "@/services/api/crud"
@@ -585,10 +586,10 @@ export function PeoplePage() {
   const { data: allTags } = tags.useList()
   const getOne = people.useGet(id)
 
-  const [search, setSearch] = useState("")
-  const [relFilter, setRelFilter] = useState("")
-  const [tagFilter, setTagFilter] = useState("")
-  const [sort, setSort] = useState<"name" | "updated">("name")
+  const [search, setSearch] = usePersistentState("people:q", "")
+  const [relFilter, setRelFilter] = usePersistentState("people:rel", "")
+  const [tagFilter, setTagFilter] = usePersistentState("people:tag", "")
+  const [sort, setSort] = usePersistentState<"name" | "updated">("people:sort", "name")
   const [editing, setEditing] = useState<Person | null>(null)
   const [creating, setCreating] = useState(false)
 

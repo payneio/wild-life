@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react"
+import { useMemo } from "react"
 import type { FieldSpec } from "@/components/EntityForm"
 import type { ToolbarProps } from "@/components/ListToolbar"
+import { usePersistentState } from "@/lib/persistentState"
 
 export interface FilterDef {
   field: string
@@ -44,14 +45,22 @@ export function deriveListConfig(fields: FieldSpec[], primaryKey: string): ListC
 /**
  * Client-side search/filter/sort over `rows` per `config`. Returns the filtered
  * rows plus the props for a `<ListToolbar>` so every list stays consistent.
+ * Pass a `storageKey` to persist the search/filter/sort selections across reloads.
  */
 export function useListFilter<T extends Record<string, unknown>>(
   rows: T[],
   config: ListConfig,
+  storageKey?: string,
 ): { filtered: T[]; toolbarProps: ToolbarProps } {
-  const [search, setSearch] = useState("")
-  const [values, setValues] = useState<Record<string, string>>({})
-  const [sortKey, setSortKey] = useState(config.sorts[0]?.key ?? "")
+  const [search, setSearch] = usePersistentState(storageKey ? `${storageKey}:q` : null, "")
+  const [values, setValues] = usePersistentState<Record<string, string>>(
+    storageKey ? `${storageKey}:f` : null,
+    {},
+  )
+  const [sortKey, setSortKey] = usePersistentState(
+    storageKey ? `${storageKey}:s` : null,
+    config.sorts[0]?.key ?? "",
+  )
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()

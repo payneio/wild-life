@@ -124,6 +124,7 @@ export function DelegationsPage() {
   const { filtered, toolbarProps } = useListFilter(
     rows as unknown as Record<string, unknown>[],
     CONFIG,
+    "delegations",
   )
   const list = filtered as unknown as Delegation[]
 
