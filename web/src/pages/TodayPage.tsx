@@ -45,16 +45,16 @@ export function TodayPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold text-slate-900">Today</h1>
-        <p className="text-sm text-slate-500">
+      <header className="border-b border-slate-200 pb-4">
+        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">
           {new Date().toLocaleDateString(undefined, {
             weekday: "long",
             month: "long",
             day: "numeric",
           })}
         </p>
-      </div>
+        <h1 className="mt-1 text-3xl font-medium text-slate-900">Today</h1>
+      </header>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">

@@ -18,40 +18,40 @@
 :root {
   color-scheme: light;
 
-  /* App frame */
-  --background: #f6f7f9;
-  --surface: #ffffff;
-  --surface-2: #f8fafc;
+  /* App frame — warm "paper" neutrals */
+  --background: #f4f2ec;
+  --surface: #fffdf8;
+  --surface-2: #efece3;
   --on-accent: #ffffff;
 
   /* Elevation — soft, layered shadows for a premium feel */
   --shadow-sm: 0 1px 2px -1px rgb(15 23 42 / 0.08), 0 1px 3px 0 rgb(15 23 42 / 0.06);
   --shadow-md: 0 4px 12px -2px rgb(15 23 42 / 0.10), 0 2px 6px -2px rgb(15 23 42 / 0.06);
   --shadow-lg: 0 12px 32px -8px rgb(15 23 42 / 0.18), 0 4px 12px -4px rgb(15 23 42 / 0.10);
-  --ring: 99 102 241; /* indigo-500 rgb, for focus rings */
+  --ring: 15 118 110; /* ink-teal, for focus rings */
 
-  /* Slate ramp — light = Tailwind defaults */
-  --slate-50: #f8fafc;
-  --slate-100: #f1f5f9;
-  --slate-200: #e2e8f0;
-  --slate-300: #cbd5e1;
-  --slate-400: #94a3b8;
-  --slate-500: #64748b;
-  --slate-600: #475569;
-  --slate-700: #334155;
-  --slate-800: #1e293b;
-  --slate-900: #0f172a;
-  --slate-950: #020617;
+  /* Neutral ramp — warm stone (mapped onto the `slate-*` utilities) */
+  --slate-50: #f4f2ec;
+  --slate-100: #ebe8e0;
+  --slate-200: #e0ddd4;
+  --slate-300: #d0ccc1;
+  --slate-400: #a8a29a;
+  --slate-500: #79726b;
+  --slate-600: #57534e;
+  --slate-700: #44403c;
+  --slate-800: #292524;
+  --slate-900: #1c1917;
+  --slate-950: #0c0a09;
 
-  /* Indigo ramp — light = Tailwind defaults */
-  --indigo-50: #eef2ff;
-  --indigo-100: #e0e7ff;
-  --indigo-200: #c7d2fe;
-  --indigo-300: #a5b4fc;
-  --indigo-400: #818cf8;
-  --indigo-500: #6366f1;
-  --indigo-600: #4f46e5;
-  --indigo-700: #4338ca;
+  /* Brand accent — ink teal (mapped onto the `indigo-*` utilities) */
+  --indigo-50: #e7f2f0;
+  --indigo-100: #cfe6e2;
+  --indigo-200: #a3d0c9;
+  --indigo-300: #6bb2a9;
+  --indigo-400: #329488;
+  --indigo-500: #14837a;
+  --indigo-600: #0f766e;
+  --indigo-700: #0b5d56;
 
   /* Accent tints used as chip backgrounds — light = Tailwind defaults */
   --emerald-50: #ecfdf5;
@@ -67,38 +67,38 @@
 .dark {
   color-scheme: dark;
 
-  --background: #0c0e13;
-  --surface: #15181f;
-  --surface-2: #1b1f27;
-  --on-accent: #ffffff;
+  --background: #100e0b;
+  --surface: #1b1814;
+  --surface-2: #221e19;
+  --on-accent: #06231f; /* dark ink on the bright teal used in dark mode */
 
   --shadow-sm: 0 1px 2px -1px rgb(0 0 0 / 0.5), 0 1px 3px 0 rgb(0 0 0 / 0.4);
   --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.55), 0 2px 6px -2px rgb(0 0 0 / 0.4);
   --shadow-lg: 0 12px 32px -8px rgb(0 0 0 / 0.7), 0 4px 12px -4px rgb(0 0 0 / 0.5);
-  --ring: 129 140 248; /* indigo-400 — a touch brighter on dark */
+  --ring: 45 212 191; /* bright teal — a touch brighter on dark */
 
-  /* Slate ramp inverted: 50 = subtle raised surface … 900 = primary text */
-  --slate-50: #1c1f27;
-  --slate-100: #232733;
-  --slate-200: #2b303c;
-  --slate-300: #3b414f;
-  --slate-400: #697180;
-  --slate-500: #8b93a2;
-  --slate-600: #a8afbc;
-  --slate-700: #c4cad3;
-  --slate-800: #dee1e7;
-  --slate-900: #f2f4f7;
-  --slate-950: #fafbfc;
+  /* Neutral ramp inverted: 50 = subtle raised surface … 900 = primary text */
+  --slate-50: #211d18;
+  --slate-100: #29241e;
+  --slate-200: #332d26;
+  --slate-300: #443d34;
+  --slate-400: #7a7268;
+  --slate-500: #9a9186;
+  --slate-600: #b6ada1;
+  --slate-700: #d0c8bc;
+  --slate-800: #e6e0d6;
+  --slate-900: #f4f0e9;
+  --slate-950: #fbf9f5;
 
-  /* Indigo: dark, tinted "soft" backgrounds; vivid buttons */
-  --indigo-50: #20233a;
-  --indigo-100: #282c4a;
-  --indigo-200: #343a6b;
-  --indigo-300: #a5b4fc;
-  --indigo-400: #818cf8;
-  --indigo-500: #6366f1;
-  --indigo-600: #6366f1;
-  --indigo-700: #7378f5;
+  /* Teal: dark, tinted "soft" backgrounds; vivid buttons */
+  --indigo-50: #0e2a27;
+  --indigo-100: #123531;
+  --indigo-200: #17423d;
+  --indigo-300: #5eead4;
+  --indigo-400: #2dd4bf;
+  --indigo-500: #14b8a6;
+  --indigo-600: #14b8a6;
+  --indigo-700: #2dd4bf;
 
   /* Accent tints → deep, saturated backgrounds legible under colored text */
   --emerald-50: #0f2820;
@@ -154,6 +154,7 @@
   --font-sans:
     "Inter", "Inter var", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
     Roboto, Helvetica, Arial, sans-serif;
+  --font-display: "Fraunces", ui-serif, Georgia, "Times New Roman", serif;
 }
 
 html,
@@ -171,6 +172,14 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* Page mastheads carry the display serif; the dense UI stays on Inter. */
+h1,
+.font-display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  letter-spacing: -0.01em;
 }
 
 /* Smooth the light↔dark flip without animating every navigation. */
