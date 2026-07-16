@@ -2,13 +2,16 @@ import type { ComponentType } from "react"
 import type { FieldSpec } from "@/components/EntityForm"
 import {
   AreaExtra,
-  GoalExtra,
   MetricExtra,
   OrganizationExtra,
-  ProjectExtra,
   ProtocolExtra,
-  RoutineExtra,
 } from "@/components/detailExtras"
+import {
+  GoalDetail,
+  ProjectDetail,
+  RoutineDetail,
+  TaskDetail,
+} from "@/components/detail/planning"
 import type { createCrud } from "@/services/api/crud"
 import type { Entity, EntityType } from "@/services/api/types"
 import {
@@ -399,12 +402,12 @@ export const ROUTINE_FIELDS: FieldSpec[] = [
 // --- the registry -----------------------------------------------------------
 export const REGISTRY: Record<string, EntityDef> = {
   area: { key: "area", label: "Area", crud: areas, fields: AREA_FIELDS, title: (e) => e.name, entityType: "area", extra: AreaExtra },
-  project: { key: "project", label: "Project", crud: projects, fields: PROJECT_FIELDS, title: (e) => e.name, entityType: "project", extra: ProjectExtra, detailHide: ["next_action"] },
-  goal: { key: "goal", label: "Goal", crud: goals, fields: GOAL_FIELDS, title: (e) => e.name, entityType: "goal", extra: GoalExtra, detailHide: ["progress"] },
+  project: { key: "project", label: "Project", crud: projects, fields: PROJECT_FIELDS, title: (e) => e.name, entityType: "project", extra: ProjectDetail, detailHide: ["next_action"] },
+  goal: { key: "goal", label: "Goal", crud: goals, fields: GOAL_FIELDS, title: (e) => e.name, entityType: "goal", extra: GoalDetail, detailHide: ["progress"] },
   metric: { key: "metric", label: "Metric", crud: metrics, fields: METRIC_FIELDS, title: (e) => e.name, entityType: "metric", extra: MetricExtra },
-  routine: { key: "routine", label: "Routine", crud: routines, fields: ROUTINE_FIELDS, title: (e) => e.name, entityType: "routine", extra: RoutineExtra },
+  routine: { key: "routine", label: "Routine", crud: routines, fields: ROUTINE_FIELDS, title: (e) => e.name, entityType: "routine", extra: RoutineDetail },
   program: { key: "program", label: "Program", crud: programs, fields: PROGRAM_FIELDS, title: (e) => e.name, entityType: "program" },
-  task: { key: "task", label: "Task", crud: tasks, fields: TASK_FIELDS, title: (e) => e.title, entityType: "task" },
+  task: { key: "task", label: "Task", crud: tasks, fields: TASK_FIELDS, title: (e) => e.title, entityType: "task", extra: TaskDetail, detailHide: ["status", "priority", "scheduled_date", "due_date"] },
   delegation: { key: "delegation", label: "Delegation", crud: delegations, fields: DELEGATION_FIELDS, title: (e) => e.requested_outcome, entityType: "delegation" },
   review: { key: "review", label: "Review", crud: reviews, fields: REVIEW_FIELDS, title: (e) => `${e.review_type} review`, entityType: "review" },
   organization: { key: "organization", label: "Organization", crud: organizations, fields: ORGANIZATION_FIELDS, title: (e) => e.name, entityType: "organization", extra: OrganizationExtra },
