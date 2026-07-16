@@ -67,7 +67,9 @@ function JournalEntry({
           {note.note_type !== "journal" && <Badge>{note.note_type}</Badge>}
           {note.mood && <span>· {note.mood}</span>}
         </div>
-        <div className="flex gap-0.5 opacity-0 transition group-hover:opacity-100">
+        {/* Reveal on hover for pointer devices; always visible on touch (no
+            hover) — otherwise notes can't be edited/deleted on mobile. */}
+        <div className="flex gap-0.5 opacity-100 transition [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100">
           <button
             className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
             title="Permalink"
@@ -242,6 +244,7 @@ export function NotesPage({
   const { filtered, toolbarProps } = useListFilter(
     rows as unknown as Record<string, unknown>[],
     NOTE_CONFIG,
+    `notes:${scope}`,
   )
   const notesList = filtered as unknown as Note[]
   const groups = useMemo(() => groupNotesByDay(notesList), [notesList])
