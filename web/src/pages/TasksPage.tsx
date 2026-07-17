@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react"
 import { Outlet, useNavigate, useParams } from "react-router-dom"
 import { Check, Plus } from "lucide-react"
-import { EntityForm, type FieldSpec } from "@/components/EntityForm"
+import { EntityForm } from "@/components/EntityForm"
+import { TASK_FIELDS } from "@/services/api/registry"
 import { ListToolbar } from "@/components/ListToolbar"
 import { DateText, PriorityBadge, RefName } from "@/components/cells"
 import { Button, Card, EmptyState, Modal } from "@/components/ui/primitives"
@@ -24,25 +25,7 @@ const TASK_STATUS = [
 ] as const
 const PRIORITIES = ["low", "medium", "high", "urgent"] as const
 
-const FIELDS: FieldSpec[] = [
-  { name: "title", label: "Title", full: true },
-  { name: "description", label: "Description", type: "textarea", full: true },
-  { name: "status", label: "Status", type: "select", options: TASK_STATUS },
-  { name: "priority", label: "Priority", type: "select", options: PRIORITIES },
-  { name: "area_id", label: "Area", type: "entity", lookup: "area" },
-  { name: "program_id", label: "Program", type: "entity", lookup: "program" },
-  { name: "project_id", label: "Project", type: "entity", lookup: "project" },
-  { name: "assignee_id", label: "Assignee", type: "entity", lookup: "people" },
-  { name: "responsible_id", label: "Responsible", type: "entity", lookup: "people" },
-  { name: "scheduled_date", label: "Scheduled", type: "date" },
-  { name: "due_date", label: "Due", type: "date" },
-  { name: "estimated_minutes", label: "Estimate (min)", type: "number" },
-  { name: "context", label: "Context", placeholder: "@home, @calls" },
-  { name: "recurrence", label: "Recurrence", placeholder: "daily / weekly / monthly" },
-  { name: "waiting_on", label: "Waiting on" },
-  { name: "acceptance_required", label: "Requires acceptance", type: "checkbox" },
-  { name: "notes", label: "Notes", type: "textarea", full: true },
-]
+const FIELDS = TASK_FIELDS
 
 const CONFIG: ListConfig = {
   searchKeys: ["title", "description", "context", "notes", "waiting_on"],

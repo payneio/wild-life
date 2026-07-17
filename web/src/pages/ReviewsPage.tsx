@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Plus, RefreshCw } from "lucide-react"
-import { EntityForm, type FieldSpec } from "@/components/EntityForm"
+import { EntityForm } from "@/components/EntityForm"
+import { REVIEW_FIELDS } from "@/services/api/registry"
 import { ReviewDashboardView } from "@/components/ReviewDashboard"
 import { Badge, Button, Card, EmptyState, Modal } from "@/components/ui/primitives"
 import { formatDate } from "@/lib/utils"
@@ -8,21 +9,7 @@ import { reviews, useReviewDashboard } from "@/services/api/hooks"
 import type { Body } from "@/services/api/crud"
 import type { Review } from "@/services/api/types"
 
-const FIELDS: FieldSpec[] = [
-  {
-    name: "review_type",
-    label: "Type",
-    type: "select",
-    options: ["daily", "weekly", "monthly", "quarterly", "area", "program", "project", "delegation"],
-  },
-  { name: "period_start", label: "Period start", type: "date" },
-  { name: "period_end", label: "Period end", type: "date" },
-  { name: "observations", label: "Observations", type: "textarea", full: true },
-  { name: "decisions", label: "Decisions", type: "textarea", full: true },
-  { name: "risks", label: "Risks", type: "textarea", full: true },
-  { name: "follow_up_actions", label: "Follow-up actions", type: "textarea", full: true },
-  { name: "notes", label: "Notes", type: "textarea", full: true },
-]
+const FIELDS = REVIEW_FIELDS
 
 export function ReviewsPage() {
   const { data: dash, isLoading, refetch, isFetching } = useReviewDashboard()

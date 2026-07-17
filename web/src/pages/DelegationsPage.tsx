@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react"
 import { Outlet, useNavigate, useParams } from "react-router-dom"
 import { Plus } from "lucide-react"
-import { EntityForm, type FieldSpec } from "@/components/EntityForm"
+import { EntityForm } from "@/components/EntityForm"
+import { DELEGATION_FIELDS } from "@/services/api/registry"
 import { ListToolbar } from "@/components/ListToolbar"
 import { DateText, PriorityBadge, RefName, StatusBadge } from "@/components/cells"
 import { Button, EmptyState, Modal } from "@/components/ui/primitives"
@@ -28,22 +29,7 @@ const DELEGATION_STATUS: DelegationStatus[] = [
 ]
 const PRIORITIES = ["low", "medium", "high", "urgent"] as const
 
-const FIELDS: FieldSpec[] = [
-  { name: "requested_outcome", label: "Requested outcome", type: "textarea", full: true },
-  { name: "responsible_id", label: "Responsible", type: "entity", lookup: "people" },
-  { name: "accountable_owner_id", label: "Accountable", type: "entity", lookup: "people" },
-  { name: "status", label: "Status", type: "select", options: DELEGATION_STATUS },
-  { name: "priority", label: "Priority", type: "select", options: PRIORITIES },
-  { name: "date_delegated", label: "Delegated on", type: "date" },
-  { name: "expected_completion_date", label: "Expected", type: "date" },
-  { name: "follow_up_date", label: "Follow up", type: "date" },
-  { name: "acceptance_required", label: "Requires acceptance", type: "checkbox" },
-  { name: "escalation_level", label: "Escalation", type: "number" },
-  { name: "instructions", label: "Instructions", type: "textarea", full: true },
-  { name: "latest_update", label: "Latest update", type: "textarea", full: true },
-  { name: "last_contact_date", label: "Last contact", type: "date" },
-  { name: "notes", label: "Notes", type: "textarea", full: true },
-]
+const FIELDS = DELEGATION_FIELDS
 
 const CONFIG: ListConfig = {
   searchKeys: ["requested_outcome", "instructions", "latest_update", "notes"],
