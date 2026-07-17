@@ -13,6 +13,7 @@ import logging
 from typing import Any
 
 from cryptography.hazmat.primitives import serialization
+from py_vapid import Vapid02
 from pywebpush import WebPushException, webpush
 
 from personal_api.config import settings
@@ -35,6 +36,13 @@ def _private_key_pem() -> str:
     if "BEGIN" in raw:
         return raw
     return base64.b64decode(raw).decode()
+
+
+@functools.lru_cache(maxsize=1)
+def _vapid() -> Vapid02:
+    """A Vapid signer built from the PEM. Passing an instance to pywebpush avoids
+    its string path, which expects base64-DER (not PEM) and mis-parses ours."""
+    return Vapid02.from_pem(_private_key_pem().encode("utf8"))
 
 
 @functools.lru_cache(maxsize=1)
@@ -68,7 +76,7 @@ def send_push(
                 "keys": {"p256dh": p256dh, "auth": auth},
             },
             data=json.dumps(payload),
-            vapid_private_key=_private_key_pem(),
+            vapid_private_key=_vapid(),
             vapid_claims={"sub": settings.vapid_subject},
             ttl=3600,
         )
