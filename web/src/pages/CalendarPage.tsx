@@ -5,6 +5,7 @@ import FullCalendar from "@fullcalendar/react"
 import dayGridPlugin from "@fullcalendar/daygrid"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
+import listPlugin from "@fullcalendar/list"
 import rrulePlugin from "@fullcalendar/rrule"
 import type {
   DateSelectArg,
@@ -242,13 +243,14 @@ export function CalendarPage() {
         <UnscheduledTray />
         <div className="min-w-0 flex-1 rounded-2xl border border-slate-200/80 bg-surface p-3 shadow-soft sm:p-5">
           <FullCalendar
-            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, rrulePlugin]}
+            plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, rrulePlugin]}
             initialView="dayGridMonth"
             headerToolbar={{
               left: "prev,next today",
               center: "title",
-              right: "dayGridMonth,timeGridWeek,timeGridDay",
+              right: "dayGridMonth,timeGridWeek,timeGridDay,listMonth",
             }}
+            buttonText={{ listMonth: "agenda" }}
             height="auto"
             nowIndicator
             selectable
