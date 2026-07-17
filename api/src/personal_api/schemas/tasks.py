@@ -29,6 +29,8 @@ class TaskCreate(BaseModel):
     waiting_on: str | None = None
     acceptance_required: bool = False
     notes: str | None = None
+    # Allow backdating on create/import; _sync_completion leaves a provided value untouched.
+    completed_at: datetime | None = None
 
 
 class TaskUpdate(BaseModel):
