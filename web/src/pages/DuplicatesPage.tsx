@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { GitMerge } from "lucide-react"
 import { MergeDialog } from "@/components/MergeDialog"
+import { EntityRef } from "@/components/graph/EntityRef"
 import { Badge, Button, Card, EmptyState } from "@/components/ui/primitives"
 import { useDuplicates, type DuplicateGroup } from "@/services/api/hooks"
 import { typeLabel } from "@/services/api/mentions"
@@ -32,7 +33,9 @@ export function DuplicatesPage() {
                 </div>
                 <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
                   {g.members.map((m) => (
-                    <Badge key={m.id}>{m.name}</Badge>
+                    <EntityRef key={m.id} type={g.type} id={m.id}>
+                      <Badge className="hover:bg-slate-200">{m.name}</Badge>
+                    </EntityRef>
                   ))}
                   <span className="text-xs text-slate-400">({g.members.length})</span>
                 </div>

@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Pencil, Plus, Star, Trash2 } from "lucide-react"
 import { Badge, Button, Field, Input, Select } from "@/components/ui/primitives"
+import { EntityRef } from "@/components/graph/EntityRef"
 import { formatDate } from "@/lib/utils"
 import type { Body } from "@/services/api/crud"
 import {
@@ -105,9 +106,13 @@ export function AffiliationsEditor(props: Props) {
               key={a.id}
               className="flex items-center gap-2 rounded-lg border border-slate-100 px-2.5 py-1.5 text-sm"
             >
-              <span className="font-medium text-slate-700">
+              <EntityRef
+                type={byPerson ? "organization" : "person"}
+                id={otherId}
+                className="font-medium text-slate-700"
+              >
                 {otherLookup.nameOf(otherId)}
-              </span>
+              </EntityRef>
               {a.role && <span className="text-slate-500">· {a.role}</span>}
               {a.is_primary && (
                 <Badge className="bg-amber-100 text-amber-700">

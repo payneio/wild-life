@@ -69,10 +69,14 @@ function Item({
 }) {
   const late = isOverdue(d.expected_completion_date) && d.status !== "accepted_as_complete"
   return (
-    <button
+    // role=button (not <button>) so the nested responsible-person link is valid.
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onOpen}
+      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onOpen()}
       className={cn(
-        "w-full rounded-lg border border-slate-100 p-2.5 text-left hover:bg-slate-50",
+        "w-full cursor-pointer rounded-lg border border-slate-100 p-2.5 text-left hover:bg-slate-50 focus:bg-slate-50 focus:outline-none",
         selected && "border-indigo-200 bg-indigo-50 hover:bg-indigo-50",
       )}
     >
@@ -96,7 +100,7 @@ function Item({
           <span className="font-medium text-amber-600">needs acceptance</span>
         )}
       </div>
-    </button>
+    </div>
   )
 }
 

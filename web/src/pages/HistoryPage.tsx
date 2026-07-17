@@ -1,9 +1,40 @@
 import { useMemo } from "react"
 import { Card, EmptyState, Select } from "@/components/ui/primitives"
+import { EntityRef } from "@/components/graph/EntityRef"
 import { humanize } from "@/lib/format"
 import { usePersistentState } from "@/lib/persistentState"
 import { cn } from "@/lib/utils"
 import { useHistory, type ChangeAction, type ChangeLog } from "@/services/api/history"
+import type { EntityType } from "@/services/api/types"
+
+// change_log.entity_type is the DB __tablename__ (plural). Map the tables that
+// have a detail route to their EntityType; child/link tables (interactions,
+// affiliations, metric_entries, …) are absent, so their labels stay plain text.
+const TABLE_TO_TYPE: Record<string, EntityType> = {
+  tasks: "task",
+  projects: "project",
+  areas: "area",
+  programs: "program",
+  goals: "goal",
+  metrics: "metric",
+  routines: "routine",
+  events: "event",
+  notes: "note",
+  people: "person",
+  organizations: "organization",
+  locations: "location",
+  commitments: "commitment",
+  waiting_items: "waiting_item",
+  delegations: "delegation",
+  resources: "resource",
+  decisions: "decision",
+  conditions: "condition",
+  medications: "medication",
+  protocols: "protocol",
+  health_events: "health_event",
+  insurance_plans: "insurance_plan",
+  allergies: "allergy",
+}
 
 const ACTION_META: Record<ChangeAction, { label: string; className: string }> = {
   insert: { label: "Created", className: "bg-emerald-100 text-emerald-700" },
@@ -73,9 +104,23 @@ function ChangeRow({ change }: { change: ChangeLog }) {
             {meta.label}
           </span>
           <span className="text-slate-400">{humanize(change.entity_type)}</span>
-          <span className="font-medium text-slate-800">
-            {change.entity_label || "(untitled)"}
-          </span>
+          {(() => {
+            const label = change.entity_label || "(untitled)"
+            const type = TABLE_TO_TYPE[change.entity_type]
+            // Deleted rows point at a now-gone entity → keep them plain.
+            if (type && change.entity_id && change.action !== "delete") {
+              return (
+                <EntityRef
+                  type={type}
+                  id={change.entity_id}
+                  className="font-medium text-slate-800"
+                >
+                  {label}
+                </EntityRef>
+              )
+            }
+            return <span className="font-medium text-slate-800">{label}</span>
+          })()}
         </div>
         {diffs.length > 0 && (
           <ul className="mt-1.5 space-y-0.5">

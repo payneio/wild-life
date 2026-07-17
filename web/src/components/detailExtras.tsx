@@ -1,7 +1,9 @@
 import { useState, type ReactNode } from "react"
 import { AffiliationsEditor } from "@/components/AffiliationsEditor"
 import { EntityForm, type FieldSpec } from "@/components/EntityForm"
+import { EntityRef } from "@/components/graph/EntityRef"
 import { Button, EmptyState, Input } from "@/components/ui/primitives"
+import { useMedicationLookup } from "@/services/api/lookups"
 import { formatDate } from "@/lib/utils"
 import { todayISO } from "@/lib/format"
 import type { Body } from "@/services/api/crud"
@@ -133,6 +135,7 @@ export function ProtocolExtra({ entity }: { entity: Entity }) {
   const create = protocolItems.useCreate()
   const update = protocolItems.useUpdate()
   const remove = protocolItems.useRemove()
+  const medLookup = useMedicationLookup()
   const [editing, setEditing] = useState<ProtocolItem | null>(null)
   const [adding, setAdding] = useState(false)
   const list = data ?? []
@@ -154,7 +157,19 @@ export function ProtocolExtra({ entity }: { entity: Entity }) {
             {list.map((it) => (
               <li key={it.id} className="flex items-start justify-between gap-2 border-b border-slate-50 py-1.5">
                 <div>
-                  <span className="font-medium">{it.substance || "(linked med)"}</span>
+                  {it.substance ? (
+                    <span className="font-medium">{it.substance}</span>
+                  ) : it.medication_id ? (
+                    <EntityRef
+                      type="medication"
+                      id={it.medication_id}
+                      className="font-medium"
+                    >
+                      {medLookup.nameOf(it.medication_id)}
+                    </EntityRef>
+                  ) : (
+                    <span className="font-medium text-slate-400">(step)</span>
+                  )}
                   {it.amount ? <span className="text-slate-400"> · {it.amount}</span> : null}
                   {it.timing?.length ? <span className="text-slate-500"> @ {it.timing.join(", ")}</span> : null}
                   {it.trigger ? <div className="text-xs text-amber-600">{it.trigger}</div> : null}
