@@ -17,22 +17,19 @@ self.addEventListener("push", (event) => {
 
   event.waitUntil(
     (async () => {
-      const clientList = await self.clients.matchAll({
+      // userVisibleOnly requires every push to show a notification, so always do
+      // so (even when a tab is focused). Also notify any focused tab so the app
+      // can react in-page.
+      const clients = await self.clients.matchAll({
         type: "window",
         includeUncontrolled: true,
       })
-      const focused = clientList.find((c) => c.focused)
-      if (focused) {
-        // A tab is in front — let the app show an in-app toast, no OS banner.
-        focused.postMessage({ kind: "reminder", ...data })
-        return
-      }
+      for (const c of clients) c.postMessage({ kind: data.kind || "reminder", ...data })
       await self.registration.showNotification(data.title || "Reminder", {
         body: data.body || "",
         tag: data.tag,
         data: { url: data.url || "/" },
-        icon: "/favicon.svg",
-        badge: "/favicon.svg",
+        requireInteraction: false,
       })
     })(),
   )

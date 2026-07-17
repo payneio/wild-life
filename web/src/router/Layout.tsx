@@ -49,6 +49,7 @@ import {
   disablePush,
   enablePush,
   getPushState,
+  sendTestPush,
   type PushState,
 } from "@/services/push"
 
@@ -160,21 +161,32 @@ function ReminderToggle() {
   }
 
   return (
-    <button
-      onClick={onClick}
-      disabled={busy || state === "denied"}
-      aria-label="Toggle reminders"
-      title={title}
-      className={cn(
-        "flex h-9 w-9 items-center justify-center rounded-lg transition",
-        on
-          ? "text-indigo-600 hover:bg-indigo-50"
-          : "text-slate-500 hover:bg-slate-100 hover:text-slate-800",
-        (busy || state === "denied") && "opacity-50",
+    <div className="flex items-center">
+      <button
+        onClick={onClick}
+        disabled={busy || state === "denied"}
+        aria-label="Toggle reminders"
+        title={title}
+        className={cn(
+          "flex h-9 w-9 items-center justify-center rounded-lg transition",
+          on
+            ? "text-indigo-600 hover:bg-indigo-50"
+            : "text-slate-500 hover:bg-slate-100 hover:text-slate-800",
+          (busy || state === "denied") && "opacity-50",
+        )}
+      >
+        {on ? <Bell size={18} /> : <BellOff size={18} />}
+      </button>
+      {on && (
+        <button
+          onClick={() => void sendTestPush()}
+          title="Send a test notification"
+          className="flex h-9 items-center rounded-lg px-2 text-xs font-medium text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+        >
+          Test
+        </button>
       )}
-    >
-      {on ? <Bell size={18} /> : <BellOff size={18} />}
-    </button>
+    </div>
   )
 }
 

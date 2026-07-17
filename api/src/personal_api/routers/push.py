@@ -59,6 +59,35 @@ async def unsubscribe(
     )
 
 
+@router.post("/test")
+async def test_push(session: AsyncSession = Depends(get_session)) -> dict:
+    """Send a simple test notification to every subscription (self-diagnosis)."""
+    if not push.is_enabled():
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, detail="Push not configured")
+    payload = {
+        "kind": "test",
+        "title": "Test ✅",
+        "body": "Push notifications are working.",
+        "url": "/",
+        "tag": "push-test",
+    }
+    subs = (await session.execute(select(PushSubscription))).scalars().all()
+    sent = pruned = 0
+    gone: list = []
+    for sub in subs:
+        try:
+            push.send_push(endpoint=sub.endpoint, p256dh=sub.p256dh, auth=sub.auth, payload=payload)
+            sent += 1
+        except push.SubscriptionGone:
+            gone.append(sub.id)
+            pruned += 1
+        except Exception:  # noqa: BLE001
+            pass
+    if gone:
+        await session.execute(sql_delete(PushSubscription).where(PushSubscription.id.in_(gone)))
+    return {"subscriptions": len(subs), "sent": sent, "pruned": pruned}
+
+
 @router.get("/subscriptions/count")
 async def subscription_count(
     session: AsyncSession = Depends(get_session),

@@ -64,6 +64,10 @@ export async function enablePush(): Promise<PushState> {
   return "subscribed"
 }
 
+export async function sendTestPush(): Promise<{ sent: number; subscriptions: number }> {
+  return apiClient.post<{ sent: number; subscriptions: number }>("/push/test")
+}
+
 export async function disablePush(): Promise<PushState> {
   if (!pushSupported()) return "unsupported"
   const reg = await navigator.serviceWorker.getRegistration()
