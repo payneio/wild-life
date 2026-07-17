@@ -157,17 +157,7 @@ export function ProjectDetail({ entity }: { entity: Entity }) {
       </Section>
 
       <Section title="Tasks">
-        {list.length === 0 ? (
-          <EmptyState>No tasks yet.</EmptyState>
-        ) : (
-          <div className="space-y-3">
-            <TaskGroup title="In progress" list={inProgress} />
-            <TaskGroup title="To do" list={todo} />
-            <TaskGroup title="Done" list={done} />
-          </div>
-        )}
         <Input
-          className="mt-2"
           value={newTask}
           placeholder="Add a task…"
           onChange={(e) => setNewTask(e.target.value)}
@@ -183,6 +173,15 @@ export function ProjectDetail({ entity }: { entity: Entity }) {
             }
           }}
         />
+        {list.length === 0 ? (
+          <EmptyState>No tasks yet.</EmptyState>
+        ) : (
+          <div className="space-y-3">
+            <TaskGroup title="In progress" list={inProgress} />
+            <TaskGroup title="To do" list={todo} />
+            <TaskGroup title="Done" list={done} />
+          </div>
+        )}
       </Section>
     </div>
   )
