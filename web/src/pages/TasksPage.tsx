@@ -57,19 +57,27 @@ export function TaskRow({
   // read-only usages (Today, project boards) aren't navigation dead-ends.
   const open = onEdit ?? ((t: Task) => navigate(`/tasks/${t.id}`))
   return (
+    // The whole row opens the task; the checkbox and project chip stop
+    // propagation so they keep their own actions. role=button (not <button>)
+    // keeps the nested checkbox/link valid.
     <div
+      role="button"
+      tabIndex={0}
+      onClick={() => open(task)}
+      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && open(task)}
       className={cn(
-        "flex items-center gap-3 border-b border-slate-50 px-4 py-2 last:border-0 hover:bg-slate-50/60",
+        "flex cursor-pointer items-center gap-3 border-b border-slate-50 px-4 py-2 last:border-0 hover:bg-slate-50/60 focus:bg-slate-50 focus:outline-none",
         selected && "bg-indigo-50 hover:bg-indigo-50",
       )}
     >
       <button
-        onClick={() =>
+        onClick={(e) => {
+          e.stopPropagation()
           update.mutate({
             id: task.id,
             body: { status: done ? "planned" : "completed" },
           })
-        }
+        }}
         className={cn(
           "flex h-5 w-5 shrink-0 items-center justify-center rounded border",
           done ? "border-emerald-500 bg-emerald-500 text-white" : "border-slate-300",
@@ -78,18 +86,17 @@ export function TaskRow({
       >
         {done && <Check size={13} />}
       </button>
-      <button
+      <span
         className={cn(
           "flex min-w-0 flex-1 items-baseline gap-2 text-left text-sm",
           done && "text-slate-400 line-through",
         )}
-        onClick={() => open(task)}
       >
         <span className="min-w-0 truncate">{task.title}</span>
         {task.context && (
           <span className="shrink-0 text-xs text-slate-400">{task.context}</span>
         )}
-      </button>
+      </span>
       {task.project_id && (
         <span className="hidden max-w-[9rem] shrink-0 truncate text-xs text-slate-400 sm:block">
           <RefName kind="project" id={task.project_id} />
