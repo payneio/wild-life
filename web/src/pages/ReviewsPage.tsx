@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { Plus, RefreshCw } from "lucide-react"
 import { EntityForm } from "@/components/EntityForm"
-import { REVIEW_FIELDS } from "@/services/api/registry"
+import { REVIEW_FIELDS } from "@/services/api/fields"
 import { ReviewDashboardView } from "@/components/ReviewDashboard"
 import { Badge, Button, Card, EmptyState, Modal } from "@/components/ui/primitives"
 import { formatDate } from "@/lib/utils"

@@ -1,7 +1,7 @@
 import { StatusBadge } from "@/components/cells"
 import { SimpleEntityPage, type Column } from "@/components/SimpleEntityPage"
 import { Badge } from "@/components/ui/primitives"
-import { ORGANIZATION_FIELDS } from "@/services/api/registry"
+import { ORGANIZATION_FIELDS } from "@/services/api/fields"
 import { organizations } from "@/services/api/hooks"
 import type { Organization } from "@/services/api/types"
 

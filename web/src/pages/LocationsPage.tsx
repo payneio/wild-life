@@ -1,6 +1,6 @@
 import { SimpleEntityPage, type Column } from "@/components/SimpleEntityPage"
 import { Badge } from "@/components/ui/primitives"
-import { LOCATION_FIELDS } from "@/services/api/registry"
+import { LOCATION_FIELDS } from "@/services/api/fields"
 import { locations } from "@/services/api/hooks"
 import type { Location } from "@/services/api/types"
 

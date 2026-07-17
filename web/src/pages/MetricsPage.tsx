@@ -1,6 +1,6 @@
 import { SimpleEntityPage, type Column } from "@/components/SimpleEntityPage"
 import { RefName } from "@/components/cells"
-import { METRIC_FIELDS } from "@/services/api/registry"
+import { METRIC_FIELDS } from "@/services/api/fields"
 import { metrics } from "@/services/api/hooks"
 import type { Metric } from "@/services/api/types"
 

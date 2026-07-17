@@ -1,6 +1,6 @@
 import { SimpleEntityPage, type Column } from "@/components/SimpleEntityPage"
 import { DateText, PriorityBadge, RefName, StatusBadge } from "@/components/cells"
-import { PROJECT_FIELDS } from "@/services/api/registry"
+import { PROJECT_FIELDS } from "@/services/api/fields"
 import { projects } from "@/services/api/hooks"
 import type { Project } from "@/services/api/types"
 

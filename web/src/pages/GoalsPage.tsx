@@ -1,6 +1,6 @@
 import { SimpleEntityPage, type Column } from "@/components/SimpleEntityPage"
 import { RefName, StatusBadge } from "@/components/cells"
-import { GOAL_FIELDS } from "@/services/api/registry"
+import { GOAL_FIELDS } from "@/services/api/fields"
 import { goals, useGoalProgress } from "@/services/api/hooks"
 import type { Goal } from "@/services/api/types"
 

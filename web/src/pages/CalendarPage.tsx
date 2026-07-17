@@ -20,7 +20,7 @@ import { EntityForm } from "@/components/EntityForm"
 import { RecurrenceScopeDialog } from "@/components/RecurrenceScopeDialog"
 import { UnscheduledTray } from "@/components/UnscheduledTray"
 import { events, tasks } from "@/services/api/hooks"
-import { EVENT_FIELDS } from "@/services/api/registry"
+import { EVENT_FIELDS } from "@/services/api/fields"
 import {
   deleteOccurrence,
   editOccurrence,

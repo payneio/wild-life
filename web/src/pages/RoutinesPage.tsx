@@ -1,7 +1,7 @@
 import { CheckCircle2 } from "lucide-react"
 import { SimpleEntityPage, type Column } from "@/components/SimpleEntityPage"
 import { RefName, StatusBadge } from "@/components/cells"
-import { ROUTINE_FIELDS } from "@/services/api/registry"
+import { ROUTINE_FIELDS } from "@/services/api/fields"
 import { routines, useCompleteRoutine } from "@/services/api/hooks"
 import type { Routine } from "@/services/api/types"
 

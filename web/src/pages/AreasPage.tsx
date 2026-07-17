@@ -1,6 +1,6 @@
 import { SimpleEntityPage, type Column } from "@/components/SimpleEntityPage"
 import { RefName, StatusBadge } from "@/components/cells"
-import { AREA_FIELDS } from "@/services/api/registry"
+import { AREA_FIELDS } from "@/services/api/fields"
 import { areas } from "@/services/api/hooks"
 import type { Area } from "@/services/api/types"
 

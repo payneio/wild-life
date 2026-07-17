@@ -9,7 +9,7 @@ import {
   RESOURCE_FIELDS,
   TAG_FIELDS,
   WAITING_FIELDS,
-} from "@/services/api/registry"
+} from "@/services/api/fields"
 import { Badge } from "@/components/ui/primitives"
 import { formatDateTime } from "@/lib/utils"
 import {
