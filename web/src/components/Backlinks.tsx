@@ -14,7 +14,7 @@ export function Backlinks({ type, id }: { type: EntityType; id: string }) {
       <h3 className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-slate-400">
         <NotebookPen size={13} /> Mentioned in
       </h3>
-      <ul className="space-y-1">
+      <ul className="max-h-80 space-y-1 overflow-y-auto pr-1">
         {notes.map((n) => (
           <li key={n.id}>
             <Link

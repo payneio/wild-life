@@ -153,7 +153,7 @@ export function ProtocolExtra({ entity }: { entity: Entity }) {
         {list.length === 0 ? (
           <EmptyState>No steps yet.</EmptyState>
         ) : (
-          <ul className="space-y-1 text-sm">
+          <ul className="max-h-80 space-y-1 overflow-y-auto pr-1 text-sm">
             {list.map((it) => (
               <li key={it.id} className="flex items-start justify-between gap-2 border-b border-slate-50 py-1.5">
                 <div>

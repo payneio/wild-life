@@ -363,7 +363,7 @@ function RelatedSection({ personId }: { personId: string }) {
           <p className="mb-1 text-xs font-medium tracking-wide text-slate-400 uppercase">
             {g.label}
           </p>
-          <ul className="space-y-1">
+          <ul className="max-h-64 space-y-1 overflow-y-auto pr-1">
             {g.rows.map((r) => (
               <li
                 key={r.id}

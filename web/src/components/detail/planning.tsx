@@ -322,7 +322,7 @@ export function GoalDetail({ entity }: { entity: Entity }) {
         {linked.length === 0 ? (
           <p className="text-sm text-slate-400">None linked.</p>
         ) : (
-          <ul className="space-y-1">
+          <ul className="max-h-80 space-y-1 overflow-y-auto pr-1">
             {linked.map((p) => (
               <li
                 key={p.id}
