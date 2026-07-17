@@ -18,6 +18,8 @@ class EventCreate(BaseModel):
     attendees: list[str] = []
     recurrence: str | None = None
     recurrence_exdates: list[str] = []
+    recurrence_parent_id: uuid.UUID | None = None
+    recurrence_id: datetime | None = None
     area_id: uuid.UUID | None = None
     program_id: uuid.UUID | None = None
     project_id: uuid.UUID | None = None
@@ -39,6 +41,8 @@ class EventUpdate(BaseModel):
     attendees: list[str] | None = None
     recurrence: str | None = None
     recurrence_exdates: list[str] | None = None
+    recurrence_parent_id: uuid.UUID | None = None
+    recurrence_id: datetime | None = None
     area_id: uuid.UUID | None = None
     program_id: uuid.UUID | None = None
     project_id: uuid.UUID | None = None
@@ -60,6 +64,8 @@ class EventRead(Entity):
     attendees: list[str]
     recurrence: str | None
     recurrence_exdates: list[str]
+    recurrence_parent_id: uuid.UUID | None
+    recurrence_id: datetime | None
     area_id: uuid.UUID | None
     program_id: uuid.UUID | None
     project_id: uuid.UUID | None

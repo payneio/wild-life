@@ -30,6 +30,14 @@ class Event(UUIDPrimaryKey, TimestampMixin, Base):
     recurrence_exdates: Mapped[list[str]] = mapped_column(
         ARRAY(Text), server_default="{}"
     )
+    # Override linkage: a modified single occurrence of a recurring series is its
+    # own row pointing at the master via `recurrence_parent_id`, with
+    # `recurrence_id` = the original occurrence start it replaces. The master
+    # carries that date in `recurrence_exdates` so it isn't double-rendered.
+    recurrence_parent_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("events.id", ondelete="CASCADE"), index=True
+    )
+    recurrence_id: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     area_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("areas.id", ondelete="SET NULL"), index=True
     )

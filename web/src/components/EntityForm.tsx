@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react"
 import { Button, Field, Input, Select, Textarea } from "@/components/ui/primitives"
+import { RecurrenceEditor } from "@/components/RecurrenceEditor"
 import {
   useAreaLookup,
   useConditionLookup,
@@ -26,6 +27,7 @@ export type FieldType =
   | "select"
   | "entity"
   | "tags"
+  | "recurrence"
 
 export interface FieldSpec {
   name: string
@@ -204,6 +206,13 @@ export function EntityForm({
                   onChange={(e) => set(f.name, e.target.value)}
                 />
               )
+            case "recurrence":
+              return (
+                <RecurrenceEditor
+                  value={String(val ?? "")}
+                  onChange={(v) => set(f.name, v)}
+                />
+              )
             default:
               return (
                 <Input
@@ -229,7 +238,11 @@ export function EntityForm({
           <Field
             key={f.name}
             label={f.label}
-            className={f.full || f.type === "textarea" ? "sm:col-span-2" : ""}
+            className={
+              f.full || f.type === "textarea" || f.type === "recurrence"
+                ? "sm:col-span-2"
+                : ""
+            }
           >
             {control()}
           </Field>

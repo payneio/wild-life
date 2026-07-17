@@ -1,4 +1,5 @@
-import { CheckCircle2, ExternalLink, MapPin } from "lucide-react"
+import { CheckCircle2, ExternalLink, MapPin, Repeat } from "lucide-react"
+import { summarizeRecurrence } from "@/components/RecurrenceEditor"
 import { Button } from "@/components/ui/primitives"
 import { commitments, events, reviews } from "@/services/api/hooks"
 import type {
@@ -113,6 +114,11 @@ export function EventDetail({ entity }: { entity: Entity }) {
                 e.end_at ? ` – ${formatDateTime(e.end_at)}` : ""
               }`}
         </div>
+        {e.recurrence && (
+          <div className="mt-1.5 inline-flex items-center gap-1.5 text-xs font-medium text-indigo-600">
+            <Repeat size={13} /> {summarizeRecurrence(e.recurrence)}
+          </div>
+        )}
       </div>
       {isInvite && (
         <Section title="Invitation">
