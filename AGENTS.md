@@ -45,6 +45,26 @@ pnpm build                          # tsc -b && vite build  (must pass before de
 pnpm lint
 ```
 
+## From a code change to live
+
+Iterate with the dev servers; they never touch the live URLs. Publish separately.
+`castle` builds in place from this working tree (each `source:` is a path into
+`/data/repos/personal`), so publishing needs no commit or push.
+
+- **Iterate.** `pnpm dev` (web, :5173) hot-reloads. `uv run personal-api` (API,
+  :9005) has no autoreload — restart it after backend edits. `pnpm dev` talks to
+  whatever `VITE_API_BASE_URL` names; `web/.env.development.local` defaults it to the
+  deployed API.
+- **Publish web** → `castle program build personal` (or `pnpm build`). Caddy serves
+  `web/dist/` in place, so rebuilding `dist/` *is* the deploy. `castle apply` does
+  **not** build — only run it when the route or manifest changes.
+- **Publish API** → the package is installed editable, so the service imports source
+  directly: a code-only change just needs `castle service restart personal-api`. Run
+  `castle apply personal-api` when deps or env changed (it does `uv sync` + reconcile
+  + restart).
+- **Schema change** → run `alembic upgrade head` against the castle db yourself
+  first; nothing runs migrations for you.
+
 ## Architecture worth knowing
 
 - **SSE-driven reactivity.** Frontend mutations do **not** invalidate the query
@@ -108,7 +128,7 @@ gateway (`civil.payne.io`, exposed via a cloudflared tunnel):
 ```bash
 castle apply --plan             # dry-run: show what would change (do this first)
 castle apply personal-api       # build + (re)start the API service from api/
-castle apply personal           # build web/dist + publish caddy route from web/
+castle apply personal           # publish/refresh the caddy route (does NOT build dist)
 castle apply                    # converge everything
 
 castle status                   # health of all deployments
@@ -130,8 +150,9 @@ castle secret set PERSONAL_API_TOKEN      # prompts for value
 
 ### Making common changes
 
-- **Code change** → just `castle apply personal-api` (or `personal`). Reads the
-  current `main` in this repo's subdir.
+- **Code change** → see [From a code change to live](#from-a-code-change-to-live):
+  web is `castle program build personal`, API is `castle service restart personal-api`.
+  Builds run from this working tree (not a git ref), so no commit is needed.
 - **Backend env / new setting** → edit `deployments/services/personal-api.yaml`
   `defaults.env`, then `castle apply personal-api`.
 - **New secret** → `castle secret set NAME`, reference it as `${secret:NAME}` in

@@ -51,7 +51,11 @@ export function TaskRow({
   selected?: boolean
 }) {
   const update = tasks.useUpdate()
+  const navigate = useNavigate()
   const done = task.status === "completed"
+  // Default to opening the task view when no explicit handler is given, so
+  // read-only usages (Today, project boards) aren't navigation dead-ends.
+  const open = onEdit ?? ((t: Task) => navigate(`/tasks/${t.id}`))
   return (
     <div
       className={cn(
@@ -79,7 +83,7 @@ export function TaskRow({
           "flex min-w-0 flex-1 items-baseline gap-2 text-left text-sm",
           done && "text-slate-400 line-through",
         )}
-        onClick={() => onEdit?.(task)}
+        onClick={() => open(task)}
       >
         <span className="min-w-0 truncate">{task.title}</span>
         {task.context && (

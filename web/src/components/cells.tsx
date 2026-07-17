@@ -1,4 +1,6 @@
 import { Badge } from "@/components/ui/primitives"
+import { EntityRef } from "@/components/graph/EntityRef"
+import { LOOKUP_TO_TYPE } from "@/components/graph/lookupType"
 import { humanize, isOverdue, PRIORITY_CLASS, statusClass } from "@/lib/format"
 import { asDay, type CalendarDay, type Instant } from "@/lib/date"
 import { formatDate } from "@/lib/utils"
@@ -49,7 +51,11 @@ export function RefName({
 }) {
   const { nameOf } = LOOKUP_HOOKS[kind]()
   if (!id) return <span className="text-slate-300">—</span>
-  return <span>{nameOf(id)}</span>
+  return (
+    <EntityRef type={LOOKUP_TO_TYPE[kind]} id={id}>
+      {nameOf(id)}
+    </EntityRef>
+  )
 }
 
 export function DateText({

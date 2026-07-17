@@ -1,7 +1,9 @@
-import { useState } from "react"
-import { Check } from "lucide-react"
+import { useRef, useState } from "react"
+import { Check, Plus, X } from "lucide-react"
 import { Button, EmptyState, Input } from "@/components/ui/primitives"
 import { StatusBadge } from "@/components/cells"
+import { EntityPicker } from "@/components/graph/EntityPicker"
+import { EntityRef } from "@/components/graph/EntityRef"
 import { TaskRow } from "@/pages/TasksPage"
 import {
   projects,
@@ -28,7 +30,6 @@ import type {
 import {
   Heatmap,
   ProgressRing,
-  RelatedRow,
   ScheduleChips,
   Section,
   Segmented,
@@ -219,20 +220,8 @@ export function ProgramDetail({ entity }: { entity: Entity }) {
           )}
         </div>
       </div>
-      {projs.length > 0 && (
-        <Section title={`Projects · ${projs.length}`}>
-          <div className="space-y-1.5">
-            {projs.map((p) => (
-              <RelatedRow
-                key={p.id}
-                to={`/projects/${p.id}`}
-                title={p.name}
-                badge={<StatusBadge status={p.status} />}
-              />
-            ))}
-          </div>
-        </Section>
-      )}
+      {/* The navigable, addable Projects list is rendered by the generic
+          RelatedPanel from `program.relations`. */}
     </div>
   )
 }
@@ -266,11 +255,10 @@ export function GoalDetail({ entity }: { entity: Entity }) {
   const linked = useGoalProjects(goal.id).data ?? []
   const progress = useGoalProgress(goal.id).data
   const entries = useMetricEntries(goal.metric_id).data ?? []
-  const allProjects = projects.useList().data ?? []
   const link = useLinkGoalProject()
   const unlink = useUnlinkGoalProject()
-  const [pick, setPick] = useState("")
-  const linkedIds = new Set(linked.map((p) => p.id))
+  const [pickOpen, setPickOpen] = useState(false)
+  const addRef = useRef<HTMLButtonElement>(null)
   const pct = goal.progress ?? progress?.from_projects ?? 0
   const targetD = daysFromToday(goal.target_date)
 
@@ -303,7 +291,19 @@ export function GoalDetail({ entity }: { entity: Entity }) {
         </Section>
       )}
 
-      <Section title={`Linked projects · ${linked.length}`}>
+      <Section
+        title={`Linked projects · ${linked.length}`}
+        action={
+          <button
+            ref={addRef}
+            type="button"
+            onClick={() => setPickOpen(true)}
+            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+          >
+            <Plus size={13} /> Link
+          </button>
+        }
+      >
         {linked.length === 0 ? (
           <p className="text-sm text-slate-400">None linked.</p>
         ) : (
@@ -311,47 +311,40 @@ export function GoalDetail({ entity }: { entity: Entity }) {
             {linked.map((p) => (
               <li
                 key={p.id}
-                className="flex items-center justify-between gap-2 rounded-lg border border-slate-100 px-3 py-2 text-sm"
+                className="flex items-center gap-2 rounded-lg border border-slate-100 bg-surface px-3 py-2 text-sm"
               >
-                <span className="min-w-0 flex-1 truncate text-slate-700">{p.name}</span>
+                <EntityRef
+                  type="project"
+                  id={p.id}
+                  className="min-w-0 flex-1 truncate text-slate-700"
+                >
+                  {p.name}
+                </EntityRef>
                 <StatusBadge status={p.status} />
                 <button
-                  className="text-xs text-slate-400 hover:text-red-600"
+                  type="button"
+                  title="Unlink"
+                  className="shrink-0 rounded p-0.5 text-slate-300 hover:text-red-600"
                   onClick={() => unlink.mutate({ goalId: goal.id, projectId: p.id })}
                 >
-                  unlink
+                  <X size={14} />
                 </button>
               </li>
             ))}
           </ul>
         )}
-        <div className="mt-2 flex gap-2">
-          <select
-            className="w-full rounded-lg border border-slate-300 bg-surface px-3 py-1.5 text-sm text-slate-700"
-            value={pick}
-            onChange={(e) => setPick(e.target.value)}
-          >
-            <option value="">Link a project…</option>
-            {allProjects
-              .filter((p) => !linkedIds.has(p.id))
-              .map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-          </select>
-          <Button
-            variant="secondary"
-            onClick={() => {
-              if (pick) {
-                link.mutate({ goalId: goal.id, projectId: pick })
-                setPick("")
-              }
+        {pickOpen && (
+          <EntityPicker
+            getAnchor={() => addRef.current}
+            type="project"
+            placeholder="Link a project…"
+            onClose={() => setPickOpen(false)}
+            onSelect={(sel) => {
+              link.mutate({ goalId: goal.id, projectId: sel.id })
+              setPickOpen(false)
             }}
-          >
-            Link
-          </Button>
-        </div>
+          />
+        )}
       </Section>
     </div>
   )

@@ -23,6 +23,7 @@ import { MergeDialog } from "@/components/MergeDialog"
 import { Avatar } from "@/components/AuthedImage"
 import { PersonForm } from "@/components/PersonForm"
 import { StatusBadge } from "@/components/cells"
+import { EntityRef } from "@/components/graph/EntityRef"
 import {
   Badge,
   Button,
@@ -53,7 +54,7 @@ import {
   useUploadPersonPhoto,
   waitingItems,
 } from "@/services/api/hooks"
-import type { ContactMethod, Person } from "@/services/api/types"
+import type { ContactMethod, EntityType, Person } from "@/services/api/types"
 
 // --- birthday helpers -------------------------------------------------------
 interface BdayInfo {
@@ -316,33 +317,41 @@ function RelatedSection({ personId }: { personId: string }) {
     [t.accountable_owner_id, t.responsible_id, t.assignee_id].includes(personId),
   )
 
-  const groups: { label: string; rows: { id: string; title: string; status: string }[] }[] =
-    [
-      {
-        label: "Delegations",
-        rows: relDel.map((d) => ({
-          id: d.id,
-          title: d.requested_outcome,
-          status: d.status,
-        })),
-      },
-      {
-        label: "Commitments",
-        rows: relCom.map((c) => ({ id: c.id, title: c.description, status: c.status })),
-      },
-      {
-        label: "Waiting on",
-        rows: relWait.map((w) => ({
-          id: w.id,
-          title: w.expected_result,
-          status: w.status,
-        })),
-      },
-      {
-        label: "Tasks",
-        rows: relTask.map((t) => ({ id: t.id, title: t.title, status: t.status })),
-      },
-    ].filter((g) => g.rows.length > 0)
+  const allGroups: {
+    label: string
+    type: EntityType
+    rows: { id: string; title: string; status: string }[]
+  }[] = [
+    {
+      label: "Delegations",
+      type: "delegation",
+      rows: relDel.map((d) => ({
+        id: d.id,
+        title: d.requested_outcome,
+        status: d.status,
+      })),
+    },
+    {
+      label: "Commitments",
+      type: "commitment",
+      rows: relCom.map((c) => ({ id: c.id, title: c.description, status: c.status })),
+    },
+    {
+      label: "Waiting on",
+      type: "waiting_item",
+      rows: relWait.map((w) => ({
+        id: w.id,
+        title: w.expected_result,
+        status: w.status,
+      })),
+    },
+    {
+      label: "Tasks",
+      type: "task",
+      rows: relTask.map((t) => ({ id: t.id, title: t.title, status: t.status })),
+    },
+  ]
+  const groups = allGroups.filter((g) => g.rows.length > 0)
 
   if (groups.length === 0)
     return <p className="text-sm text-slate-400">Not referenced elsewhere yet.</p>
@@ -358,9 +367,11 @@ function RelatedSection({ personId }: { personId: string }) {
             {g.rows.map((r) => (
               <li
                 key={r.id}
-                className="flex items-center justify-between rounded-lg border border-slate-100 px-2.5 py-1.5 text-sm"
+                className="flex items-center justify-between gap-2 rounded-lg border border-slate-100 px-2.5 py-1.5 text-sm"
               >
-                <span className="truncate text-slate-700">{r.title}</span>
+                <EntityRef type={g.type} id={r.id} className="truncate text-slate-700">
+                  {r.title}
+                </EntityRef>
                 <StatusBadge status={r.status} />
               </li>
             ))}

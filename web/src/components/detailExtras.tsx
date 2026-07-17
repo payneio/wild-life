@@ -6,18 +6,12 @@ import { formatDate } from "@/lib/utils"
 import { todayISO } from "@/lib/format"
 import type { Body } from "@/services/api/crud"
 import {
-  goals,
   metricEntries,
-  metrics,
-  programs,
-  projects,
   protocolItems,
-  routines,
   useMetricEntries,
   useProtocolItems,
 } from "@/services/api/hooks"
 import type {
-  Area,
   Entity,
   Metric,
   MetricEntry,
@@ -36,42 +30,9 @@ function ExtraSection({ title, children }: { title: string; children: ReactNode 
   )
 }
 
-// --- Project: next action + tasks -------------------------------------------
-function Rollup({ title, items }: { title: string; items: { id: string; label: string }[] }) {
-  return (
-    <ExtraSection title={`${title} (${items.length})`}>
-      {items.length === 0 ? (
-        <p className="text-sm text-slate-400">—</p>
-      ) : (
-        <ul className="space-y-0.5 text-sm text-slate-700">
-          {items.map((i) => (
-            <li key={i.id}>{i.label}</li>
-          ))}
-        </ul>
-      )}
-    </ExtraSection>
-  )
-}
-
-export function AreaExtra({ entity }: { entity: Entity }) {
-  const area = entity as Area
-  const byArea = { area_id: area.id }
-  const progs = programs.useList(byArea).data ?? []
-  const projs = projects.useList(byArea).data ?? []
-  const gs = goals.useList(byArea).data ?? []
-  const rs = routines.useList(byArea).data ?? []
-  const ms = metrics.useList(byArea).data ?? []
-  return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      <Rollup title="Programs" items={progs.map((p) => ({ id: p.id, label: p.name }))} />
-      <Rollup title="Projects" items={projs.map((p) => ({ id: p.id, label: p.name }))} />
-      <Rollup title="Goals" items={gs.map((g) => ({ id: g.id, label: g.name }))} />
-      <Rollup title="Routines" items={rs.map((r) => ({ id: r.id, label: r.name }))} />
-      <Rollup title="Metrics" items={ms.map((m) => ({ id: m.id, label: m.name }))} />
-    </div>
-  )
-}
-
+// Area's child collections (programs/projects/goals/routines/metrics) are now
+// rendered by the generic RelatedPanel from `area.relations` — navigable and
+// with inline add/create — so AreaExtra is gone.
 
 function Sparkline({ entries }: { entries: MetricEntry[] }) {
   if (entries.length < 2) return null

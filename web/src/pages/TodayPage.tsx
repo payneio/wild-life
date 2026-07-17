@@ -87,10 +87,14 @@ export function TodayPage() {
               <SectionTitle to="/events">Today's events</SectionTitle>
               <Card className="divide-y divide-slate-50">
                 {todaysEvents.map((e) => (
-                  <div key={e.id} className="flex items-center justify-between px-4 py-2 text-sm">
+                  <Link
+                    key={e.id}
+                    to={`/events/${e.id}`}
+                    className="flex items-center justify-between px-4 py-2 text-sm transition hover:bg-slate-50"
+                  >
                     <span className="font-medium">{e.title}</span>
                     <span className="text-xs text-slate-400">{formatDateTime(e.start_at)}</span>
-                  </div>
+                  </Link>
                 ))}
               </Card>
             </section>

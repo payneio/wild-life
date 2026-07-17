@@ -4,12 +4,13 @@ import { MergeDialog } from "@/components/MergeDialog"
 import { Backlinks } from "@/components/Backlinks"
 import { PriorityBadge, RefName, StatusBadge } from "@/components/cells"
 import { EntityForm, type FieldSpec } from "@/components/EntityForm"
+import { RelatedPanel } from "@/components/graph/RelatedPanel"
 import { Badge, Button, Modal } from "@/components/ui/primitives"
 import { humanize, isOverdue } from "@/lib/format"
 import { asDay, type Instant } from "@/lib/date"
 import { formatDate, formatDateTime } from "@/lib/utils"
 import type { Body } from "@/services/api/crud"
-import type { EntityDef } from "@/services/api/registry"
+import { REGISTRY_BY_TYPE, type EntityDef } from "@/services/api/registry"
 import type { Entity, Priority } from "@/services/api/types"
 
 function isUrl(v: string): boolean {
@@ -290,6 +291,22 @@ export function DetailView({
       {!hasMeta && !hasDetails && !extra && (
         <p className="text-sm text-slate-400">No details yet — use Edit to fill this in.</p>
       )}
+
+      {/* Generic related collections (navigable + add/create). */}
+      {def.entityType &&
+        def.relations?.map((spec, i) => {
+          const targetDef = REGISTRY_BY_TYPE[spec.type]
+          if (!targetDef) return null
+          return (
+            <RelatedPanel
+              key={`${spec.mode}:${spec.label}:${i}`}
+              parent={entity}
+              parentType={def.entityType!}
+              spec={spec}
+              targetDef={targetDef}
+            />
+          )
+        })}
 
       {def.entityType && <Backlinks type={def.entityType} id={entity.id} />}
 

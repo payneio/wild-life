@@ -8,6 +8,8 @@ import { people } from "@/services/api/hooks"
 import { REGISTRY } from "@/services/api/registry"
 import type { EntityType } from "@/services/api/types"
 
+export { routeFor, ROUTE_BY_TYPE } from "@/services/api/routes"
+
 export interface MentionResult {
   type: EntityType
   id: string
@@ -29,17 +31,6 @@ interface Source {
 // on real change, so labels stay current.
 const RESOLVER_OPTS = { staleTime: Infinity }
 
-// Every mentionable source: registry entries that carry an `entityType`, plus
-// `person` (People is a bespoke page, absent from the registry).
-const REGISTRY_SOURCES: Source[] = Object.values(REGISTRY)
-  .filter((d) => d.entityType)
-  .map((d) => ({
-    type: d.entityType as EntityType,
-    label: d.label,
-    useList: d.crud.useList,
-    title: d.title,
-  }))
-
 const PERSON_SOURCE: Source = {
   type: "person",
   label: "Person",
@@ -47,47 +38,33 @@ const PERSON_SOURCE: Source = {
   title: (e) => e.name,
 }
 
-export const MENTION_SOURCES: Source[] = [PERSON_SOURCE, ...REGISTRY_SOURCES]
+// Every mentionable source: registry entries that carry an `entityType`, plus
+// `person` (People is a bespoke page, absent from the registry). Built lazily on
+// first use — never at module-eval time — so importing this module can't touch
+// REGISTRY before it's initialized (which TDZ-crashes under import cycles).
+let _sources: Source[] | null = null
+function mentionSources(): Source[] {
+  if (_sources) return _sources
+  const registrySources = Object.values(REGISTRY)
+    .filter((d) => d.entityType)
+    .map((d) => ({
+      type: d.entityType as EntityType,
+      label: d.label,
+      useList: d.crud.useList,
+      title: d.title,
+    }))
+  _sources = [PERSON_SOURCE, ...registrySources]
+  return _sources
+}
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
-// Detail-route base for each type (matches router/routes.tsx). Types without a
-// deep-link detail route are omitted → their chips render as plain (non-link) text.
-export const ROUTE_BY_TYPE: Partial<Record<EntityType, string>> = {
-  area: "areas",
-  program: "programs",
-  project: "projects",
-  task: "tasks",
-  routine: "routines",
-  goal: "goals",
-  metric: "metrics",
-  delegation: "delegations",
-  note: "notes",
-  event: "events",
-  commitment: "commitments",
-  waiting_item: "waiting",
-  decision: "decisions",
-  resource: "resources",
-  person: "people",
-  organization: "organizations",
-  location: "locations",
-  condition: "conditions",
-  medication: "medications",
-  protocol: "protocols",
-  health_event: "health-events",
-  insurance_plan: "insurance",
-  allergy: "allergies",
+let _labelByType: Partial<Record<EntityType, string>> | null = null
+export const typeLabel = (type: EntityType): string => {
+  if (!_labelByType) {
+    _labelByType = Object.fromEntries(mentionSources().map((s) => [s.type, s.label]))
+  }
+  return _labelByType[type] ?? type
 }
-
-/** Detail route path for a mention, or undefined if the type has no detail route. */
-export function routeFor(type: EntityType, id: string): string | undefined {
-  const base = ROUTE_BY_TYPE[type]
-  return base ? `/${base}/${id}` : undefined
-}
-
-const LABEL_BY_TYPE: Partial<Record<EntityType, string>> = Object.fromEntries(
-  MENTION_SOURCES.map((s) => [s.type, s.label]),
-)
-export const typeLabel = (type: EntityType): string => LABEL_BY_TYPE[type] ?? type
 
 /** Typeahead across every mentionable source (client-side, registry-driven).
  * Cheap enough (single-user data) to recompute each render — no memo. */
@@ -97,7 +74,7 @@ export function useEntitySearch(
 ): MentionResult[] {
   const { type, excludeId, limitPerType = 6 } = opts
   // NB: call useList for every source (stable hook count); filter afterwards.
-  const lists = MENTION_SOURCES.map((s) => ({ s, data: s.useList(undefined, RESOLVER_OPTS).data ?? [] }))
+  const lists = mentionSources().map((s) => ({ s, data: s.useList(undefined, RESOLVER_OPTS).data ?? [] }))
   const q = query.trim().toLowerCase()
   const out: MentionResult[] = []
   for (const { s, data } of lists) {
@@ -123,7 +100,7 @@ export function useEntitySearch(
  * Called once per rendered note; cheap because memoized JournalEntry rows that
  * don't change skip rendering (and this hook) entirely. */
 export function useEntityResolver(): (type: EntityType, id: string) => string | undefined {
-  const lists = MENTION_SOURCES.map((s) => ({ s, data: s.useList(undefined, RESOLVER_OPTS).data ?? [] }))
+  const lists = mentionSources().map((s) => ({ s, data: s.useList(undefined, RESOLVER_OPTS).data ?? [] }))
   const map = new Map<string, string>()
   for (const { s, data } of lists) {
     for (const e of data) map.set(`${s.type}:${e.id}`, s.title(e))

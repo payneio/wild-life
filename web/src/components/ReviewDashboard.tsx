@@ -1,28 +1,30 @@
 import { asDay } from "@/lib/date"
 import { Card } from "@/components/ui/primitives"
+import { EntityRef } from "@/components/graph/EntityRef"
 import { cn } from "@/lib/utils"
 import { formatDate } from "@/lib/utils"
-import type { DashRow, ReviewDashboard } from "@/services/api/types"
+import type { DashRow, EntityType, ReviewDashboard } from "@/services/api/types"
 
 interface Cat {
   key: keyof ReviewDashboard
   title: string
+  type: EntityType
   label: (r: DashRow) => string
   sub?: (r: DashRow) => string
 }
 
 const CATS: Cat[] = [
-  { key: "overdue_tasks", title: "Overdue tasks", label: (r) => String(r.title ?? ""), sub: (r) => (r.due_date ? `due ${formatDate(asDay(String(r.due_date)))}` : "") },
-  { key: "due_today", title: "Due today", label: (r) => String(r.title ?? "") },
-  { key: "stale_projects", title: "Stale projects", label: (r) => String(r.name ?? "") },
-  { key: "projects_missing_next_action", title: "Missing next action", label: (r) => String(r.name ?? "") },
-  { key: "unclear_ownership", title: "Unclear ownership", label: (r) => String(r.name ?? "") },
-  { key: "inactive_programs", title: "Inactive programs", label: (r) => String(r.name ?? "") },
-  { key: "neglected_areas", title: "Neglected areas", label: (r) => String(r.name ?? "") },
-  { key: "overdue_delegations", title: "Overdue delegations", label: (r) => String(r.requested_outcome ?? "") },
-  { key: "delegation_followups", title: "Delegation follow-ups", label: (r) => String(r.requested_outcome ?? "") },
-  { key: "unreviewed_deliverables", title: "Deliverables to review", label: (r) => String(r.requested_outcome ?? "") },
-  { key: "waiting_followups", title: "Waiting follow-ups", label: (r) => String(r.expected_result ?? "") },
+  { key: "overdue_tasks", title: "Overdue tasks", type: "task", label: (r) => String(r.title ?? ""), sub: (r) => (r.due_date ? `due ${formatDate(asDay(String(r.due_date)))}` : "") },
+  { key: "due_today", title: "Due today", type: "task", label: (r) => String(r.title ?? "") },
+  { key: "stale_projects", title: "Stale projects", type: "project", label: (r) => String(r.name ?? "") },
+  { key: "projects_missing_next_action", title: "Missing next action", type: "project", label: (r) => String(r.name ?? "") },
+  { key: "unclear_ownership", title: "Unclear ownership", type: "project", label: (r) => String(r.name ?? "") },
+  { key: "inactive_programs", title: "Inactive programs", type: "program", label: (r) => String(r.name ?? "") },
+  { key: "neglected_areas", title: "Neglected areas", type: "area", label: (r) => String(r.name ?? "") },
+  { key: "overdue_delegations", title: "Overdue delegations", type: "delegation", label: (r) => String(r.requested_outcome ?? "") },
+  { key: "delegation_followups", title: "Delegation follow-ups", type: "delegation", label: (r) => String(r.requested_outcome ?? "") },
+  { key: "unreviewed_deliverables", title: "Deliverables to review", type: "delegation", label: (r) => String(r.requested_outcome ?? "") },
+  { key: "waiting_followups", title: "Waiting follow-ups", type: "waiting_item", label: (r) => String(r.expected_result ?? "") },
 ]
 
 export function ReviewDashboardView({
@@ -78,7 +80,9 @@ export function ReviewDashboardView({
             <ul className="space-y-1 text-sm">
               {rows.map((r) => (
                 <li key={r.id} className="flex justify-between gap-2">
-                  <span className="truncate text-slate-700">{c.label(r)}</span>
+                  <EntityRef type={c.type} id={String(r.id)} className="truncate text-slate-700">
+                    {c.label(r)}
+                  </EntityRef>
                   {c.sub && <span className="shrink-0 text-xs text-slate-400">{c.sub(r)}</span>}
                 </li>
               ))}

@@ -72,9 +72,13 @@ export const dayRange = (start: CalendarDay, count: number): CalendarDay[] => {
   return out
 }
 
+/** Signed whole days between two calendar days (negative if `to` is earlier). */
+export const daysBetween = (from: CalendarDay, to: CalendarDay): number =>
+  Temporal.PlainDate.from(from).until(to, { largestUnit: "day" }).days
+
 /** Whole days from today to `d` (negative = past). Accepts a day or an instant. */
 export const daysFromToday = (d: CalendarDay | Instant | null | undefined): number | null =>
-  d == null ? null : Temporal.PlainDate.from(today()).until(asDay(d), { largestUnit: "day" }).days
+  d == null ? null : daysBetween(today(), asDay(d))
 
 // --- format (display — accepts day or instant) ------------------------------
 const DAY_OPTS: Intl.DateTimeFormatOptions = { year: "numeric", month: "short", day: "numeric" }

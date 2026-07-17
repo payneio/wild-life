@@ -1,21 +1,8 @@
 import { useMemo, useState } from "react"
 import { Button, Field, Input, Select, Textarea } from "@/components/ui/primitives"
 import { RecurrenceEditor } from "@/components/RecurrenceEditor"
-import {
-  useAreaLookup,
-  useConditionLookup,
-  useGoalLookup,
-  useLocationLookup,
-  useMedicationLookup,
-  useMetricLookup,
-  useOrganizationLookup,
-  usePeopleLookup,
-  useProgramLookup,
-  useProjectLookup,
-  useProtocolLookup,
-  type LookupKey,
-  type Option,
-} from "@/services/api/lookups"
+import { EntityRefField } from "@/components/graph/EntityRefField"
+import type { LookupKey } from "@/services/api/lookups"
 
 export type FieldType =
   | "text"
@@ -72,19 +59,6 @@ export function EntityForm({
   submitLabel?: string
 }) {
   const init = initial as Values | undefined
-  const lookups: Record<LookupKey, { options: Option[] }> = {
-    area: useAreaLookup(),
-    program: useProgramLookup(),
-    project: useProjectLookup(),
-    people: usePeopleLookup(),
-    goal: useGoalLookup(),
-    metric: useMetricLookup(),
-    organization: useOrganizationLookup(),
-    location: useLocationLookup(),
-    condition: useConditionLookup(),
-    medication: useMedicationLookup(),
-    protocol: useProtocolLookup(),
-  }
 
   const [values, setValues] = useState<Values>(() => {
     const v: Values = {}
@@ -195,16 +169,13 @@ export function EntityForm({
                 </Select>
               )
             case "entity": {
-              const opts = f.lookup ? lookups[f.lookup].options : []
+              if (!f.lookup) return null
               return (
-                <Select value={String(val ?? "")} onChange={(e) => set(f.name, e.target.value)}>
-                  <option value="">—</option>
-                  {opts.map((o) => (
-                    <option key={o.id} value={o.id}>
-                      {o.label}
-                    </option>
-                  ))}
-                </Select>
+                <EntityRefField
+                  lookup={f.lookup}
+                  value={val ? String(val) : null}
+                  onChange={(id) => set(f.name, id ?? "")}
+                />
               )
             }
             case "tags":
