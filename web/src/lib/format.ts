@@ -16,13 +16,20 @@ export function todayISO(): string {
   return ymd()
 }
 
+/** The LOCAL calendar day of a date-or-datetime string. A bare date
+ *  ("2026-07-16") is taken as-is; a timestamp is converted to the local day —
+ *  an event at 8pm Pacific belongs to that local day, not the next UTC day. */
+export function localDay(s: string): string {
+  return s.length > 10 ? ymd(new Date(s)) : s.slice(0, 10)
+}
+
 export function isOverdue(date: string | null | undefined): boolean {
   if (!date) return false
-  return date < todayISO()
+  return localDay(date) < todayISO()
 }
 
 export function isToday(date: string | null | undefined): boolean {
-  return !!date && date.slice(0, 10) === todayISO()
+  return !!date && localDay(date) === todayISO()
 }
 
 export const PRIORITY_RANK: Record<Priority, number> = {

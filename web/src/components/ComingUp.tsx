@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/primitives"
 import { events } from "@/services/api/hooks"
 import { SOURCES, useCalendarSources } from "@/services/calendar/sources"
 import { cn } from "@/lib/utils"
-import { ymd } from "@/lib/format"
+import { localDay, ymd } from "@/lib/format"
 
 const HORIZON_DAYS = 21
 const EVENT_COLOR = "#4f46e5"
@@ -48,7 +48,7 @@ export function ComingUp() {
   const rows = useMemo<Row[]>(() => {
     const out: Row[] = items.map((it) => ({
       key: it.id,
-      date: it.start.slice(0, 10),
+      date: localDay(it.start),
       title: it.title,
       color: it.color,
       url: it.url,
@@ -56,14 +56,17 @@ export function ComingUp() {
     for (const e of upcomingEvents.data ?? []) {
       out.push({
         key: `event:${e.id}`,
-        date: e.start_at.slice(0, 10),
+        date: localDay(e.start_at),
         title: e.title,
         color: EVENT_COLOR,
         url: `/events/${e.id}`,
       })
     }
-    return out.sort((a, b) => a.date.localeCompare(b.date)).slice(0, 40)
-  }, [items, upcomingEvents.data])
+    return out
+      .filter((r) => r.date >= today)
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(0, 40)
+  }, [items, upcomingEvents.data, today])
 
   if (rows.length === 0) return null
 
