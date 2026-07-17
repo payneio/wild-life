@@ -5,6 +5,7 @@ import { StatusBadge } from "@/components/cells"
 import { EntityPicker } from "@/components/graph/EntityPicker"
 import { EntityRef } from "@/components/graph/EntityRef"
 import { TaskRow } from "@/pages/TasksPage"
+import { cn } from "@/lib/utils"
 import {
   projects,
   tasks,
@@ -87,14 +88,29 @@ export function TaskDetail({ entity }: { entity: Entity }) {
 }
 
 // --- Project: progress + task board -----------------------------------------
-function TaskGroup({ title, list }: { title: string; list: Task[] }) {
+function TaskGroup({
+  title,
+  list,
+  capped,
+}: {
+  title: string
+  list: Task[]
+  capped?: boolean
+}) {
   if (list.length === 0) return null
   return (
     <div className="space-y-1">
       <div className="text-xs font-medium text-slate-500">
         {title} · {list.length}
       </div>
-      <div className="overflow-hidden rounded-lg border border-slate-100">
+      {/* `capped` bounds low-priority groups (e.g. Done) so a long history
+          scrolls in place instead of pushing the page down. */}
+      <div
+        className={cn(
+          "rounded-lg border border-slate-100",
+          capped ? "max-h-64 overflow-y-auto" : "overflow-hidden",
+        )}
+      >
         {list.map((t) => (
           <TaskRow key={t.id} task={t} />
         ))}
@@ -179,7 +195,7 @@ export function ProjectDetail({ entity }: { entity: Entity }) {
           <div className="space-y-3">
             <TaskGroup title="In progress" list={inProgress} />
             <TaskGroup title="To do" list={todo} />
-            <TaskGroup title="Done" list={done} />
+            <TaskGroup title="Done" list={done} capped />
           </div>
         )}
       </Section>
