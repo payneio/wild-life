@@ -14,6 +14,7 @@ from personal_api.models.health import (
     HealthEvent,
     InsurancePlan,
     Medication,
+    MedicationDose,
     Protocol,
     ProtocolItem,
 )
@@ -32,6 +33,9 @@ from personal_api.schemas.health import (
     InsurancePlanRead,
     InsurancePlanUpdate,
     MedicationCreate,
+    MedicationDoseCreate,
+    MedicationDoseRead,
+    MedicationDoseUpdate,
     MedicationRead,
     MedicationUpdate,
     ProtocolCreate,
@@ -64,6 +68,17 @@ router.include_router(
         read_schema=MedicationRead,
         update_schema=MedicationUpdate,
         order_by=Medication.name,
+    )
+)
+router.include_router(
+    crud_router(
+        prefix="/medication-doses",
+        tag="health",
+        model=MedicationDose,
+        create_schema=MedicationDoseCreate,
+        read_schema=MedicationDoseRead,
+        update_schema=MedicationDoseUpdate,
+        order_by=MedicationDose.dose_date,
     )
 )
 router.include_router(

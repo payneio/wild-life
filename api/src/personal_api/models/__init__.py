@@ -9,6 +9,7 @@ from personal_api.models.health import (
     HealthEvent,
     InsurancePlan,
     Medication,
+    MedicationDose,
     Protocol,
     ProtocolItem,
 )
@@ -38,6 +39,7 @@ __all__ = [
     "GoalProject",
     "Condition",
     "Medication",
+    "MedicationDose",
     "Protocol",
     "ProtocolItem",
     "HealthEvent",

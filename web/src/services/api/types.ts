@@ -523,6 +523,13 @@ export interface Medication extends Entity {
   notes: string | null
 }
 
+export interface MedicationDose extends Entity {
+  medication_id: ID
+  dose_date: string
+  slot: string
+  taken_at: string | null
+}
+
 export interface Protocol extends Entity {
   name: string
   category: string | null

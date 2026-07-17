@@ -19,6 +19,7 @@ import type {
   Interaction,
   Location,
   Medication,
+  MedicationDose,
   Metric,
   MetricEntry,
   Note,
@@ -84,6 +85,7 @@ export const tags = createCrud<Tag>("tags")
 // --- health domain ---
 export const conditions = createCrud<Condition>("conditions")
 export const medications = createCrud<Medication>("medications")
+export const medicationDoses = createCrud<MedicationDose>("medication-doses")
 export const protocols = createCrud<Protocol>("protocols")
 export const protocolItems = createCrud<ProtocolItem>("protocol-items")
 export const healthEvents = createCrud<HealthEvent>("health-events")

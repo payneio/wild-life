@@ -8,9 +8,9 @@ conditions it treats, and the dated clinical record.
 """
 
 import uuid
-from datetime import date
+from datetime import date, datetime
 
-from sqlalchemy import Date, ForeignKey, Integer, Text
+from sqlalchemy import Date, DateTime, ForeignKey, Integer, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -214,3 +214,28 @@ class Allergy(UUIDPrimaryKey, TimestampMixin, Base):
     )  # active/suspected/resolved
     noted_on: Mapped[date | None] = mapped_column(Date)
     notes: Mapped[str | None] = mapped_column(Text)
+
+
+class MedicationDose(UUIDPrimaryKey, TimestampMixin, Base):
+    """A logged dose — one row = that medication's slot was taken on that day.
+
+    Presence is the checkbox; absence means not-yet-taken. Unique per
+    (medication, day, slot) so re-logging is idempotent and adherence is a count.
+    """
+
+    __tablename__ = "medication_doses"
+    __table_args__ = (
+        UniqueConstraint(
+            "medication_id", "dose_date", "slot", name="uq_medication_dose"
+        ),
+    )
+
+    medication_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("medications.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    dose_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
+    slot: Mapped[str] = mapped_column(Text, nullable=False)
+    taken_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

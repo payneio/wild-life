@@ -1,16 +1,14 @@
-import { CheckCircle2 } from "lucide-react"
 import { Link } from "react-router-dom"
 import { NoteComposer } from "@/components/NoteComposer"
 import { ReviewDashboardView } from "@/components/ReviewDashboard"
+import { TodayRhythms } from "@/components/TodayRhythms"
 import { TaskRow } from "@/pages/TasksPage"
 import { Card, EmptyState } from "@/components/ui/primitives"
 import { isToday, PRIORITY_RANK, todayISO } from "@/lib/format"
 import { formatDateTime } from "@/lib/utils"
 import {
   events,
-  routines,
   tasks,
-  useCompleteRoutine,
   useCreateNoteWithImages,
   useReviewDashboard,
 } from "@/services/api/hooks"
@@ -31,16 +29,13 @@ function SectionTitle({ children, to }: { children: string; to?: string }) {
 export function TodayPage() {
   const today = todayISO()
   const { data: taskData } = tasks.useList({ queue: "personal", include_closed: "false" })
-  const { data: routineData } = routines.useList({ status: "active" })
   const { data: eventData } = events.useList()
   const { data: dash } = useReviewDashboard()
-  const complete = useCompleteRoutine()
   const submitNote = useCreateNoteWithImages()
 
   const todays = (taskData ?? [])
     .filter((t) => (t.scheduled_date && t.scheduled_date <= today) || (t.due_date && t.due_date <= today))
     .sort((a, b) => PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority])
-  const activeRoutines = (routineData ?? []).filter((r) => r.status === "active")
   const todaysEvents = (eventData ?? []).filter((e) => isToday(e.start_at))
 
   return (
@@ -83,30 +78,7 @@ export function TodayPage() {
             )}
           </section>
 
-          <section>
-            <SectionTitle to="/routines">Routines</SectionTitle>
-            {activeRoutines.length === 0 ? (
-              <EmptyState>No active routines.</EmptyState>
-            ) : (
-              <Card className="divide-y divide-slate-50">
-                {activeRoutines.map((r) => (
-                  <div key={r.id} className="flex items-center justify-between px-4 py-2">
-                    <div className="text-sm">
-                      <span className="font-medium">{r.name}</span>
-                      {r.frequency && <span className="ml-2 text-xs text-slate-400">{r.frequency}</span>}
-                    </div>
-                    <button
-                      className="flex items-center gap-1 text-sm text-emerald-600 hover:text-emerald-700"
-                      onClick={() => complete.mutate({ id: r.id })}
-                    >
-                      <CheckCircle2 size={16} />
-                      Log
-                    </button>
-                  </div>
-                ))}
-              </Card>
-            )}
-          </section>
+          <TodayRhythms />
 
           {todaysEvents.length > 0 && (
             <section>

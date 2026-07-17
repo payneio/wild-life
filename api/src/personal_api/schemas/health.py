@@ -1,7 +1,7 @@
 """Pydantic schemas for the health domain."""
 
 import uuid
-from datetime import date
+from datetime import date, datetime
 from typing import Literal
 
 from pydantic import BaseModel
@@ -363,3 +363,23 @@ class AllergyRead(Entity):
     status: str
     noted_on: date | None
     notes: str | None
+
+
+class MedicationDoseCreate(BaseModel):
+    medication_id: uuid.UUID
+    dose_date: date
+    slot: str
+    taken_at: datetime | None = None
+
+
+class MedicationDoseUpdate(BaseModel):
+    dose_date: date | None = None
+    slot: str | None = None
+    taken_at: datetime | None = None
+
+
+class MedicationDoseRead(Entity):
+    medication_id: uuid.UUID
+    dose_date: date
+    slot: str
+    taken_at: datetime | None
