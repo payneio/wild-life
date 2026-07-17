@@ -16,11 +16,17 @@ class EventCreate(BaseModel):
     end_at: datetime | None = None
     all_day: bool = False
     attendees: list[str] = []
+    recurrence: str | None = None
+    recurrence_exdates: list[str] = []
     area_id: uuid.UUID | None = None
     program_id: uuid.UUID | None = None
     project_id: uuid.UUID | None = None
     external_ref: str | None = None
     notes: str | None = None
+    organizer: str | None = None
+    sequence: int | None = None
+    rsvp_status: str | None = None
+    rsvp_sent_status: str | None = None
 
 
 class EventUpdate(BaseModel):
@@ -31,11 +37,17 @@ class EventUpdate(BaseModel):
     end_at: datetime | None = None
     all_day: bool | None = None
     attendees: list[str] | None = None
+    recurrence: str | None = None
+    recurrence_exdates: list[str] | None = None
     area_id: uuid.UUID | None = None
     program_id: uuid.UUID | None = None
     project_id: uuid.UUID | None = None
     external_ref: str | None = None
     notes: str | None = None
+    organizer: str | None = None
+    sequence: int | None = None
+    rsvp_status: str | None = None
+    rsvp_sent_status: str | None = None
 
 
 class EventRead(Entity):
@@ -46,8 +58,14 @@ class EventRead(Entity):
     end_at: datetime | None
     all_day: bool
     attendees: list[str]
+    recurrence: str | None
+    recurrence_exdates: list[str]
     area_id: uuid.UUID | None
     program_id: uuid.UUID | None
     project_id: uuid.UUID | None
     external_ref: str | None
     notes: str | None
+    organizer: str | None
+    sequence: int | None
+    rsvp_status: str | None
+    rsvp_sent_status: str | None

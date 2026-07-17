@@ -22,6 +22,14 @@ class Settings(BaseSettings):
     # Comma-separated list of allowed browser origins for CORS.
     cors_origins: str = "http://localhost:5173"
 
+    # Web Push (VAPID). Private key is a PKCS8 PEM (env PERSONAL_API_VAPID_PRIVATE_KEY,
+    # mapped from the castle secret VAPID_PRIVATE_KEY); the public application-server
+    # key is derived from it at runtime. Empty = push disabled.
+    vapid_private_key: str = ""
+    vapid_subject: str = "mailto:paul@payne.io"
+    # Reminder lead times in minutes before an event start (comma-separated).
+    reminder_leads: str = "1440,60"
+
     model_config = {
         "env_prefix": "PERSONAL_API_",
         "env_file": ".env",
@@ -31,6 +39,12 @@ class Settings(BaseSettings):
     def cors_origin_list(self) -> list[str]:
         """CORS origins as a list."""
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+    @property
+    def reminder_lead_minutes(self) -> list[int]:
+        """Reminder lead times as a sorted (descending) list of minutes."""
+        vals = {int(x) for x in self.reminder_leads.split(",") if x.strip()}
+        return sorted(vals, reverse=True)
 
     @property
     def sync_database_url(self) -> str:

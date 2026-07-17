@@ -19,6 +19,7 @@ from personal_api.models.locations import Location
 from personal_api.models.notes import Note, NoteMention
 from personal_api.models.organizations import Affiliation, Organization
 from personal_api.models.people import Interaction, Person
+from personal_api.models.push import PushSubscription, SentReminder
 from personal_api.models.reviews import Review
 from personal_api.models.routines import Routine, RoutineInstance
 from personal_api.models.tags import EntityTag, Tag
@@ -51,6 +52,8 @@ __all__ = [
     "NoteMention",
     "Organization",
     "Affiliation",
+    "PushSubscription",
+    "SentReminder",
     "Location",
     "Commitment",
     "WaitingItem",

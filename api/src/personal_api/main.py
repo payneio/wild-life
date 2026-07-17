@@ -21,6 +21,8 @@ from personal_api.routers import (
     notes,
     organizations,
     people,
+    push,
+    reminders,
     reviews,
     routines,
     search,
@@ -83,6 +85,8 @@ app.include_router(tags.router)
 app.include_router(health_routes.router)
 app.include_router(history.router)
 app.include_router(stream.router)
+app.include_router(push.router)
+app.include_router(reminders.router)
 
 
 def run() -> None:
