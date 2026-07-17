@@ -1,3 +1,4 @@
+import { asDay } from "@/lib/date"
 import { Card } from "@/components/ui/primitives"
 import { cn } from "@/lib/utils"
 import { formatDate } from "@/lib/utils"
@@ -11,7 +12,7 @@ interface Cat {
 }
 
 const CATS: Cat[] = [
-  { key: "overdue_tasks", title: "Overdue tasks", label: (r) => String(r.title ?? ""), sub: (r) => (r.due_date ? `due ${formatDate(String(r.due_date))}` : "") },
+  { key: "overdue_tasks", title: "Overdue tasks", label: (r) => String(r.title ?? ""), sub: (r) => (r.due_date ? `due ${formatDate(asDay(String(r.due_date)))}` : "") },
   { key: "due_today", title: "Due today", label: (r) => String(r.title ?? "") },
   { key: "stale_projects", title: "Stale projects", label: (r) => String(r.name ?? "") },
   { key: "projects_missing_next_action", title: "Missing next action", label: (r) => String(r.name ?? "") },

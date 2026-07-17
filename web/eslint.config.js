@@ -27,6 +27,22 @@ export default defineConfig([
     rules: {
       // Catch circular imports (a runtime crash tsc can't see) at lint time.
       "import-x/no-cycle": ["error", { maxDepth: 6 }],
+      // Belt to the branded-types suspenders: slicing a day out of an ISO
+      // timestamp gives the UTC day, not the local one. Route through @/lib/date.
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector:
+            "CallExpression[callee.property.name=/^(slice|replace)$/][callee.object.callee.property.name='toISOString']",
+          message:
+            "Don't derive a day/stamp from toISOString() (that's UTC). Use the branded helpers in @/lib/date (dayOf / today / asDay / rruleDtstart).",
+        },
+      ],
     },
+  },
+  {
+    // @/lib/date is the one place allowed to touch raw Date/toISOString.
+    files: ["src/lib/date.ts"],
+    rules: { "no-restricted-syntax": "off" },
   },
 ])

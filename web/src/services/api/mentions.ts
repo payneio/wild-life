@@ -119,7 +119,9 @@ export function useEntitySearch(
   })
 }
 
-/** Resolve any (type,id) → current display label from the loaded lists. */
+/** Resolve any (type,id) → current display label from the loaded lists.
+ * Called once per rendered note; cheap because memoized JournalEntry rows that
+ * don't change skip rendering (and this hook) entirely. */
 export function useEntityResolver(): (type: EntityType, id: string) => string | undefined {
   const lists = MENTION_SOURCES.map((s) => ({ s, data: s.useList(undefined, RESOLVER_OPTS).data ?? [] }))
   const map = new Map<string, string>()

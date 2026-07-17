@@ -1,3 +1,4 @@
+import { memo } from "react"
 import Markdown, { type Components } from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { AuthImage } from "@/components/AuthImage"
@@ -48,8 +49,15 @@ const COMPONENTS: Components = {
   },
 }
 
-/** Render a note body as markdown with clickable @-mention chips. */
-export function MentionText({ children }: { children: string }) {
+/**
+ * Render a note body as markdown with clickable @-mention chips.
+ *
+ * Memoized on `children`: markdown parsing is expensive and a journal renders
+ * many bodies at once, so skip the re-parse when a note's text is unchanged
+ * (e.g. when a sibling note updates). `COMPONENTS` is a module constant, so the
+ * only meaningful prop is the body string.
+ */
+export const MentionText = memo(function MentionText({ children }: { children: string }) {
   return (
     <div className="text-sm text-slate-700">
       <Markdown
@@ -61,4 +69,4 @@ export function MentionText({ children }: { children: string }) {
       </Markdown>
     </div>
   )
-}
+})

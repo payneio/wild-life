@@ -1,3 +1,4 @@
+import { asDay } from "@/lib/date"
 import { useState } from "react"
 import { Plus, Trash2 } from "lucide-react"
 import { Button, Field, Input, Select, Textarea } from "@/components/ui/primitives"
@@ -132,7 +133,7 @@ function DateRows({
         <button
           type="button"
           className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800"
-          onClick={() => onChange([...rows, { label: "", date: "" }])}
+          onClick={() => onChange([...rows, { label: "", date: asDay("") }])}
         >
           <Plus size={13} /> Add
         </button>
@@ -150,7 +151,7 @@ function DateRows({
               type="date"
               className="w-40"
               value={r.date}
-              onChange={(e) => set(i, { date: e.target.value })}
+              onChange={(e) => set(i, { date: asDay(e.target.value) })}
             />
             <button
               type="button"

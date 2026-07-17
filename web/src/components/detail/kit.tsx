@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import { daysFromToday, shiftDays, todayISO } from "@/components/detail/dates"
 import { localDay, ymd } from "@/lib/format"
+import type { CalendarDay, Instant } from "@/lib/date"
 
 /** Shared building blocks for the bespoke entity detail views. All colors go
  *  through the token layer (slate/indigo remap), so everything is theme-aware. */
@@ -70,7 +71,7 @@ export function DeltaTile({
   futureLabel = "days left",
   pastLabel = "days over",
 }: {
-  date: string | null | undefined
+  date: CalendarDay | Instant | null | undefined
   futureLabel?: string
   pastLabel?: string
 }) {
@@ -90,7 +91,7 @@ export function AgeTile({
   date,
   label = "days",
 }: {
-  date: string | null | undefined
+  date: CalendarDay | Instant | null | undefined
   label?: string
 }) {
   const d = daysFromToday(date)
@@ -245,7 +246,7 @@ export function DaysBadge({
   date,
   label,
 }: {
-  date: string | null | undefined
+  date: CalendarDay | Instant | null | undefined
   label?: string
 }) {
   const d = daysFromToday(date)

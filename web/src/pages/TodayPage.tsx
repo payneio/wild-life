@@ -6,6 +6,7 @@ import { ComingUp } from "@/components/ComingUp"
 import { TaskRow } from "@/pages/TasksPage"
 import { Card, EmptyState } from "@/components/ui/primitives"
 import { isToday, PRIORITY_RANK, todayISO } from "@/lib/format"
+import { dayOf } from "@/lib/date"
 import { formatDateTime } from "@/lib/utils"
 import {
   events,
@@ -37,7 +38,7 @@ export function TodayPage() {
   const todays = (taskData ?? [])
     .filter((t) => (t.scheduled_date && t.scheduled_date <= today) || (t.due_date && t.due_date <= today))
     .sort((a, b) => PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority])
-  const todaysEvents = (eventData ?? []).filter((e) => isToday(e.start_at))
+  const todaysEvents = (eventData ?? []).filter((e) => isToday(dayOf(e.start_at)))
 
   return (
     <div className="space-y-6">

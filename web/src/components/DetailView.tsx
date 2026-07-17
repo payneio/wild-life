@@ -6,6 +6,7 @@ import { PriorityBadge, RefName, StatusBadge } from "@/components/cells"
 import { EntityForm, type FieldSpec } from "@/components/EntityForm"
 import { Badge, Button, Modal } from "@/components/ui/primitives"
 import { humanize, isOverdue } from "@/lib/format"
+import { asDay, type Instant } from "@/lib/date"
 import { formatDate, formatDateTime } from "@/lib/utils"
 import type { Body } from "@/services/api/crud"
 import type { EntityDef } from "@/services/api/registry"
@@ -231,11 +232,13 @@ export function DetailView({
             </MetaChip>
           ))}
           {dateFs.map((f) => {
-            const late = f.name === "due_date" && isOverdue(String(row[f.name]))
-            const fmt = f.type === "datetime" ? formatDateTime : formatDate
+            const raw = String(row[f.name])
+            const late = f.name === "due_date" && isOverdue(asDay(raw))
+            const text =
+              f.type === "datetime" ? formatDateTime(raw as Instant) : formatDate(asDay(raw))
             return (
               <MetaChip key={f.name} label={f.label} tone={late ? "danger" : "default"}>
-                {fmt(String(row[f.name]))}
+                {text}
               </MetaChip>
             )
           })}

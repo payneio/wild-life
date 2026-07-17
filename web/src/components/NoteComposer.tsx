@@ -5,6 +5,7 @@ import { EntityCombobox } from "@/components/EntityCombobox"
 import { MentionText } from "@/components/MentionText"
 import { Button, Field, Input, Select } from "@/components/ui/primitives"
 import { todayISO } from "@/lib/format"
+import { asDay } from "@/lib/date"
 import type { Body } from "@/services/api/crud"
 import {
   mentionToken,
@@ -252,7 +253,7 @@ export function NoteComposer({
             </Select>
           </Field>
           <Field label="Date">
-            <Input type="date" value={entryDate} onChange={(e) => setEntryDate(e.target.value)} />
+            <Input type="date" value={entryDate} onChange={(e) => setEntryDate(asDay(e.target.value))} />
           </Field>
           <Field label="Mood">
             <Input value={mood} onChange={(e) => setMood(e.target.value)} />

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { ChevronLeft, ChevronRight, Link2, Pencil, Trash2 } from "lucide-react"
 import { Backlinks } from "@/components/Backlinks"
@@ -40,7 +40,10 @@ function entryTime(note: Note): string {
 }
 
 // --- one entry in the stream ------------------------------------------------
-function JournalEntry({
+// Memoized with stable id-taking callbacks so that when one note updates
+// (e.g. an optimistic edit), only that note re-renders — the other ~130 entries
+// keep their props and skip the (expensive, markdown-heavy) render entirely.
+const JournalEntry = memo(function JournalEntry({
   note,
   focused,
   base,
@@ -50,8 +53,8 @@ function JournalEntry({
   note: Note
   focused: boolean
   base: string
-  onEdit: () => void
-  onDelete: () => void
+  onEdit: (id: string) => void
+  onDelete: (id: string) => void
 }) {
   const resolve = useEntityResolver()
   const navigate = useNavigate()
@@ -80,14 +83,14 @@ function JournalEntry({
           <button
             className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
             title="Edit"
-            onClick={onEdit}
+            onClick={() => onEdit(note.id)}
           >
             <Pencil size={14} />
           </button>
           <button
             className="rounded p-1 text-slate-400 hover:bg-red-50 hover:text-red-600"
             title="Delete"
-            onClick={onDelete}
+            onClick={() => onDelete(note.id)}
           >
             <Trash2 size={14} />
           </button>
@@ -117,7 +120,7 @@ function JournalEntry({
       {focused && <Backlinks type="note" id={note.id} />}
     </Card>
   )
-}
+})
 
 // --- search results (compact, highlighted) ---------------------------------
 const MENTION_TOKEN = /\[@([^\]]+)\]\(\w+:[0-9a-fA-F-]+\)/g
@@ -235,6 +238,18 @@ export function NotesPage({
   const base =
     scope === "work" ? "/work-journal" : scope === "whiteboard" ? "/whiteboard" : "/notes"
   const heading = scope === "work" ? "Work Journal" : scope === "whiteboard" ? "Whiteboard" : "Journal"
+  // Stable handlers so memoized JournalEntry rows don't re-render on every keystroke/refetch.
+  const removeMutate = remove.mutate
+  const handleEdit = useCallback((noteId: string) => setEditingId(noteId), [])
+  const handleDelete = useCallback(
+    (noteId: string) => {
+      if (confirm("Delete this entry?")) {
+        removeMutate(noteId)
+        if (noteId === id) navigate(base)
+      }
+    },
+    [removeMutate, id, navigate, base],
+  )
   // Merge in a cross-scope permalinked note so its link never dead-ends.
   const rows = useMemo(() => {
     const list = data ?? []
@@ -415,13 +430,8 @@ export function NotesPage({
                         note={n}
                         focused={n.id === id}
                         base={base}
-                        onEdit={() => setEditingId(n.id)}
-                        onDelete={() => {
-                          if (confirm("Delete this entry?")) {
-                            remove.mutate(n.id)
-                            if (n.id === id) navigate(base)
-                          }
-                        }}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
                       />
                     )}
                   </div>

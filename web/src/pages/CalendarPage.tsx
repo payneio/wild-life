@@ -32,20 +32,16 @@ import {
   type CalendarItem,
 } from "@/services/calendar/sources"
 import { cn } from "@/lib/utils"
-import { ymd } from "@/lib/format"
+import {
+  addDays,
+  dayOfDate as ymd,
+  instantOfDate,
+  rruleDtstart,
+  timeOfDate,
+  type CalendarDay,
+} from "@/lib/date"
 import type { EventItem } from "@/services/api/types"
 
-function toBasicUtc(iso: string): string {
-  return new Date(iso).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "")
-}
-function addDay(d: string): string {
-  const dt = new Date(`${d}T00:00:00Z`)
-  dt.setUTCDate(dt.getUTCDate() + 1)
-  return dt.toISOString().slice(0, 10)
-}
-function hms(d: Date): string {
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}:00`
-}
 
 function eventToInput(ev: EventItem): EventInput {
   const base: EventInput = {
@@ -56,7 +52,7 @@ function eventToInput(ev: EventItem): EventInput {
     extendedProps: { recurring: !!ev.recurrence, kind: "event" },
   }
   if (ev.recurrence) {
-    base.rrule = `DTSTART:${toBasicUtc(ev.start_at)}\nRRULE:${ev.recurrence}`
+    base.rrule = `DTSTART:${rruleDtstart(ev.start_at)}\nRRULE:${ev.recurrence}`
     if (ev.end_at) base.duration = new Date(ev.end_at).getTime() - new Date(ev.start_at).getTime()
     if (ev.recurrence_exdates?.length) base.exdate = ev.recurrence_exdates
   } else {
@@ -78,7 +74,7 @@ function itemToInput(it: CalendarItem): EventInput {
   if (!it.allDay) {
     return { ...common, start: it.start, end: it.end, allDay: false }
   }
-  return { ...common, start: it.start, end: it.end ? addDay(it.end) : undefined, allDay: true }
+  return { ...common, start: it.start, end: it.end ? addDays(it.end as CalendarDay, 1) : undefined, allDay: true }
 }
 
 const LAYERS_KEY = "personal_calendar_layers"
@@ -160,14 +156,14 @@ export function CalendarPage() {
     if (arg.event.extendedProps.kind === "source") {
       const item = items.find((i) => i.id === arg.event.id)
       if (!item) return arg.revert()
-      reschedule(item, ymd(start), arg.event.allDay ? null : hms(start))
+      reschedule(item, ymd(start), arg.event.allDay ? null : timeOfDate(start))
       invalidate()
       return
     }
     const end = arg.event.end
     const changes: Partial<EventItem> = {
-      start_at: start.toISOString(),
-      ...(end ? { end_at: end.toISOString() } : {}),
+      start_at: instantOfDate(start),
+      ...(end ? { end_at: instantOfDate(end) } : {}),
     }
     if (arg.event.extendedProps.recurring) {
       setPendingMove({
@@ -276,7 +272,7 @@ export function CalendarPage() {
                 id,
                 body: arg.allDay
                   ? { scheduled_date: ymd(arg.date), scheduled_time: null }
-                  : { scheduled_date: ymd(arg.date), scheduled_time: hms(arg.date) },
+                  : { scheduled_date: ymd(arg.date), scheduled_time: timeOfDate(arg.date) },
               })
             }}
             eventReceive={(arg) => arg.event.remove()}

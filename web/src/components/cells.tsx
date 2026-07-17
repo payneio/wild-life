@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/primitives"
 import { humanize, isOverdue, PRIORITY_CLASS, statusClass } from "@/lib/format"
+import { asDay, type CalendarDay, type Instant } from "@/lib/date"
 import { formatDate } from "@/lib/utils"
 import {
   useAreaLookup,
@@ -55,11 +56,11 @@ export function DateText({
   value,
   overdue,
 }: {
-  value: string | null | undefined
+  value: CalendarDay | Instant | null | undefined
   overdue?: boolean
 }) {
   if (!value) return <span className="text-slate-300">—</span>
-  const late = overdue && isOverdue(value)
+  const late = overdue && isOverdue(asDay(value))
   return (
     <span className={late ? "font-medium text-red-600" : "text-slate-600"}>
       {formatDate(value)}

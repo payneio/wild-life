@@ -1,11 +1,13 @@
 // Types mirroring personal-api schemas (source of truth: personal-api/src/personal_api/schemas).
 
+import type { CalendarDay, Instant, WallTime } from "@/lib/date"
+
 export type ID = string
 
 export interface Entity {
   id: ID
-  created_at: string
-  updated_at: string
+  created_at: Instant
+  updated_at: Instant
 }
 
 // --- enums ---
@@ -142,7 +144,7 @@ export interface Area extends Entity {
   review_frequency: string | null
   accountable_owner_id: ID | null
   notes: string | null
-  archived_at: string | null
+  archived_at: Instant | null
 }
 
 export interface Program extends Entity {
@@ -152,8 +154,8 @@ export interface Program extends Entity {
   intended_outcome: string | null
   success_criteria: string | null
   status: ProgramStatus
-  start_date: string | null
-  target_date: string | null
+  start_date: CalendarDay | null
+  target_date: CalendarDay | null
   accountable_owner_id: ID | null
   responsible_lead_id: ID | null
   review_frequency: string | null
@@ -170,12 +172,12 @@ export interface Project extends Entity {
   completion_criteria: string | null
   status: ProjectStatus
   priority: Priority
-  start_date: string | null
-  target_date: string | null
+  start_date: CalendarDay | null
+  target_date: CalendarDay | null
   accountable_owner_id: ID | null
   responsible_lead_id: ID | null
   next_action: string | null
-  last_activity_date: string | null
+  last_activity_date: CalendarDay | null
   notes: string | null
 }
 
@@ -190,9 +192,9 @@ export interface Task extends Entity {
   accountable_owner_id: ID | null
   responsible_id: ID | null
   assignee_id: ID | null
-  due_date: string | null
-  scheduled_date: string | null
-  scheduled_time: string | null
+  due_date: CalendarDay | null
+  scheduled_date: CalendarDay | null
+  scheduled_time: WallTime | null
   estimated_minutes: number | null
   context: string | null
   recurrence: string | null
@@ -200,7 +202,7 @@ export interface Task extends Entity {
   waiting_on: string | null
   acceptance_required: boolean
   notes: string | null
-  completed_at: string | null
+  completed_at: Instant | null
 }
 
 export interface ContactMethod {
@@ -210,7 +212,7 @@ export interface ContactMethod {
 
 export interface ImportantDate {
   label: string | null
-  date: string
+  date: CalendarDay
 }
 
 export interface Person extends Entity {
@@ -227,7 +229,7 @@ export interface Person extends Entity {
   addresses: ContactMethod[]
   websites: string[]
   preferred_contact: string | null
-  birthday: string | null
+  birthday: CalendarDay | null
   important_dates: ImportantDate[]
   photo_url: string | null
   notes: string | null
@@ -235,7 +237,7 @@ export interface Person extends Entity {
 
 export interface Interaction extends Entity {
   person_id: ID
-  occurred_at: string
+  occurred_at: Instant
   kind: string
   summary: string | null
 }
@@ -267,8 +269,8 @@ export interface Affiliation extends Entity {
   organization_id: ID
   role: string | null
   is_primary: boolean
-  start_date: string | null
-  end_date: string | null
+  start_date: CalendarDay | null
+  end_date: CalendarDay | null
 }
 
 export interface Routine extends Entity {
@@ -277,10 +279,10 @@ export interface Routine extends Entity {
   program_id: ID | null
   frequency: string | null
   preferred_days: string[]
-  preferred_time: string | null
+  preferred_time: WallTime | null
   tracking_method: string | null
-  start_date: string | null
-  end_date: string | null
+  start_date: CalendarDay | null
+  end_date: CalendarDay | null
   responsible_id: ID | null
   status: RoutineStatus
   notes: string | null
@@ -288,9 +290,9 @@ export interface Routine extends Entity {
 
 export interface RoutineInstance extends Entity {
   routine_id: ID
-  scheduled_date: string
+  scheduled_date: CalendarDay
   status: string
-  completed_at: string | null
+  completed_at: Instant | null
   notes: string | null
 }
 
@@ -303,7 +305,7 @@ export interface Goal extends Entity {
   target_state: string | null
   target_value: number | null
   baseline: number | null
-  target_date: string | null
+  target_date: CalendarDay | null
   status: GoalStatus
   progress: number | null
   measurement_method: string | null
@@ -339,7 +341,7 @@ export interface Metric extends Entity {
 
 export interface MetricEntry extends Entity {
   metric_id: ID
-  entry_date: string
+  entry_date: CalendarDay
   value: number
   notes: string | null
 }
@@ -348,12 +350,12 @@ export interface EventItem extends Entity {
   title: string
   description: string | null
   location: string | null
-  start_at: string
-  end_at: string | null
+  start_at: Instant
+  end_at: Instant | null
   all_day: boolean
   attendees: string[]
   recurrence: string | null
-  recurrence_exdates: string[]
+  recurrence_exdates: Instant[]
   area_id: ID | null
   program_id: ID | null
   project_id: ID | null
@@ -374,7 +376,7 @@ export interface Note extends Entity {
   title: string | null
   body: string
   note_type: string
-  entry_date: string | null
+  entry_date: CalendarDay | null
   mood: string | null
   tags: string[]
   entity_type: EntityType | null
@@ -394,8 +396,8 @@ export interface Commitment extends Entity {
   owner_id: ID | null
   beneficiary_id: ID | null
   responsible_id: ID | null
-  date_made: string | null
-  due_date: string | null
+  date_made: CalendarDay | null
+  due_date: CalendarDay | null
   status: CommitmentStatus
   evidence: string | null
   acceptance_status: string | null
@@ -410,9 +412,9 @@ export interface WaitingItem extends Entity {
   from_org: string | null
   entity_type: EntityType | null
   entity_id: ID | null
-  date_requested: string | null
-  expected_date: string | null
-  follow_up_date: string | null
+  date_requested: CalendarDay | null
+  expected_date: CalendarDay | null
+  follow_up_date: CalendarDay | null
   status: WaitingStatus
   last_communication: string | null
   next_action: string | null
@@ -426,17 +428,17 @@ export interface Delegation extends Entity {
   delegator_id: ID | null
   responsible_id: ID | null
   accountable_owner_id: ID | null
-  date_delegated: string | null
+  date_delegated: CalendarDay | null
   instructions: string | null
   priority: Priority
-  expected_completion_date: string | null
-  follow_up_date: string | null
+  expected_completion_date: CalendarDay | null
+  follow_up_date: CalendarDay | null
   acceptance_required: boolean
   status: DelegationStatus
   latest_update: string | null
-  last_contact_date: string | null
-  delivered_date: string | null
-  accepted_date: string | null
+  last_contact_date: CalendarDay | null
+  delivered_date: CalendarDay | null
+  accepted_date: CalendarDay | null
   completion_evidence: string | null
   escalation_level: number
   notes: string | null
@@ -444,14 +446,14 @@ export interface Delegation extends Entity {
 
 export interface Review extends Entity {
   review_type: ReviewType
-  period_start: string | null
-  period_end: string | null
+  period_start: CalendarDay | null
+  period_end: CalendarDay | null
   entities_reviewed: string[]
   observations: string | null
   decisions: string | null
   risks: string | null
   follow_up_actions: string | null
-  completed_at: string | null
+  completed_at: Instant | null
   notes: string | null
 }
 
@@ -472,8 +474,8 @@ export interface Decision extends Entity {
   rationale: string | null
   assumptions: string | null
   owner_id: ID | null
-  decided_on: string | null
-  review_date: string | null
+  decided_on: CalendarDay | null
+  review_date: CalendarDay | null
   entity_type: EntityType | null
   entity_id: ID | null
 }
@@ -491,8 +493,8 @@ export interface Condition extends Entity {
   area_id: ID | null
   program_id: ID | null
   severity: string | null
-  onset_date: string | null
-  resolved_date: string | null
+  onset_date: CalendarDay | null
+  resolved_date: CalendarDay | null
   diagnosed_by_id: ID | null
   description: string | null
   notes: string | null
@@ -517,17 +519,17 @@ export interface Medication extends Entity {
   prescriber_id: ID | null
   pharmacy_id: ID | null
   status: MedStatus
-  start_date: string | null
-  end_date: string | null
+  start_date: CalendarDay | null
+  end_date: CalendarDay | null
   instructions: string | null
   notes: string | null
 }
 
 export interface MedicationDose extends Entity {
   medication_id: ID
-  dose_date: string
+  dose_date: CalendarDay
   slot: string
-  taken_at: string | null
+  taken_at: Instant | null
 }
 
 export interface Protocol extends Entity {
@@ -537,8 +539,8 @@ export interface Protocol extends Entity {
   status: ProtocolStatus
   area_id: ID | null
   program_id: ID | null
-  start_date: string | null
-  end_date: string | null
+  start_date: CalendarDay | null
+  end_date: CalendarDay | null
   duration: string | null
   condition_id: ID | null
   provider_id: ID | null
@@ -558,7 +560,7 @@ export interface ProtocolItem extends Entity {
 }
 
 export interface HealthEvent extends Entity {
-  occurred_on: string
+  occurred_on: CalendarDay
   event_type: HealthEventType
   title: string
   provider_id: ID | null
@@ -568,7 +570,7 @@ export interface HealthEvent extends Entity {
   findings: string | null
   recommendations: string | null
   follow_up: string | null
-  follow_up_date: string | null
+  follow_up_date: CalendarDay | null
   location: string | null
   external_ref: string | null
   notes: string | null
@@ -595,7 +597,7 @@ export interface Allergy extends Entity {
   reaction: string | null
   severity: AllergySeverity | null
   status: AllergyStatus
-  noted_on: string | null
+  noted_on: CalendarDay | null
   notes: string | null
 }
 
@@ -605,7 +607,7 @@ export interface DashRow {
   [key: string]: unknown
 }
 export interface ReviewDashboard {
-  generated_for: string
+  generated_for: CalendarDay
   overdue_tasks: DashRow[]
   due_today: DashRow[]
   stale_projects: DashRow[]
