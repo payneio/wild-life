@@ -265,3 +265,30 @@ body * {
   outline: 2px solid rgb(var(--ring) / 0.55);
   outline-offset: 1px;
 }
+
+/* FullCalendar — dark-mode legibility (the lib ships a light theme only). */
+.dark .fc {
+  --fc-border-color: #2a2622;
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: rgba(255, 255, 255, 0.03);
+  --fc-today-bg-color: rgba(99, 102, 241, 0.12);
+  --fc-list-event-hover-bg-color: rgba(255, 255, 255, 0.05);
+  color: #e7e2da;
+}
+.dark .fc .fc-col-header-cell-cushion,
+.dark .fc .fc-daygrid-day-number,
+.dark .fc .fc-toolbar-title {
+  color: #e7e2da;
+}
+.fc .fc-button-primary {
+  background: #4f46e5;
+  border-color: #4f46e5;
+}
+.fc .fc-button-primary:hover {
+  background: #4338ca;
+  border-color: #4338ca;
+}
+.fc .fc-button-primary:not(:disabled).fc-button-active {
+  background: #3730a3;
+  border-color: #3730a3;
+}

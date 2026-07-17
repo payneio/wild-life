@@ -351,11 +351,17 @@ export interface EventItem extends Entity {
   end_at: string | null
   all_day: boolean
   attendees: string[]
+  recurrence: string | null
+  recurrence_exdates: string[]
   area_id: ID | null
   program_id: ID | null
   project_id: ID | null
   external_ref: string | null
   notes: string | null
+  organizer: string | null
+  sequence: number | null
+  rsvp_status: string | null
+  rsvp_sent_status: string | null
 }
 
 export interface NoteLink {

@@ -1,9 +1,12 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { NavLink, Outlet } from "react-router-dom"
 import {
   Activity,
+  Bell,
+  BellOff,
   Bookmark,
   Briefcase,
+  CalendarDays,
   Building2,
   Calendar,
   ClipboardCheck,
@@ -42,6 +45,12 @@ import { useAuth } from "@/auth/context"
 import { GlobalSearch } from "@/components/GlobalSearch"
 import { useTheme } from "@/lib/theme"
 import { cn } from "@/lib/utils"
+import {
+  disablePush,
+  enablePush,
+  getPushState,
+  type PushState,
+} from "@/services/push"
 
 type Item = { to: string; label: string; icon: ComponentType<{ size?: number }> }
 
@@ -75,6 +84,7 @@ const REFERENCE: Item[] = [
   { to: "/metrics", label: "Metrics", icon: LineChart },
   { to: "/notes", label: "Journal", icon: NotebookPen },
   { to: "/work-journal", label: "Work Journal", icon: Briefcase },
+  { to: "/calendar", label: "Calendar", icon: CalendarDays },
   { to: "/events", label: "Events", icon: Calendar },
   { to: "/commitments", label: "Commitments", icon: HeartHandshake },
   { to: "/decisions", label: "Decisions", icon: Scale },
@@ -115,6 +125,55 @@ function ThemeToggle() {
       className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
     >
       {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+    </button>
+  )
+}
+
+function ReminderToggle() {
+  const [state, setState] = useState<PushState>("default")
+  const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    void getPushState().then(setState)
+  }, [])
+
+  if (state === "unsupported") return null
+
+  const on = state === "subscribed"
+  const title =
+    state === "denied"
+      ? "Notifications blocked in browser settings"
+      : on
+        ? "Reminders on — click to turn off"
+        : "Enable reminder notifications"
+
+  const onClick = async () => {
+    if (busy || state === "denied") return
+    setBusy(true)
+    try {
+      setState(on ? await disablePush() : await enablePush())
+    } catch {
+      setState(await getPushState())
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={busy || state === "denied"}
+      aria-label="Toggle reminders"
+      title={title}
+      className={cn(
+        "flex h-9 w-9 items-center justify-center rounded-lg transition",
+        on
+          ? "text-indigo-600 hover:bg-indigo-50"
+          : "text-slate-500 hover:bg-slate-100 hover:text-slate-800",
+        (busy || state === "denied") && "opacity-50",
+      )}
+    >
+      {on ? <Bell size={18} /> : <BellOff size={18} />}
     </button>
   )
 }
@@ -290,6 +349,7 @@ export function Layout() {
             </div>
           </div>
           <div className="flex items-center gap-1">
+            <ReminderToggle />
             <ThemeToggle />
           </div>
         </header>

@@ -1,6 +1,6 @@
 import { CheckCircle2, ExternalLink, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/primitives"
-import { commitments, reviews } from "@/services/api/hooks"
+import { commitments, events, reviews } from "@/services/api/hooks"
 import type {
   Commitment,
   Decision,
@@ -81,28 +81,58 @@ export function LocationDetail({ entity }: { entity: Entity }) {
   )
 }
 
-// --- Event: when & where ----------------------------------------------------
+// --- Event: when & where (+ RSVP for emailed invitations) -------------------
+const RSVP_OPTIONS: { value: string; label: string }[] = [
+  { value: "needs-action", label: "No reply" },
+  { value: "accepted", label: "Accept" },
+  { value: "tentative", label: "Maybe" },
+  { value: "declined", label: "Decline" },
+]
+
 export function EventDetail({ entity }: { entity: Entity }) {
   const e = entity as EventItem
+  const update = events.useUpdate()
   if (!e.start_at) return null
   const start = new Date(e.start_at)
+  const isInvite = !!e.organizer
   return (
-    <div className="rounded-xl border border-slate-200 bg-surface-2 px-4 py-3">
-      <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">When</div>
-      <div className="mt-0.5 text-lg font-semibold text-slate-900">
-        {start.toLocaleDateString(undefined, {
-          weekday: "long",
-          month: "long",
-          day: "numeric",
-        })}
+    <div className="space-y-4">
+      <div className="rounded-xl border border-slate-200 bg-surface-2 px-4 py-3">
+        <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">When</div>
+        <div className="mt-0.5 text-lg font-semibold text-slate-900">
+          {start.toLocaleDateString(undefined, {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+          })}
+        </div>
+        <div className="text-sm text-slate-500">
+          {e.all_day
+            ? "All day"
+            : `${start.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}${
+                e.end_at ? ` – ${formatDateTime(e.end_at)}` : ""
+              }`}
+        </div>
       </div>
-      <div className="text-sm text-slate-500">
-        {e.all_day
-          ? "All day"
-          : `${start.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}${
-              e.end_at ? ` – ${formatDateTime(e.end_at)}` : ""
-            }`}
-      </div>
+      {isInvite && (
+        <Section title="Invitation">
+          <div className="mb-2 text-xs text-slate-500">
+            From {e.organizer?.replace(/^mailto:/i, "")}
+          </div>
+          <Segmented
+            options={RSVP_OPTIONS}
+            value={e.rsvp_status ?? "needs-action"}
+            onChange={(v) => update.mutate({ id: e.id, body: { rsvp_status: v } })}
+          />
+          <div className="mt-2 text-[11px] text-slate-400">
+            {e.rsvp_sent_status === e.rsvp_status && e.rsvp_status !== "needs-action"
+              ? "RSVP sent to the organizer"
+              : e.rsvp_status && e.rsvp_status !== "needs-action"
+                ? "RSVP will be emailed shortly"
+                : "Choose a response to notify the organizer"}
+          </div>
+        </Section>
+      )}
     </div>
   )
 }

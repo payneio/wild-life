@@ -128,6 +128,7 @@ export const EVENT_FIELDS: FieldSpec[] = [
   { name: "all_day", label: "All day", type: "checkbox" },
   { name: "location", label: "Location" },
   { name: "attendees", label: "Attendees", type: "tags" },
+  { name: "recurrence", label: "Repeats", placeholder: "RRULE, e.g. FREQ=WEEKLY;BYDAY=MO" },
   { name: "area_id", label: "Area", type: "entity", lookup: "area" },
   { name: "project_id", label: "Project", type: "entity", lookup: "project" },
   { name: "notes", label: "Notes", type: "textarea" },

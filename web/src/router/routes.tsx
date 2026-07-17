@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from "react-router-dom"
 import { Layout } from "@/router/Layout"
 import { EntityDetailRoute } from "@/components/EntityDetailRoute"
 import { TodayPage } from "@/pages/TodayPage"
+import { CalendarPage } from "@/pages/CalendarPage"
 import { AreasPage } from "@/pages/AreasPage"
 import { ProjectsPage } from "@/pages/ProjectsPage"
 import { TasksPage } from "@/pages/TasksPage"
@@ -77,6 +78,7 @@ export const router = createBrowserRouter([
       { path: "notes", element: <NotesPage scope="personal" />, children: [{ path: ":id", element: <></> }] },
       { path: "work-journal", element: <NotesPage scope="work" />, children: [{ path: ":id", element: <></> }] },
       { path: "whiteboard", element: <NotesPage scope="whiteboard" />, children: [{ path: ":id", element: <></> }] },
+      { path: "calendar", element: <CalendarPage /> },
       withDetail("events", <EventsPage />, "event"),
       withDetail("commitments", <CommitmentsPage />, "commitment"),
       withDetail("decisions", <DecisionsPage />, "decision"),
