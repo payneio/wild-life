@@ -27,6 +27,7 @@ export type FieldType =
   | "select"
   | "entity"
   | "tags"
+  | "time"
   | "recurrence"
 
 export interface FieldSpec {
@@ -163,6 +164,14 @@ export function EntityForm({
                 <Input
                   type="date"
                   value={String(val ?? "")}
+                  onChange={(e) => set(f.name, e.target.value)}
+                />
+              )
+            case "time":
+              return (
+                <Input
+                  type="time"
+                  value={String(val ?? "").slice(0, 5)}
                   onChange={(e) => set(f.name, e.target.value)}
                 />
               )

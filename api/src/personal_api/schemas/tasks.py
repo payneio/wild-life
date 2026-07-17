@@ -1,7 +1,7 @@
 """Schemas for Task."""
 
 import uuid
-from datetime import date, datetime
+from datetime import date, datetime, time
 
 from pydantic import BaseModel
 
@@ -21,6 +21,7 @@ class TaskCreate(BaseModel):
     assignee_id: uuid.UUID | None = None
     due_date: date | None = None
     scheduled_date: date | None = None
+    scheduled_time: time | None = None
     estimated_minutes: int | None = None
     context: str | None = None
     recurrence: str | None = None
@@ -43,6 +44,7 @@ class TaskUpdate(BaseModel):
     assignee_id: uuid.UUID | None = None
     due_date: date | None = None
     scheduled_date: date | None = None
+    scheduled_time: time | None = None
     estimated_minutes: int | None = None
     context: str | None = None
     recurrence: str | None = None
@@ -65,6 +67,7 @@ class TaskRead(Entity):
     assignee_id: uuid.UUID | None
     due_date: date | None
     scheduled_date: date | None
+    scheduled_time: time | None
     estimated_minutes: int | None
     context: str | None
     recurrence: str | None

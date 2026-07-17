@@ -192,6 +192,7 @@ export interface Task extends Entity {
   assignee_id: ID | null
   due_date: string | null
   scheduled_date: string | null
+  scheduled_time: string | null
   estimated_minutes: number | null
   context: string | null
   recurrence: string | null

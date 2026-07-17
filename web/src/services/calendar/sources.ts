@@ -38,8 +38,9 @@ export interface CalendarItem {
   sourceKey: string
   rowId: string
   title: string
-  start: string // "YYYY-MM-DD" (all-day)
+  start: string // "YYYY-MM-DD" (all-day) or ISO datetime (timed)
   end?: string
+  allDay: boolean
   color: string
   url: string
   editable: boolean
@@ -107,6 +108,7 @@ export function useCalendarSources(range: Range, enabled: Set<string>) {
       title,
       start: day(date),
       end: end ? day(end) : undefined,
+      allDay: true,
       color: COLOR[key],
       url: URL_FOR[key](rowId),
       editable,
@@ -115,7 +117,29 @@ export function useCalendarSources(range: Range, enabled: Set<string>) {
   }
 
   if (enabled.has("task"))
-    for (const t of taskQ.data ?? []) push("task", t.id, t.title, t.scheduled_date, "scheduled_date")
+    for (const t of taskQ.data ?? []) {
+      if (t.scheduled_date && t.scheduled_time) {
+        const start = `${t.scheduled_date}T${t.scheduled_time}`
+        const end = t.estimated_minutes
+          ? new Date(new Date(start).getTime() + t.estimated_minutes * 60000).toISOString()
+          : undefined
+        items.push({
+          id: `task:${t.id}`,
+          sourceKey: "task",
+          rowId: t.id,
+          title: t.title,
+          start,
+          end,
+          allDay: false,
+          color: COLOR.task,
+          url: URL_FOR.task(t.id),
+          editable: true,
+          field: "scheduled_date",
+        })
+      } else {
+        push("task", t.id, t.title, t.scheduled_date, "scheduled_date")
+      }
+    }
   if (enabled.has("goal"))
     for (const g of goalQ.data ?? []) push("goal", g.id, `🎯 ${g.name}`, g.target_date, "target_date")
   if (enabled.has("healthEvent"))
@@ -155,9 +179,13 @@ export function useCalendarSources(range: Range, enabled: Set<string>) {
     birthday: null,
   }
 
-  const reschedule = (item: CalendarItem, newDate: string) => {
+  const reschedule = (item: CalendarItem, newDate: string, newTime?: string | null) => {
     const upd = UPD[item.sourceKey]
-    if (upd && item.field) upd.mutate({ id: item.rowId, body: { [item.field]: newDate } })
+    if (!upd || !item.field) return
+    const body: Record<string, unknown> = { [item.field]: newDate }
+    // Tasks carry an optional time-of-day; a timed drag sets it, an all-day drag clears it.
+    if (item.sourceKey === "task") body.scheduled_time = newTime ?? null
+    upd.mutate({ id: item.rowId, body })
   }
 
   return { items, reschedule }

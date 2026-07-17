@@ -17,7 +17,8 @@ import type { EventResizeDoneArg } from "@fullcalendar/interaction"
 import { Button, Modal } from "@/components/ui/primitives"
 import { EntityForm } from "@/components/EntityForm"
 import { RecurrenceScopeDialog } from "@/components/RecurrenceScopeDialog"
-import { events } from "@/services/api/hooks"
+import { UnscheduledTray } from "@/components/UnscheduledTray"
+import { events, tasks } from "@/services/api/hooks"
 import { EVENT_FIELDS } from "@/services/api/registry"
 import {
   deleteOccurrence,
@@ -43,6 +44,9 @@ function addDay(d: string): string {
 function ymd(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
 }
+function hms(d: Date): string {
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}:00`
+}
 
 function eventToInput(ev: EventItem): EventInput {
   const base: EventInput = {
@@ -64,17 +68,18 @@ function eventToInput(ev: EventItem): EventInput {
 }
 
 function itemToInput(it: CalendarItem): EventInput {
-  return {
+  const common = {
     id: it.id,
     title: it.title,
-    start: it.start,
-    end: it.end ? addDay(it.end) : undefined,
-    allDay: true,
     editable: it.editable,
     backgroundColor: it.color,
     borderColor: it.color,
     extendedProps: { kind: "source", url: it.url },
   }
+  if (!it.allDay) {
+    return { ...common, start: it.start, end: it.end, allDay: false }
+  }
+  return { ...common, start: it.start, end: it.end ? addDay(it.end) : undefined, allDay: true }
 }
 
 const LAYERS_KEY = "personal_calendar_layers"
@@ -133,6 +138,7 @@ export function CalendarPage() {
   const update = events.useUpdate()
   const create = events.useCreate()
   const remove = events.useRemove()
+  const taskUpd = tasks.useUpdate()
   const { items, reschedule } = useCalendarSources(range, enabled)
 
   const invalidate = () => qc.invalidateQueries()
@@ -155,7 +161,7 @@ export function CalendarPage() {
     if (arg.event.extendedProps.kind === "source") {
       const item = items.find((i) => i.id === arg.event.id)
       if (!item) return arg.revert()
-      reschedule(item, ymd(start))
+      reschedule(item, ymd(start), arg.event.allDay ? null : hms(start))
       invalidate()
       return
     }
@@ -232,35 +238,50 @@ export function CalendarPage() {
         })}
       </div>
 
-      <div className="rounded-2xl border border-slate-200/80 bg-surface p-3 shadow-soft sm:p-5">
-        <FullCalendar
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, rrulePlugin]}
-          initialView="dayGridMonth"
-          headerToolbar={{
-            left: "prev,next today",
-            center: "title",
-            right: "dayGridMonth,timeGridWeek,timeGridDay",
-          }}
-          height="auto"
-          nowIndicator
-          selectable
-          editable
-          dayMaxEvents
-          events={fcEvents}
-          datesSet={(arg: DatesSetArg) =>
-            setRange({ start: arg.start.toISOString(), end: arg.end.toISOString() })
-          }
-          eventClick={onClick}
-          select={(arg: DateSelectArg) =>
-            setCreating({
-              start: arg.start.toISOString(),
-              end: arg.end.toISOString(),
-              allDay: arg.allDay,
-            })
-          }
-          eventDrop={onDrop}
-          eventResize={onDrop}
-        />
+      <div className="flex flex-col gap-3 sm:flex-row-reverse">
+        <UnscheduledTray />
+        <div className="min-w-0 flex-1 rounded-2xl border border-slate-200/80 bg-surface p-3 shadow-soft sm:p-5">
+          <FullCalendar
+            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, rrulePlugin]}
+            initialView="dayGridMonth"
+            headerToolbar={{
+              left: "prev,next today",
+              center: "title",
+              right: "dayGridMonth,timeGridWeek,timeGridDay",
+            }}
+            height="auto"
+            nowIndicator
+            selectable
+            editable
+            droppable
+            dayMaxEvents
+            events={fcEvents}
+            datesSet={(arg: DatesSetArg) =>
+              setRange({ start: arg.start.toISOString(), end: arg.end.toISOString() })
+            }
+            eventClick={onClick}
+            select={(arg: DateSelectArg) =>
+              setCreating({
+                start: arg.start.toISOString(),
+                end: arg.end.toISOString(),
+                allDay: arg.allDay,
+              })
+            }
+            eventDrop={onDrop}
+            eventResize={onDrop}
+            drop={(arg) => {
+              const id = arg.draggedEl.getAttribute("data-task-id")
+              if (!id) return
+              taskUpd.mutate({
+                id,
+                body: arg.allDay
+                  ? { scheduled_date: ymd(arg.date), scheduled_time: null }
+                  : { scheduled_date: ymd(arg.date), scheduled_time: hms(arg.date) },
+              })
+            }}
+            eventReceive={(arg) => arg.event.remove()}
+          />
+        </div>
       </div>
 
       {creating && (

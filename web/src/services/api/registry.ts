@@ -203,6 +203,7 @@ export const TASK_FIELDS: FieldSpec[] = [
   { name: "assignee_id", label: "Assignee", type: "entity", lookup: "people" },
   { name: "responsible_id", label: "Responsible", type: "entity", lookup: "people" },
   { name: "scheduled_date", label: "Scheduled", type: "date" },
+  { name: "scheduled_time", label: "Time", type: "time" },
   { name: "due_date", label: "Due", type: "date" },
   { name: "estimated_minutes", label: "Estimate (min)", type: "number" },
   { name: "context", label: "Context", placeholder: "@home, @calls" },

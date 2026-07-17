@@ -1,9 +1,9 @@
 """Task — a discrete action that can be completed."""
 
 import uuid
-from datetime import date, datetime
+from datetime import date, datetime, time
 
-from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, Text
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, Text, Time
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -42,6 +42,9 @@ class Task(UUIDPrimaryKey, TimestampMixin, Base):
     )
     due_date: Mapped[date | None] = mapped_column(Date)
     scheduled_date: Mapped[date | None] = mapped_column(Date)
+    # Optional time-of-day for calendar time-blocking; with estimated_minutes it
+    # renders as a timed block, else the task is an all-day chip on scheduled_date.
+    scheduled_time: Mapped[time | None] = mapped_column(Time)
     estimated_minutes: Mapped[int | None] = mapped_column(Integer)
     context: Mapped[str | None] = mapped_column(Text)  # @home, @calls, @errands...
     recurrence: Mapped[str | None] = mapped_column(Text)  # daily/weekly/monthly/...
