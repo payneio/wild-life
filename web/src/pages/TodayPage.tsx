@@ -2,6 +2,7 @@ import { Link } from "react-router-dom"
 import { NoteComposer } from "@/components/NoteComposer"
 import { ReviewDashboardView } from "@/components/ReviewDashboard"
 import { TodayRhythms } from "@/components/TodayRhythms"
+import { ComingUp } from "@/components/ComingUp"
 import { TaskRow } from "@/pages/TasksPage"
 import { Card, EmptyState } from "@/components/ui/primitives"
 import { isToday, PRIORITY_RANK, todayISO } from "@/lib/format"
@@ -95,13 +96,16 @@ export function TodayPage() {
           )}
         </div>
 
-        <div>
-          <SectionTitle to="/reviews">Needs attention</SectionTitle>
-          {dash ? (
-            <ReviewDashboardView data={dash} compact />
-          ) : (
-            <EmptyState>Loading…</EmptyState>
-          )}
+        <div className="space-y-5">
+          <div>
+            <SectionTitle to="/reviews">Needs attention</SectionTitle>
+            {dash ? (
+              <ReviewDashboardView data={dash} compact />
+            ) : (
+              <EmptyState>Loading…</EmptyState>
+            )}
+          </div>
+          <ComingUp />
         </div>
       </div>
     </div>

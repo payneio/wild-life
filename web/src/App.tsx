@@ -34,13 +34,15 @@ function Reminders() {
   useEffect(() => {
     if (pushSupported()) void registerServiceWorker()
 
-    appEventHandlers["reminder"] = (e) => {
+    const foreground = (e: unknown) => {
       if (typeof Notification !== "undefined" && Notification.permission === "granted") {
         return // the service worker (or its postMessage) is handling this one
       }
       const r = e as ReminderEnvelope
       showToast(r.title ?? "Reminder", r.body, r.url)
     }
+    appEventHandlers["reminder"] = foreground
+    appEventHandlers["digest"] = foreground
 
     const onSwMessage = (ev: MessageEvent) => {
       const d = ev.data as { kind?: string } & ReminderEnvelope
@@ -49,6 +51,7 @@ function Reminders() {
     navigator.serviceWorker?.addEventListener("message", onSwMessage)
     return () => {
       delete appEventHandlers["reminder"]
+      delete appEventHandlers["digest"]
       navigator.serviceWorker?.removeEventListener("message", onSwMessage)
     }
   }, [])

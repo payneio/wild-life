@@ -1,9 +1,9 @@
 """Web Push — browser push subscriptions and the sent-reminder ledger."""
 
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, Text, UniqueConstraint
+from sqlalchemy import Date, DateTime, ForeignKey, Integer, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -51,3 +51,16 @@ class SentReminder(UUIDPrimaryKey, TimestampMixin, Base):
         DateTime(timezone=True), nullable=False
     )
     lead_minutes: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+class SentNudge(UUIDPrimaryKey, TimestampMixin, Base):
+    """Ledger of once-per-day nudges (e.g. the morning digest), so re-ticks in
+    the same day don't resend. Keyed by (kind, nudge_date)."""
+
+    __tablename__ = "sent_nudges"
+    __table_args__ = (
+        UniqueConstraint("kind", "nudge_date", name="uq_sent_nudge"),
+    )
+
+    kind: Mapped[str] = mapped_column(Text, nullable=False)
+    nudge_date: Mapped[date] = mapped_column(Date, nullable=False)

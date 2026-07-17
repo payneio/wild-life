@@ -19,6 +19,7 @@ from personal_api.routers import (
     merge,
     metrics,
     notes,
+    nudges,
     organizations,
     people,
     push,
@@ -87,6 +88,7 @@ app.include_router(history.router)
 app.include_router(stream.router)
 app.include_router(push.router)
 app.include_router(reminders.router)
+app.include_router(nudges.router)
 
 
 def run() -> None:
