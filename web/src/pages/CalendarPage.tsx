@@ -32,6 +32,7 @@ import {
   type CalendarItem,
 } from "@/services/calendar/sources"
 import { cn } from "@/lib/utils"
+import { ymd } from "@/lib/format"
 import type { EventItem } from "@/services/api/types"
 
 function toBasicUtc(iso: string): string {
@@ -41,9 +42,6 @@ function addDay(d: string): string {
   const dt = new Date(`${d}T00:00:00Z`)
   dt.setUTCDate(dt.getUTCDate() + 1)
   return dt.toISOString().slice(0, 10)
-}
-function ymd(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
 }
 function hms(d: Date): string {
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}:00`

@@ -1,9 +1,9 @@
 /** Date helpers shared by the bespoke detail views (kept out of the component
  *  module so react-refresh stays happy). All dates are ISO `YYYY-MM-DD`. */
 
-export function todayISO(): string {
-  return new Date().toISOString().slice(0, 10)
-}
+import { todayISO } from "@/lib/format"
+
+export { todayISO }
 
 export function shiftDays(days: number, from?: string | null): string {
   const base = from ? new Date(`${from}T00:00:00`) : new Date(`${todayISO()}T00:00:00`)

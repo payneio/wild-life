@@ -9,6 +9,7 @@ import {
   routines,
 } from "@/services/api/hooks"
 import { cn } from "@/lib/utils"
+import { ymd } from "@/lib/format"
 
 const SLOT_ORDER = [
   "wake",
@@ -25,10 +26,6 @@ const slotRank = (s: string) => {
   return i === -1 ? 99 : i
 }
 
-function today(): string {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
-}
 
 function CheckRow({
   label,
@@ -64,7 +61,7 @@ function CheckRow({
 
 export function TodayRhythms() {
   const qc = useQueryClient()
-  const d = today()
+  const d = ymd()
 
   const medQ = medications.useList({ status__eq: "active", limit: "100" })
   const doseQ = medicationDoses.useList({ dose_date__eq: d, limit: "200" })

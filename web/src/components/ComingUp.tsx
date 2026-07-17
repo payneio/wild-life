@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/primitives"
 import { events } from "@/services/api/hooks"
 import { SOURCES, useCalendarSources } from "@/services/calendar/sources"
 import { cn } from "@/lib/utils"
+import { ymd } from "@/lib/format"
 
 const HORIZON_DAYS = 21
 const EVENT_COLOR = "#4f46e5"
@@ -11,7 +12,7 @@ const EVENT_COLOR = "#4f46e5"
 function isoDay(offset: number): string {
   const d = new Date()
   d.setDate(d.getDate() + offset)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+  return ymd(d)
 }
 
 function countdown(date: string, today: string): { label: string; overdue: boolean } {

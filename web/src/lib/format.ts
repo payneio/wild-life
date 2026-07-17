@@ -5,8 +5,15 @@ export function humanize(value: string | null | undefined): string {
   return value.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
 }
 
+/** Local-time `YYYY-MM-DD` for a date (default: now). Local, NOT UTC — using
+ *  toISOString() here would roll over to tomorrow every evening west of UTC. */
+export function ymd(d: Date = new Date()): string {
+  const p = (n: number) => String(n).padStart(2, "0")
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+}
+
 export function todayISO(): string {
-  return new Date().toISOString().slice(0, 10)
+  return ymd()
 }
 
 export function isOverdue(date: string | null | undefined): boolean {
