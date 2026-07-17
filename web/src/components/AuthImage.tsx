@@ -31,10 +31,10 @@ export function AuthImage({ imageId, alt }: { imageId: string; alt?: string }) {
       if (!cancelled) setFailed(true)
     }
 
-    // Reset to the loading placeholder whenever imageId changes (intentional).
+    // Reset to the loading placeholder whenever imageId changes (intentional
+    // synchronous reset on dep change).
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setUrl(null)
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFailed(false)
     load()
     return () => {

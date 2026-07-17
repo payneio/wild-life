@@ -3,6 +3,7 @@ import { AffiliationsEditor } from "@/components/AffiliationsEditor"
 import { EntityForm, type FieldSpec } from "@/components/EntityForm"
 import { Button, EmptyState, Input } from "@/components/ui/primitives"
 import { formatDate } from "@/lib/utils"
+import { todayISO } from "@/lib/format"
 import type { Body } from "@/services/api/crud"
 import {
   goals,
@@ -123,7 +124,7 @@ export function MetricExtra({ entity }: { entity: Entity }) {
               create.mutate({
                 metric_id: metric.id,
                 value: Number(value),
-                entry_date: date || new Date().toISOString().slice(0, 10),
+                entry_date: date || todayISO(),
               })
               setValue("")
               setDate("")

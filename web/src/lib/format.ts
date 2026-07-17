@@ -64,7 +64,7 @@ export function statusClass(status: string): string {
 /** A friendly header for a day: "Today" | "Yesterday" | "Mon, Jul 14". */
 export function dayLabel(dateStr: string | null | undefined): string {
   if (!dateStr) return "Undated"
-  const iso = dateStr.slice(0, 10)
+  const iso = localDay(dateStr)
   const today = todayISO()
   if (iso === today) return "Today"
   const d = new Date(`${today}T00:00:00`)
@@ -89,7 +89,7 @@ export function groupNotesByDay<
   const byKey = new Map<string, { key: string; label: string; notes: T[] }>()
   for (const n of notes) {
     const stamp = n.entry_date ?? n.created_at
-    const key = stamp.slice(0, 10)
+    const key = localDay(stamp)
     let g = byKey.get(key)
     if (!g) {
       g = { key, label: dayLabel(stamp), notes: [] }

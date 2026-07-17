@@ -36,6 +36,7 @@ import {
   Timeline,
 } from "@/components/detail/kit"
 import { daysFromToday } from "@/components/detail/dates"
+import { localDay, todayISO, ymd } from "@/lib/format"
 
 // --- Task: a command surface -------------------------------------------------
 const TASK_STEPS: { value: TaskStatus; label: string }[] = [
@@ -365,20 +366,21 @@ export function RoutineDetail({ entity }: { entity: Entity }) {
 
   const levels = new Map<string, number>()
   for (const i of doneInst) {
-    const d = (i.completed_at ?? i.scheduled_date)?.slice(0, 10)
-    if (d) levels.set(d, 3)
+    const raw = i.completed_at ?? i.scheduled_date
+    if (raw) levels.set(localDay(raw), 3)
   }
   // streak: consecutive days back from today (today may be unlogged — grace).
   let streak = 0
-  for (let offset = levels.has(new Date().toISOString().slice(0, 10)) ? 0 : 1; ; offset++) {
+  for (let offset = levels.has(todayISO()) ? 0 : 1; ; offset++) {
     const d = new Date()
     d.setDate(d.getDate() - offset)
-    if (levels.has(d.toISOString().slice(0, 10))) streak++
+    if (levels.has(ymd(d))) streak++
     else break
   }
   const weekAgo = daysFromToday
   const thisWeek = doneInst.filter((i) => {
-    const d = (i.completed_at ?? i.scheduled_date)?.slice(0, 10)
+    const raw = i.completed_at ?? i.scheduled_date
+    const d = raw ? localDay(raw) : null
     const diff = d ? weekAgo(d) : null
     return diff !== null && diff > -7 && diff <= 0
   }).length

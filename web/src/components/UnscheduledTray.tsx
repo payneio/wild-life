@@ -21,7 +21,7 @@ export function UnscheduledTray() {
       eventData: (el) => ({ title: el.getAttribute("data-title") ?? "" }),
     })
     return () => d.destroy()
-  }, [list])
+  }, [q.data])
 
   return (
     <div className="w-full shrink-0 rounded-2xl border border-slate-200/80 bg-surface p-3 shadow-soft sm:w-56">

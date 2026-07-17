@@ -2,6 +2,7 @@ import type { ReactNode } from "react"
 import { Link } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import { daysFromToday, shiftDays, todayISO } from "@/components/detail/dates"
+import { localDay, ymd } from "@/lib/format"
 
 /** Shared building blocks for the bespoke entity detail views. All colors go
  *  through the token layer (slate/indigo remap), so everything is theme-aware. */
@@ -333,7 +334,7 @@ export function Timeline({ items }: { items: TimelineItem[] }) {
               <span className="text-sm font-medium text-slate-800">{it.title}</span>
               {it.date && (
                 <span className="shrink-0 text-xs text-slate-400">
-                  {new Date(`${it.date.slice(0, 10)}T00:00:00`).toLocaleDateString(
+                  {new Date(`${localDay(it.date)}T00:00:00`).toLocaleDateString(
                     undefined,
                     { month: "short", day: "numeric", year: "numeric" },
                   )}
@@ -375,7 +376,7 @@ export function Heatmap({
   for (let i = total - 1; i >= 0; i--) {
     const d = new Date(today)
     d.setDate(d.getDate() - i)
-    const iso = d.toISOString().slice(0, 10)
+    const iso = ymd(d)
     cells.push({ date: iso, level: levels.get(iso) ?? 0 })
   }
   const cols: { date: string; level: number }[][] = []
