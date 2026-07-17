@@ -1,8 +1,8 @@
 import { useMemo } from "react"
-import { RRule } from "rrule"
 import { Input } from "@/components/ui/primitives"
 import { Segmented } from "@/components/detail/kit"
 import { cn } from "@/lib/utils"
+import { summarizeRecurrence } from "@/lib/rrule"
 
 // A compact RRULE builder over the plain `recurrence` string stored on Event
 // (e.g. "FREQ=WEEKLY;BYDAY=MO,WE"). Builds/parses the string by hand for
@@ -60,16 +60,6 @@ function build(s: State): string | null {
   if (s.endMode === "on" && s.until) parts.push(`UNTIL=${s.until.replace(/-/g, "")}T235959Z`)
   if (s.endMode === "after" && Number(s.count) > 0) parts.push(`COUNT=${Number(s.count)}`)
   return parts.join(";")
-}
-
-export function summarizeRecurrence(rrule: string | null | undefined): string {
-  if (!rrule) return "Does not repeat"
-  try {
-    const text = RRule.fromString(`RRULE:${rrule}`).toText()
-    return text.charAt(0).toUpperCase() + text.slice(1)
-  } catch {
-    return "Repeats"
-  }
 }
 
 export function RecurrenceEditor({

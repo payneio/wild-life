@@ -130,6 +130,7 @@ export const EVENT_FIELDS: FieldSpec[] = [
   { name: "attendees", label: "Attendees", type: "tags" },
   { name: "recurrence", label: "Repeats", type: "recurrence", full: true },
   { name: "area_id", label: "Area", type: "entity", lookup: "area" },
+  { name: "program_id", label: "Program", type: "entity", lookup: "program" },
   { name: "project_id", label: "Project", type: "entity", lookup: "project" },
   { name: "notes", label: "Notes", type: "textarea" },
 ]

@@ -1,6 +1,7 @@
 import { DateText, RefName, StatusBadge } from "@/components/cells"
 import { SimpleEntityPage, type Column } from "@/components/SimpleEntityPage"
 import type { FieldSpec } from "@/components/EntityForm"
+import { EVENT_FIELDS } from "@/services/api/registry"
 import { Badge } from "@/components/ui/primitives"
 import { formatDateTime } from "@/lib/utils"
 import {
@@ -57,17 +58,7 @@ export function ProgramsPage() {
 }
 
 export function EventsPage() {
-  const fields: FieldSpec[] = [
-    { name: "title", label: "Title", full: true },
-    { name: "start_at", label: "Start", type: "datetime" },
-    { name: "end_at", label: "End", type: "datetime" },
-    { name: "all_day", label: "All day", type: "checkbox" },
-    { name: "location", label: "Location" },
-    { name: "attendees", label: "Attendees", type: "tags" },
-    { name: "area_id", label: "Area", type: "entity", lookup: "area" },
-    { name: "project_id", label: "Project", type: "entity", lookup: "project" },
-    { name: "notes", label: "Notes", type: "textarea" },
-  ]
+  const fields = EVENT_FIELDS
   const columns: Column<EventItem>[] = [
     { key: "title", label: "Title", render: (r) => <span className="font-medium">{r.title}</span> },
     { key: "start_at", label: "When", render: (r) => formatDateTime(r.start_at) },

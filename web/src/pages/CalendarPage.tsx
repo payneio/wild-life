@@ -15,33 +15,46 @@ import type {
 } from "@fullcalendar/core"
 import type { EventResizeDoneArg } from "@fullcalendar/interaction"
 import { Button, Modal } from "@/components/ui/primitives"
+import { EntityForm } from "@/components/EntityForm"
 import { RecurrenceScopeDialog } from "@/components/RecurrenceScopeDialog"
 import { events } from "@/services/api/hooks"
+import { EVENT_FIELDS } from "@/services/api/registry"
 import {
   deleteOccurrence,
   editOccurrence,
   type RecurrenceScope,
 } from "@/services/calendar/recurrence"
+import {
+  SOURCES,
+  useCalendarSources,
+  type CalendarItem,
+} from "@/services/calendar/sources"
+import { cn } from "@/lib/utils"
 import type { EventItem } from "@/services/api/types"
 
-/** ISO → RFC-5545 basic UTC stamp, e.g. 2026-07-20T17:00:00Z → 20260720T170000Z. */
 function toBasicUtc(iso: string): string {
   return new Date(iso).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "")
 }
+function addDay(d: string): string {
+  const dt = new Date(`${d}T00:00:00Z`)
+  dt.setUTCDate(dt.getUTCDate() + 1)
+  return dt.toISOString().slice(0, 10)
+}
+function ymd(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+}
 
-function toEventInput(ev: EventItem): EventInput {
+function eventToInput(ev: EventItem): EventInput {
   const base: EventInput = {
     id: ev.id,
     title: ev.title,
     allDay: ev.all_day,
     editable: true,
-    extendedProps: { recurring: !!ev.recurrence },
+    extendedProps: { recurring: !!ev.recurrence, kind: "event" },
   }
   if (ev.recurrence) {
     base.rrule = `DTSTART:${toBasicUtc(ev.start_at)}\nRRULE:${ev.recurrence}`
-    if (ev.end_at) {
-      base.duration = new Date(ev.end_at).getTime() - new Date(ev.start_at).getTime()
-    }
+    if (ev.end_at) base.duration = new Date(ev.end_at).getTime() - new Date(ev.start_at).getTime()
     if (ev.recurrence_exdates?.length) base.exdate = ev.recurrence_exdates
   } else {
     base.start = ev.start_at
@@ -49,6 +62,22 @@ function toEventInput(ev: EventItem): EventInput {
   }
   return base
 }
+
+function itemToInput(it: CalendarItem): EventInput {
+  return {
+    id: it.id,
+    title: it.title,
+    start: it.start,
+    end: it.end ? addDay(it.end) : undefined,
+    allDay: true,
+    editable: it.editable,
+    backgroundColor: it.color,
+    borderColor: it.color,
+    extendedProps: { kind: "source", url: it.url },
+  }
+}
+
+const LAYERS_KEY = "personal_calendar_layers"
 
 interface PendingMove {
   masterId: string
@@ -70,36 +99,72 @@ export function CalendarPage() {
   const [pendingMove, setPendingMove] = useState<PendingMove | null>(null)
   const [clicked, setClicked] = useState<Clicked | null>(null)
   const [deleting, setDeleting] = useState<Clicked | null>(null)
+  const [creating, setCreating] = useState<{ start: string; end: string; allDay: boolean } | null>(null)
 
+  const [enabled, setEnabled] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem(LAYERS_KEY)
+      if (raw) return new Set(JSON.parse(raw) as string[])
+    } catch {
+      /* default below */
+    }
+    return new Set(["event", "task", "goal", "healthEvent"])
+  })
+  const toggle = (key: string) =>
+    setEnabled((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      localStorage.setItem(LAYERS_KEY, JSON.stringify([...next]))
+      return next
+    })
+
+  const showEvents = enabled.has("event")
   const inRange = events.useList(
     range.start && range.end
       ? { start_at__gte: range.start, start_at__lte: range.end, limit: "500" }
       : undefined,
+    { enabled: showEvents && !!range.start },
   )
-  const recurring = events.useList({ recurrence__isnull: "false", limit: "500" })
+  const recurring = events.useList(
+    { recurrence__isnull: "false", limit: "500" },
+    { enabled: showEvents },
+  )
   const update = events.useUpdate()
   const create = events.useCreate()
   const remove = events.useRemove()
+  const { items, reschedule } = useCalendarSources(range, enabled)
 
-  const invalidate = () => qc.invalidateQueries({ queryKey: ["events"] })
+  const invalidate = () => qc.invalidateQueries()
 
   const fcEvents = useMemo<EventInput[]>(() => {
-    const byId = new Map<string, EventItem>()
-    for (const e of inRange.data ?? []) byId.set(e.id, e)
-    for (const e of recurring.data ?? []) byId.set(e.id, e)
-    return [...byId.values()].map(toEventInput)
-  }, [inRange.data, recurring.data])
+    const out: EventInput[] = []
+    if (showEvents) {
+      const byId = new Map<string, EventItem>()
+      for (const e of inRange.data ?? []) byId.set(e.id, e)
+      for (const e of recurring.data ?? []) byId.set(e.id, e)
+      for (const e of byId.values()) out.push(eventToInput(e))
+    }
+    for (const it of items) out.push(itemToInput(it))
+    return out
+  }, [showEvents, inRange.data, recurring.data, items])
 
-  const moveOrResize = (arg: EventDropArg | EventResizeDoneArg) => {
+  const onDrop = (arg: EventDropArg | EventResizeDoneArg) => {
     const start = arg.event.start
-    const end = arg.event.end
     if (!start) return arg.revert()
+    if (arg.event.extendedProps.kind === "source") {
+      const item = items.find((i) => i.id === arg.event.id)
+      if (!item) return arg.revert()
+      reschedule(item, ymd(start))
+      invalidate()
+      return
+    }
+    const end = arg.event.end
     const changes: Partial<EventItem> = {
       start_at: start.toISOString(),
       ...(end ? { end_at: end.toISOString() } : {}),
     }
     if (arg.event.extendedProps.recurring) {
-      // Recurring: ask which occurrences the move applies to.
       setPendingMove({
         masterId: arg.event.id,
         occurrenceDate: (arg.oldEvent.start ?? start).toISOString(),
@@ -111,15 +176,27 @@ export function CalendarPage() {
     update.mutate({ id: arg.event.id, body: changes })
   }
 
+  const onClick = (arg: EventClickArg) => {
+    if (arg.event.extendedProps.kind === "source") {
+      navigate(String(arg.event.extendedProps.url))
+      return
+    }
+    setClicked({
+      id: arg.event.id,
+      title: arg.event.title,
+      occurrenceDate: (arg.event.start ?? new Date()).toISOString(),
+      recurring: !!arg.event.extendedProps.recurring,
+    })
+  }
+
   const applyMove = async (scope: RecurrenceScope) => {
     if (!pendingMove) return
     const { masterId, occurrenceDate, changes } = pendingMove
+    pendingMove.revert()
     setPendingMove(null)
-    pendingMove.revert() // let the react-query refetch render the true result
     await editOccurrence(masterId, scope, occurrenceDate, changes)
     invalidate()
   }
-
   const applyDelete = async (scope: RecurrenceScope) => {
     if (!deleting) return
     const d = deleting
@@ -129,45 +206,80 @@ export function CalendarPage() {
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200/80 bg-surface p-3 shadow-soft sm:p-5">
-      <FullCalendar
-        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, rrulePlugin]}
-        initialView="dayGridMonth"
-        headerToolbar={{
-          left: "prev,next today",
-          center: "title",
-          right: "dayGridMonth,timeGridWeek,timeGridDay",
-        }}
-        height="auto"
-        nowIndicator
-        selectable
-        editable
-        dayMaxEvents
-        events={fcEvents}
-        datesSet={(arg: DatesSetArg) =>
-          setRange({ start: arg.start.toISOString(), end: arg.end.toISOString() })
-        }
-        eventClick={(arg: EventClickArg) =>
-          setClicked({
-            id: arg.event.id,
-            title: arg.event.title,
-            occurrenceDate: (arg.event.start ?? new Date()).toISOString(),
-            recurring: !!arg.event.extendedProps.recurring,
-          })
-        }
-        select={(arg: DateSelectArg) => {
-          const title = window.prompt("New event title")?.trim()
-          if (!title) return
-          create.mutate({
-            title,
-            start_at: arg.start.toISOString(),
-            end_at: arg.allDay ? null : arg.end.toISOString(),
-            all_day: arg.allDay,
-          })
-        }}
-        eventDrop={moveOrResize}
-        eventResize={moveOrResize}
-      />
+    <div className="space-y-3">
+      {/* Layer legend */}
+      <div className="flex flex-wrap gap-1.5">
+        {[{ key: "event", label: "Events", color: "#4f46e5" }, ...SOURCES].map((s) => {
+          const on = enabled.has(s.key)
+          return (
+            <button
+              key={s.key}
+              onClick={() => toggle(s.key)}
+              className={cn(
+                "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition",
+                on
+                  ? "border-slate-300 bg-surface text-slate-700"
+                  : "border-slate-200 bg-transparent text-slate-400",
+              )}
+            >
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ backgroundColor: on ? s.color : "transparent", border: `1px solid ${s.color}` }}
+              />
+              {s.label}
+            </button>
+          )
+        })}
+      </div>
+
+      <div className="rounded-2xl border border-slate-200/80 bg-surface p-3 shadow-soft sm:p-5">
+        <FullCalendar
+          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, rrulePlugin]}
+          initialView="dayGridMonth"
+          headerToolbar={{
+            left: "prev,next today",
+            center: "title",
+            right: "dayGridMonth,timeGridWeek,timeGridDay",
+          }}
+          height="auto"
+          nowIndicator
+          selectable
+          editable
+          dayMaxEvents
+          events={fcEvents}
+          datesSet={(arg: DatesSetArg) =>
+            setRange({ start: arg.start.toISOString(), end: arg.end.toISOString() })
+          }
+          eventClick={onClick}
+          select={(arg: DateSelectArg) =>
+            setCreating({
+              start: arg.start.toISOString(),
+              end: arg.end.toISOString(),
+              allDay: arg.allDay,
+            })
+          }
+          eventDrop={onDrop}
+          eventResize={onDrop}
+        />
+      </div>
+
+      {creating && (
+        <Modal title="New event" onClose={() => setCreating(null)}>
+          <EntityForm
+            fields={EVENT_FIELDS}
+            initial={{
+              start_at: creating.start,
+              end_at: creating.allDay ? null : creating.end,
+              all_day: creating.allDay,
+            }}
+            onCancel={() => setCreating(null)}
+            onSubmit={(body) => {
+              create.mutate(body as Record<string, unknown>)
+              setCreating(null)
+            }}
+          />
+        </Modal>
+      )}
 
       {pendingMove && (
         <RecurrenceScopeDialog
@@ -198,9 +310,7 @@ export function CalendarPage() {
                 const c = clicked
                 setClicked(null)
                 if (c.recurring) setDeleting(c)
-                else if (window.confirm("Delete this event?")) {
-                  remove.mutate(c.id)
-                }
+                else if (window.confirm("Delete this event?")) remove.mutate(c.id)
               }}
             >
               Delete

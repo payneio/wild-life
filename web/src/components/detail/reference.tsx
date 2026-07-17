@@ -1,5 +1,5 @@
 import { CheckCircle2, ExternalLink, MapPin, Repeat } from "lucide-react"
-import { summarizeRecurrence } from "@/components/RecurrenceEditor"
+import { summarizeRecurrence } from "@/lib/rrule"
 import { Button } from "@/components/ui/primitives"
 import { commitments, events, reviews } from "@/services/api/hooks"
 import type {

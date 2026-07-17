@@ -266,29 +266,52 @@ body * {
   outline-offset: 1px;
 }
 
-/* FullCalendar — dark-mode legibility (the lib ships a light theme only). */
-.dark .fc {
-  --fc-border-color: #2a2622;
+/* FullCalendar — themed from the app's design tokens so it adapts to light/dark
+   automatically (the tokens themselves flip under .dark). */
+.fc {
+  --fc-border-color: var(--slate-200);
   --fc-page-bg-color: transparent;
-  --fc-neutral-bg-color: rgba(255, 255, 255, 0.03);
-  --fc-today-bg-color: rgba(99, 102, 241, 0.12);
-  --fc-list-event-hover-bg-color: rgba(255, 255, 255, 0.05);
-  color: #e7e2da;
+  --fc-neutral-bg-color: var(--surface-2);
+  --fc-today-bg-color: var(--indigo-50);
+  --fc-now-indicator-color: #ef4444;
+  --fc-event-border-color: var(--indigo-600);
+  --fc-event-bg-color: var(--indigo-600);
+  --fc-list-event-hover-bg-color: var(--surface-2);
+  color: var(--slate-700);
+  font-family: inherit;
 }
-.dark .fc .fc-col-header-cell-cushion,
-.dark .fc .fc-daygrid-day-number,
-.dark .fc .fc-toolbar-title {
-  color: #e7e2da;
+.fc .fc-col-header-cell-cushion,
+.fc .fc-daygrid-day-number,
+.fc .fc-toolbar-title,
+.fc .fc-list-day-text {
+  color: var(--slate-700);
+}
+.fc .fc-day-today .fc-daygrid-day-number {
+  color: var(--indigo-700);
+  font-weight: 600;
 }
 .fc .fc-button-primary {
-  background: #4f46e5;
-  border-color: #4f46e5;
+  background: var(--indigo-600);
+  border-color: var(--indigo-600);
+  color: #fff;
+  font-weight: 500;
+  text-transform: capitalize;
 }
 .fc .fc-button-primary:hover {
-  background: #4338ca;
-  border-color: #4338ca;
+  background: var(--indigo-700);
+  border-color: var(--indigo-700);
 }
-.fc .fc-button-primary:not(:disabled).fc-button-active {
-  background: #3730a3;
-  border-color: #3730a3;
+.fc .fc-button-primary:disabled {
+  background: var(--slate-300);
+  border-color: var(--slate-300);
+}
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+  background: var(--indigo-700);
+  border-color: var(--indigo-700);
+}
+.fc .fc-daygrid-event {
+  border-radius: 5px;
+  padding: 0 3px;
+  font-weight: 500;
 }

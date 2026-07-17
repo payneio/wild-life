@@ -56,6 +56,7 @@ type Item = { to: string; label: string; icon: ComponentType<{ size?: number }> 
 
 const PLAN: Item[] = [
   { to: "/today", label: "Today", icon: Home },
+  { to: "/calendar", label: "Calendar", icon: CalendarDays },
   { to: "/whiteboard", label: "Whiteboard", icon: StickyNote },
   { to: "/areas", label: "Areas", icon: Layers },
   { to: "/programs", label: "Programs", icon: Rocket },
@@ -84,7 +85,6 @@ const REFERENCE: Item[] = [
   { to: "/metrics", label: "Metrics", icon: LineChart },
   { to: "/notes", label: "Journal", icon: NotebookPen },
   { to: "/work-journal", label: "Work Journal", icon: Briefcase },
-  { to: "/calendar", label: "Calendar", icon: CalendarDays },
   { to: "/events", label: "Events", icon: Calendar },
   { to: "/commitments", label: "Commitments", icon: HeartHandshake },
   { to: "/decisions", label: "Decisions", icon: Scale },
