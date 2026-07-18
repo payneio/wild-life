@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { Outlet, useNavigate, useParams } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import { Check, Plus } from "lucide-react"
 import { EntityForm } from "@/components/EntityForm"
 import { TASK_FIELDS } from "@/services/api/fields"
@@ -119,12 +119,15 @@ export function TaskRow({
 
 export function TasksPage() {
   const navigate = useNavigate()
-  const { id: selectedId } = useParams()
   const [queue, setQueue] = usePersistentState<"personal" | "delegated" | "all">(
     "tasks:queue",
     "personal",
   )
   const [includeClosed, setIncludeClosed] = usePersistentState("tasks:includeClosed", false)
+  const [unscheduledOnly, setUnscheduledOnly] = usePersistentState(
+    "tasks:unscheduledOnly",
+    false,
+  )
   const [creating, setCreating] = useState(false)
 
   const { data, isLoading } = tasks.useList({
@@ -138,7 +141,8 @@ export function TasksPage() {
     CONFIG,
     "tasks",
   )
-  const list = filtered as unknown as Task[]
+  const all = filtered as unknown as Task[]
+  const list = unscheduledOnly ? all.filter((t) => !t.scheduled_date) : all
 
   function submit(body: Body) {
     create.mutate(body)
@@ -146,9 +150,7 @@ export function TasksPage() {
   }
 
   return (
-    <div className="flex flex-col gap-4 lg:flex-row">
-      {/* LEFT — task list */}
-      <div className="space-y-3 lg:w-[26rem] lg:shrink-0">
+    <div className="mx-auto max-w-3xl space-y-3">
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-semibold text-slate-900">Tasks</h1>
           <Button onClick={() => setCreating(true)}>
@@ -182,6 +184,14 @@ export function TasksPage() {
             />
             Include closed
           </label>
+          <label className="flex items-center gap-1.5 text-sm text-slate-500">
+            <input
+              type="checkbox"
+              checked={unscheduledOnly}
+              onChange={(e) => setUnscheduledOnly(e.target.checked)}
+            />
+            Unscheduled
+          </label>
         </div>
 
         <ListToolbar {...toolbarProps} />
@@ -195,23 +205,10 @@ export function TasksPage() {
         ) : (
           <Card className="max-h-[75vh] overflow-y-auto">
             {list.map((t) => (
-              <TaskRow
-                key={t.id}
-                task={t}
-                selected={t.id === selectedId}
-                onEdit={(task) => navigate(task.id)}
-              />
+              <TaskRow key={t.id} task={t} onEdit={(task) => navigate(task.id)} />
             ))}
           </Card>
         )}
-      </div>
-
-      {!selectedId && (
-        <div className="hidden flex-1 lg:block">
-          <EmptyState>Select a task to see its details.</EmptyState>
-        </div>
-      )}
-      <Outlet />
 
       {creating && (
         <Modal title="New task" onClose={() => setCreating(false)}>

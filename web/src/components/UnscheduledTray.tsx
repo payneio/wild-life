@@ -109,7 +109,7 @@ export function UnscheduledTray() {
   }, [q.data])
 
   return (
-    <div className="w-full shrink-0 rounded-2xl border border-slate-200/80 bg-surface p-3 shadow-soft sm:w-56">
+    <div className="hidden w-full shrink-0 rounded-2xl border border-slate-200/80 bg-surface p-3 shadow-soft sm:block sm:w-56">
       <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
         Unscheduled
       </div>
