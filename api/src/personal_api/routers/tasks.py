@@ -9,7 +9,13 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from personal_api.authz import (
+    assert_can_write_task,
+    assert_worker_task_fields,
+    scope_task_create,
+)
 from personal_api.db.session import get_session
+from personal_api.identity import Identity, current_identity
 from personal_api.models.tasks import Task
 from personal_api.query import apply_query
 from personal_api.schemas.common import Priority, TaskStatus
@@ -101,9 +107,12 @@ def _spawn_next_occurrence(task: Task) -> Task | None:
     operation_id="tasks_create",
 )
 async def create_task(
-    payload: TaskCreate, session: AsyncSession = Depends(get_session)
+    payload: TaskCreate,
+    session: AsyncSession = Depends(get_session),
+    identity: Identity = Depends(current_identity),
 ) -> Task:
-    task = Task(**payload.model_dump())
+    values = await scope_task_create(session, payload.model_dump(), identity)
+    task = Task(**values)
     _sync_completion(task)
     session.add(task)
     await session.flush()
@@ -173,13 +182,19 @@ async def get_task(item_id: UUID, session: AsyncSession = Depends(get_session)) 
 
 @router.patch("/{item_id}", response_model=TaskRead, operation_id="tasks_update")
 async def update_task(
-    item_id: UUID, payload: TaskUpdate, session: AsyncSession = Depends(get_session)
+    item_id: UUID,
+    payload: TaskUpdate,
+    session: AsyncSession = Depends(get_session),
+    identity: Identity = Depends(current_identity),
 ) -> Task:
     task = await session.get(Task, item_id)
     if task is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not found")
+    await assert_can_write_task(session, task, identity)
+    changes = payload.model_dump(exclude_unset=True)
+    assert_worker_task_fields(changes, identity)
     was_completed = task.status == "completed"
-    for field, value in payload.model_dump(exclude_unset=True).items():
+    for field, value in changes.items():
         setattr(task, field, value)
     _sync_completion(task)
     # Newly completed + recurring -> reveal the next occurrence.

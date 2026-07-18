@@ -22,6 +22,7 @@ class AreaCreate(BaseModel):
     desired_standard: str | None = None
     review_frequency: str | None = None
     accountable_owner_id: uuid.UUID | None = None
+    responsible_lead_id: uuid.UUID | None = None
     notes: str | None = None
 
 
@@ -32,6 +33,7 @@ class AreaUpdate(BaseModel):
     desired_standard: str | None = None
     review_frequency: str | None = None
     accountable_owner_id: uuid.UUID | None = None
+    responsible_lead_id: uuid.UUID | None = None
     notes: str | None = None
     archived_at: datetime | None = None
 
@@ -43,6 +45,7 @@ class AreaRead(Entity):
     desired_standard: str | None
     review_frequency: str | None
     accountable_owner_id: uuid.UUID | None
+    responsible_lead_id: uuid.UUID | None
     notes: str | None
     archived_at: datetime | None
 

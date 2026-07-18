@@ -52,11 +52,11 @@ from personal_api.models import (
     Program,
     Project,
     Protocol,
+    Request,
     Resource,
     Review,
     Routine,
     Task,
-    WaitingItem,
 )
 
 # Singular EntityType string -> model.
@@ -74,7 +74,7 @@ TYPE_TO_MODEL: dict[str, type[Any]] = {
     "event": Event,
     "note": Note,
     "commitment": Commitment,
-    "waiting_item": WaitingItem,
+    "request": Request,
     "delegation": Delegation,
     "review": Review,
     "resource": Resource,
@@ -91,33 +91,98 @@ MODEL_TO_TYPE: dict[type[Any], str] = {m: t for t, m in TYPE_TO_MODEL.items()}
 # Per type: (label column, curated text columns searched by ``q=`` / global search).
 # Curated on purpose — opaque fields (patient_id, rx_bin, …) are excluded.
 SEARCH_FIELDS: dict[str, tuple[str, list[str]]] = {
-    "person": ("name", ["name", "nickname", "relationship", "role", "job_title", "specialty", "notes"]),
+    "person": (
+        "name",
+        ["name", "nickname", "relationship", "role", "job_title", "specialty", "notes"],
+    ),
     "organization": ("name", ["name", "org_type", "industry", "description", "notes"]),
     "location": ("name", ["name", "address", "city", "region", "notes"]),
     "area": ("name", ["name", "description", "desired_standard", "notes"]),
-    "program": ("name", ["name", "description", "intended_outcome", "success_criteria", "notes"]),
-    "project": ("name", ["name", "description", "intended_outcome", "completion_criteria", "next_action", "notes"]),
+    "program": (
+        "name",
+        ["name", "description", "intended_outcome", "success_criteria", "notes"],
+    ),
+    "project": (
+        "name",
+        [
+            "name",
+            "description",
+            "intended_outcome",
+            "completion_criteria",
+            "next_action",
+            "notes",
+        ],
+    ),
     "task": ("title", ["title", "description", "context", "notes"]),
     "routine": ("name", ["name", "frequency", "tracking_method", "notes"]),
-    "goal": ("name", ["name", "description", "target_state", "measurement_method", "notes"]),
+    "goal": (
+        "name",
+        ["name", "description", "target_state", "measurement_method", "notes"],
+    ),
     "metric": ("name", ["name", "unit", "data_source", "notes"]),
     "event": ("title", ["title", "description", "location", "notes"]),
     "note": ("title", ["title", "body", "mood"]),
     "condition": ("name", ["name", "category", "severity", "description", "notes"]),
-    "medication": ("name", ["name", "brand", "generic_name", "reason", "instructions", "notes"]),
+    "medication": (
+        "name",
+        ["name", "brand", "generic_name", "reason", "instructions", "notes"],
+    ),
     "protocol": ("name", ["name", "category", "intended_outcome", "notes"]),
-    "health_event": ("title", ["title", "summary", "findings", "recommendations", "follow_up", "location", "notes"]),
+    "health_event": (
+        "title",
+        [
+            "title",
+            "summary",
+            "findings",
+            "recommendations",
+            "follow_up",
+            "location",
+            "notes",
+        ],
+    ),
     "insurance_plan": ("name", ["name", "network", "member_id", "notes"]),
     "allergy": ("substance", ["substance", "reaction", "notes"]),
     "commitment": ("description", ["description", "evidence", "notes"]),
-    "waiting_item": ("expected_result", ["expected_result", "from_org", "next_action", "last_communication", "notes"]),
-    "delegation": ("requested_outcome", ["requested_outcome", "instructions", "latest_update", "notes"]),
-    "decision": ("question", ["question", "options_considered", "decision", "rationale", "assumptions"]),
+    "request": (
+        "subject",
+        [
+            "subject",
+            "body",
+            "external_label",
+            "next_action",
+            "last_communication",
+            "notes",
+        ],
+    ),
+    "delegation": (
+        "requested_outcome",
+        ["requested_outcome", "instructions", "latest_update", "notes"],
+    ),
+    "decision": (
+        "question",
+        ["question", "options_considered", "decision", "rationale", "assumptions"],
+    ),
     "resource": ("title", ["title", "resource_type", "url", "description"]),
-    "review": ("review_type", ["observations", "decisions", "risks", "follow_up_actions", "notes"]),
+    "review": (
+        "review_type",
+        ["observations", "decisions", "risks", "follow_up_actions", "notes"],
+    ),
 }
 
-_OPS = {"eq", "ne", "in", "nin", "gt", "gte", "lt", "lte", "between", "isnull", "contains", "startswith"}
+_OPS = {
+    "eq",
+    "ne",
+    "in",
+    "nin",
+    "gt",
+    "gte",
+    "lt",
+    "lte",
+    "between",
+    "isnull",
+    "contains",
+    "startswith",
+}
 _RESERVED = {"q", "sort", "limit", "offset", "tag", "tag__all", "tag__any"}
 
 
@@ -148,7 +213,9 @@ def _int(val: str, lo: int, hi: int | None) -> int:
     try:
         n = int(val)
     except ValueError as e:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Bad int") from e
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Bad int"
+        ) from e
     n = max(lo, n)
     if hi is not None:
         n = min(hi, n)
@@ -234,7 +301,11 @@ def apply_query(
         if params.get("tag__all"):
             clauses.append(cols["tags"].contains(params["tag__all"].split(",")))
         if params.get("tag__any"):
-            clauses.append(or_(*[cols["tags"].contains([v]) for v in params["tag__any"].split(",")]))
+            clauses.append(
+                or_(
+                    *[cols["tags"].contains([v]) for v in params["tag__any"].split(",")]
+                )
+            )
 
     if clauses:
         stmt = stmt.where(and_(*clauses))

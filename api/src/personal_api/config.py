@@ -1,5 +1,6 @@
 """Configuration for personal-api."""
 
+import uuid
 from pathlib import Path
 
 from pydantic_settings import BaseSettings
@@ -19,6 +20,9 @@ class Settings(BaseSettings):
     # Bearer token every request (except open paths) must present.
     # Field name is 'token' so the env var is PERSONAL_API_TOKEN (prefix + name).
     token: str = "dev-token"
+    # The Person the owner token acts as (the "self" node). Env
+    # PERSONAL_API_SELF_PERSON_ID; None = owner acts with no Person identity.
+    self_person_id: uuid.UUID | None = None
     # Comma-separated list of allowed browser origins for CORS.
     cors_origins: str = "http://localhost:5173"
 

@@ -29,7 +29,9 @@ GoalStatus = Literal["active", "achieved", "paused", "dropped"]
 CommitmentStatus = Literal[
     "open", "in_progress", "waiting", "fulfilled", "broken", "cancelled"
 ]
-WaitingStatus = Literal["open", "received", "overdue", "cancelled"]
+RequestKind = Literal["question", "decision", "input", "deliverable"]
+RequestStatus = Literal["open", "resolved", "cancelled"]
+# NOTE: the former WaitingItem/WaitingStatus is folded into Request (kind=deliverable).
 DelegationStatus = Literal[
     "draft",
     "requested",
@@ -44,6 +46,7 @@ DelegationStatus = Literal[
     "reassigned",
     "cancelled",
 ]
+TokenRole = Literal["full", "worker"]
 ReviewType = Literal[
     "daily",
     "weekly",
@@ -70,7 +73,7 @@ EntityType = Literal[
     "organization",
     "location",
     "commitment",
-    "waiting_item",
+    "request",
     "delegation",
     "review",
     "resource",

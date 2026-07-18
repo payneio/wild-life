@@ -20,8 +20,9 @@ from personal_api.models.calendar import Event
 from personal_api.models.health import Medication
 from personal_api.models.people import Person
 from personal_api.models.push import PushSubscription, SentNudge
+from personal_api.models.requests import Request
 from personal_api.models.tasks import Task
-from personal_api.models.tracking import Delegation, WaitingItem
+from personal_api.models.tracking import Delegation
 from personal_api.routers.stream import publish_event
 
 log = logging.getLogger("personal_api.nudges")
@@ -55,7 +56,9 @@ async def _digest_lines(session: AsyncSession, today: date) -> list[str]:
     )
     followups_n = await _count(
         session,
-        select(func.count()).select_from(WaitingItem).where(WaitingItem.follow_up_date == today),
+        select(func.count())
+        .select_from(Request)
+        .where(Request.follow_up_date == today, Request.status == "open"),
     ) + await _count(
         session,
         select(func.count())
@@ -69,7 +72,9 @@ async def _digest_lines(session: AsyncSession, today: date) -> list[str]:
     )
     meds_n = await _count(
         session,
-        select(func.count()).select_from(Medication).where(Medication.status == "active"),
+        select(func.count())
+        .select_from(Medication)
+        .where(Medication.status == "active"),
     )
     bdays_n = await _count(
         session,
@@ -97,7 +102,9 @@ async def digest(session: AsyncSession = Depends(get_session)) -> dict:
     """Send today's one-line agenda digest as a push (once per day)."""
     today = datetime.now(UTC).date()
     already = await session.scalar(
-        select(SentNudge).where(SentNudge.kind == "digest", SentNudge.nudge_date == today)
+        select(SentNudge).where(
+            SentNudge.kind == "digest", SentNudge.nudge_date == today
+        )
     )
     if already is not None:
         return {"sent": False, "reason": "already sent today"}
@@ -120,7 +127,9 @@ async def digest(session: AsyncSession = Depends(get_session)) -> dict:
     gone: list = []
     for sub in subs:
         try:
-            push.send_push(endpoint=sub.endpoint, p256dh=sub.p256dh, auth=sub.auth, payload=payload)
+            push.send_push(
+                endpoint=sub.endpoint, p256dh=sub.p256dh, auth=sub.auth, payload=payload
+            )
             sent += 1
         except push.SubscriptionGone:
             gone.append(sub.id)
@@ -128,7 +137,9 @@ async def digest(session: AsyncSession = Depends(get_session)) -> dict:
         except Exception:  # noqa: BLE001
             log.exception("digest push failed for %s", sub.endpoint)
     if gone:
-        await session.execute(sql_delete(PushSubscription).where(PushSubscription.id.in_(gone)))
+        await session.execute(
+            sql_delete(PushSubscription).where(PushSubscription.id.in_(gone))
+        )
 
     await publish_event("digest", payload)
     session.add(SentNudge(kind="digest", nudge_date=today))

@@ -30,6 +30,7 @@ class Area(UUIDPrimaryKey, TimestampMixin, Base):
     desired_standard: Mapped[str | None] = mapped_column(Text)
     review_frequency: Mapped[str | None] = mapped_column(Text)  # weekly/monthly/...
     accountable_owner_id: Mapped[uuid.UUID | None] = _person_fk()
+    responsible_lead_id: Mapped[uuid.UUID | None] = _person_fk()
     notes: Mapped[str | None] = mapped_column(Text)
     archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 

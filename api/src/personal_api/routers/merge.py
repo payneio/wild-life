@@ -41,11 +41,11 @@ from personal_api.models import (
     Project,
     Protocol,
     ProtocolItem,
+    Request,
     Resource,
     Review,
     Routine,
     Task,
-    WaitingItem,
 )
 from personal_api.schemas.common import EntityType
 
@@ -66,7 +66,7 @@ TYPE_TO_MODEL: dict[str, type[Any]] = {
     "event": Event,
     "note": Note,
     "commitment": Commitment,
-    "waiting_item": WaitingItem,
+    "request": Request,
     "delegation": Delegation,
     "review": Review,
     "resource": Resource,
@@ -111,7 +111,7 @@ SOFT_POLY = [
     ),
     (Base.metadata.tables["personal_api.entity_tags"], "entity_type", "entity_id"),
     (Commitment.__table__, "entity_type", "entity_id"),
-    (WaitingItem.__table__, "entity_type", "entity_id"),
+    (Request.__table__, "entity_type", "entity_id"),
     (Delegation.__table__, "entity_type", "entity_id"),
     (Resource.__table__, "entity_type", "entity_id"),
     (Decision.__table__, "entity_type", "entity_id"),

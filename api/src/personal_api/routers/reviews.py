@@ -8,9 +8,11 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from personal_api.db.session import get_session
+from personal_api.identity import Identity, current_identity
 from personal_api.models.core import Area, Program, Project
+from personal_api.models.requests import Request
 from personal_api.models.tasks import Task
-from personal_api.models.tracking import Delegation, WaitingItem
+from personal_api.models.tracking import Delegation
 from personal_api.routers.crud import crud_router
 from personal_api.schemas.reviews import ReviewCreate, ReviewRead, ReviewUpdate
 from personal_api.models.reviews import Review
@@ -49,7 +51,10 @@ async def _rows(session: AsyncSession, stmt: Any) -> list[Any]:
 
 
 @dashboard.get("/review-dashboard", operation_id="review_dashboard")
-async def review_dashboard(session: AsyncSession = Depends(get_session)) -> dict:
+async def review_dashboard(
+    session: AsyncSession = Depends(get_session),
+    identity: Identity = Depends(current_identity),
+) -> dict:
     """Surface everything a periodic review should catch."""
     today = date.today()
     stale_before = today - timedelta(days=STALE_DAYS)
@@ -198,24 +203,42 @@ async def review_dashboard(session: AsyncSession = Depends(get_session)) -> dict
         ),
     )
 
-    # Waiting items needing follow-up.
-    waiting_followups = await _rows(
+    def request_row(r: Request) -> dict:
+        return {
+            "id": str(r.id),
+            "subject": r.subject,
+            "kind": r.kind,
+            "requester_id": str(r.requester_id) if r.requester_id else None,
+            "addressee_id": str(r.addressee_id) if r.addressee_id else None,
+            "needed_by": r.needed_by.isoformat() if r.needed_by else None,
+            "follow_up_date": r.follow_up_date.isoformat()
+            if r.follow_up_date
+            else None,
+            "status": r.status,
+        }
+
+    # The caller's inbox — open Requests addressed to them (needs their input).
+    my_inbox: list[Request] = []
+    if identity.person_id is not None:
+        my_inbox = await _rows(
+            session,
+            select(Request).where(
+                Request.addressee_id == identity.person_id,
+                Request.status == "open",
+            ),
+        )
+    # Oversight: every open Request across all inboxes, regardless of role.
+    open_requests = await _rows(
+        session, select(Request).where(Request.status == "open")
+    )
+    # Requests (typically deliverables) past their follow-up date.
+    request_followups = await _rows(
         session,
-        select(WaitingItem).where(
-            WaitingItem.follow_up_date <= today,
-            WaitingItem.status == "open",
+        select(Request).where(
+            Request.follow_up_date <= today,
+            Request.status == "open",
         ),
     )
-
-    def waiting_row(w: WaitingItem) -> dict:
-        return {
-            "id": str(w.id),
-            "expected_result": w.expected_result,
-            "follow_up_date": w.follow_up_date.isoformat()
-            if w.follow_up_date
-            else None,
-            "status": w.status,
-        }
 
     return {
         "generated_for": today.isoformat(),
@@ -229,7 +252,9 @@ async def review_dashboard(session: AsyncSession = Depends(get_session)) -> dict
         "overdue_delegations": [deleg_row(d) for d in overdue_delegations],
         "delegation_followups": [deleg_row(d) for d in delegation_followups],
         "unreviewed_deliverables": [deleg_row(d) for d in unreviewed_deliverables],
-        "waiting_followups": [waiting_row(w) for w in waiting_followups],
+        "my_inbox": [request_row(r) for r in my_inbox],
+        "open_requests": [request_row(r) for r in open_requests],
+        "request_followups": [request_row(r) for r in request_followups],
     }
 
 

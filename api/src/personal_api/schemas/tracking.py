@@ -1,4 +1,4 @@
-"""Schemas for Commitment, WaitingItem, Delegation."""
+"""Schemas for Commitment, Delegation."""
 
 import uuid
 from datetime import date
@@ -11,7 +11,6 @@ from personal_api.schemas.common import (
     Entity,
     EntityType,
     Priority,
-    WaitingStatus,
 )
 
 
@@ -58,52 +57,6 @@ class CommitmentRead(Entity):
     acceptance_status: str | None
     entity_type: str | None
     entity_id: uuid.UUID | None
-    notes: str | None
-
-
-# --- WaitingItem ------------------------------------------------------------
-class WaitingItemCreate(BaseModel):
-    expected_result: str
-    person_id: uuid.UUID | None = None
-    from_org: str | None = None
-    entity_type: EntityType | None = None
-    entity_id: uuid.UUID | None = None
-    date_requested: date | None = None
-    expected_date: date | None = None
-    follow_up_date: date | None = None
-    status: WaitingStatus = "open"
-    last_communication: str | None = None
-    next_action: str | None = None
-    notes: str | None = None
-
-
-class WaitingItemUpdate(BaseModel):
-    expected_result: str | None = None
-    person_id: uuid.UUID | None = None
-    from_org: str | None = None
-    entity_type: EntityType | None = None
-    entity_id: uuid.UUID | None = None
-    date_requested: date | None = None
-    expected_date: date | None = None
-    follow_up_date: date | None = None
-    status: WaitingStatus | None = None
-    last_communication: str | None = None
-    next_action: str | None = None
-    notes: str | None = None
-
-
-class WaitingItemRead(Entity):
-    expected_result: str
-    person_id: uuid.UUID | None
-    from_org: str | None
-    entity_type: str | None
-    entity_id: uuid.UUID | None
-    date_requested: date | None
-    expected_date: date | None
-    follow_up_date: date | None
-    status: str
-    last_communication: str | None
-    next_action: str | None
     notes: str | None
 
 

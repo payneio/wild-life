@@ -39,27 +39,6 @@ class Commitment(UUIDPrimaryKey, TimestampMixin, Base):
     notes: Mapped[str | None] = mapped_column(Text)
 
 
-class WaitingItem(UUIDPrimaryKey, TimestampMixin, Base):
-    """Something expected from another person, org, or system."""
-
-    __tablename__ = "waiting_items"
-
-    expected_result: Mapped[str] = mapped_column(Text, nullable=False)
-    person_id: Mapped[uuid.UUID | None] = _person()
-    from_org: Mapped[str | None] = mapped_column(Text)
-    entity_type: Mapped[str | None] = mapped_column(Text)
-    entity_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
-    date_requested: Mapped[date | None] = mapped_column(Date)
-    expected_date: Mapped[date | None] = mapped_column(Date)
-    follow_up_date: Mapped[date | None] = mapped_column(Date, index=True)
-    status: Mapped[str] = mapped_column(
-        Text, server_default="open", nullable=False
-    )  # open/received/overdue/cancelled
-    last_communication: Mapped[str | None] = mapped_column(Text)
-    next_action: Mapped[str | None] = mapped_column(Text)
-    notes: Mapped[str | None] = mapped_column(Text)
-
-
 class Delegation(UUIDPrimaryKey, TimestampMixin, Base):
     """Execution responsibility transferred to another person."""
 

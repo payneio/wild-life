@@ -1,5 +1,6 @@
 """ORM models — import all so Base.metadata and Alembic see every table."""
 
+from personal_api.models.auth import ApiToken
 from personal_api.models.calendar import Event
 from personal_api.models.core import Area, Program, Project, ProjectContributor
 from personal_api.models.goals import Goal, GoalProject
@@ -21,11 +22,12 @@ from personal_api.models.notes import Note, NoteMention
 from personal_api.models.organizations import Affiliation, Organization
 from personal_api.models.people import Interaction, Person
 from personal_api.models.push import PushSubscription, SentNudge, SentReminder
+from personal_api.models.requests import Request
 from personal_api.models.reviews import Review
 from personal_api.models.routines import Routine, RoutineInstance
 from personal_api.models.tags import EntityTag, Tag
 from personal_api.models.tasks import Task
-from personal_api.models.tracking import Commitment, Delegation, WaitingItem
+from personal_api.models.tracking import Commitment, Delegation
 
 __all__ = [
     "Area",
@@ -59,7 +61,7 @@ __all__ = [
     "SentNudge",
     "Location",
     "Commitment",
-    "WaitingItem",
+    "Request",
     "Delegation",
     "Review",
     "Resource",
@@ -67,4 +69,5 @@ __all__ = [
     "Tag",
     "EntityTag",
     "ChangeLog",
+    "ApiToken",
 ]

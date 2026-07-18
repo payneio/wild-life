@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from personal_api.models.tracking import Commitment, Delegation, WaitingItem
+from personal_api.models.tracking import Commitment, Delegation
 from personal_api.routers.crud import crud_router
 from personal_api.schemas.tracking import (
     CommitmentCreate,
@@ -11,9 +11,6 @@ from personal_api.schemas.tracking import (
     DelegationCreate,
     DelegationRead,
     DelegationUpdate,
-    WaitingItemCreate,
-    WaitingItemRead,
-    WaitingItemUpdate,
 )
 
 router = APIRouter()
@@ -27,17 +24,6 @@ router.include_router(
         read_schema=CommitmentRead,
         update_schema=CommitmentUpdate,
         order_by=Commitment.created_at.desc(),
-    )
-)
-router.include_router(
-    crud_router(
-        prefix="/waiting-items",
-        tag="waiting",
-        model=WaitingItem,
-        create_schema=WaitingItemCreate,
-        read_schema=WaitingItemRead,
-        update_schema=WaitingItemUpdate,
-        order_by=WaitingItem.created_at.desc(),
     )
 )
 router.include_router(

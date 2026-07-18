@@ -12,7 +12,10 @@ from fastmcp.utilities.lifespan import combine_lifespans
 
 from personal_api.auth import BearerAuthMiddleware
 from personal_api.config import settings
+from personal_api.db.session import AsyncSessionLocal
+from personal_api.identity import registry
 from personal_api.routers import (
+    admin,
     calendar,
     core,
     goals,
@@ -27,6 +30,7 @@ from personal_api.routers import (
     people,
     push,
     reminders,
+    requests,
     reviews,
     routines,
     search,
@@ -42,6 +46,14 @@ from personal_api.routers import health as health_routes
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan handler."""
     settings.ensure_data_dir()
+    # Owner credential is in-memory (no DB); worker tokens load from the DB
+    # best-effort so a transient DB hiccup at startup never locks out the owner.
+    registry.set_owner(settings.token, settings.self_person_id)
+    try:
+        async with AsyncSessionLocal() as session:
+            await registry.reload(session)
+    except Exception:
+        pass
     yield
 
 
@@ -54,7 +66,7 @@ app = FastAPI(
 
 # Auth added first so it sits *inside* CORS: CORS handles preflight, then the
 # bearer check runs on real requests. (Last-added middleware is outermost.)
-app.add_middleware(BearerAuthMiddleware, token=settings.token)
+app.add_middleware(BearerAuthMiddleware, registry=registry)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
@@ -69,6 +81,7 @@ async def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+app.include_router(admin.router)
 app.include_router(core.router)
 app.include_router(tasks.router)
 app.include_router(people.router)
@@ -83,6 +96,7 @@ app.include_router(calendar.router)
 app.include_router(notes.router)
 app.include_router(notes.images_router)
 app.include_router(tracking.router)
+app.include_router(requests.router)
 app.include_router(reviews.router)
 app.include_router(knowledge.router)
 app.include_router(tags.router)

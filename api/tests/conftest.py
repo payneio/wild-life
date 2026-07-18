@@ -5,9 +5,22 @@ from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine, text
 
 from personal_api.config import settings
 from personal_api.main import app
+
+
+@pytest.fixture
+def require_db() -> None:
+    """Skip the test unless the castle Postgres is reachable."""
+    try:
+        eng = create_engine(settings.sync_database_url)
+        with eng.connect() as conn:
+            conn.execute(text("select 1"))
+        eng.dispose()
+    except Exception:
+        pytest.skip("castle Postgres not available")
 
 
 @pytest.fixture
