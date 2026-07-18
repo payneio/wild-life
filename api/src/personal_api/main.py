@@ -6,7 +6,9 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import httpx
 from fastmcp import FastMCP
+from fastmcp.server.dependencies import get_http_headers
 from fastmcp.server.providers.openapi import MCPType, RouteMap
 from fastmcp.utilities.lifespan import combine_lifespans
 
@@ -137,10 +139,68 @@ mcp = FastMCP.from_fastapi(
 )
 mcp_app = mcp.http_app(path="/")
 
-# from_fastapi needs the fully-built app, but the MCP session manager needs its
-# own lifespan to run — so combine both and reassign after construction.
-app.router.lifespan_context = combine_lifespans(lifespan, mcp_app.lifespan)
+
+# --- Scoped worker MCP ----------------------------------------------------
+# A second, leaner MCP surface for delegated assistants at /mcp-worker: read
+# tools plus only the writes a worker may perform (tasks/notes/requests/
+# delegations). Auth + row/field scope are enforced by the API itself —
+# FastMCP forwards the caller's bearer token to the internal call, so the
+# worker's identity and its limits apply. No owner token is baked in here (a
+# missing forward fails closed with 401 rather than escalating privilege).
+_TOOL = MCPType.TOOL
+_EXCL = MCPType.EXCLUDE
+_WORKER_ROUTES = [
+    RouteMap(methods=["POST"], pattern=r"^/tasks$", mcp_type=_TOOL),
+    RouteMap(methods=["PATCH"], pattern=r"^/tasks/[^/]+$", mcp_type=_TOOL),
+    RouteMap(methods=["POST"], pattern=r"^/notes$", mcp_type=_TOOL),
+    RouteMap(methods=["POST"], pattern=r"^/requests$", mcp_type=_TOOL),
+    RouteMap(methods=["PATCH"], pattern=r"^/requests/[^/]+$", mcp_type=_TOOL),
+    RouteMap(methods=["POST"], pattern=r"^/requests/[^/]+/resolve$", mcp_type=_TOOL),
+    RouteMap(methods=["POST"], pattern=r"^/delegations$", mcp_type=_TOOL),
+    RouteMap(methods=["PATCH"], pattern=r"^/delegations/[^/]+$", mcp_type=_TOOL),
+    # infra / admin never exposed to workers
+    RouteMap(pattern=r"^/stream$", mcp_type=_EXCL),
+    RouteMap(pattern=r"^/health$", mcp_type=_EXCL),
+    RouteMap(pattern=r"^/admin.*", mcp_type=_EXCL),
+    RouteMap(pattern=r"^/push.*", mcp_type=_EXCL),
+    RouteMap(pattern=r".*/images.*", mcp_type=_EXCL),
+    RouteMap(pattern=r"^/note-images.*", mcp_type=_EXCL),
+    RouteMap(pattern=r".*/photo$", mcp_type=_EXCL),
+    # any other mutation is not permitted for workers
+    RouteMap(methods=["POST", "PUT", "PATCH", "DELETE"], pattern=r".*", mcp_type=_EXCL),
+    # everything else (reads) -> tool
+    RouteMap(methods=["GET"], pattern=r".*", mcp_type=_TOOL),
+]
+
+
+async def _forward_auth(request: httpx.Request) -> None:
+    """Forward the caller's bearer token to the internal API call.
+
+    FastMCP strips ``authorization`` from forwarded headers by default; we
+    re-add it (via the ``include`` override) so the worker's identity — and its
+    scope limits — apply to the internal request. Nothing is baked in, so a
+    missing token fails closed rather than escalating to owner access.
+    """
+    auth = get_http_headers(include={"authorization"}).get("authorization")
+    if auth:
+        request.headers["authorization"] = auth
+
+
+worker_mcp = FastMCP.from_fastapi(
+    app=app,
+    name="personal-worker",
+    route_maps=_WORKER_ROUTES,
+    httpx_client_kwargs={"event_hooks": {"request": [_forward_auth]}},
+)
+worker_mcp_app = worker_mcp.http_app(path="/")
+
+# from_fastapi needs the fully-built app, but each MCP session manager needs its
+# own lifespan to run — so combine all three and reassign after construction.
+app.router.lifespan_context = combine_lifespans(
+    lifespan, mcp_app.lifespan, worker_mcp_app.lifespan
+)
 app.mount("/mcp", mcp_app)
+app.mount("/mcp-worker", worker_mcp_app)
 
 
 def run() -> None:

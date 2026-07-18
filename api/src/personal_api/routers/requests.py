@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from personal_api.db.session import get_session
 from personal_api.identity import Identity, current_identity
 from personal_api.models.requests import Request
+from personal_api.models.tasks import Task
 from personal_api.query import apply_query
 from personal_api.schemas.common import RequestStatus
 from personal_api.schemas.requests import (
@@ -152,6 +153,13 @@ async def resolve_request(
     req.resolved_at = datetime.now(timezone.utc)
     if payload.resolution is not None:
         req.resolution = payload.resolution
+
+    # Consistency: a task blocked *waiting* on this request is no longer blocked.
+    if req.entity_type == "task" and req.entity_id is not None:
+        task = await session.get(Task, req.entity_id)
+        if task is not None and task.status == "waiting":
+            task.status = "in_progress"
+
     await session.flush()
     await session.refresh(req)
     return req

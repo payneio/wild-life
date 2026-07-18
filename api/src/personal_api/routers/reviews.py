@@ -240,6 +240,54 @@ async def review_dashboard(
         ),
     )
 
+    # --- cross-status drift (inconsistency reconciliation queue) -----------
+    blocked_task_ids = {
+        tid
+        for (tid,) in (
+            await session.execute(
+                select(Request.entity_id).where(
+                    Request.entity_type == "task",
+                    Request.entity_id.isnot(None),
+                    Request.status == "open",
+                )
+            )
+        ).all()
+    }
+    # Tasks marked 'waiting' with no open Request explaining the block.
+    waiting_no_blocker = [
+        t
+        for t in await _rows(session, select(Task).where(Task.status == "waiting"))
+        if t.id not in blocked_task_ids
+    ]
+    # Tasks 'delegated' with nobody on the hook (no assignee/responsible/accountable).
+    delegated_no_owner = await _rows(
+        session,
+        select(Task).where(
+            Task.status == "delegated",
+            Task.assignee_id.is_(None),
+            Task.responsible_id.is_(None),
+            Task.accountable_owner_id.is_(None),
+        ),
+    )
+    # Completed projects that still have open tasks under them.
+    open_task_project_ids = {
+        pid
+        for (pid,) in (
+            await session.execute(
+                select(Task.project_id).where(
+                    Task.status.notin_(_TASK_OPEN), Task.project_id.isnot(None)
+                )
+            )
+        ).all()
+    }
+    completed_with_open_tasks = [
+        p
+        for p in await _rows(
+            session, select(Project).where(Project.status == "completed")
+        )
+        if p.id in open_task_project_ids
+    ]
+
     return {
         "generated_for": today.isoformat(),
         "overdue_tasks": [task_row(t) for t in overdue_tasks],
@@ -255,6 +303,11 @@ async def review_dashboard(
         "my_inbox": [request_row(r) for r in my_inbox],
         "open_requests": [request_row(r) for r in open_requests],
         "request_followups": [request_row(r) for r in request_followups],
+        "waiting_without_blocker": [task_row(t) for t in waiting_no_blocker],
+        "delegated_without_owner": [task_row(t) for t in delegated_no_owner],
+        "completed_with_open_tasks": [
+            project_row(p) for p in completed_with_open_tasks
+        ],
     }
 
 

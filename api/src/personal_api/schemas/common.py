@@ -47,6 +47,8 @@ DelegationStatus = Literal[
     "cancelled",
 ]
 TokenRole = Literal["full", "worker"]
+# Canonical cross-entity phase (see lifecycle.py) — one uniform "state of work".
+LifecyclePhase = Literal["backlog", "active", "blocked", "done", "cancelled"]
 ReviewType = Literal[
     "daily",
     "weekly",

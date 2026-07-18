@@ -6,12 +6,13 @@ from typing import Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from personal_api.authz import (
     assert_can_write_task,
     assert_worker_task_fields,
+    owned_scopes,
     scope_task_create,
 )
 from personal_api.db.session import get_session
@@ -170,6 +171,36 @@ async def list_tasks(
             )
         )
     return items
+
+
+@router.get("/mine", response_model=list[TaskRead], operation_id="tasks_mine")
+async def my_tasks(
+    session: AsyncSession = Depends(get_session),
+    identity: Identity = Depends(current_identity),
+    include_closed: bool = False,
+) -> list[Task]:
+    """Tasks the caller owns: assigned/responsible/accountable, or in an owned scope."""
+    if identity.person_id is None:
+        return []
+    pid = identity.person_id
+    scopes = await owned_scopes(session, pid)
+    conds = [
+        Task.assignee_id == pid,
+        Task.responsible_id == pid,
+        Task.accountable_owner_id == pid,
+    ]
+    if scopes.area_ids:
+        conds.append(Task.area_id.in_(scopes.area_ids))
+    if scopes.program_ids:
+        conds.append(Task.program_id.in_(scopes.program_ids))
+    if scopes.project_ids:
+        conds.append(Task.project_id.in_(scopes.project_ids))
+    stmt = select(Task).where(or_(*conds))
+    if not include_closed:
+        stmt = stmt.where(Task.status.notin_(_CLOSED_STATUSES))
+    stmt = stmt.order_by(Task.due_date.asc().nulls_last())
+    result = await session.execute(stmt)
+    return list(result.scalars().all())
 
 
 @router.get("/{item_id}", response_model=TaskRead, operation_id="tasks_get")

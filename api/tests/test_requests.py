@@ -103,3 +103,35 @@ def test_request_inbox(
         for pid in made["people"]:
             client.delete(f"/people/{pid}", headers=owner)
         _cleanup_tokens(made["tok"])
+
+
+def test_request_unblocks_task(
+    client: TestClient, auth_headers: dict, require_db: None
+) -> None:
+    """Resolving the Request a task is waiting on moves the task off 'waiting'."""
+    owner = auth_headers
+    tasks: list[str] = []
+    reqs: list[str] = []
+    try:
+        t = _post(client, owner, "/tasks", title=f"{MARK} blocked", status="waiting")
+        tasks.append(t["id"])
+        req = _post(
+            client,
+            owner,
+            "/requests",
+            subject=f"{MARK} blocker",
+            entity_type="task",
+            entity_id=t["id"],
+        )
+        reqs.append(req["id"])
+
+        r = client.post(f"/requests/{req['id']}/resolve", headers=owner, json={})
+        assert r.status_code == 200, r.text
+
+        got = client.get(f"/tasks/{t['id']}", headers=owner).json()
+        assert got["status"] == "in_progress", got
+    finally:
+        for rid in reqs:
+            client.delete(f"/requests/{rid}", headers=owner)
+        for tid in tasks:
+            client.delete(f"/tasks/{tid}", headers=owner)
