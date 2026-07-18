@@ -37,6 +37,7 @@ export function GoalsPage() {
       crud={goals}
       fields={GOAL_FIELDS}
       columns={columns}
+      detail="page"
     />
   )
 }

@@ -10,7 +10,7 @@ import { Badge, Card, EmptyState } from "@/components/ui/primitives"
 import { useListFilter, type ListConfig } from "@/lib/listFilter"
 import type { Body } from "@/services/api/crud"
 import { notes, useCreateNoteWithImages, useNoteCorpus, useNotesCalendar } from "@/services/api/hooks"
-import { formatDate } from "@/lib/utils"
+import { cn, formatDate } from "@/lib/utils"
 import { useEntityResolver } from "@/services/api/mentions"
 import type { Note } from "@/services/api/types"
 import { groupNotesByDay } from "@/lib/format"
@@ -277,7 +277,14 @@ export function NotesPage({
   const seenMonths = new Set<number>()
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
+    <div
+      className={cn(
+        "space-y-4",
+        // Whiteboard is a canvas — let it use the whole width. The journals stay a
+        // comfortable reading column, just a wider one than before.
+        scope === "whiteboard" ? "w-full" : "mx-auto max-w-4xl",
+      )}
+    >
       <div className="flex items-end justify-between gap-3">
         <div>
           <h1 className="text-lg font-semibold text-slate-900">{heading}</h1>

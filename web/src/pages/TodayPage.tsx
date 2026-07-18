@@ -84,12 +84,12 @@ export function TodayPage() {
 
           {todaysEvents.length > 0 && (
             <section>
-              <SectionTitle to="/events">Today's events</SectionTitle>
+              <SectionTitle to="/calendar">Today's events</SectionTitle>
               <Card className="divide-y divide-slate-50">
                 {todaysEvents.map((e) => (
                   <Link
                     key={e.id}
-                    to={`/events/${e.id}`}
+                    to={`/calendar/${e.id}`}
                     className="flex items-center justify-between px-4 py-2 text-sm transition hover:bg-slate-50"
                   >
                     <span className="font-medium">{e.title}</span>

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { Outlet, useNavigate } from "react-router-dom"
 import { useQueryClient } from "@tanstack/react-query"
 import FullCalendar from "@fullcalendar/react"
 import dayGridPlugin from "@fullcalendar/daygrid"
@@ -15,17 +15,14 @@ import type {
   EventInput,
 } from "@fullcalendar/core"
 import type { EventResizeDoneArg } from "@fullcalendar/interaction"
-import { Button, Modal } from "@/components/ui/primitives"
+import { Modal } from "@/components/ui/primitives"
 import { EntityForm } from "@/components/EntityForm"
 import { RecurrenceScopeDialog } from "@/components/RecurrenceScopeDialog"
 import { UnscheduledTray } from "@/components/UnscheduledTray"
+import { usePersistentState } from "@/lib/persistentState"
 import { events, tasks } from "@/services/api/hooks"
 import { EVENT_FIELDS } from "@/services/api/fields"
-import {
-  deleteOccurrence,
-  editOccurrence,
-  type RecurrenceScope,
-} from "@/services/calendar/recurrence"
+import { editOccurrence, type RecurrenceScope } from "@/services/calendar/recurrence"
 import {
   SOURCES,
   useCalendarSources,
@@ -85,21 +82,16 @@ interface PendingMove {
   changes: Partial<EventItem>
   revert: () => void
 }
-interface Clicked {
-  id: string
-  title: string
-  occurrenceDate: string
-  recurring: boolean
-}
 
 export function CalendarPage() {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const [range, setRange] = useState<{ start?: string; end?: string }>({})
   const [pendingMove, setPendingMove] = useState<PendingMove | null>(null)
-  const [clicked, setClicked] = useState<Clicked | null>(null)
-  const [deleting, setDeleting] = useState<Clicked | null>(null)
   const [creating, setCreating] = useState<{ start: string; end: string; allDay: boolean } | null>(null)
+  // Remember where you left the calendar (view + focused date) across visits.
+  const [calView, setCalView] = usePersistentState("calendar:view", "dayGridMonth")
+  const [calDate, setCalDate] = usePersistentState<string | null>("calendar:date", null)
 
   const [enabled, setEnabled] = useState<Set<string>>(() => {
     try {
@@ -132,7 +124,6 @@ export function CalendarPage() {
   )
   const update = events.useUpdate()
   const create = events.useCreate()
-  const remove = events.useRemove()
   const taskUpd = tasks.useUpdate()
   const { items, reschedule } = useCalendarSources(range, enabled)
 
@@ -182,12 +173,10 @@ export function CalendarPage() {
       navigate(String(arg.event.extendedProps.url))
       return
     }
-    setClicked({
-      id: arg.event.id,
-      title: arg.event.title,
-      occurrenceDate: (arg.event.start ?? new Date()).toISOString(),
-      recurring: !!arg.event.extendedProps.recurring,
-    })
+    // Open the event's detail drawer in place (deep-linkable). `occ` carries the
+    // clicked occurrence's start so a recurring delete can scope to it.
+    const occ = (arg.event.start ?? new Date()).toISOString()
+    navigate(`/calendar/${arg.event.id}?occ=${encodeURIComponent(occ)}`)
   }
 
   const applyMove = async (scope: RecurrenceScope) => {
@@ -196,13 +185,6 @@ export function CalendarPage() {
     pendingMove.revert()
     setPendingMove(null)
     await editOccurrence(masterId, scope, occurrenceDate, changes)
-    invalidate()
-  }
-  const applyDelete = async (scope: RecurrenceScope) => {
-    if (!deleting) return
-    const d = deleting
-    setDeleting(null)
-    await deleteOccurrence(d.id, scope, d.occurrenceDate)
     invalidate()
   }
 
@@ -238,23 +220,29 @@ export function CalendarPage() {
         <div className="min-w-0 flex-1 rounded-2xl border border-slate-200/80 bg-surface p-3 shadow-soft sm:p-5">
           <FullCalendar
             plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, rrulePlugin]}
-            initialView="dayGridMonth"
+            initialView={calView}
+            initialDate={calDate ?? undefined}
             headerToolbar={{
               left: "prev,next today",
               center: "title",
               right: "dayGridMonth,timeGridWeek,timeGridDay,listMonth",
             }}
             buttonText={{ listMonth: "agenda" }}
-            height="auto"
+            // Fill the viewport and let weeks share the height evenly, instead of
+            // sizing to content (which left short/tall rows and dead space).
+            height="calc(100vh - 12rem)"
+            expandRows
             nowIndicator
             selectable
             editable
             droppable
             dayMaxEvents
             events={fcEvents}
-            datesSet={(arg: DatesSetArg) =>
+            datesSet={(arg: DatesSetArg) => {
               setRange({ start: arg.start.toISOString(), end: arg.end.toISOString() })
-            }
+              setCalView(arg.view.type)
+              setCalDate(arg.view.currentStart.toISOString())
+            }}
             eventClick={onClick}
             select={(arg: DateSelectArg) =>
               setCreating({
@@ -310,41 +298,8 @@ export function CalendarPage() {
         />
       )}
 
-      {clicked && (
-        <Modal title={clicked.title} onClose={() => setClicked(null)}>
-          <div className="flex flex-col gap-2">
-            <Button
-              onClick={() => {
-                navigate(`/events/${clicked.id}`)
-                setClicked(null)
-              }}
-            >
-              Open details
-            </Button>
-            <Button
-              variant="danger"
-              onClick={() => {
-                const c = clicked
-                setClicked(null)
-                if (c.recurring) setDeleting(c)
-                else if (window.confirm("Delete this event?")) remove.mutate(c.id)
-              }}
-            >
-              Delete
-            </Button>
-          </div>
-        </Modal>
-      )}
-
-      {deleting && (
-        <RecurrenceScopeDialog
-          title="Delete recurring event"
-          confirmLabel="Delete"
-          danger
-          onChoose={applyDelete}
-          onCancel={() => setDeleting(null)}
-        />
-      )}
+      {/* Clicking an event deep-links to /calendar/:id, mounting the detail drawer here. */}
+      <Outlet />
     </div>
   )
 }

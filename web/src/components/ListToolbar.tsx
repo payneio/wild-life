@@ -49,7 +49,7 @@ export function ListToolbar({
               <option value="">All {f.label.toLowerCase()}</option>
               {f.options.map((o) => (
                 <option key={o} value={o}>
-                  {humanize(o)}
+                  {f.optionLabels?.[o] ?? humanize(o)}
                 </option>
               ))}
             </Select>

@@ -116,11 +116,14 @@ export function DetailView({
   entity,
   onClose,
   extra,
+  onDelete,
 }: {
   def: EntityDef
   entity: Entity
   onClose: () => void
   extra?: ReactNode
+  /** Override the built-in (whole-row) delete — e.g. to offer recurrence scope. */
+  onDelete?: () => void
 }) {
   const update = def.crud.useUpdate()
   const remove = def.crud.useRemove()
@@ -208,6 +211,7 @@ export function DetailView({
           size="sm"
           className="ml-auto text-slate-400 hover:text-red-600"
           onClick={() => {
+            if (onDelete) return onDelete()
             if (confirm("Delete this item?")) {
               remove.mutate(entity.id)
               onClose()

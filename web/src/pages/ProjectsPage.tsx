@@ -1,10 +1,13 @@
 import { SimpleEntityPage, type Column } from "@/components/SimpleEntityPage"
 import { DateText, PriorityBadge, RefName, StatusBadge } from "@/components/cells"
 import { PROJECT_FIELDS } from "@/services/api/fields"
-import { projects } from "@/services/api/hooks"
+import { areas, programs, projects } from "@/services/api/hooks"
+import { refFilter } from "@/lib/listFilter"
 import type { Project } from "@/services/api/types"
 
 export function ProjectsPage() {
+  const { data: areaList } = areas.useList()
+  const { data: programList } = programs.useList()
   const columns: Column<Project>[] = [
     { key: "name", label: "Project", render: (r) => <span className="font-medium">{r.name}</span> },
     { key: "status", label: "Status", render: (r) => <StatusBadge status={r.status} /> },
@@ -20,6 +23,16 @@ export function ProjectsPage() {
       crud={projects}
       fields={PROJECT_FIELDS}
       columns={columns}
+      detail="page"
+      extraFilters={(values) => [
+        refFilter("area_id", "Area", areaList ?? []),
+        // Program options follow the selected Area.
+        refFilter(
+          "program_id",
+          "Program",
+          (programList ?? []).filter((p) => !values.area_id || p.area_id === values.area_id),
+        ),
+      ]}
     />
   )
 }

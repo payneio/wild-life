@@ -1,6 +1,8 @@
 import { createBrowserRouter, Navigate } from "react-router-dom"
 import { Layout } from "@/router/Layout"
 import { EntityDetailRoute } from "@/components/EntityDetailRoute"
+import { CalendarEventRoute, EventsRedirect } from "@/components/CalendarEventRoute"
+import { RecordPage } from "@/components/RecordPage"
 import { TodayPage } from "@/pages/TodayPage"
 import { CalendarPage } from "@/pages/CalendarPage"
 import { AreasPage } from "@/pages/AreasPage"
@@ -20,7 +22,6 @@ import { DuplicatesPage } from "@/pages/DuplicatesPage"
 import {
   CommitmentsPage,
   DecisionsPage,
-  EventsPage,
   ProgramsPage,
   ResourcesPage,
   TagsPage,
@@ -53,10 +54,15 @@ export const router = createBrowserRouter([
       { path: "today", element: <TodayPage /> },
       withDetail("areas", <AreasPage />, "area"),
       withDetail("programs", <ProgramsPage />, "program"),
-      withDetail("projects", <ProjectsPage />, "project"),
-      withDetail("tasks", <TasksPage />, "task"),
+      // Projects, Goals, Tasks are Workbenches: a full-width launcher list whose
+      // rows open a full-page editable record, not a cramped side pane.
+      { path: "projects", element: <ProjectsPage /> },
+      { path: "projects/:id", element: <RecordPage entityKey="project" backTo="/projects" backLabel="Projects" /> },
+      { path: "tasks", element: <TasksPage /> },
+      { path: "tasks/:id", element: <RecordPage entityKey="task" backTo="/tasks" backLabel="Tasks" /> },
       withDetail("routines", <RoutinesPage />, "routine"),
-      withDetail("goals", <GoalsPage />, "goal"),
+      { path: "goals", element: <GoalsPage /> },
+      { path: "goals/:id", element: <RecordPage entityKey="goal" backTo="/goals" backLabel="Goals" /> },
       withDetail("delegations", <DelegationsPage />, "delegation"),
       { path: "waiting", element: <WaitingPage />, children: [{ path: ":id", element: <EntityDetailRoute entityKey="waitingItem" /> }] },
       { path: "reviews", element: <ReviewsPage /> },
@@ -78,8 +84,15 @@ export const router = createBrowserRouter([
       { path: "notes", element: <NotesPage scope="personal" />, children: [{ path: ":id", element: <></> }] },
       { path: "work-journal", element: <NotesPage scope="work" />, children: [{ path: ":id", element: <></> }] },
       { path: "whiteboard", element: <NotesPage scope="whiteboard" />, children: [{ path: ":id", element: <></> }] },
-      { path: "calendar", element: <CalendarPage /> },
-      withDetail("events", <EventsPage />, "event"),
+      {
+        path: "calendar",
+        element: <CalendarPage />,
+        children: [{ path: ":id", element: <CalendarEventRoute /> }],
+      },
+      // Events lost its standalone page (Calendar replaced it); keep old deep
+      // links (Today, Coming-up, push notifications, bookmarks) alive.
+      { path: "events", element: <EventsRedirect /> },
+      { path: "events/:id", element: <EventsRedirect /> },
       withDetail("commitments", <CommitmentsPage />, "commitment"),
       withDetail("decisions", <DecisionsPage />, "decision"),
       withDetail("resources", <ResourcesPage />, "resource"),

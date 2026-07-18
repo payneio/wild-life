@@ -59,7 +59,7 @@ export function ComingUp() {
         date: localDay(e.start_at),
         title: e.title,
         color: EVENT_COLOR,
-        url: `/events/${e.id}`,
+        url: `/calendar/${e.id}`,
       })
     }
     return out

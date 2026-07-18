@@ -7,6 +7,8 @@ export interface FilterDef {
   field: string
   label: string
   options: readonly string[]
+  /** Value → display label, for reference filters whose values are opaque ids. */
+  optionLabels?: Record<string, string>
 }
 export interface SortDef {
   key: string
@@ -21,6 +23,20 @@ export interface ListConfig {
 }
 
 const TEXTLIKE = new Set<string | undefined>(["text", "textarea", undefined])
+
+/** Build a reference filter (opaque ids as values, entity names as labels). */
+export function refFilter(
+  field: string,
+  label: string,
+  items: { id: string; name?: string; title?: string }[],
+): FilterDef {
+  return {
+    field,
+    label,
+    options: items.map((i) => i.id),
+    optionLabels: Object.fromEntries(items.map((i) => [i.id, i.name ?? i.title ?? i.id])),
+  }
+}
 
 /**
  * Derive sensible search/filter/sort config from an entity's edit FieldSpecs:
@@ -49,7 +65,7 @@ export function deriveListConfig(fields: FieldSpec[], primaryKey: string): ListC
  */
 export function useListFilter<T extends Record<string, unknown>>(
   rows: T[],
-  config: ListConfig,
+  config: ListConfig | ((values: Record<string, string>) => ListConfig),
   storageKey?: string,
 ): { filtered: T[]; toolbarProps: ToolbarProps } {
   const [search, setSearch] = usePersistentState(storageKey ? `${storageKey}:q` : null, "")
@@ -57,26 +73,29 @@ export function useListFilter<T extends Record<string, unknown>>(
     storageKey ? `${storageKey}:f` : null,
     {},
   )
+  // Config may depend on the current filter values (e.g. narrow a Program filter
+  // to the selected Area). For a static config `cfg` is a stable reference.
+  const cfg = typeof config === "function" ? config(values) : config
   const [sortKey, setSortKey] = usePersistentState(
     storageKey ? `${storageKey}:s` : null,
-    config.sorts[0]?.key ?? "",
+    cfg.sorts[0]?.key ?? "",
   )
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
     const out = rows.filter((r) => {
-      for (const f of config.filters) {
+      for (const f of cfg.filters) {
         const v = values[f.field]
         if (v && String(r[f.field] ?? "") !== v) return false
       }
       if (!q) return true
-      return config.searchKeys.some((k) =>
+      return cfg.searchKeys.some((k) =>
         String(r[k] ?? "")
           .toLowerCase()
           .includes(q),
       )
     })
-    const sort = config.sorts.find((s) => s.key === sortKey)
+    const sort = cfg.sorts.find((s) => s.key === sortKey)
     if (sort && sort.field) {
       out.sort((a, b) => {
         const cmp = String(a[sort.field] ?? "").localeCompare(String(b[sort.field] ?? ""))
@@ -84,10 +103,10 @@ export function useListFilter<T extends Record<string, unknown>>(
       })
     }
     return out
-  }, [rows, search, values, sortKey, config])
+  }, [rows, search, values, sortKey, cfg])
 
   const toolbarProps: ToolbarProps = {
-    config,
+    config: cfg,
     search,
     onSearch: setSearch,
     values,

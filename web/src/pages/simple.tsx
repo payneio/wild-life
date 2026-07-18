@@ -3,7 +3,6 @@ import { SimpleEntityPage, type Column } from "@/components/SimpleEntityPage"
 import {
   COMMITMENT_FIELDS,
   DECISION_FIELDS,
-  EVENT_FIELDS,
   NOTE_FIELDS,
   PROGRAM_FIELDS,
   RESOURCE_FIELDS,
@@ -11,11 +10,11 @@ import {
   WAITING_FIELDS,
 } from "@/services/api/fields"
 import { Badge } from "@/components/ui/primitives"
-import { formatDateTime } from "@/lib/utils"
+import { refFilter } from "@/lib/listFilter"
 import {
+  areas,
   commitments,
   decisions,
-  events,
   notes,
   programs,
   resources,
@@ -25,7 +24,6 @@ import {
 import type {
   Commitment,
   Decision,
-  EventItem,
   Note,
   Program,
   Resource,
@@ -35,6 +33,7 @@ import type {
 
 export function ProgramsPage() {
   const fields = PROGRAM_FIELDS
+  const { data: areaList } = areas.useList()
   const columns: Column<Program>[] = [
     { key: "name", label: "Name", render: (r) => <span className="font-medium">{r.name}</span> },
     { key: "area_id", label: "Area", render: (r) => <RefName kind="area" id={r.area_id} /> },
@@ -48,25 +47,7 @@ export function ProgramsPage() {
       crud={programs}
       fields={fields}
       columns={columns}
-    />
-  )
-}
-
-export function EventsPage() {
-  const fields = EVENT_FIELDS
-  const columns: Column<EventItem>[] = [
-    { key: "title", label: "Title", render: (r) => <span className="font-medium">{r.title}</span> },
-    { key: "start_at", label: "When", render: (r) => formatDateTime(r.start_at) },
-    { key: "location", label: "Where" },
-    { key: "area_id", label: "Area", render: (r) => <RefName kind="area" id={r.area_id} /> },
-  ]
-  return (
-    <SimpleEntityPage
-      title="Events"
-      subtitle="Calendar items"
-      crud={events}
-      fields={fields}
-      columns={columns}
+      extraFilters={() => [refFilter("area_id", "Area", areaList ?? [])]}
     />
   )
 }
