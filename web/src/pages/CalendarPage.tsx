@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { Outlet, useNavigate } from "react-router-dom"
 import { useQueryClient } from "@tanstack/react-query"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 import FullCalendar from "@fullcalendar/react"
 import dayGridPlugin from "@fullcalendar/daygrid"
 import timeGridPlugin from "@fullcalendar/timegrid"
@@ -15,7 +16,8 @@ import type {
   EventInput,
 } from "@fullcalendar/core"
 import type { EventResizeDoneArg } from "@fullcalendar/interaction"
-import { Modal } from "@/components/ui/primitives"
+import { Button, Modal } from "@/components/ui/primitives"
+import { Segmented } from "@/components/detail/kit"
 import { EntityForm } from "@/components/EntityForm"
 import { RecurrenceScopeDialog } from "@/components/RecurrenceScopeDialog"
 import { UnscheduledTray } from "@/components/UnscheduledTray"
@@ -76,6 +78,14 @@ function itemToInput(it: CalendarItem): EventInput {
 
 const LAYERS_KEY = "personal_calendar_layers"
 
+type ViewType = "dayGridMonth" | "timeGridWeek" | "timeGridDay" | "listMonth"
+const VIEWS: { value: ViewType; label: string }[] = [
+  { value: "dayGridMonth", label: "Month" },
+  { value: "timeGridWeek", label: "Week" },
+  { value: "timeGridDay", label: "Day" },
+  { value: "listMonth", label: "Agenda" },
+]
+
 interface PendingMove {
   masterId: string
   occurrenceDate: string
@@ -92,6 +102,13 @@ export function CalendarPage() {
   // Remember where you left the calendar (view + focused date) across visits.
   const [calView, setCalView] = usePersistentState("calendar:view", "dayGridMonth")
   const [calDate, setCalDate] = usePersistentState<string | null>("calendar:date", null)
+
+  // Drive FullCalendar from our own header/gestures instead of its toolbar.
+  const calRef = useRef<FullCalendar>(null)
+  const cal = () => calRef.current?.getApi()
+  const [title, setTitle] = useState("")
+  const [viewType, setViewType] = useState<ViewType>(calView as ViewType)
+  const swipe = useRef<{ x: number; y: number } | null>(null)
 
   const [enabled, setEnabled] = useState<Set<string>>(() => {
     try {
@@ -190,8 +207,8 @@ export function CalendarPage() {
 
   return (
     <div className="space-y-3">
-      {/* Layer legend */}
-      <div className="flex flex-wrap gap-1.5">
+      {/* Layer legend — one scrollable row on mobile, wraps on desktop */}
+      <div className="flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] sm:flex-wrap sm:overflow-visible sm:pb-0 [&::-webkit-scrollbar]:hidden">
         {[{ key: "event", label: "Events", color: "#4f46e5" }, ...SOURCES].map((s) => {
           const on = enabled.has(s.key)
           return (
@@ -199,7 +216,7 @@ export function CalendarPage() {
               key={s.key}
               onClick={() => toggle(s.key)}
               className={cn(
-                "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition",
+                "flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition",
                 on
                   ? "border-slate-300 bg-surface text-slate-700"
                   : "border-slate-200 bg-transparent text-slate-400",
@@ -218,16 +235,70 @@ export function CalendarPage() {
       <div className="flex flex-col gap-3 sm:flex-row-reverse">
         <UnscheduledTray />
         <div className="min-w-0 flex-1 rounded-2xl border border-slate-200/80 bg-surface p-3 shadow-soft sm:p-5">
+          {/* Custom header: title + Today (+ desktop prev/next) on one line, view
+              switcher on its own row on mobile so nothing collides or wraps. */}
+          <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-1.5">
+              <div className="hidden items-center gap-0.5 sm:flex">
+                <button
+                  type="button"
+                  aria-label="Previous"
+                  onClick={() => cal()?.prev()}
+                  className="rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Next"
+                  onClick={() => cal()?.next()}
+                  className="rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+              <h2 className="truncate text-lg font-semibold text-slate-900">{title}</h2>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="ml-1 shrink-0"
+                onClick={() => cal()?.today()}
+              >
+                Today
+              </Button>
+            </div>
+            <Segmented options={VIEWS} value={viewType} onChange={(v) => cal()?.changeView(v)} />
+          </div>
+
+          {/* Swipe horizontally to page the calendar; guards skip event drags,
+              multi-touch, and vertical scrolls. */}
+          <div
+            onTouchStart={(e) => {
+              if (e.touches.length !== 1 || (e.target as HTMLElement).closest?.(".fc-event")) {
+                swipe.current = null
+                return
+              }
+              swipe.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+            }}
+            onTouchEnd={(e) => {
+              const start = swipe.current
+              swipe.current = null
+              if (!start) return
+              const t = e.changedTouches[0]
+              const dx = t.clientX - start.x
+              const dy = t.clientY - start.y
+              if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+                if (dx < 0) cal()?.next()
+                else cal()?.prev()
+              }
+            }}
+          >
           <FullCalendar
+            ref={calRef}
             plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, rrulePlugin]}
             initialView={calView}
             initialDate={calDate ?? undefined}
-            headerToolbar={{
-              left: "prev,next today",
-              center: "title",
-              right: "dayGridMonth,timeGridWeek,timeGridDay,listMonth",
-            }}
-            buttonText={{ listMonth: "agenda" }}
+            headerToolbar={false}
             // Fill the viewport and let weeks share the height evenly, instead of
             // sizing to content (which left short/tall rows and dead space).
             height="calc(100vh - 12rem)"
@@ -242,6 +313,8 @@ export function CalendarPage() {
               setRange({ start: arg.start.toISOString(), end: arg.end.toISOString() })
               setCalView(arg.view.type)
               setCalDate(arg.view.currentStart.toISOString())
+              setTitle(arg.view.title)
+              setViewType(arg.view.type as ViewType)
             }}
             eventClick={onClick}
             select={(arg: DateSelectArg) =>
@@ -265,6 +338,7 @@ export function CalendarPage() {
             }}
             eventReceive={(arg) => arg.event.remove()}
           />
+          </div>
         </div>
       </div>
 
