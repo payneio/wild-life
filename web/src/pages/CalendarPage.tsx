@@ -109,6 +109,26 @@ export function CalendarPage() {
   const [title, setTitle] = useState("")
   const [viewType, setViewType] = useState<ViewType>(calView as ViewType)
   const swipe = useRef<{ x: number; y: number } | null>(null)
+  const gridRef = useRef<HTMLDivElement>(null)
+
+  // Page the calendar with a subtle directional slide (dir 1 = next / from the
+  // right, -1 = prev / from the left). Respects reduced-motion.
+  const paginate = (dir: 1 | -1) => {
+    const api = cal()
+    if (!api) return
+    if (dir > 0) api.next()
+    else api.prev()
+    const el = gridRef.current?.querySelector<HTMLElement>(".fc-view-harness")
+    if (el && !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      el.animate(
+        [
+          { transform: `translateX(${dir * 20}px)`, opacity: 0 },
+          { transform: "translateX(0)", opacity: 1 },
+        ],
+        { duration: 200, easing: "cubic-bezier(0.32, 0.72, 0, 1)" },
+      )
+    }
+  }
 
   const [enabled, setEnabled] = useState<Set<string>>(() => {
     try {
@@ -243,7 +263,7 @@ export function CalendarPage() {
                 <button
                   type="button"
                   aria-label="Previous"
-                  onClick={() => cal()?.prev()}
+                  onClick={() => paginate(-1)}
                   className="rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
                 >
                   <ChevronLeft size={18} />
@@ -251,7 +271,7 @@ export function CalendarPage() {
                 <button
                   type="button"
                   aria-label="Next"
-                  onClick={() => cal()?.next()}
+                  onClick={() => paginate(1)}
                   className="rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
                 >
                   <ChevronRight size={18} />
@@ -273,6 +293,7 @@ export function CalendarPage() {
           {/* Swipe horizontally to page the calendar; guards skip event drags,
               multi-touch, and vertical scrolls. */}
           <div
+            ref={gridRef}
             onTouchStart={(e) => {
               if (e.touches.length !== 1 || (e.target as HTMLElement).closest?.(".fc-event")) {
                 swipe.current = null
@@ -288,8 +309,7 @@ export function CalendarPage() {
               const dx = t.clientX - start.x
               const dy = t.clientY - start.y
               if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-                if (dx < 0) cal()?.next()
-                else cal()?.prev()
+                paginate(dx < 0 ? 1 : -1)
               }
             }}
           >
