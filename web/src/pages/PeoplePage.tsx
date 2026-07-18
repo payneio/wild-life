@@ -452,7 +452,7 @@ function PersonDetail({
         />
       )}
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div className="space-y-4">
           {(person.phones.length > 0 ||
             person.emails.length > 0 ||

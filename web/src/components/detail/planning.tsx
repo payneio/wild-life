@@ -75,7 +75,7 @@ export function TaskDetail({ entity }: { entity: Entity }) {
           onChange={(v) => set({ priority: v })}
         />
       </Section>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Section title="Scheduled">
           <ScheduleChips value={t.scheduled_date} onSet={(d) => set({ scheduled_date: d })} />
         </Section>

@@ -53,8 +53,8 @@ export function TodayPage() {
         <h1 className="mt-1 text-3xl font-medium text-slate-900">Today</h1>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="min-w-0 space-y-6 lg:col-span-2">
           <section>
             <SectionTitle to="/notes">Journal</SectionTitle>
             <Card className="p-3">
@@ -101,7 +101,7 @@ export function TodayPage() {
           )}
         </div>
 
-        <div className="space-y-5">
+        <div className="min-w-0 space-y-5">
           <div>
             <SectionTitle to="/reviews">Needs attention</SectionTitle>
             {dash ? (

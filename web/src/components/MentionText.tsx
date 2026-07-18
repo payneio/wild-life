@@ -23,8 +23,23 @@ const COMPONENTS: Components = {
   blockquote: ({ children }) => (
     <blockquote className="my-2 border-l-2 border-slate-200 pl-3 text-slate-500 italic">{children}</blockquote>
   ),
-  code: ({ children }) => (
-    <code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-[0.85em] text-slate-700">{children}</code>
+  // Block code (fenced) lives inside <pre> and scrolls horizontally — never wraps,
+  // so formatting/long tokens stay intact. Inline code keeps its pill and *may*
+  // wrap a long token (it can't scroll within a line).
+  code: ({ className, children }) => {
+    const text = Array.isArray(children) ? children.join("") : String(children ?? "")
+    const isBlock = /language-/.test(className ?? "") || text.includes("\n")
+    if (isBlock) return <code className="font-mono text-[0.85em] text-slate-800">{children}</code>
+    return (
+      <code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-[0.85em] text-slate-700 [overflow-wrap:anywhere]">
+        {children}
+      </code>
+    )
+  },
+  pre: ({ children }) => (
+    <pre className="my-2 max-w-full overflow-x-auto whitespace-pre rounded-lg border border-slate-200 bg-slate-50 p-3">
+      {children}
+    </pre>
   ),
   hr: () => <hr className="my-3 border-slate-100" />,
   img: ({ src, alt }) => {
@@ -42,7 +57,12 @@ const COMPONENTS: Components = {
       return <MentionChip type={m[1] as EntityType} id={m[2]} label={label} />
     }
     return (
-      <a href={href} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline">
+      <a
+        href={href}
+        target="_blank"
+        rel="noreferrer"
+        className="text-indigo-600 hover:underline [overflow-wrap:anywhere]"
+      >
         {children}
       </a>
     )
@@ -59,7 +79,7 @@ const COMPONENTS: Components = {
  */
 export const MentionText = memo(function MentionText({ children }: { children: string }) {
   return (
-    <div className="text-sm text-slate-700">
+    <div className="text-sm text-slate-700 [overflow-wrap:anywhere]">
       <Markdown
         remarkPlugins={[remarkGfm]}
         components={COMPONENTS}

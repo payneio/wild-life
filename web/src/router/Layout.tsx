@@ -42,6 +42,7 @@ import {
 import type { ComponentType } from "react"
 import { useAuth } from "@/auth/context"
 import { GlobalSearch } from "@/components/GlobalSearch"
+import { OverflowDebug } from "@/components/OverflowDebug"
 import { useTheme } from "@/lib/theme"
 import { cn } from "@/lib/utils"
 import {
@@ -371,6 +372,7 @@ export function Layout() {
 
       <BottomBar onMore={() => setMoreOpen(true)} />
       {moreOpen && <MoreSheet onClose={() => setMoreOpen(false)} />}
+      <OverflowDebug />
     </div>
   )
 }

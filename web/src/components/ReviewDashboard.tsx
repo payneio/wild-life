@@ -66,7 +66,7 @@ export function ReviewDashboardView({
     )
   }
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       {active.map((c) => {
         const rows = data[c.key] as DashRow[]
         return (
@@ -79,8 +79,12 @@ export function ReviewDashboardView({
             </div>
             <ul className="space-y-1 text-sm">
               {rows.map((r) => (
-                <li key={r.id} className="flex justify-between gap-2">
-                  <EntityRef type={c.type} id={String(r.id)} className="truncate text-slate-700">
+                <li key={r.id} className="flex items-start justify-between gap-2">
+                  <EntityRef
+                    type={c.type}
+                    id={String(r.id)}
+                    className="min-w-0 flex-1 break-words text-slate-700"
+                  >
                     {c.label(r)}
                   </EntityRef>
                   {c.sub && <span className="shrink-0 text-xs text-slate-400">{c.sub(r)}</span>}
