@@ -24,6 +24,9 @@ preserved here under `web/` and `api/`.
 - **`web/`** — talks to the API over HTTP + one SSE stream. Base URL from
   `VITE_API_BASE_URL` (dev `.env` → `http://localhost:9005`; `.env.production` →
   the deployed API). Bearer token lives in `localStorage` (`personal_api_token`).
+  Read **@web/docs/ui-architecture.md** before adding a page or detail view — it's
+  the object/representation model (objects, their representations, and how framing
+  is chosen).
 
 ## Develop
 
@@ -67,6 +70,13 @@ Iterate with the dev servers; they never touch the live URLs. Publish separately
 
 ## Architecture worth knowing
 
+- **Object-first UI (OOUX).** The frontend is built around domain *objects* and
+  their *representations*, not pages/flows. One object → a default representation
+  set (reference chip · list row · picker · a modeless detail-editor `EditableRecord`),
+  framed as pane / modal / full-page by context (routing). Read
+  **@web/docs/ui-architecture.md** before adding a page or deciding how an object
+  should appear — it has the selection rule and the property test for when an object
+  earns bespoke views (e.g. Person, Event, Project).
 - **SSE-driven reactivity.** Frontend mutations do **not** invalidate the query
   cache themselves (`web/src/services/api/crud.ts`). Every write lands in the
   backend `change_log`, fans out over Postgres `LISTEN/NOTIFY`, and a single

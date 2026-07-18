@@ -3,7 +3,6 @@ import { SimpleEntityPage, type Column } from "@/components/SimpleEntityPage"
 import {
   COMMITMENT_FIELDS,
   DECISION_FIELDS,
-  NOTE_FIELDS,
   PROGRAM_FIELDS,
   RESOURCE_FIELDS,
   TAG_FIELDS,
@@ -15,7 +14,6 @@ import {
   areas,
   commitments,
   decisions,
-  notes,
   programs,
   resources,
   tags,
@@ -24,7 +22,6 @@ import {
 import type {
   Commitment,
   Decision,
-  Note,
   Program,
   Resource,
   Tag,
@@ -47,34 +44,8 @@ export function ProgramsPage() {
       crud={programs}
       fields={fields}
       columns={columns}
+      detail="page"
       extraFilters={() => [refFilter("area_id", "Area", areaList ?? [])]}
-    />
-  )
-}
-
-export function NotesPage() {
-  const fields = NOTE_FIELDS
-  const columns: Column<Note>[] = [
-    {
-      key: "title",
-      label: "Title",
-      render: (r) => <span className="font-medium">{r.title || "(untitled)"}</span>,
-    },
-    { key: "note_type", label: "Type", render: (r) => <Badge>{r.note_type}</Badge> },
-    { key: "entry_date", label: "Date", render: (r) => <DateText value={r.entry_date} /> },
-    {
-      key: "body",
-      label: "Preview",
-      render: (r) => <span className="text-slate-500">{r.body.slice(0, 60)}</span>,
-    },
-  ]
-  return (
-    <SimpleEntityPage
-      title="Notes"
-      subtitle="Journal entries, ideas, meeting notes"
-      crud={notes}
-      fields={fields}
-      columns={columns}
     />
   )
 }

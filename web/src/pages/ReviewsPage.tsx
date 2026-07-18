@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { Plus, RefreshCw } from "lucide-react"
 import { EntityForm } from "@/components/EntityForm"
 import { REVIEW_FIELDS } from "@/services/api/fields"
@@ -7,22 +8,18 @@ import { Badge, Button, Card, EmptyState, Modal } from "@/components/ui/primitiv
 import { formatDate } from "@/lib/utils"
 import { reviews, useReviewDashboard } from "@/services/api/hooks"
 import type { Body } from "@/services/api/crud"
-import type { Review } from "@/services/api/types"
 
 const FIELDS = REVIEW_FIELDS
 
 export function ReviewsPage() {
+  const navigate = useNavigate()
   const { data: dash, isLoading, refetch, isFetching } = useReviewDashboard()
   const { data: reviewList } = reviews.useList()
   const create = reviews.useCreate()
-  const update = reviews.useUpdate()
-  const [editing, setEditing] = useState<Review | null>(null)
   const [creating, setCreating] = useState(false)
 
   function submit(body: Body) {
-    if (editing) update.mutate({ id: editing.id, body })
-    else create.mutate(body)
-    setEditing(null)
+    create.mutate(body)
     setCreating(false)
   }
 
@@ -56,7 +53,7 @@ export function ReviewsPage() {
           <div className="space-y-2">
             {(reviewList ?? []).map((r) => (
               <Card key={r.id} className="p-3">
-                <button className="w-full text-left" onClick={() => setEditing(r)}>
+                <button className="w-full text-left" onClick={() => navigate(`/reviews/${r.id}`)}>
                   <div className="flex items-center gap-2">
                     <Badge className="capitalize">{r.review_type}</Badge>
                     <span className="text-xs text-slate-400">
@@ -71,23 +68,13 @@ export function ReviewsPage() {
         )}
       </div>
 
-      {(creating || editing) && (
-        <Modal
-          title={editing ? "Edit review" : "New review"}
-          onClose={() => {
-            setEditing(null)
-            setCreating(false)
-          }}
-        >
+      {creating && (
+        <Modal title="New review" onClose={() => setCreating(false)}>
           <div className="max-h-[70vh] overflow-y-auto pr-1">
             <EntityForm
               fields={FIELDS}
-              initial={editing ?? undefined}
               onSubmit={submit}
-              onCancel={() => {
-                setEditing(null)
-                setCreating(false)
-              }}
+              onCancel={() => setCreating(false)}
             />
           </div>
         </Modal>

@@ -18,6 +18,7 @@ export function AreasPage() {
       crud={areas}
       fields={AREA_FIELDS}
       columns={columns}
+      detail="page"
       emptyText="No areas yet. Areas are your standing responsibilities (Health, Finances, Home…)."
     />
   )

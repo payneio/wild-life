@@ -52,8 +52,12 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/today" replace /> },
       { path: "today", element: <TodayPage /> },
-      withDetail("areas", <AreasPage />, "area"),
-      withDetail("programs", <ProgramsPage />, "program"),
+      // Areas & Programs are containers you operate → full-page workspaces,
+      // like Projects/Goals/Tasks below (Workbench, not a cramped pane).
+      { path: "areas", element: <AreasPage /> },
+      { path: "areas/:id", element: <RecordPage entityKey="area" backTo="/areas" backLabel="Areas" /> },
+      { path: "programs", element: <ProgramsPage /> },
+      { path: "programs/:id", element: <RecordPage entityKey="program" backTo="/programs" backLabel="Programs" /> },
       // Projects, Goals, Tasks are Workbenches: a full-width launcher list whose
       // rows open a full-page editable record, not a cramped side pane.
       { path: "projects", element: <ProjectsPage /> },
@@ -64,8 +68,10 @@ export const router = createBrowserRouter([
       { path: "goals", element: <GoalsPage /> },
       { path: "goals/:id", element: <RecordPage entityKey="goal" backTo="/goals" backLabel="Goals" /> },
       withDetail("delegations", <DelegationsPage />, "delegation"),
-      { path: "waiting", element: <WaitingPage />, children: [{ path: ":id", element: <EntityDetailRoute entityKey="waitingItem" /> }] },
+      withDetail("waiting", <WaitingPage />, "waitingItem"),
+      // Review is a Workbench (you work in a review) — deep-linkable full-page record.
       { path: "reviews", element: <ReviewsPage /> },
+      { path: "reviews/:id", element: <RecordPage entityKey="review" backTo="/reviews" backLabel="Review" /> },
       // People self-renders its detail from the :id param (keeps list state on
       // navigate); the empty child only makes /people/:id match + expose the param.
       { path: "people", element: <PeoplePage />, children: [{ path: ":id", element: <></> }] },

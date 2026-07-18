@@ -1,7 +1,8 @@
 import { useState } from "react"
 import { Pencil, Plus, Star, Trash2 } from "lucide-react"
-import { Badge, Button, Field, Input, Select } from "@/components/ui/primitives"
-import { EntityRef } from "@/components/graph/EntityRef"
+import { Badge, Button, Field, Input } from "@/components/ui/primitives"
+import { RefName } from "@/components/cells"
+import { EntityRefField } from "@/components/graph/EntityRefField"
 import { formatDate } from "@/lib/utils"
 import type { Body } from "@/services/api/crud"
 import {
@@ -10,7 +11,6 @@ import {
   usePersonAffiliations,
   useSaveAffiliation,
 } from "@/services/api/hooks"
-import { useOrganizationLookup, usePeopleLookup } from "@/services/api/lookups"
 import type { Affiliation } from "@/services/api/types"
 
 // Editable from either side: pass the id of the person OR the organization
@@ -42,9 +42,7 @@ export function AffiliationsEditor(props: Props) {
   const orgAff = useOrganizationAffiliations(orgId)
   const list = (byPerson ? personAff.data : orgAff.data) ?? []
 
-  const orgLookup = useOrganizationLookup()
-  const peopleLookup = usePeopleLookup()
-  const otherLookup = byPerson ? orgLookup : peopleLookup
+  const otherKind = byPerson ? "organization" : "people"
   const otherLabel = byPerson ? "Organization" : "Person"
 
   const save = useSaveAffiliation()
@@ -106,13 +104,9 @@ export function AffiliationsEditor(props: Props) {
               key={a.id}
               className="flex items-center gap-2 rounded-lg border border-slate-100 px-2.5 py-1.5 text-sm"
             >
-              <EntityRef
-                type={byPerson ? "organization" : "person"}
-                id={otherId}
-                className="font-medium text-slate-700"
-              >
-                {otherLookup.nameOf(otherId)}
-              </EntityRef>
+              <span className="font-medium text-slate-700">
+                <RefName kind={otherKind} id={otherId} />
+              </span>
               {a.role && <span className="text-slate-500">· {a.role}</span>}
               {a.is_primary && (
                 <Badge className="bg-amber-100 text-amber-700">
@@ -146,17 +140,11 @@ export function AffiliationsEditor(props: Props) {
         <div className="space-y-2 rounded-lg border border-slate-200 p-2.5">
           <div className="grid grid-cols-2 gap-2">
             <Field label={otherLabel}>
-              <Select
-                value={draft.otherId}
-                onChange={(e) => setDraft({ ...draft, otherId: e.target.value })}
-              >
-                <option value="">—</option>
-                {otherLookup.options.map((o) => (
-                  <option key={o.id} value={o.id}>
-                    {o.label}
-                  </option>
-                ))}
-              </Select>
+              <EntityRefField
+                lookup={otherKind}
+                value={draft.otherId || null}
+                onChange={(id) => setDraft({ ...draft, otherId: id ?? "" })}
+              />
             </Field>
             <Field label="Role">
               <Input
