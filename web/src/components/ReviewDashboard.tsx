@@ -25,7 +25,12 @@ const CATS: Cat[] = [
   { key: "overdue_delegations", title: "Overdue delegations", type: "delegation", label: (r) => String(r.requested_outcome ?? "") },
   { key: "delegation_followups", title: "Delegation follow-ups", type: "delegation", label: (r) => String(r.requested_outcome ?? "") },
   { key: "unreviewed_deliverables", title: "Deliverables to review", type: "delegation", label: (r) => String(r.requested_outcome ?? "") },
-  { key: "waiting_followups", title: "Waiting follow-ups", type: "waiting_item", label: (r) => String(r.expected_result ?? "") },
+  { key: "my_inbox", title: "Needs your input", type: "request", label: (r) => String(r.subject ?? "") },
+  { key: "open_requests", title: "Open requests", type: "request", label: (r) => String(r.subject ?? "") },
+  { key: "request_followups", title: "Request follow-ups", type: "request", label: (r) => String(r.subject ?? "") },
+  { key: "waiting_without_blocker", title: "Waiting, no blocker", type: "task", label: (r) => String(r.title ?? "") },
+  { key: "delegated_without_owner", title: "Delegated, no owner", type: "task", label: (r) => String(r.title ?? "") },
+  { key: "completed_with_open_tasks", title: "Done, but tasks open", type: "project", label: (r) => String(r.name ?? "") },
 ]
 
 export function ReviewDashboardView({

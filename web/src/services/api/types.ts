@@ -40,7 +40,8 @@ export type CommitmentStatus =
   | "fulfilled"
   | "broken"
   | "cancelled"
-export type WaitingStatus = "open" | "received" | "overdue" | "cancelled"
+export type RequestKind = "question" | "decision" | "input" | "deliverable"
+export type RequestStatus = "open" | "resolved" | "cancelled"
 export type DelegationStatus =
   | "draft"
   | "requested"
@@ -77,7 +78,7 @@ export type EntityType =
   | "organization"
   | "location"
   | "commitment"
-  | "waiting_item"
+  | "request"
   | "delegation"
   | "review"
   | "resource"
@@ -406,16 +407,20 @@ export interface Commitment extends Entity {
   notes: string | null
 }
 
-export interface WaitingItem extends Entity {
-  expected_result: string
-  person_id: ID | null
-  from_org: string | null
+export interface Request extends Entity {
+  requester_id: ID | null
+  addressee_id: ID | null
+  external_label: string | null
+  kind: string
+  subject: string
+  body: string | null
   entity_type: EntityType | null
   entity_id: ID | null
-  date_requested: CalendarDay | null
-  expected_date: CalendarDay | null
+  needed_by: CalendarDay | null
   follow_up_date: CalendarDay | null
-  status: WaitingStatus
+  status: string
+  resolution: string | null
+  resolved_at: Instant | null
   last_communication: string | null
   next_action: string | null
   notes: string | null
@@ -618,5 +623,10 @@ export interface ReviewDashboard {
   overdue_delegations: DashRow[]
   delegation_followups: DashRow[]
   unreviewed_deliverables: DashRow[]
-  waiting_followups: DashRow[]
+  my_inbox: DashRow[]
+  open_requests: DashRow[]
+  request_followups: DashRow[]
+  waiting_without_blocker: DashRow[]
+  delegated_without_owner: DashRow[]
+  completed_with_open_tasks: DashRow[]
 }

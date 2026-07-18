@@ -1,15 +1,14 @@
 import { CheckCircle2, Clock } from "lucide-react"
 import { Button } from "@/components/ui/primitives"
 import { StatusBadge } from "@/components/cells"
-import { delegations, waitingItems } from "@/services/api/hooks"
-import type { Delegation, Entity, Priority, WaitingItem } from "@/services/api/types"
+import { delegations, requests } from "@/services/api/hooks"
+import type { Delegation, Entity, Priority, Request } from "@/services/api/types"
 import { AgeTile, DeltaTile, Section, Segmented, StatTile } from "@/components/detail/kit"
 import { shiftDays } from "@/components/detail/dates"
 
-const WAITING_STATUS: { value: string; label: string }[] = [
+const REQUEST_STATUS: { value: string; label: string }[] = [
   { value: "open", label: "Open" },
-  { value: "received", label: "Received" },
-  { value: "overdue", label: "Overdue" },
+  { value: "resolved", label: "Resolved" },
   { value: "cancelled", label: "Cancelled" },
 ]
 
@@ -47,28 +46,28 @@ function SnoozeRow({ onSet }: { onSet: (iso: string) => void }) {
   )
 }
 
-// --- Waiting item: a follow-up cockpit --------------------------------------
-export function WaitingDetail({ entity }: { entity: Entity }) {
-  const w = entity as WaitingItem
-  const update = waitingItems.useUpdate()
-  const set = (body: Record<string, unknown>) => update.mutate({ id: w.id, body })
+// --- Request: an inbox / follow-up cockpit ----------------------------------
+export function RequestDetail({ entity }: { entity: Entity }) {
+  const r = entity as Request
+  const update = requests.useUpdate()
+  const set = (body: Record<string, unknown>) => update.mutate({ id: r.id, body })
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-3 gap-2">
-        <AgeTile date={w.date_requested} label="days waiting" />
-        <DeltaTile date={w.expected_date} futureLabel="days to expected" pastLabel="days overdue" />
-        <DeltaTile date={w.follow_up_date} futureLabel="to follow-up" pastLabel="follow-up due" />
+        <AgeTile date={r.created_at} label="days open" />
+        <DeltaTile date={r.needed_by} futureLabel="days to needed" pastLabel="days overdue" />
+        <DeltaTile date={r.follow_up_date} futureLabel="to follow-up" pastLabel="follow-up due" />
       </div>
 
       <Section title="Status">
-        <Segmented options={WAITING_STATUS} value={w.status} onChange={(v) => set({ status: v })} />
+        <Segmented options={REQUEST_STATUS} value={r.status} onChange={(v) => set({ status: v })} />
       </Section>
 
       <Section title="Follow-up">
         <div className="flex flex-wrap items-center gap-2">
-          {w.status !== "received" && (
-            <Button size="sm" onClick={() => set({ status: "received" })}>
-              <CheckCircle2 size={14} /> Mark received
+          {r.status !== "resolved" && (
+            <Button size="sm" onClick={() => set({ status: "resolved", resolved_at: new Date().toISOString() })}>
+              <CheckCircle2 size={14} /> Mark resolved
             </Button>
           )}
           <span className="text-xs text-slate-400">Snooze:</span>

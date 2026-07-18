@@ -12,7 +12,7 @@ import {
   RoutineDetail,
   TaskDetail,
 } from "@/components/detail/planning"
-import { DelegationDetail, WaitingDetail } from "@/components/detail/followup"
+import { DelegationDetail, RequestDetail } from "@/components/detail/followup"
 import {
   AllergyDetail,
   ConditionDetail,
@@ -55,7 +55,7 @@ import {
   routines,
   tags,
   tasks,
-  waitingItems,
+  requests,
 } from "@/services/api/hooks"
 
 type Crud<T extends Entity> = ReturnType<typeof createCrud<T>>
@@ -123,7 +123,7 @@ import {
   ROUTINE_FIELDS,
   TAG_FIELDS,
   TASK_FIELDS,
-  WAITING_FIELDS,
+  REQUEST_FIELDS,
 } from "@/services/api/fields"
 
 export const REGISTRY: Record<string, EntityDef> = {
@@ -162,7 +162,7 @@ export const REGISTRY: Record<string, EntityDef> = {
   note: { key: "note", label: "Note", crud: notes, fields: NOTE_FIELDS, title: (e) => e.title || "(untitled)", entityType: "note", titleField: "title" },
   event: { key: "event", label: "Event", crud: events, fields: EVENT_FIELDS, title: (e) => e.title, entityType: "event", titleField: "title", extra: EventDetail, detailHide: ["start_at", "end_at", "all_day"] },
   commitment: { key: "commitment", label: "Commitment", crud: commitments, fields: COMMITMENT_FIELDS, title: (e) => e.description, entityType: "commitment", titleField: "description", quickCreate: true, extra: CommitmentDetail, detailHide: ["status", "date_made", "due_date"] },
-  waitingItem: { key: "waitingItem", label: "Waiting item", crud: waitingItems, fields: WAITING_FIELDS, title: (e) => e.expected_result, entityType: "waiting_item", titleField: "expected_result", quickCreate: true, extra: WaitingDetail, detailHide: ["status", "date_requested", "expected_date", "follow_up_date"] },
+  request: { key: "request", label: "Request", crud: requests, fields: REQUEST_FIELDS, title: (e) => e.subject, entityType: "request", titleField: "subject", quickCreate: true, extra: RequestDetail, detailHide: ["status", "kind", "needed_by", "follow_up_date", "resolved_at"] },
   decision: { key: "decision", label: "Decision", crud: decisions, fields: DECISION_FIELDS, title: (e) => e.question, entityType: "decision", titleField: "question", quickCreate: true, extra: DecisionDetail, detailHide: ["decision"] },
   resource: { key: "resource", label: "Resource", crud: resources, fields: RESOURCE_FIELDS, title: (e) => e.title, entityType: "resource", titleField: "title", quickCreate: true, extra: ResourceDetail, detailHide: ["url"] },
   tag: { key: "tag", label: "Tag", crud: tags, fields: TAG_FIELDS, title: (e) => e.name, titleField: "name", quickCreate: true, extra: TagDetail, detailHide: ["color"] },

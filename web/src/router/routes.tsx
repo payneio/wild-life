@@ -25,7 +25,7 @@ import {
   ProgramsPage,
   ResourcesPage,
   TagsPage,
-  WaitingPage,
+  RequestsPage,
 } from "@/pages/simple"
 import {
   AllergiesPage,
@@ -68,7 +68,7 @@ export const router = createBrowserRouter([
       { path: "goals", element: <GoalsPage /> },
       { path: "goals/:id", element: <RecordPage entityKey="goal" backTo="/goals" backLabel="Goals" /> },
       withDetail("delegations", <DelegationsPage />, "delegation"),
-      withDetail("waiting", <WaitingPage />, "waitingItem"),
+      withDetail("requests", <RequestsPage />, "request"),
       // Review is a Workbench (you work in a review) — deep-linkable full-page record.
       { path: "reviews", element: <ReviewsPage /> },
       { path: "reviews/:id", element: <RecordPage entityKey="review" backTo="/reviews" backLabel="Review" /> },

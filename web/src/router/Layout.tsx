@@ -66,7 +66,7 @@ const PLAN: Item[] = [
   { to: "/routines", label: "Routines", icon: Repeat },
   { to: "/goals", label: "Goals", icon: Target },
   { to: "/delegations", label: "Delegations", icon: Send },
-  { to: "/waiting", label: "Waiting", icon: Hourglass },
+  { to: "/requests", label: "Requests", icon: Hourglass },
   { to: "/reviews", label: "Review", icon: ClipboardCheck },
 ]
 

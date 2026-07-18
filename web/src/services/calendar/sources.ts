@@ -11,8 +11,8 @@ import {
   notes,
   people,
   projects,
+  requests,
   tasks,
-  waitingItems,
 } from "@/services/api/hooks"
 
 export interface SourceMeta {
@@ -26,7 +26,7 @@ export const SOURCES: SourceMeta[] = [
   { key: "goal", label: "Goals", color: "#10b981" },
   { key: "healthEvent", label: "Health", color: "#ef4444" },
   { key: "commitment", label: "Commitments", color: "#f59e0b" },
-  { key: "waiting", label: "Waiting", color: "#eab308" },
+  { key: "request", label: "Requests", color: "#eab308" },
   { key: "delegation", label: "Delegations", color: "#8b5cf6" },
   { key: "note", label: "Journal", color: "#64748b" },
   { key: "birthday", label: "Birthdays", color: "#ec4899" },
@@ -73,7 +73,7 @@ export function useCalendarSources(range: Range, enabled: Set<string>) {
   const goalQ = goals.useList(between("target_date"), on("goal"))
   const healthQ = healthEvents.useList(between("occurred_on"), on("healthEvent"))
   const commitQ = commitments.useList(between("due_date"), on("commitment"))
-  const waitQ = waitingItems.useList(between("follow_up_date"), on("waiting"))
+  const reqQ = requests.useList(between("follow_up_date"), on("request"))
   const delegQ = delegations.useList(
     between("expected_completion_date"),
     on("delegation"),
@@ -86,7 +86,7 @@ export function useCalendarSources(range: Range, enabled: Set<string>) {
   const goalUpd = goals.useUpdate()
   const healthUpd = healthEvents.useUpdate()
   const commitUpd = commitments.useUpdate()
-  const waitUpd = waitingItems.useUpdate()
+  const reqUpd = requests.useUpdate()
   const delegUpd = delegations.useUpdate()
   const noteUpd = notes.useUpdate()
 
@@ -146,8 +146,8 @@ export function useCalendarSources(range: Range, enabled: Set<string>) {
     for (const h of healthQ.data ?? []) push("healthEvent", h.id, h.title, h.occurred_on, "occurred_on")
   if (enabled.has("commitment"))
     for (const c of commitQ.data ?? []) push("commitment", c.id, c.description, c.due_date, "due_date")
-  if (enabled.has("waiting"))
-    for (const w of waitQ.data ?? []) push("waiting", w.id, `⏳ ${w.expected_result}`, w.follow_up_date, "follow_up_date")
+  if (enabled.has("request"))
+    for (const w of reqQ.data ?? []) push("request", w.id, `⏳ ${w.subject}`, w.follow_up_date, "follow_up_date")
   if (enabled.has("delegation"))
     for (const d of delegQ.data ?? []) push("delegation", d.id, `→ ${d.requested_outcome}`, d.expected_completion_date, "expected_completion_date")
   if (enabled.has("note"))
@@ -172,7 +172,7 @@ export function useCalendarSources(range: Range, enabled: Set<string>) {
     goal: goalUpd,
     healthEvent: healthUpd,
     commitment: commitUpd,
-    waiting: waitUpd,
+    request: reqUpd,
     delegation: delegUpd,
     note: noteUpd,
     project: null,
@@ -196,7 +196,7 @@ const URL_FOR: Record<string, (id: string) => string> = {
   goal: (id) => `/goals/${id}`,
   healthEvent: (id) => `/health-events/${id}`,
   commitment: (id) => `/commitments/${id}`,
-  waiting: (id) => `/waiting/${id}`,
+  request: (id) => `/requests/${id}`,
   delegation: (id) => `/delegations/${id}`,
   note: (id) => `/notes/${id}`,
   project: (id) => `/projects/${id}`,

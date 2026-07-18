@@ -4,9 +4,9 @@ import {
   COMMITMENT_FIELDS,
   DECISION_FIELDS,
   PROGRAM_FIELDS,
+  REQUEST_FIELDS,
   RESOURCE_FIELDS,
   TAG_FIELDS,
-  WAITING_FIELDS,
 } from "@/services/api/fields"
 import { Badge } from "@/components/ui/primitives"
 import { refFilter } from "@/lib/listFilter"
@@ -15,17 +15,17 @@ import {
   commitments,
   decisions,
   programs,
+  requests,
   resources,
   tags,
-  waitingItems,
 } from "@/services/api/hooks"
 import type {
   Commitment,
   Decision,
   Program,
+  Request,
   Resource,
   Tag,
-  WaitingItem,
 } from "@/services/api/types"
 
 export function ProgramsPage() {
@@ -69,19 +69,20 @@ export function CommitmentsPage() {
   )
 }
 
-export function WaitingPage() {
-  const fields = WAITING_FIELDS
-  const columns: Column<WaitingItem>[] = [
-    { key: "expected_result", label: "Expecting", render: (r) => <span className="font-medium">{r.expected_result}</span> },
-    { key: "from", label: "From", render: (r) => (r.person_id ? <RefName kind="people" id={r.person_id} /> : r.from_org || "—") },
+export function RequestsPage() {
+  const fields = REQUEST_FIELDS
+  const columns: Column<Request>[] = [
+    { key: "subject", label: "Subject", render: (r) => <span className="font-medium">{r.subject}</span> },
+    { key: "requester_id", label: "From", render: (r) => (r.requester_id ? <RefName kind="people" id={r.requester_id} /> : "—") },
+    { key: "addressee_id", label: "To", render: (r) => (r.addressee_id ? <RefName kind="people" id={r.addressee_id} /> : r.external_label || "—") },
     { key: "status", label: "Status", render: (r) => <StatusBadge status={r.status} /> },
-    { key: "follow_up_date", label: "Follow up", render: (r) => <DateText value={r.follow_up_date} overdue /> },
+    { key: "needed_by", label: "Needed", render: (r) => <DateText value={r.needed_by} overdue /> },
   ]
   return (
     <SimpleEntityPage
-      title="Waiting on"
-      subtitle="Things expected from others"
-      crud={waitingItems}
+      title="Requests"
+      subtitle="Asks & answers between you and your collaborators"
+      crud={requests}
       fields={fields}
       columns={columns}
     />

@@ -36,7 +36,7 @@ import type {
   RoutineInstance,
   Tag,
   Task,
-  WaitingItem,
+  Request,
 } from "@/services/api/types"
 
 // --- CRUD resources ---
@@ -75,7 +75,7 @@ export function useCreateNoteWithImages() {
   }
 }
 export const commitments = createCrud<Commitment>("commitments")
-export const waitingItems = createCrud<WaitingItem>("waiting-items")
+export const requests = createCrud<Request>("requests")
 export const delegations = createCrud<Delegation>("delegations")
 export const reviews = createCrud<Review>("reviews")
 export const resources = createCrud<Resource>("resources")

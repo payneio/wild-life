@@ -13,7 +13,8 @@ const DELEGATION_STATUS = [
   "delivered", "revision_requested", "accepted_as_complete", "declined", "reassigned", "cancelled",
 ] as const
 const COMMIT_STATUS = ["open", "in_progress", "waiting", "fulfilled", "broken", "cancelled"] as const
-const WAITING_STATUS = ["open", "received", "overdue", "cancelled"] as const
+const REQUEST_KIND = ["question", "decision", "input", "deliverable"] as const
+const REQUEST_STATUS = ["open", "resolved", "cancelled"] as const
 const REVIEW_TYPE = ["daily", "weekly", "monthly", "quarterly", "area", "program", "project", "delegation"] as const
 const ORG_STATUS = ["active", "inactive", "archived"] as const
 const CONDITION_CATEGORY = [
@@ -80,14 +81,17 @@ export const COMMITMENT_FIELDS: FieldSpec[] = [
   { name: "notes", label: "Notes", type: "textarea" },
 ]
 
-export const WAITING_FIELDS: FieldSpec[] = [
-  { name: "expected_result", label: "Expecting", type: "textarea", full: true },
-  { name: "person_id", label: "From (person)", type: "entity", lookup: "people" },
-  { name: "from_org", label: "From (org)" },
-  { name: "status", label: "Status", type: "select", options: WAITING_STATUS },
-  { name: "date_requested", label: "Requested", type: "date" },
-  { name: "expected_date", label: "Expected", type: "date" },
+export const REQUEST_FIELDS: FieldSpec[] = [
+  { name: "subject", label: "Subject", full: true },
+  { name: "body", label: "Details", type: "textarea", full: true },
+  { name: "kind", label: "Kind", type: "select", options: REQUEST_KIND },
+  { name: "requester_id", label: "From", type: "entity", lookup: "people" },
+  { name: "addressee_id", label: "To", type: "entity", lookup: "people" },
+  { name: "external_label", label: "To (external)" },
+  { name: "status", label: "Status", type: "select", options: REQUEST_STATUS },
+  { name: "needed_by", label: "Needed by", type: "date" },
   { name: "follow_up_date", label: "Follow up", type: "date" },
+  { name: "resolution", label: "Resolution", type: "textarea" },
   { name: "next_action", label: "Next action" },
   { name: "last_communication", label: "Last contact", type: "textarea" },
   { name: "notes", label: "Notes", type: "textarea" },

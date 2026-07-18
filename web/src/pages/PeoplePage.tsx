@@ -52,7 +52,7 @@ import {
   useEntityTags,
   usePersonInteractions,
   useUploadPersonPhoto,
-  waitingItems,
+  requests,
 } from "@/services/api/hooks"
 import type { ContactMethod, EntityType, Person } from "@/services/api/types"
 
@@ -303,7 +303,7 @@ function InteractionSection({ personId }: { personId: string }) {
 function RelatedSection({ personId }: { personId: string }) {
   const { data: dels } = delegations.useList()
   const { data: comms } = commitments.useList()
-  const { data: waits } = waitingItems.useList()
+  const { data: reqs } = requests.useList()
   const { data: tks } = tasks.useList({ queue: "all" })
 
   const relDel = (dels ?? []).filter((d) =>
@@ -312,7 +312,9 @@ function RelatedSection({ personId }: { personId: string }) {
   const relCom = (comms ?? []).filter((c) =>
     [c.owner_id, c.beneficiary_id, c.responsible_id].includes(personId),
   )
-  const relWait = (waits ?? []).filter((w) => w.person_id === personId)
+  const relReq = (reqs ?? []).filter(
+    (r) => r.addressee_id === personId || r.requester_id === personId,
+  )
   const relTask = (tks ?? []).filter((t) =>
     [t.accountable_owner_id, t.responsible_id, t.assignee_id].includes(personId),
   )
@@ -337,12 +339,12 @@ function RelatedSection({ personId }: { personId: string }) {
       rows: relCom.map((c) => ({ id: c.id, title: c.description, status: c.status })),
     },
     {
-      label: "Waiting on",
-      type: "waiting_item",
-      rows: relWait.map((w) => ({
-        id: w.id,
-        title: w.expected_result,
-        status: w.status,
+      label: "Requests",
+      type: "request",
+      rows: relReq.map((r) => ({
+        id: r.id,
+        title: r.subject,
+        status: r.status,
       })),
     },
     {

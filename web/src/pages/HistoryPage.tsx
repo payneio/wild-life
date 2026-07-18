@@ -24,7 +24,7 @@ const TABLE_TO_TYPE: Record<string, EntityType> = {
   organizations: "organization",
   locations: "location",
   commitments: "commitment",
-  waiting_items: "waiting_item",
+  requests: "request",
   delegations: "delegation",
   resources: "resource",
   decisions: "decision",
