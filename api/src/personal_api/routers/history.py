@@ -13,7 +13,7 @@ from personal_api.schemas.history import ChangeLogRead
 router = APIRouter(prefix="/history", tags=["history"])
 
 
-@router.get("", response_model=list[ChangeLogRead])
+@router.get("", response_model=list[ChangeLogRead], operation_id="history_list")
 async def list_history(
     session: AsyncSession = Depends(get_session),
     entity_type: str | None = None,

@@ -6,6 +6,9 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastmcp import FastMCP
+from fastmcp.server.providers.openapi import MCPType, RouteMap
+from fastmcp.utilities.lifespan import combine_lifespans
 
 from personal_api.auth import BearerAuthMiddleware
 from personal_api.config import settings
@@ -89,6 +92,41 @@ app.include_router(stream.router)
 app.include_router(push.router)
 app.include_router(reminders.router)
 app.include_router(nudges.router)
+
+
+# --- MCP server -----------------------------------------------------------
+# Auto-generate an MCP server from the assembled FastAPI app and mount it at
+# /mcp (Streamable HTTP). Every data endpoint becomes a tool; the plumbing
+# below (SSE, uploads, web-push, health, cron ticks) is excluded because it
+# doesn't map cleanly onto tool calls. Anything not matched falls through to
+# the default (-> Tool).
+_MCP_EXCLUDE = [
+    RouteMap(pattern=r"^/stream$", mcp_type=MCPType.EXCLUDE),
+    RouteMap(pattern=r"^/health$", mcp_type=MCPType.EXCLUDE),
+    RouteMap(pattern=r"^/push.*", mcp_type=MCPType.EXCLUDE),
+    RouteMap(pattern=r".*/images.*", mcp_type=MCPType.EXCLUDE),
+    RouteMap(pattern=r"^/note-images.*", mcp_type=MCPType.EXCLUDE),
+    RouteMap(pattern=r".*/photo$", mcp_type=MCPType.EXCLUDE),
+    RouteMap(pattern=r"^/calendar/reminders/tick$", mcp_type=MCPType.EXCLUDE),
+    RouteMap(pattern=r"^/nudges/digest$", mcp_type=MCPType.EXCLUDE),
+]
+
+# from_fastapi calls the app in-process (httpx + ASGITransport), so its calls
+# also pass through BearerAuthMiddleware — hand it the token so tools succeed.
+# The /mcp endpoint itself is NOT in OPEN_PATHS, so BearerAuthMiddleware also
+# protects it: MCP clients must present the same PERSONAL_API_TOKEN.
+mcp = FastMCP.from_fastapi(
+    app=app,
+    name="personal",
+    route_maps=_MCP_EXCLUDE,
+    httpx_client_kwargs={"headers": {"Authorization": f"Bearer {settings.token}"}},
+)
+mcp_app = mcp.http_app(path="/")
+
+# from_fastapi needs the fully-built app, but the MCP session manager needs its
+# own lifespan to run — so combine both and reassign after construction.
+app.router.lifespan_context = combine_lifespans(lifespan, mcp_app.lifespan)
+app.mount("/mcp", mcp_app)
 
 
 def run() -> None:

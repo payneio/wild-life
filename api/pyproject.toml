@@ -16,6 +16,7 @@ dependencies = [
     "sse-starlette>=2.1.0",
     "pywebpush>=2.3.0",
     "python-dateutil>=2.9.0.post0",
+    "fastmcp>=2.11",
 ]
 
 [project.scripts]

@@ -85,16 +85,30 @@ TYPE_TO_MODEL: dict[str, type[Any]] = {
 # legitimately repeat titles, so they're excluded from auto-suggestion. Column
 # holds the human label per type.
 NAME_COL: dict[str, str] = {
-    "person": "name", "organization": "name", "location": "name", "area": "name",
-    "program": "name", "project": "name", "routine": "name", "goal": "name",
-    "metric": "name", "condition": "name", "medication": "name",
-    "protocol": "name", "insurance_plan": "name", "allergy": "substance",
+    "person": "name",
+    "organization": "name",
+    "location": "name",
+    "area": "name",
+    "program": "name",
+    "project": "name",
+    "routine": "name",
+    "goal": "name",
+    "metric": "name",
+    "condition": "name",
+    "medication": "name",
+    "protocol": "name",
+    "insurance_plan": "name",
+    "allergy": "substance",
 }
 
 # Soft-poly (table, type_col, id_col) — NOT FKs. change_log deliberately omitted.
 SOFT_POLY = [
     (Note.__table__, "entity_type", "entity_id"),
-    (Note.__table__.metadata.tables["personal_api.note_mentions"], "target_type", "target_id"),
+    (
+        Note.__table__.metadata.tables["personal_api.note_mentions"],
+        "target_type",
+        "target_id",
+    ),
     (Base.metadata.tables["personal_api.entity_tags"], "entity_type", "entity_id"),
     (Commitment.__table__, "entity_type", "entity_id"),
     (WaitingItem.__table__, "entity_type", "entity_id"),
@@ -116,7 +130,9 @@ def _fk_sites(target_table: Any) -> list[tuple[Any, Any]]:
     return sites
 
 
-async def _count(session: AsyncSession, table: Any, col: Any, loser: UUID, extra) -> int:
+async def _count(
+    session: AsyncSession, table: Any, col: Any, loser: UUID, extra
+) -> int:
     stmt = select(func.count()).select_from(table).where(col == loser, *extra)
     return int((await session.execute(stmt)).scalar_one())
 
@@ -149,7 +165,9 @@ class MergeRequest(BaseModel):
 def _model_for(type_: str) -> type[Any]:
     model = TYPE_TO_MODEL.get(type_)
     if model is None:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=f"Cannot merge type {type_!r}")
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, detail=f"Cannot merge type {type_!r}"
+        )
     return model
 
 
@@ -160,7 +178,7 @@ async def _sites(model: type[Any]) -> tuple[list, list]:
     return fk, soft
 
 
-@router.post("/preview")
+@router.post("/preview", operation_id="merge_preview")
 async def merge_preview(
     req: MergeRequest, session: AsyncSession = Depends(get_session)
 ) -> dict:
@@ -194,7 +212,7 @@ async def merge_preview(
     return {"total_references": total, "by_site": counts, "note_bodies": nb}
 
 
-@router.post("")
+@router.post("", operation_id="merge_entities")
 async def merge_entities(
     req: MergeRequest, session: AsyncSession = Depends(get_session)
 ) -> dict:
@@ -205,7 +223,9 @@ async def merge_entities(
     survivor = await session.get(model, req.survivor_id)
     loser = await session.get(model, req.loser_id)
     if survivor is None or loser is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Survivor or loser not found")
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND, detail="Survivor or loser not found"
+        )
 
     repointed: dict[str, int] = {}
     fk, soft = await _sites(model)
@@ -257,11 +277,12 @@ async def merge_entities(
     }
 
 
-@router.get("/duplicates")
+@router.get("/duplicates", operation_id="merge_duplicates")
 async def duplicates(
     type: EntityType | None = None, session: AsyncSession = Depends(get_session)
 ) -> list[dict]:
     """Groups of entities that share a normalized name, per type (candidates to merge)."""
+
     def normkey(s: str) -> str:
         return "".join(ch for ch in (s or "").lower() if ch.isalnum())
 
@@ -272,7 +293,9 @@ async def duplicates(
         col = NAME_COL.get(t)
         if model is None or col is None:
             continue
-        rows = (await session.execute(select(model.__table__.c.id, model.__table__.c[col]))).all()
+        rows = (
+            await session.execute(select(model.__table__.c.id, model.__table__.c[col]))
+        ).all()
         groups: dict[str, list] = {}
         for rid, name in rows:
             if not name:

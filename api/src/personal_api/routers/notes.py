@@ -5,7 +5,16 @@ from datetime import date
 from pathlib import Path
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    HTTPException,
+    Query,
+    Request,
+    UploadFile,
+    status,
+)
 from fastapi.responses import Response
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -65,7 +74,9 @@ async def _reconcile_links(
     await session.flush()
 
 
-async def _links_for(session: AsyncSession, note_ids: list[UUID]) -> dict[UUID, list[EntityRef]]:
+async def _links_for(
+    session: AsyncSession, note_ids: list[UUID]
+) -> dict[UUID, list[EntityRef]]:
     """Batch-load mention rows for the given notes, grouped by note id."""
     out: dict[UUID, list[EntityRef]] = defaultdict(list)
     if not note_ids:
@@ -86,7 +97,12 @@ def _read(note: Note, links: list[EntityRef]) -> NoteRead:
     return read
 
 
-@router.post("", response_model=NoteRead, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=NoteRead,
+    status_code=status.HTTP_201_CREATED,
+    operation_id="notes_create",
+)
 async def create_note(
     payload: NoteCreate, session: AsyncSession = Depends(get_session)
 ) -> NoteRead:
@@ -98,7 +114,7 @@ async def create_note(
     return _read(note, payload.links)
 
 
-@router.get("", response_model=list[NoteRead])
+@router.get("", response_model=list[NoteRead], operation_id="notes_list")
 async def list_notes(
     request: Request,
     session: AsyncSession = Depends(get_session),
@@ -145,7 +161,7 @@ async def list_notes(
     return [_read(n, links[n.id]) for n in notes]
 
 
-@router.get("/calendar")
+@router.get("/calendar", operation_id="notes_calendar")
 async def notes_calendar(
     session: AsyncSession = Depends(get_session),
     tag: str | None = None,
@@ -154,9 +170,9 @@ async def notes_calendar(
     """Per-(year, month) entry counts for the journal's year/month navigation."""
     y = func.extract("year", Note.entry_date)
     m = func.extract("month", Note.entry_date)
-    stmt = select(
-        y.label("year"), m.label("month"), func.count().label("count")
-    ).where(Note.entry_date.is_not(None))
+    stmt = select(y.label("year"), m.label("month"), func.count().label("count")).where(
+        Note.entry_date.is_not(None)
+    )
     if tag is not None:
         stmt = stmt.where(Note.tags.contains([tag]))
     for t in no_tag or []:
@@ -169,7 +185,7 @@ async def notes_calendar(
     ]
 
 
-@router.get("/{item_id}", response_model=NoteRead)
+@router.get("/{item_id}", response_model=NoteRead, operation_id="notes_get")
 async def get_note(
     item_id: UUID, session: AsyncSession = Depends(get_session)
 ) -> NoteRead:
@@ -180,7 +196,7 @@ async def get_note(
     return _read(note, links[note.id])
 
 
-@router.patch("/{item_id}", response_model=NoteRead)
+@router.patch("/{item_id}", response_model=NoteRead, operation_id="notes_update")
 async def update_note(
     item_id: UUID, payload: NoteUpdate, session: AsyncSession = Depends(get_session)
 ) -> NoteRead:
@@ -198,7 +214,11 @@ async def update_note(
     return _read(note, links[note.id])
 
 
-@router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{item_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    operation_id="notes_delete",
+)
 async def delete_note(
     item_id: UUID, session: AsyncSession = Depends(get_session)
 ) -> None:
@@ -236,7 +256,9 @@ async def upload_note_image(
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Note not found")
     data = await file.read()
     if len(data) > MAX_IMAGE_BYTES:
-        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="Too large")
+        raise HTTPException(
+            status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="Too large"
+        )
     content_type = _sniff_image(data)
     if content_type is None:
         raise HTTPException(

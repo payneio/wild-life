@@ -29,7 +29,17 @@ def crud_router(
     """Build a router exposing standard CRUD for ``model``."""
     router = APIRouter(prefix=prefix, tags=[tag])
 
-    @router.post("", response_model=read_schema, status_code=status.HTTP_201_CREATED)
+    # Stable, readable operation ids (e.g. ``/health-events`` -> ``health_events``)
+    # so the generated OpenAPI — and the MCP tools derived from it — read as
+    # ``health_events_create`` rather than ``create_health_events_post``.
+    base = prefix.strip("/").replace("-", "_") or tag.lower().replace(" ", "_")
+
+    @router.post(
+        "",
+        response_model=read_schema,
+        status_code=status.HTTP_201_CREATED,
+        operation_id=f"{base}_create",
+    )
     async def create(
         payload: create_schema,  # type: ignore[valid-type]
         session: AsyncSession = Depends(get_session),
@@ -40,7 +50,7 @@ def crud_router(
         await session.refresh(obj)
         return obj
 
-    @router.get("", response_model=list[read_schema])
+    @router.get("", response_model=list[read_schema], operation_id=f"{base}_list")
     async def list_all(
         request: Request,
         response: Response,
@@ -62,7 +72,7 @@ def crud_router(
         result = await session.execute(stmt)
         return result.scalars().all()
 
-    @router.get("/{item_id}", response_model=read_schema)
+    @router.get("/{item_id}", response_model=read_schema, operation_id=f"{base}_get")
     async def get_one(
         item_id: UUID, session: AsyncSession = Depends(get_session)
     ) -> Any:
@@ -71,7 +81,9 @@ def crud_router(
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not found")
         return obj
 
-    @router.patch("/{item_id}", response_model=read_schema)
+    @router.patch(
+        "/{item_id}", response_model=read_schema, operation_id=f"{base}_update"
+    )
     async def update(
         item_id: UUID,
         payload: update_schema,  # type: ignore[valid-type]
@@ -86,7 +98,11 @@ def crud_router(
         await session.refresh(obj)
         return obj
 
-    @router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+    @router.delete(
+        "/{item_id}",
+        status_code=status.HTTP_204_NO_CONTENT,
+        operation_id=f"{base}_delete",
+    )
     async def delete(
         item_id: UUID, session: AsyncSession = Depends(get_session)
     ) -> None:

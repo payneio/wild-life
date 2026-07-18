@@ -94,7 +94,12 @@ def _spawn_next_occurrence(task: Task) -> Task | None:
     )
 
 
-@router.post("", response_model=TaskRead, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=TaskRead,
+    status_code=status.HTTP_201_CREATED,
+    operation_id="tasks_create",
+)
 async def create_task(
     payload: TaskCreate, session: AsyncSession = Depends(get_session)
 ) -> Task:
@@ -106,7 +111,7 @@ async def create_task(
     return task
 
 
-@router.get("", response_model=list[TaskRead])
+@router.get("", response_model=list[TaskRead], operation_id="tasks_list")
 async def list_tasks(
     request: Request,
     session: AsyncSession = Depends(get_session),
@@ -158,7 +163,7 @@ async def list_tasks(
     return items
 
 
-@router.get("/{item_id}", response_model=TaskRead)
+@router.get("/{item_id}", response_model=TaskRead, operation_id="tasks_get")
 async def get_task(item_id: UUID, session: AsyncSession = Depends(get_session)) -> Task:
     task = await session.get(Task, item_id)
     if task is None:
@@ -166,7 +171,7 @@ async def get_task(item_id: UUID, session: AsyncSession = Depends(get_session)) 
     return task
 
 
-@router.patch("/{item_id}", response_model=TaskRead)
+@router.patch("/{item_id}", response_model=TaskRead, operation_id="tasks_update")
 async def update_task(
     item_id: UUID, payload: TaskUpdate, session: AsyncSession = Depends(get_session)
 ) -> Task:
@@ -187,7 +192,11 @@ async def update_task(
     return task
 
 
-@router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{item_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    operation_id="tasks_delete",
+)
 async def delete_task(
     item_id: UUID, session: AsyncSession = Depends(get_session)
 ) -> None:

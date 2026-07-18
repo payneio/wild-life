@@ -48,7 +48,7 @@ async def _rows(session: AsyncSession, stmt: Any) -> list[Any]:
     return list((await session.execute(stmt)).scalars().all())
 
 
-@dashboard.get("/review-dashboard")
+@dashboard.get("/review-dashboard", operation_id="review_dashboard")
 async def review_dashboard(session: AsyncSession = Depends(get_session)) -> dict:
     """Surface everything a periodic review should catch."""
     today = date.today()

@@ -36,10 +36,14 @@ def _window(raw: str, q: str, pad: int = 32) -> str:
         return text[: pad * 2] + ("…" if len(text) > pad * 2 else "")
     start = max(0, i - pad)
     end = min(len(text), i + len(q) + pad)
-    return ("…" if start else "") + text[start:end].strip() + ("…" if end < len(text) else "")
+    return (
+        ("…" if start else "")
+        + text[start:end].strip()
+        + ("…" if end < len(text) else "")
+    )
 
 
-@router.get("")
+@router.get("", operation_id="search")
 async def search(
     q: str = Query(..., min_length=1),
     types: str | None = None,
