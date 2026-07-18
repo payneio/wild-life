@@ -87,7 +87,7 @@ export function RelatedPanel({
                 <EntityRef
                   type={spec.type}
                   id={row.id}
-                  className="min-w-0 flex-1 truncate text-sm text-slate-700"
+                  className="min-w-0 flex-1 break-words text-sm text-slate-700"
                 >
                   {String(targetDef.title(row))}
                 </EntityRef>

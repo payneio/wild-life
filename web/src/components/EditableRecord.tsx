@@ -47,6 +47,7 @@ function AutoGrowTextarea({
   onChange,
   onFocus,
   onBlur,
+  onKeyDown,
 }: {
   value: string
   placeholder?: string
@@ -55,6 +56,7 @@ function AutoGrowTextarea({
   onChange: (v: string) => void
   onFocus: () => void
   onBlur: () => void
+  onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
 }) {
   const ref = useRef<HTMLTextAreaElement>(null)
   useLayoutEffect(() => {
@@ -73,6 +75,7 @@ function AutoGrowTextarea({
       onFocus={onFocus}
       onChange={(e) => onChange(e.target.value)}
       onBlur={onBlur}
+      onKeyDown={onKeyDown}
     />
   )
 }
@@ -118,6 +121,36 @@ function InlineField({
   }
 
   let control: ReactNode
+  // The title is an auto-growing textarea so a long title wraps and shows in
+  // full (crucial on narrow/mobile) instead of scrolling out of a single line.
+  if (isTitle) {
+    control = (
+      <AutoGrowTextarea
+        value={draft}
+        placeholder={field.placeholder ?? field.label}
+        minRows={1}
+        className={cn(
+          GHOST,
+          "resize-none overflow-hidden font-semibold leading-snug text-slate-900",
+          variant === "page" ? "text-xl" : "text-lg",
+        )}
+        onFocus={() => setFocused(true)}
+        onChange={setDraft}
+        onKeyDown={(e) => {
+          // A title is one line of text — Enter commits (blur → save) instead of
+          // inserting a newline.
+          if (e.key === "Enter") {
+            e.preventDefault()
+            e.currentTarget.blur()
+          }
+        }}
+        onBlur={() => {
+          setFocused(false)
+          onSave(fromDraft(field, draft))
+        }}
+      />
+    )
+  } else
   switch (field.type) {
     case "textarea":
       control = (

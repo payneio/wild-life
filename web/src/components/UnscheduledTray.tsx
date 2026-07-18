@@ -140,7 +140,7 @@ export function UnscheduledTray() {
               aria-hidden
             />
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-slate-700">{t.title}</span>
+              <span className="block break-words text-slate-700">{t.title}</span>
               {t.due_date && (
                 <span className="text-xs text-slate-400">due {formatDate(t.due_date)}</span>
               )}

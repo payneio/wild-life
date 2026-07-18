@@ -331,7 +331,7 @@ export function GoalDetail({ entity }: { entity: Entity }) {
                 <EntityRef
                   type="project"
                   id={p.id}
-                  className="min-w-0 flex-1 truncate text-slate-700"
+                  className="min-w-0 flex-1 break-words text-slate-700"
                 >
                   {p.name}
                 </EntityRef>

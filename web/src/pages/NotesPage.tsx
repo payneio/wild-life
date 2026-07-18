@@ -167,7 +167,7 @@ function SearchResultRow({ note, q, onOpen }: { note: Note; q: string; onOpen: (
       className="block w-full rounded-lg border border-slate-100 bg-surface p-3 text-left hover:bg-slate-50"
     >
       <div className="flex items-baseline justify-between gap-3">
-        <span className="truncate font-medium text-slate-800">
+        <span className="break-words font-medium text-slate-800">
           <Highlight text={note.title || "(untitled)"} q={q} />
         </span>
         {note.entry_date && (

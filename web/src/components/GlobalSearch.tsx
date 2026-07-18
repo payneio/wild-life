@@ -78,7 +78,7 @@ export function GlobalSearch() {
                     onClick={() => go(r)}
                   >
                     <div className="flex items-baseline justify-between gap-2">
-                      <span className="truncate text-sm font-medium text-slate-800">
+                      <span className="break-words text-sm font-medium text-slate-800">
                         <Highlight text={r.label} q={query} />
                       </span>
                       <Badge>{typeLabel(r.type)}</Badge>

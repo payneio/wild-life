@@ -369,7 +369,7 @@ function RelatedSection({ personId }: { personId: string }) {
                 key={r.id}
                 className="flex items-center justify-between gap-2 rounded-lg border border-slate-100 px-2.5 py-1.5 text-sm"
               >
-                <EntityRef type={g.type} id={r.id} className="truncate text-slate-700">
+                <EntityRef type={g.type} id={r.id} className="break-words text-slate-700">
                   {r.title}
                 </EntityRef>
                 <StatusBadge status={r.status} />
@@ -761,7 +761,7 @@ export function PeoplePage() {
                     >
                       <Avatar name={p.name} photoUrl={p.photo_url} size="sm" />
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium text-slate-800">
+                        <span className="block break-words text-sm font-medium text-slate-800">
                           {p.name}
                         </span>
                         <span className="block truncate text-xs text-slate-400">

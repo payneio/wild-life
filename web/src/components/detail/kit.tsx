@@ -283,7 +283,7 @@ export function RelatedRow({
 }) {
   const inner = (
     <>
-      <span className="min-w-0 flex-1 truncate text-sm text-slate-700">{title}</span>
+      <span className="min-w-0 flex-1 break-words text-sm text-slate-700">{title}</span>
       <span className="flex shrink-0 items-center gap-2">
         {badge}
         {meta && <span className="text-xs text-slate-400">{meta}</span>}

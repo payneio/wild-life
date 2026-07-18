@@ -34,7 +34,7 @@ export function EntityDetailRoute({ entityKey }: { entityKey: string }) {
       <div className="hidden min-w-0 lg:block lg:flex-1">
         <Card className="p-5">
           <div className="mb-4 flex items-center justify-between gap-2">
-            <h2 className="font-display truncate text-xl font-medium text-slate-900">{title}</h2>
+            <h2 className="font-display break-words text-xl font-medium text-slate-900">{title}</h2>
             <button
               onClick={close}
               className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"

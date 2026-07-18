@@ -65,7 +65,7 @@ export function MergeDialog({
         <div className="flex items-center gap-2 text-sm">
           <div className="flex-1 rounded-lg border border-emerald-200 bg-emerald-50 p-2">
             <div className="text-xs font-medium uppercase tracking-wide text-emerald-600">Keep</div>
-            <div className="truncate font-medium text-slate-800">{survivor?.label ?? "—"}</div>
+            <div className="break-words font-medium text-slate-800">{survivor?.label ?? "—"}</div>
           </div>
           <button
             type="button"
@@ -78,7 +78,7 @@ export function MergeDialog({
           </button>
           <div className="flex-1 rounded-lg border border-red-200 bg-red-50 p-2">
             <div className="text-xs font-medium uppercase tracking-wide text-red-600">Absorb + delete</div>
-            <div className="truncate font-medium text-slate-800">{loser?.label ?? "—"}</div>
+            <div className="break-words font-medium text-slate-800">{loser?.label ?? "—"}</div>
           </div>
         </div>
 
@@ -103,9 +103,9 @@ export function MergeDialog({
         {survivor && loser && (
           <div className="rounded-lg border border-slate-100 bg-slate-50 p-3 text-sm text-slate-600">
             <div className="flex items-center gap-1.5 font-medium text-slate-700">
-              <span className="truncate">{loser.label}</span>
+              <span className="break-words">{loser.label}</span>
               <ArrowRight size={14} />
-              <span className="truncate">{survivor.label}</span>
+              <span className="break-words">{survivor.label}</span>
             </div>
             {preview.isPending ? (
               <div className="mt-1 text-xs text-slate-400">Checking references…</div>

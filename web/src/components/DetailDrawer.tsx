@@ -34,7 +34,7 @@ export function DetailDrawer({
       />
       <div className="relative flex h-full w-full flex-col border-l border-slate-200 bg-surface shadow-floating motion-safe:animate-[slideInRight_220ms_cubic-bezier(0.32,0.72,0,1)] md:max-w-xl">
         <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-5 py-3">
-          <h2 className="truncate text-sm font-semibold text-slate-900">{title}</h2>
+          <h2 className="break-words text-sm font-semibold text-slate-900">{title}</h2>
           <div className="flex shrink-0 items-center gap-1">
             {actions}
             <button

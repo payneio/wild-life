@@ -81,7 +81,7 @@ function Item({
       )}
     >
       <div className="flex items-start justify-between gap-2">
-        <span className="line-clamp-2 text-sm font-medium text-slate-800">
+        <span className="break-words text-sm font-medium text-slate-800">
           {d.requested_outcome}
         </span>
         <PriorityBadge priority={d.priority} />

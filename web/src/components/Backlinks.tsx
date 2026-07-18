@@ -22,7 +22,7 @@ export function Backlinks({ type, id }: { type: EntityType; id: string }) {
               onClick={(e) => e.stopPropagation()}
               className="flex items-center justify-between gap-2 rounded-lg border border-slate-100 px-2.5 py-1.5 text-sm hover:bg-slate-50"
             >
-              <span className="truncate text-slate-700">{n.title || "(untitled)"}</span>
+              <span className="break-words text-slate-700">{n.title || "(untitled)"}</span>
               {n.entry_date && (
                 <span className="shrink-0 text-xs text-slate-400">{formatDate(n.entry_date)}</span>
               )}

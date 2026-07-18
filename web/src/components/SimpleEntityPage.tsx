@@ -123,7 +123,7 @@ export function SimpleEntityPage<T extends Entity>({
                   )}
                 >
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-medium text-slate-800">
+                    <div className="break-words text-sm font-medium text-slate-800">
                       {cellValue(columns[0], row)}
                     </div>
                     {columns.length > 1 && (

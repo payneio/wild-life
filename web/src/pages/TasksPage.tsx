@@ -92,7 +92,7 @@ export function TaskRow({
           done && "text-slate-400 line-through",
         )}
       >
-        <span className="min-w-0 truncate">{task.title}</span>
+        <span className="min-w-0 break-words">{task.title}</span>
         {task.context && (
           <span className="shrink-0 text-xs text-slate-400">{task.context}</span>
         )}

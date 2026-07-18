@@ -86,7 +86,7 @@ export function ComingUp() {
                 className="h-2.5 w-2.5 shrink-0 rounded-full"
                 style={{ backgroundColor: r.color }}
               />
-              <span className="min-w-0 flex-1 truncate text-sm text-slate-700">{r.title}</span>
+              <span className="min-w-0 flex-1 break-words text-sm text-slate-700">{r.title}</span>
               <span
                 className={cn(
                   "shrink-0 text-xs font-medium",
