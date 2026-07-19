@@ -78,3 +78,5 @@ class TaskRead(Entity):
     acceptance_required: bool
     notes: str | None
     completed_at: datetime | None
+    claimed_by_id: uuid.UUID | None = None
+    claimed_at: datetime | None = None

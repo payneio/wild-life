@@ -81,6 +81,8 @@ registry = TokenRegistry()
 _WORKER_WRITE_ALLOW: list[tuple[str | None, re.Pattern[str]]] = [
     ("POST", re.compile(r"^/tasks$")),
     ("PATCH", re.compile(r"^/tasks/[^/]+$")),
+    ("POST", re.compile(r"^/tasks/[^/]+/claim$")),
+    ("POST", re.compile(r"^/tasks/[^/]+/release$")),
     ("POST", re.compile(r"^/notes$")),
     ("POST", re.compile(r"^/requests$")),
     ("PATCH", re.compile(r"^/requests/[^/]+$")),

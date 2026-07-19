@@ -6,7 +6,7 @@ from typing import Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from sqlalchemy import or_, select
+from sqlalchemy import or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from personal_api.authz import (
@@ -28,6 +28,8 @@ _PRIORITY_ORDER = {"urgent": 0, "high": 1, "medium": 2, "low": 3}
 # Statuses that represent delegated (not personal-execution) work.
 _DELEGATED_STATUSES = {"delegated", "delivered"}
 _CLOSED_STATUSES = {"completed", "cancelled"}
+# A claim goes stale after this, so a crashed run doesn't wedge a task forever.
+_CLAIM_TTL = timedelta(minutes=15)
 
 
 def _add_months(d: date, months: int) -> date:
@@ -233,9 +235,75 @@ async def update_task(
         nxt = _spawn_next_occurrence(task)
         if nxt is not None:
             session.add(nxt)
+    # Finished work frees its claim so it isn't held forever.
+    if task.status in _CLOSED_STATUSES:
+        task.claimed_by_id = None
+        task.claimed_at = None
     await session.flush()
     await session.refresh(task)
     return task
+
+
+@router.post("/{item_id}/claim", response_model=TaskRead, operation_id="tasks_claim")
+async def claim_task(
+    item_id: UUID,
+    session: AsyncSession = Depends(get_session),
+    identity: Identity = Depends(current_identity),
+) -> Task:
+    """Atomically claim a task so exactly one worker/agent works it (409 if taken)."""
+    task = await session.get(Task, item_id)
+    if task is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not found")
+    await assert_can_write_task(session, task, identity)
+    if identity.person_id is None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="No person to claim as")
+    now = datetime.now(timezone.utc)
+    result = await session.execute(
+        update(Task)
+        .where(
+            Task.id == item_id,
+            or_(
+                Task.claimed_by_id.is_(None),
+                Task.claimed_by_id == identity.person_id,
+                Task.claimed_at < now - _CLAIM_TTL,
+            ),
+        )
+        .values(claimed_by_id=identity.person_id, claimed_at=now)
+    )
+    if result.rowcount != 1:
+        raise HTTPException(status.HTTP_409_CONFLICT, detail="Already claimed")
+    await session.refresh(task)
+    return task
+
+
+@router.post(
+    "/{item_id}/release",
+    status_code=status.HTTP_204_NO_CONTENT,
+    operation_id="tasks_release",
+)
+async def release_task(
+    item_id: UUID,
+    session: AsyncSession = Depends(get_session),
+    identity: Identity = Depends(current_identity),
+) -> None:
+    """Release a claim (only your own, or a stale one, unless you're the owner)."""
+    task = await session.get(Task, item_id)
+    if task is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not found")
+    await assert_can_write_task(session, task, identity)
+    fresh = (
+        task.claimed_at is not None
+        and task.claimed_at >= datetime.now(timezone.utc) - _CLAIM_TTL
+    )
+    if (
+        identity.is_worker
+        and task.claimed_by_id not in (None, identity.person_id)
+        and fresh
+    ):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, detail="Claimed by another")
+    task.claimed_by_id = None
+    task.claimed_at = None
+    await session.flush()
 
 
 @router.delete(

@@ -152,6 +152,8 @@ _EXCL = MCPType.EXCLUDE
 _WORKER_ROUTES = [
     RouteMap(methods=["POST"], pattern=r"^/tasks$", mcp_type=_TOOL),
     RouteMap(methods=["PATCH"], pattern=r"^/tasks/[^/]+$", mcp_type=_TOOL),
+    RouteMap(methods=["POST"], pattern=r"^/tasks/[^/]+/claim$", mcp_type=_TOOL),
+    RouteMap(methods=["POST"], pattern=r"^/tasks/[^/]+/release$", mcp_type=_TOOL),
     RouteMap(methods=["POST"], pattern=r"^/notes$", mcp_type=_TOOL),
     RouteMap(methods=["POST"], pattern=r"^/requests$", mcp_type=_TOOL),
     RouteMap(methods=["PATCH"], pattern=r"^/requests/[^/]+$", mcp_type=_TOOL),

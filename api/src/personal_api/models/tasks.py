@@ -57,3 +57,8 @@ class Task(UUIDPrimaryKey, TimestampMixin, Base):
     )
     notes: Mapped[str | None] = mapped_column(Text)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Cooperative claim so exactly one worker/agent works a task at a time.
+    claimed_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("people.id", ondelete="SET NULL"), index=True
+    )
+    claimed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
