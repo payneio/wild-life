@@ -6,13 +6,13 @@ from typing import Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from sqlalchemy import or_, select, update
+from sqlalchemy import and_, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from personal_api.authz import (
     assert_can_write_task,
     assert_worker_task_fields,
-    owned_scopes,
+    directly_owned_scopes,
     scope_task_create,
 )
 from personal_api.db.session import get_session
@@ -181,23 +181,39 @@ async def my_tasks(
     identity: Identity = Depends(current_identity),
     include_closed: bool = False,
 ) -> list[Task]:
-    """Tasks the caller owns: assigned/responsible/accountable, or in an owned scope."""
+    """The caller's *actionable* queue: tasks assigned to them, plus unassigned tasks
+    they should triage (unassigned work at its tightest scope they directly own).
+
+    Deliberately NOT the full authority scope — a task assigned to another agent is
+    that agent's to work, so it never appears here (that would re-surface delegated
+    work and let a scope owner starve a sub-agent's claims). Write authority stays
+    broad via ``owned_scopes`` / ``assert_can_write_task``.
+    """
     if identity.person_id is None:
         return []
     pid = identity.person_id
-    scopes = await owned_scopes(session, pid)
-    conds = [
-        Task.assignee_id == pid,
-        Task.responsible_id == pid,
-        Task.accountable_owner_id == pid,
-    ]
-    if scopes.area_ids:
-        conds.append(Task.area_id.in_(scopes.area_ids))
-    if scopes.program_ids:
-        conds.append(Task.program_id.in_(scopes.program_ids))
-    if scopes.project_ids:
-        conds.append(Task.project_id.in_(scopes.project_ids))
-    stmt = select(Task).where(or_(*conds))
+    direct = await directly_owned_scopes(session, pid)
+    # Unassigned tasks match the direct owner of their TIGHTEST populated scope
+    # (project > program > area), so a broader owner never shadows a specific one.
+    triage = []
+    if direct.project_ids:
+        triage.append(Task.project_id.in_(direct.project_ids))
+    if direct.program_ids:
+        triage.append(
+            and_(Task.project_id.is_(None), Task.program_id.in_(direct.program_ids))
+        )
+    if direct.area_ids:
+        triage.append(
+            and_(
+                Task.project_id.is_(None),
+                Task.program_id.is_(None),
+                Task.area_id.in_(direct.area_ids),
+            )
+        )
+    actionable = [Task.assignee_id == pid]
+    if triage:
+        actionable.append(and_(Task.assignee_id.is_(None), or_(*triage)))
+    stmt = select(Task).where(or_(*actionable))
     if not include_closed:
         stmt = stmt.where(Task.status.notin_(_CLOSED_STATUSES))
     stmt = stmt.order_by(Task.due_date.asc().nulls_last())

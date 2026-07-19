@@ -41,8 +41,14 @@ class OwnedScopes:
     project_ids: set[uuid.UUID]
 
 
-async def owned_scopes(session: AsyncSession, person_id: uuid.UUID) -> OwnedScopes:
-    """Areas/programs/projects the person leads or owns, cascaded downward."""
+async def directly_owned_scopes(
+    session: AsyncSession, person_id: uuid.UUID
+) -> OwnedScopes:
+    """Areas/programs/projects the person leads or owns *directly* (no cascade).
+
+    Used for the actionable-work queue (triage of unassigned work at its tightest
+    scope), where a broader owner must not shadow a more-specific one.
+    """
     area_ids = set(
         (
             await session.execute(
@@ -63,14 +69,6 @@ async def owned_scopes(session: AsyncSession, person_id: uuid.UUID) -> OwnedScop
             )
         ).scalars()
     )
-    if area_ids:  # programs inside an owned area
-        program_ids |= set(
-            (
-                await session.execute(
-                    select(Program.id).where(Program.area_id.in_(area_ids))
-                )
-            ).scalars()
-        )
     project_ids = set(
         (
             await session.execute(
@@ -81,6 +79,23 @@ async def owned_scopes(session: AsyncSession, person_id: uuid.UUID) -> OwnedScop
             )
         ).scalars()
     )
+    return OwnedScopes(area_ids, program_ids, project_ids)
+
+
+async def owned_scopes(session: AsyncSession, person_id: uuid.UUID) -> OwnedScopes:
+    """Areas/programs/projects the person owns, cascaded downward (write authority)."""
+    direct = await directly_owned_scopes(session, person_id)
+    area_ids = set(direct.area_ids)
+    program_ids = set(direct.program_ids)
+    if area_ids:  # programs inside an owned area
+        program_ids |= set(
+            (
+                await session.execute(
+                    select(Program.id).where(Program.area_id.in_(area_ids))
+                )
+            ).scalars()
+        )
+    project_ids = set(direct.project_ids)
     if area_ids or program_ids:  # projects inside an owned area/program
         clause = []
         if area_ids:
