@@ -214,6 +214,9 @@ async def my_tasks(
     if triage:
         actionable.append(and_(Task.assignee_id.is_(None), or_(*triage)))
     stmt = select(Task).where(or_(*actionable))
+    # 'waiting' means blocked on a Request/decision — not actionable until unblocked
+    # (resolving the blocking Request flips it back to in_progress, re-queueing it).
+    stmt = stmt.where(Task.status != "waiting")
     if not include_closed:
         stmt = stmt.where(Task.status.notin_(_CLOSED_STATUSES))
     stmt = stmt.order_by(Task.due_date.asc().nulls_last())

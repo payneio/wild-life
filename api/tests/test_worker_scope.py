@@ -185,7 +185,21 @@ def test_actionable_queue(
             title=f"{MARK} unassigned-proj",
             project_id=proj["id"],
         )
-        m["tasks"] += [t_coder["id"], t_planner["id"], t_area["id"], t_proj["id"]]
+        t_wait = _post(
+            client,
+            owner,
+            "/tasks",
+            title=f"{MARK} blocked",
+            assignee_id=planner["id"],
+            status="waiting",
+        )
+        m["tasks"] += [
+            t_coder["id"],
+            t_planner["id"],
+            t_area["id"],
+            t_proj["id"],
+            t_wait["id"],
+        ]
 
         ptok = _post(
             client,
@@ -218,6 +232,8 @@ def test_actionable_queue(
         # unassigned triage routes to the tightest direct owner
         assert t_area["id"] in planner_q and t_area["id"] not in coder_q
         assert t_proj["id"] in coder_q and t_proj["id"] not in planner_q
+        # a 'waiting' (blocked) task is not actionable, even though assigned to me
+        assert t_wait["id"] not in planner_q
 
         # authority unchanged: the Planner may still write the Coder's task (oversight)
         r = client.patch(
