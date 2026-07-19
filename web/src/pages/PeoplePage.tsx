@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { DetailDrawer } from "@/components/DetailDrawer"
 import {
   Cake,
@@ -8,6 +8,7 @@ import {
   GitMerge,
   Globe,
   ImageUp,
+  KeyRound,
   Mail,
   MapPin,
   Pencil,
@@ -393,6 +394,104 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
+interface AdminToken {
+  id: string
+  label: string
+  person_id: string | null
+  role: string
+  revoked_at: string | null
+}
+interface AdminTokenCreated extends AdminToken {
+  token: string
+}
+
+const MCP_WORKER_URL = `${import.meta.env.VITE_API_BASE_URL ?? "http://localhost:9005"}/mcp-worker`
+
+/** Mint / reveal / revoke the worker credentials that let an assistant act as
+ * this person (read-all + scoped writes) through /mcp-worker. */
+function AssistantAccessSection({ person }: { person: Person }) {
+  const qc = useQueryClient()
+  const { data: tokens } = useQuery<AdminToken[]>({
+    queryKey: ["admin-tokens"],
+    queryFn: () => apiClient.get<AdminToken[]>("/admin/tokens"),
+  })
+  const [minted, setMinted] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const mine = (tokens ?? []).filter((t) => t.person_id === person.id && !t.revoked_at)
+
+  const mint = async () => {
+    setBusy(true)
+    try {
+      const created = await apiClient.post<AdminTokenCreated>("/admin/tokens", {
+        label: `${person.name} (assistant)`,
+        person_id: person.id,
+        role: "worker",
+      })
+      setMinted(created.token)
+      void qc.invalidateQueries({ queryKey: ["admin-tokens"] })
+    } finally {
+      setBusy(false)
+    }
+  }
+  const revoke = async (id: string) => {
+    await apiClient.post(`/admin/tokens/${id}/revoke`)
+    void qc.invalidateQueries({ queryKey: ["admin-tokens"] })
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs text-slate-500">
+          Worker credentials that act as this person — read-all plus writes scoped to
+          their tasks and owned areas/projects.
+        </p>
+        <Button size="sm" onClick={mint} disabled={busy}>
+          <KeyRound size={14} /> Mint token
+        </Button>
+      </div>
+
+      {minted && (
+        <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-xs">
+          <div className="mb-1 font-medium text-amber-800">
+            Copy this token now — it won't be shown again.
+          </div>
+          <div className="flex items-center gap-2">
+            <code className="min-w-0 flex-1 break-all rounded bg-white px-2 py-1 font-mono text-[11px] text-slate-700">
+              {minted}
+            </code>
+            <CopyButton text={minted} />
+          </div>
+          <div className="mt-2 text-amber-700">
+            Connect at <code className="font-mono">{MCP_WORKER_URL}</code>
+          </div>
+        </div>
+      )}
+
+      {mine.length > 0 ? (
+        <ul className="space-y-1">
+          {mine.map((t) => (
+            <li
+              key={t.id}
+              className="flex items-center justify-between rounded border border-slate-100 px-2 py-1 text-xs"
+            >
+              <span className="truncate text-slate-600">{t.label}</span>
+              <button
+                className="ml-2 shrink-0 font-medium text-slate-400 hover:text-rose-600"
+                title="Revoke"
+                onClick={() => revoke(t.id)}
+              >
+                Revoke
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-xs text-slate-400">No active credentials.</p>
+      )}
+    </div>
+  )
+}
+
 // --- detail pane ------------------------------------------------------------
 function PersonDetail({
   person,
@@ -551,6 +650,10 @@ function PersonDetail({
 
       <Section title="Related">
         <RelatedSection personId={person.id} />
+      </Section>
+
+      <Section title="Assistant access">
+        <AssistantAccessSection person={person} />
       </Section>
 
       <Backlinks type="person" id={person.id} />
