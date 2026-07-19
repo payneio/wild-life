@@ -17,6 +17,7 @@ import {
   Home,
   Hourglass,
   Layers,
+  Bot,
   LayoutGrid,
   LineChart,
   ListChecks,
@@ -66,6 +67,7 @@ const PLAN: Item[] = [
   { to: "/routines", label: "Routines", icon: Repeat },
   { to: "/goals", label: "Goals", icon: Target },
   { to: "/delegations", label: "Delegations", icon: Send },
+  { to: "/agents", label: "Agents", icon: Bot },
   { to: "/requests", label: "Requests", icon: Hourglass },
   { to: "/reviews", label: "Review", icon: ClipboardCheck },
 ]
