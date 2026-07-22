@@ -1,4 +1,4 @@
-"""Test fixtures for personal-api."""
+"""Test fixtures for wild-life-api."""
 
 from collections.abc import Generator
 from pathlib import Path
@@ -7,8 +7,8 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 
-from personal_api.config import settings
-from personal_api.main import app
+from wild_life.config import settings
+from wild_life.main import app
 
 
 @pytest.fixture

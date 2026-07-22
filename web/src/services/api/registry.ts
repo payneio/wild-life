@@ -144,7 +144,7 @@ export const REGISTRY: Record<string, EntityDef> = {
   metric: { key: "metric", label: "Metric", crud: metrics, fields: METRIC_FIELDS, title: (e) => e.name, entityType: "metric", titleField: "name", quickCreate: true, extra: MetricExtra, relations: [
     { mode: "fk-children", label: "Goals measured by this", type: "goal", fkField: "metric_id" },
   ] },
-  routine: { key: "routine", label: "Routine", crud: routines, fields: ROUTINE_FIELDS, title: (e) => e.name, entityType: "routine", titleField: "name", quickCreate: true, extra: RoutineDetail },
+  routine: { key: "routine", label: "Routine", crud: routines, fields: ROUTINE_FIELDS, title: (e) => e.activity ?? e.name ?? "Routine", entityType: "routine", titleField: "activity", quickCreate: true, extra: RoutineDetail },
   program: { key: "program", label: "Program", crud: programs, fields: PROGRAM_FIELDS, title: (e) => e.name, entityType: "program", titleField: "name", quickCreate: true, extra: ProgramDetail, relations: [
     { mode: "fk-children", label: "Projects", type: "project", fkField: "program_id", inherit: ["area_id"] },
     { mode: "fk-children", label: "Metrics", type: "metric", fkField: "program_id", inherit: ["area_id"] },
@@ -166,8 +166,14 @@ export const REGISTRY: Record<string, EntityDef> = {
   decision: { key: "decision", label: "Decision", crud: decisions, fields: DECISION_FIELDS, title: (e) => e.question, entityType: "decision", titleField: "question", quickCreate: true, extra: DecisionDetail, detailHide: ["decision"] },
   resource: { key: "resource", label: "Resource", crud: resources, fields: RESOURCE_FIELDS, title: (e) => e.title, entityType: "resource", titleField: "title", quickCreate: true, extra: ResourceDetail, detailHide: ["url"] },
   tag: { key: "tag", label: "Tag", crud: tags, fields: TAG_FIELDS, title: (e) => e.name, titleField: "name", quickCreate: true, extra: TagDetail, detailHide: ["color"] },
-  condition: { key: "condition", label: "Condition", crud: conditions, fields: CONDITION_FIELDS, title: (e) => e.name, entityType: "condition", titleField: "name", quickCreate: true, extra: ConditionDetail },
-  medication: { key: "medication", label: "Medication", crud: medications, fields: MEDICATION_FIELDS, title: (e) => e.name, entityType: "medication", titleField: "name", quickCreate: true, extra: MedicationDetail, detailHide: ["strength", "dose"] },
+  condition: { key: "condition", label: "Condition", crud: conditions, fields: CONDITION_FIELDS, title: (e) => e.name, entityType: "condition", titleField: "name", quickCreate: true, extra: ConditionDetail, relations: [
+    { mode: "fk-children", label: "Medications", type: "medication", fkField: "condition_id" },
+    { mode: "fk-children", label: "Protocols", type: "protocol", fkField: "condition_id" },
+    { mode: "fk-children", label: "Metrics (labs)", type: "metric", fkField: "condition_id" },
+    { mode: "fk-children", label: "Goals", type: "goal", fkField: "condition_id" },
+    { mode: "fk-children", label: "Health events", type: "health_event", fkField: "condition_id" },
+  ] },
+  medication: { key: "medication", label: "Medication", crud: medications, fields: MEDICATION_FIELDS, title: (e) => e.name, entityType: "medication", titleField: "name", quickCreate: true, extra: MedicationDetail },
   healthEvent: { key: "healthEvent", label: "Health event", crud: healthEvents, fields: HEALTH_EVENT_FIELDS, title: (e) => e.title, entityType: "health_event", titleField: "title", extra: HealthEventDetail, detailHide: ["follow_up", "follow_up_date"] },
   insurancePlan: { key: "insurancePlan", label: "Insurance plan", crud: insurancePlans, fields: INSURANCE_FIELDS, title: (e) => e.name, entityType: "insurance_plan", titleField: "name", quickCreate: true, extra: InsuranceDetail, detailHide: ["member_id", "group_number", "rx_bin", "rx_pcn", "rx_group", "network", "phone"] },
   allergy: { key: "allergy", label: "Allergy", crud: allergies, fields: ALLERGY_FIELDS, title: (e) => e.substance, entityType: "allergy", titleField: "substance", quickCreate: true, extra: AllergyDetail, detailHide: ["severity", "reaction"] },

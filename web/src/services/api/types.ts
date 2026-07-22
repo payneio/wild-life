@@ -1,4 +1,4 @@
-// Types mirroring personal-api schemas (source of truth: personal-api/src/personal_api/schemas).
+// Types mirroring wild-life-api schemas (source of truth: api/src/wild_life/schemas).
 
 import type { CalendarDay, Instant, WallTime } from "@/lib/date"
 
@@ -204,6 +204,8 @@ export interface Task extends Entity {
   acceptance_required: boolean
   notes: string | null
   completed_at: Instant | null
+  claimed_by_id: ID | null
+  claimed_at: Instant | null
 }
 
 export interface ContactMethod {
@@ -275,7 +277,17 @@ export interface Affiliation extends Entity {
 }
 
 export interface Routine extends Entity {
-  name: string
+  name: string | null // legacy label; prefer activity / the linked medication
+  activity: string | null // non-medication step, e.g. "walk after dinner"
+  medication_id: ID | null
+  protocol_id: ID | null // belongs to a protocol bundle
+  amount: number | null // dose quantity (number of the med's form units)
+  timing: string[] // times of day
+  days_of_week: string[] // empty = every day
+  interval_days: number // every-N-days; 2 = every other day
+  as_needed: boolean // PRN
+  trigger: string | null
+  sort_order: number
   area_id: ID | null
   program_id: ID | null
   frequency: string | null
@@ -292,6 +304,7 @@ export interface Routine extends Entity {
 export interface RoutineInstance extends Entity {
   routine_id: ID
   scheduled_date: CalendarDay
+  slot: string
   status: string
   completed_at: Instant | null
   notes: string | null
@@ -505,20 +518,12 @@ export interface Condition extends Entity {
   notes: string | null
 }
 
-export interface DoseSlot {
-  slot: string
-  amount: string | null
-}
-
 export interface Medication extends Entity {
   name: string
   brand: string | null
-  generic_name: string | null
   med_type: MedType
   form: string | null
   strength: string | null
-  dose: string | null
-  schedule: DoseSlot[]
   reason: string | null
   condition_id: ID | null
   prescriber_id: ID | null
@@ -530,11 +535,19 @@ export interface Medication extends Entity {
   notes: string | null
 }
 
-export interface MedicationDose extends Entity {
-  medication_id: ID
-  dose_date: CalendarDay
+
+/** One routine due today (med dose, supplement, activity, or habit), derived
+ * server-side from the active Routines. */
+export interface RegimenEntry {
+  routine_id: ID
+  label: string
+  kind: "medication" | "supplement" | "activity" | "routine"
   slot: string
-  taken_at: Instant | null
+  medication_id: ID | null
+  amount: number | null
+  form: string | null
+  source_protocol_id: ID | null
+  source_protocol_name: string | null
 }
 
 export interface Protocol extends Entity {
@@ -549,18 +562,6 @@ export interface Protocol extends Entity {
   duration: string | null
   condition_id: ID | null
   provider_id: ID | null
-  notes: string | null
-}
-
-export interface ProtocolItem extends Entity {
-  protocol_id: ID
-  medication_id: ID | null
-  substance: string | null
-  amount: string | null
-  timing: string[]
-  frequency: string | null
-  trigger: string | null
-  sort_order: number
   notes: string | null
 }
 
@@ -629,4 +630,8 @@ export interface ReviewDashboard {
   waiting_without_blocker: DashRow[]
   delegated_without_owner: DashRow[]
   completed_with_open_tasks: DashRow[]
+  conditions_without_protocol: DashRow[]
+  metrics_overdue: DashRow[]
+  goals_overdue: DashRow[]
+  low_adherence: DashRow[]
 }

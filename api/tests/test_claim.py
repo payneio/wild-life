@@ -3,7 +3,7 @@
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 
-from personal_api.config import settings
+from wild_life.config import settings
 
 MARK = "ZZ-claim-test"
 
@@ -62,7 +62,7 @@ def test_task_claim(client: TestClient, auth_headers: dict, require_db: None) ->
         client.patch(f"/tasks/{tid}", headers=wh, json={"status": "in_progress"})
         assert client.post(f"/tasks/{tid}/claim", headers=wh).status_code == 200
         _sql(
-            "update personal_api.tasks set claimed_at = now() - interval '30 min'"
+            "update wild_life.tasks set claimed_at = now() - interval '30 min'"
             " where id = :id",
             id=tid,
         )
@@ -80,6 +80,6 @@ def test_task_claim(client: TestClient, auth_headers: dict, require_db: None) ->
             client.delete(f"/people/{pid}", headers=owner)
         if made["tok"]:
             _sql(
-                "delete from personal_api.api_tokens where id = any(:ids)",
+                "delete from wild_life.api_tokens where id = any(:ids)",
                 ids=made["tok"],
             )

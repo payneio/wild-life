@@ -1,7 +1,7 @@
 {
-  "name": "Personal",
-  "short_name": "Personal",
-  "description": "Personal life-management app",
+  "name": "Wild Life",
+  "short_name": "Wild Life",
+  "description": "Wild Life life-management app",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

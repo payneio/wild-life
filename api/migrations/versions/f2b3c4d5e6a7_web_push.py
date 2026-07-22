@@ -29,7 +29,7 @@ def upgrade() -> None:
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('endpoint', name='uq_push_endpoint'),
-        schema='personal_api',
+        schema='wild_life',
     )
     op.create_table(
         'sent_reminders',
@@ -39,21 +39,21 @@ def upgrade() -> None:
         sa.Column('id', sa.UUID(), server_default=sa.text('gen_random_uuid()'), nullable=False),
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-        sa.ForeignKeyConstraint(['event_id'], ['personal_api.events.id'], ondelete='CASCADE'),
+        sa.ForeignKeyConstraint(['event_id'], ['wild_life.events.id'], ondelete='CASCADE'),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('event_id', 'occurrence_start', 'lead_minutes', name='uq_sent_reminder'),
-        schema='personal_api',
+        schema='wild_life',
     )
     op.create_index(
-        'ix_personal_api_sent_reminders_event_id',
+        'ix_wild_life_sent_reminders_event_id',
         'sent_reminders',
         ['event_id'],
         unique=False,
-        schema='personal_api',
+        schema='wild_life',
     )
 
 
 def downgrade() -> None:
-    op.drop_index('ix_personal_api_sent_reminders_event_id', table_name='sent_reminders', schema='personal_api')
-    op.drop_table('sent_reminders', schema='personal_api')
-    op.drop_table('push_subscriptions', schema='personal_api')
+    op.drop_index('ix_wild_life_sent_reminders_event_id', table_name='sent_reminders', schema='wild_life')
+    op.drop_table('sent_reminders', schema='wild_life')
+    op.drop_table('push_subscriptions', schema='wild_life')

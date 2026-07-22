@@ -1,6 +1,6 @@
 // Web Push opt-in: register the service worker, subscribe via the browser's
 // PushManager using the server's VAPID key, and persist the subscription in
-// personal-api. Mirrors the bearer-auth apiClient for all API calls.
+// wild-life-api. Mirrors the bearer-auth apiClient for all API calls.
 
 import { apiClient } from "@/services/api/client"
 

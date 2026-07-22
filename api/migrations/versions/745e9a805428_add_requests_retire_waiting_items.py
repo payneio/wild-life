@@ -53,41 +53,41 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
-            ["addressee_id"], ["personal_api.people.id"], ondelete="SET NULL"
+            ["addressee_id"], ["wild_life.people.id"], ondelete="SET NULL"
         ),
         sa.ForeignKeyConstraint(
-            ["requester_id"], ["personal_api.people.id"], ondelete="SET NULL"
+            ["requester_id"], ["wild_life.people.id"], ondelete="SET NULL"
         ),
         sa.PrimaryKeyConstraint("id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_requests_addressee_id"),
+        op.f("ix_wild_life_requests_addressee_id"),
         "requests",
         ["addressee_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_requests_follow_up_date"),
+        op.f("ix_wild_life_requests_follow_up_date"),
         "requests",
         ["follow_up_date"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_requests_requester_id"),
+        op.f("ix_wild_life_requests_requester_id"),
         "requests",
         ["requester_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
 
     # Migrate any existing waiting items into requests (kept id so soft-links stay
     # valid): person_owed -> addressee, from_org -> external_label, kind=deliverable.
     op.execute(
         sa.text("""
-        insert into personal_api.requests
+        insert into wild_life.requests
             (id, requester_id, addressee_id, external_label, kind, subject,
              entity_type, entity_id, needed_by, follow_up_date, status,
              last_communication, next_action, notes, created_at, updated_at)
@@ -97,7 +97,7 @@ def upgrade() -> None:
                     when status = 'cancelled' then 'cancelled'
                     else 'open' end,
                last_communication, next_action, notes, created_at, updated_at
-        from personal_api.waiting_items
+        from wild_life.waiting_items
     """)
     )
     # Repoint stored soft-links from the old type string to the new one.
@@ -112,17 +112,17 @@ def upgrade() -> None:
     ):
         op.execute(
             sa.text(
-                f"update personal_api.{tbl} set {col} = 'request' "
+                f"update wild_life.{tbl} set {col} = 'request' "
                 f"where {col} = 'waiting_item'"
             )
         )
 
     op.drop_index(
-        op.f("ix_personal_api_waiting_items_follow_up_date"),
+        op.f("ix_wild_life_waiting_items_follow_up_date"),
         table_name="waiting_items",
-        schema="personal_api",
+        schema="wild_life",
     )
-    op.drop_table("waiting_items", schema="personal_api")
+    op.drop_table("waiting_items", schema="wild_life")
 
 
 def downgrade() -> None:
@@ -169,34 +169,34 @@ def downgrade() -> None:
         ),
         sa.ForeignKeyConstraint(
             ["person_id"],
-            ["personal_api.people.id"],
+            ["wild_life.people.id"],
             name=op.f("waiting_items_person_id_fkey"),
             ondelete="SET NULL",
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("waiting_items_pkey")),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_waiting_items_follow_up_date"),
+        op.f("ix_wild_life_waiting_items_follow_up_date"),
         "waiting_items",
         ["follow_up_date"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.drop_index(
-        op.f("ix_personal_api_requests_requester_id"),
+        op.f("ix_wild_life_requests_requester_id"),
         table_name="requests",
-        schema="personal_api",
+        schema="wild_life",
     )
     op.drop_index(
-        op.f("ix_personal_api_requests_follow_up_date"),
+        op.f("ix_wild_life_requests_follow_up_date"),
         table_name="requests",
-        schema="personal_api",
+        schema="wild_life",
     )
     op.drop_index(
-        op.f("ix_personal_api_requests_addressee_id"),
+        op.f("ix_wild_life_requests_addressee_id"),
         table_name="requests",
-        schema="personal_api",
+        schema="wild_life",
     )
-    op.drop_table("requests", schema="personal_api")
+    op.drop_table("requests", schema="wild_life")
     # ### end Alembic commands ###

@@ -31,7 +31,7 @@ def upgrade() -> None:
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.PrimaryKeyConstraint('id'),
-    schema='personal_api'
+    schema='wild_life'
     )
     op.create_table('conditions',
     sa.Column('name', sa.Text(), nullable=False),
@@ -46,9 +46,9 @@ def upgrade() -> None:
     sa.Column('id', sa.UUID(), server_default=sa.text('gen_random_uuid()'), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['diagnosed_by_id'], ['personal_api.people.id'], ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['diagnosed_by_id'], ['wild_life.people.id'], ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id'),
-    schema='personal_api'
+    schema='wild_life'
     )
     op.create_table('insurance_plans',
     sa.Column('name', sa.Text(), nullable=False),
@@ -66,11 +66,11 @@ def upgrade() -> None:
     sa.Column('id', sa.UUID(), server_default=sa.text('gen_random_uuid()'), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['organization_id'], ['personal_api.organizations.id'], ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['organization_id'], ['wild_life.organizations.id'], ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id'),
-    schema='personal_api'
+    schema='wild_life'
     )
-    op.create_index(op.f('ix_personal_api_insurance_plans_organization_id'), 'insurance_plans', ['organization_id'], unique=False, schema='personal_api')
+    op.create_index(op.f('ix_wild_life_insurance_plans_organization_id'), 'insurance_plans', ['organization_id'], unique=False, schema='wild_life')
     op.create_table('health_events',
     sa.Column('occurred_on', sa.Date(), nullable=False),
     sa.Column('event_type', sa.Text(), server_default='appointment', nullable=False),
@@ -89,15 +89,15 @@ def upgrade() -> None:
     sa.Column('id', sa.UUID(), server_default=sa.text('gen_random_uuid()'), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['condition_id'], ['personal_api.conditions.id'], ondelete='SET NULL'),
-    sa.ForeignKeyConstraint(['organization_id'], ['personal_api.organizations.id'], ondelete='SET NULL'),
-    sa.ForeignKeyConstraint(['provider_id'], ['personal_api.people.id'], ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['condition_id'], ['wild_life.conditions.id'], ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['organization_id'], ['wild_life.organizations.id'], ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['provider_id'], ['wild_life.people.id'], ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id'),
-    schema='personal_api'
+    schema='wild_life'
     )
-    op.create_index(op.f('ix_personal_api_health_events_condition_id'), 'health_events', ['condition_id'], unique=False, schema='personal_api')
-    op.create_index(op.f('ix_personal_api_health_events_occurred_on'), 'health_events', ['occurred_on'], unique=False, schema='personal_api')
-    op.create_index(op.f('ix_personal_api_health_events_organization_id'), 'health_events', ['organization_id'], unique=False, schema='personal_api')
+    op.create_index(op.f('ix_wild_life_health_events_condition_id'), 'health_events', ['condition_id'], unique=False, schema='wild_life')
+    op.create_index(op.f('ix_wild_life_health_events_occurred_on'), 'health_events', ['occurred_on'], unique=False, schema='wild_life')
+    op.create_index(op.f('ix_wild_life_health_events_organization_id'), 'health_events', ['organization_id'], unique=False, schema='wild_life')
     op.create_table('medications',
     sa.Column('name', sa.Text(), nullable=False),
     sa.Column('brand', sa.Text(), nullable=True),
@@ -119,14 +119,14 @@ def upgrade() -> None:
     sa.Column('id', sa.UUID(), server_default=sa.text('gen_random_uuid()'), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['condition_id'], ['personal_api.conditions.id'], ondelete='SET NULL'),
-    sa.ForeignKeyConstraint(['pharmacy_id'], ['personal_api.organizations.id'], ondelete='SET NULL'),
-    sa.ForeignKeyConstraint(['prescriber_id'], ['personal_api.people.id'], ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['condition_id'], ['wild_life.conditions.id'], ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['pharmacy_id'], ['wild_life.organizations.id'], ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['prescriber_id'], ['wild_life.people.id'], ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id'),
-    schema='personal_api'
+    schema='wild_life'
     )
-    op.create_index(op.f('ix_personal_api_medications_condition_id'), 'medications', ['condition_id'], unique=False, schema='personal_api')
-    op.create_index(op.f('ix_personal_api_medications_pharmacy_id'), 'medications', ['pharmacy_id'], unique=False, schema='personal_api')
+    op.create_index(op.f('ix_wild_life_medications_condition_id'), 'medications', ['condition_id'], unique=False, schema='wild_life')
+    op.create_index(op.f('ix_wild_life_medications_pharmacy_id'), 'medications', ['pharmacy_id'], unique=False, schema='wild_life')
     op.create_table('protocols',
     sa.Column('name', sa.Text(), nullable=False),
     sa.Column('category', sa.Text(), nullable=True),
@@ -141,12 +141,12 @@ def upgrade() -> None:
     sa.Column('id', sa.UUID(), server_default=sa.text('gen_random_uuid()'), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['condition_id'], ['personal_api.conditions.id'], ondelete='SET NULL'),
-    sa.ForeignKeyConstraint(['provider_id'], ['personal_api.people.id'], ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['condition_id'], ['wild_life.conditions.id'], ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['provider_id'], ['wild_life.people.id'], ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id'),
-    schema='personal_api'
+    schema='wild_life'
     )
-    op.create_index(op.f('ix_personal_api_protocols_condition_id'), 'protocols', ['condition_id'], unique=False, schema='personal_api')
+    op.create_index(op.f('ix_wild_life_protocols_condition_id'), 'protocols', ['condition_id'], unique=False, schema='wild_life')
     op.create_table('protocol_items',
     sa.Column('protocol_id', sa.UUID(), nullable=False),
     sa.Column('medication_id', sa.UUID(), nullable=True),
@@ -160,36 +160,36 @@ def upgrade() -> None:
     sa.Column('id', sa.UUID(), server_default=sa.text('gen_random_uuid()'), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['medication_id'], ['personal_api.medications.id'], ondelete='SET NULL'),
-    sa.ForeignKeyConstraint(['protocol_id'], ['personal_api.protocols.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['medication_id'], ['wild_life.medications.id'], ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['protocol_id'], ['wild_life.protocols.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
-    schema='personal_api'
+    schema='wild_life'
     )
-    op.create_index(op.f('ix_personal_api_protocol_items_protocol_id'), 'protocol_items', ['protocol_id'], unique=False, schema='personal_api')
-    op.add_column('people', sa.Column('specialty', sa.Text(), nullable=True), schema='personal_api')
-    op.add_column('people', sa.Column('patient_id', sa.Text(), nullable=True), schema='personal_api')
-    op.add_column('people', sa.Column('portal_url', sa.Text(), nullable=True), schema='personal_api')
+    op.create_index(op.f('ix_wild_life_protocol_items_protocol_id'), 'protocol_items', ['protocol_id'], unique=False, schema='wild_life')
+    op.add_column('people', sa.Column('specialty', sa.Text(), nullable=True), schema='wild_life')
+    op.add_column('people', sa.Column('patient_id', sa.Text(), nullable=True), schema='wild_life')
+    op.add_column('people', sa.Column('portal_url', sa.Text(), nullable=True), schema='wild_life')
     # ### end Alembic commands ###
 
 
 def downgrade() -> None:
     # ### commands auto generated by Alembic - please adjust! ###
-    op.drop_column('people', 'portal_url', schema='personal_api')
-    op.drop_column('people', 'patient_id', schema='personal_api')
-    op.drop_column('people', 'specialty', schema='personal_api')
-    op.drop_index(op.f('ix_personal_api_protocol_items_protocol_id'), table_name='protocol_items', schema='personal_api')
-    op.drop_table('protocol_items', schema='personal_api')
-    op.drop_index(op.f('ix_personal_api_protocols_condition_id'), table_name='protocols', schema='personal_api')
-    op.drop_table('protocols', schema='personal_api')
-    op.drop_index(op.f('ix_personal_api_medications_pharmacy_id'), table_name='medications', schema='personal_api')
-    op.drop_index(op.f('ix_personal_api_medications_condition_id'), table_name='medications', schema='personal_api')
-    op.drop_table('medications', schema='personal_api')
-    op.drop_index(op.f('ix_personal_api_health_events_organization_id'), table_name='health_events', schema='personal_api')
-    op.drop_index(op.f('ix_personal_api_health_events_occurred_on'), table_name='health_events', schema='personal_api')
-    op.drop_index(op.f('ix_personal_api_health_events_condition_id'), table_name='health_events', schema='personal_api')
-    op.drop_table('health_events', schema='personal_api')
-    op.drop_index(op.f('ix_personal_api_insurance_plans_organization_id'), table_name='insurance_plans', schema='personal_api')
-    op.drop_table('insurance_plans', schema='personal_api')
-    op.drop_table('conditions', schema='personal_api')
-    op.drop_table('allergies', schema='personal_api')
+    op.drop_column('people', 'portal_url', schema='wild_life')
+    op.drop_column('people', 'patient_id', schema='wild_life')
+    op.drop_column('people', 'specialty', schema='wild_life')
+    op.drop_index(op.f('ix_wild_life_protocol_items_protocol_id'), table_name='protocol_items', schema='wild_life')
+    op.drop_table('protocol_items', schema='wild_life')
+    op.drop_index(op.f('ix_wild_life_protocols_condition_id'), table_name='protocols', schema='wild_life')
+    op.drop_table('protocols', schema='wild_life')
+    op.drop_index(op.f('ix_wild_life_medications_pharmacy_id'), table_name='medications', schema='wild_life')
+    op.drop_index(op.f('ix_wild_life_medications_condition_id'), table_name='medications', schema='wild_life')
+    op.drop_table('medications', schema='wild_life')
+    op.drop_index(op.f('ix_wild_life_health_events_organization_id'), table_name='health_events', schema='wild_life')
+    op.drop_index(op.f('ix_wild_life_health_events_occurred_on'), table_name='health_events', schema='wild_life')
+    op.drop_index(op.f('ix_wild_life_health_events_condition_id'), table_name='health_events', schema='wild_life')
+    op.drop_table('health_events', schema='wild_life')
+    op.drop_index(op.f('ix_wild_life_insurance_plans_organization_id'), table_name='insurance_plans', schema='wild_life')
+    op.drop_table('insurance_plans', schema='wild_life')
+    op.drop_table('conditions', schema='wild_life')
+    op.drop_table('allergies', schema='wild_life')
     # ### end Alembic commands ###

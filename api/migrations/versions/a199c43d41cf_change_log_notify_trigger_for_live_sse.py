@@ -23,10 +23,10 @@ def upgrade() -> None:
     # change on the shared live channel, atomically on commit.
     op.execute(
         """
-        CREATE OR REPLACE FUNCTION personal_api.notify_change() RETURNS trigger AS $$
+        CREATE OR REPLACE FUNCTION wild_life.notify_change() RETURNS trigger AS $$
         BEGIN
           PERFORM pg_notify(
-            'personal_api_events',
+            'wild_life_events',
             json_build_object(
               'kind', 'change',
               'entity_type', NEW.entity_type,
@@ -42,14 +42,14 @@ def upgrade() -> None:
     op.execute(
         """
         CREATE TRIGGER change_log_notify
-        AFTER INSERT ON personal_api.change_log
-        FOR EACH ROW EXECUTE FUNCTION personal_api.notify_change();
+        AFTER INSERT ON wild_life.change_log
+        FOR EACH ROW EXECUTE FUNCTION wild_life.notify_change();
         """
     )
 
 
 def downgrade() -> None:
     op.execute(
-        "DROP TRIGGER IF EXISTS change_log_notify ON personal_api.change_log;"
+        "DROP TRIGGER IF EXISTS change_log_notify ON wild_life.change_log;"
     )
-    op.execute("DROP FUNCTION IF EXISTS personal_api.notify_change();")
+    op.execute("DROP FUNCTION IF EXISTS wild_life.notify_change();")

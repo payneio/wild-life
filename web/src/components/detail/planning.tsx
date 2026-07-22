@@ -274,7 +274,8 @@ export function GoalDetail({ entity }: { entity: Entity }) {
   const unlink = useUnlinkGoalProject()
   const [pickOpen, setPickOpen] = useState(false)
   const addRef = useRef<HTMLButtonElement>(null)
-  const pct = goal.progress ?? progress?.from_projects ?? 0
+  // Match the list: honor manual → metric → projects (the endpoint's `overall`).
+  const pct = progress?.overall ?? goal.progress ?? 0
   const targetD = daysFromToday(goal.target_date)
 
   return (

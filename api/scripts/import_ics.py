@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""One-time (idempotent) import of an iCalendar (.ics) export into personal-api.
+"""One-time (idempotent) import of an iCalendar (.ics) export into wild-life-api.
 
 Built for migrating off Proton Calendar: export the calendar from
 calendar.proton.me (Settings -> Import/export -> Download ICS) and feed the file
-here. Each VEVENT becomes a personal-api Event, keyed by its ICS ``UID`` so the
+here. Each VEVENT becomes a wild-life-api Event, keyed by its ICS ``UID`` so the
 import is idempotent and safe to re-run.
 
 Usage
@@ -146,7 +146,7 @@ def get_token(explicit: str | None) -> str:
     if explicit:
         return explicit
     out = subprocess.run(
-        ["castle", "secret", "get", "PERSONAL_API_TOKEN"],
+        ["castle", "secret", "get", "WILD_LIFE_TOKEN"],
         capture_output=True,
         text=True,
     )
@@ -156,7 +156,7 @@ def get_token(explicit: str | None) -> str:
 
 
 def load_existing(http: httpx.Client) -> dict[str, dict[str, Any]]:
-    """Index existing personal-api events by external_ref (UID) for dedup.
+    """Index existing wild-life-api events by external_ref (UID) for dedup.
 
     Loads the whole collection once; manually-created events (external_ref null)
     are simply skipped, never matched.

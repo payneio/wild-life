@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react"
 
-const TOKEN_KEY = "personal_api_token"
+const TOKEN_KEY = "wild_life_token"
 
 export function getStoredToken(): string | null {
   return localStorage.getItem(TOKEN_KEY)

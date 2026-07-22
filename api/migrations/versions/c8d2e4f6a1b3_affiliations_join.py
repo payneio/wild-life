@@ -19,17 +19,17 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     # Drop the single-org FK — a person can belong to many organizations.
     op.drop_constraint(
-        op.f("fk_personal_api_people_organization_id_organizations"),
+        op.f("fk_wild_life_people_organization_id_organizations"),
         "people",
-        schema="personal_api",
+        schema="wild_life",
         type_="foreignkey",
     )
     op.drop_index(
-        op.f("ix_personal_api_people_organization_id"),
+        op.f("ix_wild_life_people_organization_id"),
         table_name="people",
-        schema="personal_api",
+        schema="wild_life",
     )
-    op.drop_column("people", "organization_id", schema="personal_api")
+    op.drop_column("people", "organization_id", schema="wild_life")
 
     op.create_table(
         "affiliations",
@@ -58,67 +58,67 @@ def upgrade() -> None:
         ),
         sa.ForeignKeyConstraint(
             ["person_id"],
-            ["personal_api.people.id"],
-            name=op.f("fk_personal_api_affiliations_person_id_people"),
+            ["wild_life.people.id"],
+            name=op.f("fk_wild_life_affiliations_person_id_people"),
             ondelete="CASCADE",
         ),
         sa.ForeignKeyConstraint(
             ["organization_id"],
-            ["personal_api.organizations.id"],
-            name=op.f("fk_personal_api_affiliations_organization_id_organizations"),
+            ["wild_life.organizations.id"],
+            name=op.f("fk_wild_life_affiliations_organization_id_organizations"),
             ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_affiliations_person_id"),
+        op.f("ix_wild_life_affiliations_person_id"),
         "affiliations",
         ["person_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_affiliations_organization_id"),
+        op.f("ix_wild_life_affiliations_organization_id"),
         "affiliations",
         ["organization_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
 
 
 def downgrade() -> None:
     op.drop_index(
-        op.f("ix_personal_api_affiliations_organization_id"),
+        op.f("ix_wild_life_affiliations_organization_id"),
         table_name="affiliations",
-        schema="personal_api",
+        schema="wild_life",
     )
     op.drop_index(
-        op.f("ix_personal_api_affiliations_person_id"),
+        op.f("ix_wild_life_affiliations_person_id"),
         table_name="affiliations",
-        schema="personal_api",
+        schema="wild_life",
     )
-    op.drop_table("affiliations", schema="personal_api")
+    op.drop_table("affiliations", schema="wild_life")
 
     op.add_column(
         "people",
         sa.Column("organization_id", sa.UUID(), nullable=True),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_people_organization_id"),
+        op.f("ix_wild_life_people_organization_id"),
         "people",
         ["organization_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_foreign_key(
-        op.f("fk_personal_api_people_organization_id_organizations"),
+        op.f("fk_wild_life_people_organization_id_organizations"),
         "people",
         "organizations",
         ["organization_id"],
         ["id"],
-        source_schema="personal_api",
-        referent_schema="personal_api",
+        source_schema="wild_life",
+        referent_schema="wild_life",
         ondelete="SET NULL",
     )

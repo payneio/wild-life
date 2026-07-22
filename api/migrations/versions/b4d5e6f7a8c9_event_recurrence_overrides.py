@@ -25,12 +25,12 @@ def upgrade() -> None:
     op.add_column(
         'events',
         sa.Column('recurrence_parent_id', sa.UUID(), nullable=True),
-        schema='personal_api',
+        schema='wild_life',
     )
     op.add_column(
         'events',
         sa.Column('recurrence_id', sa.DateTime(timezone=True), nullable=True),
-        schema='personal_api',
+        schema='wild_life',
     )
     op.create_foreign_key(
         'fk_events_recurrence_parent',
@@ -38,27 +38,27 @@ def upgrade() -> None:
         'events',
         ['recurrence_parent_id'],
         ['id'],
-        source_schema='personal_api',
-        referent_schema='personal_api',
+        source_schema='wild_life',
+        referent_schema='wild_life',
         ondelete='CASCADE',
     )
     op.create_index(
-        'ix_personal_api_events_recurrence_parent_id',
+        'ix_wild_life_events_recurrence_parent_id',
         'events',
         ['recurrence_parent_id'],
         unique=False,
-        schema='personal_api',
+        schema='wild_life',
     )
 
 
 def downgrade() -> None:
     op.drop_index(
-        'ix_personal_api_events_recurrence_parent_id',
+        'ix_wild_life_events_recurrence_parent_id',
         table_name='events',
-        schema='personal_api',
+        schema='wild_life',
     )
     op.drop_constraint(
-        'fk_events_recurrence_parent', 'events', schema='personal_api', type_='foreignkey'
+        'fk_events_recurrence_parent', 'events', schema='wild_life', type_='foreignkey'
     )
-    op.drop_column('events', 'recurrence_id', schema='personal_api')
-    op.drop_column('events', 'recurrence_parent_id', schema='personal_api')
+    op.drop_column('events', 'recurrence_id', schema='wild_life')
+    op.drop_column('events', 'recurrence_parent_id', schema='wild_life')

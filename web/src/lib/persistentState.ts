@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react"
 
-const PREFIX = "personal_view:"
+const PREFIX = "wild_life_view:"
 
 function read<T>(key: string, fallback: T): T {
   try {
@@ -13,7 +13,7 @@ function read<T>(key: string, fallback: T): T {
 }
 
 /**
- * `useState` that persists to localStorage under `personal_view:<key>`. Pass a
+ * `useState` that persists to localStorage under `wild_life_view:<key>`. Pass a
  * `null` key to disable persistence (behaves like plain `useState`) — this keeps
  * hook order stable for callers that only sometimes have a storage key.
  */

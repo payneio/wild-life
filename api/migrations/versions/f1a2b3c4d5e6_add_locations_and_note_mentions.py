@@ -41,7 +41,7 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.PrimaryKeyConstraint("id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_table(
         "note_mentions",
@@ -50,25 +50,25 @@ def upgrade() -> None:
         sa.Column("target_id", sa.UUID(), nullable=False),
         sa.ForeignKeyConstraint(
             ["note_id"],
-            ["personal_api.notes.id"],
-            name=op.f("fk_personal_api_note_mentions_note_id_notes"),
+            ["wild_life.notes.id"],
+            name=op.f("fk_wild_life_note_mentions_note_id_notes"),
             ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("note_id", "target_type", "target_id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
         "ix_note_mentions_target",
         "note_mentions",
         ["target_type", "target_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
 
 
 def downgrade() -> None:
     op.drop_index(
-        "ix_note_mentions_target", table_name="note_mentions", schema="personal_api"
+        "ix_note_mentions_target", table_name="note_mentions", schema="wild_life"
     )
-    op.drop_table("note_mentions", schema="personal_api")
-    op.drop_table("locations", schema="personal_api")
+    op.drop_table("note_mentions", schema="wild_life")
+    op.drop_table("locations", schema="wild_life")

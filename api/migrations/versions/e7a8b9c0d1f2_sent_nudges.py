@@ -27,9 +27,9 @@ def upgrade() -> None:
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('kind', 'nudge_date', name='uq_sent_nudge'),
-        schema='personal_api',
+        schema='wild_life',
     )
 
 
 def downgrade() -> None:
-    op.drop_table('sent_nudges', schema='personal_api')
+    op.drop_table('sent_nudges', schema='wild_life')

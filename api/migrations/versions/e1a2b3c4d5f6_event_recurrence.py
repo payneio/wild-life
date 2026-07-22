@@ -24,7 +24,7 @@ def upgrade() -> None:
     op.add_column(
         'events',
         sa.Column('recurrence', sa.Text(), nullable=True),
-        schema='personal_api',
+        schema='wild_life',
     )
     op.add_column(
         'events',
@@ -34,22 +34,22 @@ def upgrade() -> None:
             server_default='{}',
             nullable=True,
         ),
-        schema='personal_api',
+        schema='wild_life',
     )
     op.create_index(
-        'ix_personal_api_events_external_ref',
+        'ix_wild_life_events_external_ref',
         'events',
         ['external_ref'],
         unique=False,
-        schema='personal_api',
+        schema='wild_life',
     )
 
 
 def downgrade() -> None:
     op.drop_index(
-        'ix_personal_api_events_external_ref',
+        'ix_wild_life_events_external_ref',
         table_name='events',
-        schema='personal_api',
+        schema='wild_life',
     )
-    op.drop_column('events', 'recurrence_exdates', schema='personal_api')
-    op.drop_column('events', 'recurrence', schema='personal_api')
+    op.drop_column('events', 'recurrence_exdates', schema='wild_life')
+    op.drop_column('events', 'recurrence', schema='wild_life')

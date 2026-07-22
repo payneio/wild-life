@@ -1,4 +1,4 @@
-// Service worker for Personal — Web Push reminders only (no offline caching).
+// Service worker for Wild Life — Web Push reminders only (no offline caching).
 //
 // The backend sends a JSON push payload; we surface it as a notification. When
 // a window is focused we hand it to the page instead (in-app toast) so an open

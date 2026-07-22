@@ -1,147 +1,117 @@
-import { useQueryClient } from "@tanstack/react-query"
 import { Check } from "lucide-react"
+import { Link } from "react-router-dom"
 import { Card } from "@/components/ui/primitives"
-import { apiClient } from "@/services/api/client"
 import {
-  medicationDoses,
-  medications,
   routineInstances,
-  routines,
+  useCompleteRoutine,
+  useRegimen,
+  useUncompleteRoutine,
 } from "@/services/api/hooks"
 import { cn } from "@/lib/utils"
 import { ymd } from "@/lib/format"
+import { slotRank } from "@/lib/slots"
+import type { RegimenEntry } from "@/services/api/types"
 
-const SLOT_ORDER = [
-  "wake",
-  "breakfast",
-  "morning",
-  "lunch",
-  "afternoon",
-  "dinner",
-  "evening",
-  "bedtime",
-]
-const slotRank = (s: string) => {
-  const i = SLOT_ORDER.indexOf(s)
-  return i === -1 ? 99 : i
+const rowLabel = (e: RegimenEntry): string =>
+  e.amount != null ? `${e.label} · ${e.amount}${e.form ? ` ${e.form}` : ""}` : e.label
+
+const rowSub = (e: RegimenEntry): string | undefined => {
+  const parts: string[] = []
+  if (e.slot) parts.push(`@ ${e.slot}`)
+  if (e.source_protocol_name) parts.push(e.source_protocol_name)
+  return parts.join(" · ") || undefined
 }
-
 
 function CheckRow({
   label,
   sub,
   done,
+  to,
   onToggle,
 }: {
   label: string
   sub?: string
   done: boolean
+  to: string
   onToggle: () => void
 }) {
+  // The checkbox toggles completion; the label opens the routine's detail.
   return (
-    <button
-      onClick={onToggle}
-      className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left hover:bg-slate-100"
-    >
-      <span
+    <div className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-slate-100">
+      <button
+        onClick={onToggle}
+        title={done ? "Mark not done" : "Mark done"}
         className={cn(
           "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border",
           done ? "border-indigo-600 bg-indigo-600 text-on-accent" : "border-slate-300",
         )}
       >
         {done && <Check size={13} />}
-      </span>
-      <span className={cn("text-sm", done ? "text-slate-400 line-through" : "text-slate-700")}>
+      </button>
+      <Link
+        to={to}
+        className={cn(
+          "min-w-0 flex-1 text-sm",
+          done ? "text-slate-400 line-through" : "text-slate-700",
+        )}
+      >
         {label}
         {sub && <span className="ml-1.5 text-xs text-slate-400">{sub}</span>}
-      </span>
-    </button>
+      </Link>
+    </div>
   )
 }
 
 export function TodayRhythms() {
-  const qc = useQueryClient()
   const d = ymd()
-
-  const medQ = medications.useList({ status__eq: "active", limit: "100" })
-  const doseQ = medicationDoses.useList({ dose_date__eq: d, limit: "200" })
-  const routineQ = routines.useList({ status__eq: "active", limit: "100" })
+  const regimenQ = useRegimen(d)
   const instQ = routineInstances.useList({
     scheduled_date__eq: d,
     status__eq: "done",
-    limit: "100",
+    limit: "300",
   })
+  const complete = useCompleteRoutine()
+  const uncomplete = useUncompleteRoutine()
 
-  const doseCreate = medicationDoses.useCreate()
-  const doseRemove = medicationDoses.useRemove()
-  const instRemove = routineInstances.useRemove()
+  // The server derives what's due today (cadence + protocol/med liveness), so
+  // there's nothing to filter here — just render and toggle.
+  const doneByKey = new Set((instQ.data ?? []).map((x) => `${x.routine_id}:${x.slot}`))
+  const entries = [...(regimenQ.data ?? [])].sort((a, b) => slotRank(a.slot) - slotRank(b.slot))
+  if (entries.length === 0) return null
 
-  const doseByKey = new Map((doseQ.data ?? []).map((x) => [`${x.medication_id}:${x.slot}`, x]))
-  const instByRoutine = new Map((instQ.data ?? []).map((x) => [x.routine_id, x]))
-
-  const meds = medQ.data ?? []
-  const doses = meds
-    .flatMap((m) => m.schedule.map((s) => ({ med: m, slot: s.slot })))
-    .sort((a, b) => slotRank(a.slot) - slotRank(b.slot))
-  const activeRoutines = routineQ.data ?? []
-
-  if (doses.length === 0 && activeRoutines.length === 0) return null
-
-  const toggleDose = (medId: string, slot: string) => {
-    const existing = doseByKey.get(`${medId}:${slot}`)
-    if (existing) doseRemove.mutate(existing.id)
-    else
-      doseCreate.mutate({
-        medication_id: medId,
-        dose_date: d,
-        slot,
-        taken_at: new Date().toISOString(),
-      })
+  const toggle = (e: RegimenEntry) => {
+    const vars = { id: e.routine_id, on: d, slot: e.slot }
+    if (doneByKey.has(`${e.routine_id}:${e.slot}`)) uncomplete.mutate(vars)
+    else complete.mutate(vars)
   }
-  const toggleRoutine = async (routineId: string) => {
-    const existing = instByRoutine.get(routineId)
-    if (existing) {
-      instRemove.mutate(existing.id)
-    } else {
-      await apiClient.post(`/routines/${routineId}/complete`)
-      qc.invalidateQueries({ queryKey: ["routine-instances"] })
-    }
-  }
+
+  const section = (title: string, items: RegimenEntry[]) =>
+    items.length > 0 ? (
+      <div className="mb-3 last:mb-0">
+        <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+          {title}
+        </div>
+        {items.map((e) => (
+          <CheckRow
+            key={`${e.routine_id}:${e.slot}`}
+            label={rowLabel(e)}
+            sub={rowSub(e)}
+            done={doneByKey.has(`${e.routine_id}:${e.slot}`)}
+            to={e.medication_id ? `/medications/${e.medication_id}` : `/routines/${e.routine_id}`}
+            onToggle={() => toggle(e)}
+          />
+        ))}
+      </div>
+    ) : null
+
+  const meds = entries.filter((e) => e.kind === "medication" || e.kind === "supplement")
+  const rest = entries.filter((e) => e.kind === "activity" || e.kind === "routine")
 
   return (
     <Card className="p-4">
       <div className="mb-2 text-sm font-semibold text-slate-700">Today's rhythms</div>
-      {doses.length > 0 && (
-        <div className="mb-3">
-          <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-            Medications
-          </div>
-          {doses.map(({ med, slot }) => (
-            <CheckRow
-              key={`${med.id}:${slot}`}
-              label={med.name}
-              sub={`@ ${slot}`}
-              done={doseByKey.has(`${med.id}:${slot}`)}
-              onToggle={() => toggleDose(med.id, slot)}
-            />
-          ))}
-        </div>
-      )}
-      {activeRoutines.length > 0 && (
-        <div>
-          <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-            Routines
-          </div>
-          {activeRoutines.map((r) => (
-            <CheckRow
-              key={r.id}
-              label={r.name}
-              done={instByRoutine.has(r.id)}
-              onToggle={() => toggleRoutine(r.id)}
-            />
-          ))}
-        </div>
-      )}
+      {section("Medications", meds)}
+      {section("Routines", rest)}
     </Card>
   )
 }

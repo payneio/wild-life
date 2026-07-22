@@ -1,4 +1,4 @@
-"""Tests for personal-api health endpoint."""
+"""Tests for wild-life-api health endpoint."""
 
 from fastapi.testclient import TestClient
 

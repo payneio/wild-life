@@ -22,19 +22,19 @@ def upgrade() -> None:
     op.add_column(
         "tasks",
         sa.Column("claimed_by_id", sa.UUID(), nullable=True),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.add_column(
         "tasks",
         sa.Column("claimed_at", sa.DateTime(timezone=True), nullable=True),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_tasks_claimed_by_id"),
+        op.f("ix_wild_life_tasks_claimed_by_id"),
         "tasks",
         ["claimed_by_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_foreign_key(
         _FK,
@@ -42,18 +42,18 @@ def upgrade() -> None:
         "people",
         ["claimed_by_id"],
         ["id"],
-        source_schema="personal_api",
-        referent_schema="personal_api",
+        source_schema="wild_life",
+        referent_schema="wild_life",
         ondelete="SET NULL",
     )
 
 
 def downgrade() -> None:
-    op.drop_constraint(_FK, "tasks", schema="personal_api", type_="foreignkey")
+    op.drop_constraint(_FK, "tasks", schema="wild_life", type_="foreignkey")
     op.drop_index(
-        op.f("ix_personal_api_tasks_claimed_by_id"),
+        op.f("ix_wild_life_tasks_claimed_by_id"),
         table_name="tasks",
-        schema="personal_api",
+        schema="wild_life",
     )
-    op.drop_column("tasks", "claimed_at", schema="personal_api")
-    op.drop_column("tasks", "claimed_by_id", schema="personal_api")
+    op.drop_column("tasks", "claimed_at", schema="wild_life")
+    op.drop_column("tasks", "claimed_by_id", schema="wild_life")

@@ -8,7 +8,7 @@ here are namespaced with a marker and removed in teardown.
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 
-from personal_api.config import settings
+from wild_life.config import settings
 
 MARK = "ZZ-worker-scope-test"
 
@@ -25,7 +25,7 @@ def _cleanup_tokens(token_ids: list[str]) -> None:
     eng = create_engine(settings.sync_database_url)
     with eng.begin() as conn:
         conn.execute(
-            text("delete from personal_api.api_tokens where id = any(:ids)"),
+            text("delete from wild_life.api_tokens where id = any(:ids)"),
             {"ids": token_ids},
         )
     eng.dispose()

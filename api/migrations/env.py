@@ -1,15 +1,15 @@
-"""Alembic environment — targets the ``personal_api`` schema on castle postgres."""
+"""Alembic environment — targets the ``wild_life`` schema on castle postgres."""
 
 from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import create_engine, text
 
-from personal_api.config import DB_SCHEMA, settings
-from personal_api.db.base import Base
+from wild_life.config import DB_SCHEMA, settings
+from wild_life.db.base import Base
 
 # Import all models so Base.metadata is fully populated for autogenerate.
-import personal_api.models  # noqa: F401,E402
+import wild_life.models  # noqa: F401,E402
 
 config = context.config
 if config.config_file_name is not None:
@@ -45,6 +45,6 @@ def run_migrations_online() -> None:
 
 
 if context.is_offline_mode():
-    raise SystemExit("Offline migrations are not supported for personal-api.")
+    raise SystemExit("Offline migrations are not supported for wild-life-api.")
 else:
     run_migrations_online()

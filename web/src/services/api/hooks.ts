@@ -19,7 +19,6 @@ import type {
   Interaction,
   Location,
   Medication,
-  MedicationDose,
   Metric,
   MetricEntry,
   Note,
@@ -28,7 +27,7 @@ import type {
   Program,
   Project,
   Protocol,
-  ProtocolItem,
+  RegimenEntry,
   Resource,
   Review,
   ReviewDashboard,
@@ -85,19 +84,16 @@ export const tags = createCrud<Tag>("tags")
 // --- health domain ---
 export const conditions = createCrud<Condition>("conditions")
 export const medications = createCrud<Medication>("medications")
-export const medicationDoses = createCrud<MedicationDose>("medication-doses")
 export const protocols = createCrud<Protocol>("protocols")
-export const protocolItems = createCrud<ProtocolItem>("protocol-items")
 export const healthEvents = createCrud<HealthEvent>("health-events")
 export const insurancePlans = createCrud<InsurancePlan>("insurance-plans")
 export const allergies = createCrud<Allergy>("allergies")
 
-export function useProtocolItems(protocolId: string | null) {
+/** Today's regimen — routines due today (meds, supplements, activities, habits). */
+export function useRegimen(day: string) {
   return useQuery({
-    queryKey: ["protocols", protocolId, "items"],
-    queryFn: () =>
-      apiClient.get<ProtocolItem[]>(`/protocols/${protocolId}/items`),
-    enabled: !!protocolId,
+    queryKey: ["regimen", day],
+    queryFn: () => apiClient.get<RegimenEntry[]>(`/regimen?date=${day}`),
   })
 }
 
@@ -293,11 +289,30 @@ export function useRoutineInstances(routineId: string | null) {
   })
 }
 
+function completeUrl(id: string, on?: string, slot?: string): string {
+  const q = new URLSearchParams()
+  if (on) q.set("on", on)
+  if (slot) q.set("slot", slot)
+  const s = q.toString()
+  return `/routines/${id}/complete${s ? `?${s}` : ""}`
+}
+
+/** Check a routine done for a day (+slot). Idempotent. */
 export function useCompleteRoutine() {
   const invalidate = useInvalidator()
   return useMutation({
-    mutationFn: ({ id, on }: { id: string; on?: string }) =>
-      apiClient.post(`/routines/${id}/complete${on ? `?on=${on}` : ""}`),
+    mutationFn: ({ id, on, slot }: { id: string; on?: string; slot?: string }) =>
+      apiClient.post(completeUrl(id, on, slot)),
+    onSuccess: () => invalidate("routines", "routine-instances"),
+  })
+}
+
+/** Un-check a routine for a day (+slot). */
+export function useUncompleteRoutine() {
+  const invalidate = useInvalidator()
+  return useMutation({
+    mutationFn: ({ id, on, slot }: { id: string; on?: string; slot?: string }) =>
+      apiClient.delete(completeUrl(id, on, slot)),
     onSuccess: () => invalidate("routines", "routine-instances"),
   })
 }

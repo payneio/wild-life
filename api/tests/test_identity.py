@@ -2,7 +2,7 @@
 
 import uuid
 
-from personal_api.identity import (
+from wild_life.identity import (
     Identity,
     TokenRegistry,
     hash_token,

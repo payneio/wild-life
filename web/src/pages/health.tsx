@@ -21,17 +21,11 @@ import {
 import type {
   Allergy,
   Condition,
-  DoseSlot,
   HealthEvent,
   InsurancePlan,
   Medication,
   Protocol,
 } from "@/services/api/types"
-
-function scheduleSummary(schedule: DoseSlot[]): string {
-  if (!schedule?.length) return "—"
-  return schedule.map((s) => (s.amount ? `${s.amount} @ ${s.slot}` : s.slot)).join(", ")
-}
 
 // --- Conditions -------------------------------------------------------------
 export function ConditionsPage() {
@@ -50,6 +44,7 @@ export function ConditionsPage() {
       crud={conditions}
       fields={fields}
       columns={columns}
+      detail="page"
     />
   )
 }
@@ -69,7 +64,6 @@ export function MedicationsPage() {
       ),
     },
     { key: "med_type", label: "Type", render: (r) => <Badge>{humanize(r.med_type)}</Badge> },
-    { key: "schedule", label: "Schedule", render: (r) => <span className="text-slate-500">{scheduleSummary(r.schedule)}</span> },
     { key: "status", label: "Status", render: (r) => <StatusBadge status={r.status} /> },
     { key: "condition_id", label: "For", render: (r) => <RefName kind="condition" id={r.condition_id} /> },
   ]

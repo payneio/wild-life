@@ -1,6 +1,6 @@
 """Unit tests for the canonical lifecycle-phase mapping (no DB)."""
 
-from personal_api.lifecycle import is_open, phase_of
+from wild_life.lifecycle import is_open, phase_of
 
 
 def test_phase_mapping() -> None:

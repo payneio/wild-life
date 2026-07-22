@@ -76,7 +76,7 @@ function itemToInput(it: CalendarItem): EventInput {
   return { ...common, start: it.start, end: it.end ? addDays(it.end as CalendarDay, 1) : undefined, allDay: true }
 }
 
-const LAYERS_KEY = "personal_calendar_layers"
+const LAYERS_KEY = "wild_life_calendar_layers"
 
 type ViewType = "dayGridMonth" | "timeGridWeek" | "timeGridDay" | "listMonth"
 const VIEWS: { value: ViewType; label: string }[] = [

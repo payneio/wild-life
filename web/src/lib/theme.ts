@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 
 export type Theme = "light" | "dark"
 
-const KEY = "personal_theme"
+const KEY = "wild_life_theme"
 
 /** The theme applied to <html> right now (set pre-paint by the inline script). */
 function currentTheme(): Theme {

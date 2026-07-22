@@ -19,6 +19,7 @@ import { MetricsPage } from "@/pages/MetricsPage"
 import { HistoryPage } from "@/pages/HistoryPage"
 import { NotesPage } from "@/pages/NotesPage"
 import { DuplicatesPage } from "@/pages/DuplicatesPage"
+import { AgentsPage } from "@/pages/AgentsPage"
 import {
   CommitmentsPage,
   DecisionsPage,
@@ -64,6 +65,7 @@ export const router = createBrowserRouter([
       { path: "projects/:id", element: <RecordPage entityKey="project" backTo="/projects" backLabel="Projects" /> },
       { path: "tasks", element: <TasksPage /> },
       { path: "tasks/:id", element: <RecordPage entityKey="task" backTo="/tasks" backLabel="Tasks" /> },
+      { path: "agents", element: <AgentsPage /> },
       withDetail("routines", <RoutinesPage />, "routine"),
       { path: "goals", element: <GoalsPage /> },
       { path: "goals/:id", element: <RecordPage entityKey="goal" backTo="/goals" backLabel="Goals" /> },
@@ -78,7 +80,10 @@ export const router = createBrowserRouter([
       withDetail("organizations", <OrganizationsPage />, "organization"),
       withDetail("locations", <LocationsPage />, "location"),
       withDetail("metrics", <MetricsPage />, "metric"),
-      withDetail("conditions", <ConditionsPage />, "condition"),
+      // Condition is the health hub (it contains meds/protocols/labs/goals) →
+      // full-page workbench with related panels, like Area/Project.
+      { path: "conditions", element: <ConditionsPage /> },
+      { path: "conditions/:id", element: <RecordPage entityKey="condition" backTo="/conditions" backLabel="Conditions" /> },
       withDetail("medications", <MedicationsPage />, "medication"),
       withDetail("protocols", <ProtocolsPage />, "protocol"),
       withDetail("health-events", <HealthEventsPage />, "healthEvent"),

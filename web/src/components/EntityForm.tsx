@@ -2,6 +2,7 @@ import { useMemo, useState } from "react"
 import { Button, Field, Input, Select, Textarea } from "@/components/ui/primitives"
 import { RecurrenceEditor } from "@/components/RecurrenceEditor"
 import { EntityRefField } from "@/components/graph/EntityRefField"
+import { cn } from "@/lib/utils"
 import type { LookupKey } from "@/services/api/lookups"
 
 export type FieldType =
@@ -14,6 +15,7 @@ export type FieldType =
   | "select"
   | "entity"
   | "tags"
+  | "multiselect"
   | "time"
   | "recurrence"
 
@@ -41,6 +43,7 @@ function initialValue(f: FieldSpec, initial?: Values): unknown {
   const raw = initial?.[f.name]
   if (f.type === "checkbox") return !!raw
   if (f.type === "tags") return Array.isArray(raw) ? (raw as string[]).join(", ") : ""
+  if (f.type === "multiselect") return Array.isArray(raw) ? (raw as string[]) : []
   if (f.type === "datetime") return toLocalInput(raw)
   return raw == null ? "" : raw
 }
@@ -84,6 +87,8 @@ export function EntityForm({
           .split(",")
           .map((s) => s.trim())
           .filter(Boolean)
+      } else if (f.type === "multiselect") {
+        out[f.name] = Array.isArray(v) ? v : []
       } else if (f.type === "datetime") {
         out[f.name] = v ? new Date(String(v)).toISOString() : null
       } else if (v === "") {
@@ -186,6 +191,44 @@ export function EntityForm({
                   onChange={(e) => set(f.name, e.target.value)}
                 />
               )
+            case "multiselect": {
+              const selected = Array.isArray(val) ? (val as string[]) : []
+              // Show the fixed options plus any already-set value outside them
+              // (e.g. a legacy slot) so editing never silently drops it.
+              const opts = [
+                ...(f.options ?? []),
+                ...selected.filter((s) => !(f.options ?? []).includes(s)),
+              ]
+              const toggle = (o: string) =>
+                set(
+                  f.name,
+                  selected.includes(o)
+                    ? selected.filter((x) => x !== o)
+                    : [...selected, o],
+                )
+              return (
+                <div className="flex flex-wrap gap-1.5">
+                  {opts.map((o) => {
+                    const on = selected.includes(o)
+                    return (
+                      <button
+                        key={o}
+                        type="button"
+                        onClick={() => toggle(o)}
+                        className={cn(
+                          "rounded-full border px-2.5 py-1 text-xs capitalize transition-colors",
+                          on
+                            ? "border-indigo-600 bg-indigo-600 text-on-accent"
+                            : "border-slate-300 text-slate-600 hover:border-slate-400",
+                        )}
+                      >
+                        {o}
+                      </button>
+                    )
+                  })}
+                </div>
+              )
+            }
             case "recurrence":
               return (
                 <RecurrenceEditor

@@ -47,21 +47,21 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.PrimaryKeyConstraint("id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_notes_entity_id"),
+        op.f("ix_wild_life_notes_entity_id"),
         "notes",
         ["entity_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_notes_entry_date"),
+        op.f("ix_wild_life_notes_entry_date"),
         "notes",
         ["entry_date"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_table(
         "people",
@@ -93,7 +93,7 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.PrimaryKeyConstraint("id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_table(
         "resources",
@@ -122,7 +122,7 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.PrimaryKeyConstraint("id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_table(
         "reviews",
@@ -157,7 +157,7 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.PrimaryKeyConstraint("id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_table(
         "tags",
@@ -180,7 +180,7 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("name", name="uq_tags_name"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_table(
         "areas",
@@ -208,17 +208,17 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
-            ["accountable_owner_id"], ["personal_api.people.id"], ondelete="SET NULL"
+            ["accountable_owner_id"], ["wild_life.people.id"], ondelete="SET NULL"
         ),
         sa.PrimaryKeyConstraint("id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_areas_accountable_owner_id"),
+        op.f("ix_wild_life_areas_accountable_owner_id"),
         "areas",
         ["accountable_owner_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_table(
         "commitments",
@@ -250,16 +250,16 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
-            ["beneficiary_id"], ["personal_api.people.id"], ondelete="SET NULL"
+            ["beneficiary_id"], ["wild_life.people.id"], ondelete="SET NULL"
         ),
         sa.ForeignKeyConstraint(
-            ["owner_id"], ["personal_api.people.id"], ondelete="SET NULL"
+            ["owner_id"], ["wild_life.people.id"], ondelete="SET NULL"
         ),
         sa.ForeignKeyConstraint(
-            ["responsible_id"], ["personal_api.people.id"], ondelete="SET NULL"
+            ["responsible_id"], ["wild_life.people.id"], ondelete="SET NULL"
         ),
         sa.PrimaryKeyConstraint("id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_table(
         "decisions",
@@ -289,10 +289,10 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
-            ["owner_id"], ["personal_api.people.id"], ondelete="SET NULL"
+            ["owner_id"], ["wild_life.people.id"], ondelete="SET NULL"
         ),
         sa.PrimaryKeyConstraint("id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_table(
         "delegations",
@@ -334,30 +334,30 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
-            ["accountable_owner_id"], ["personal_api.people.id"], ondelete="SET NULL"
+            ["accountable_owner_id"], ["wild_life.people.id"], ondelete="SET NULL"
         ),
         sa.ForeignKeyConstraint(
-            ["delegator_id"], ["personal_api.people.id"], ondelete="SET NULL"
+            ["delegator_id"], ["wild_life.people.id"], ondelete="SET NULL"
         ),
         sa.ForeignKeyConstraint(
-            ["responsible_id"], ["personal_api.people.id"], ondelete="SET NULL"
+            ["responsible_id"], ["wild_life.people.id"], ondelete="SET NULL"
         ),
         sa.PrimaryKeyConstraint("id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_delegations_follow_up_date"),
+        op.f("ix_wild_life_delegations_follow_up_date"),
         "delegations",
         ["follow_up_date"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_delegations_responsible_id"),
+        op.f("ix_wild_life_delegations_responsible_id"),
         "delegations",
         ["responsible_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_table(
         "entity_tags",
@@ -365,10 +365,10 @@ def upgrade() -> None:
         sa.Column("entity_type", sa.Text(), nullable=False),
         sa.Column("entity_id", sa.UUID(), nullable=False),
         sa.ForeignKeyConstraint(
-            ["tag_id"], ["personal_api.tags.id"], ondelete="CASCADE"
+            ["tag_id"], ["wild_life.tags.id"], ondelete="CASCADE"
         ),
         sa.PrimaryKeyConstraint("tag_id", "entity_type", "entity_id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_table(
         "interactions",
@@ -392,17 +392,17 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
-            ["person_id"], ["personal_api.people.id"], ondelete="CASCADE"
+            ["person_id"], ["wild_life.people.id"], ondelete="CASCADE"
         ),
         sa.PrimaryKeyConstraint("id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_interactions_person_id"),
+        op.f("ix_wild_life_interactions_person_id"),
         "interactions",
         ["person_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_table(
         "waiting_items",
@@ -434,17 +434,17 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
-            ["person_id"], ["personal_api.people.id"], ondelete="SET NULL"
+            ["person_id"], ["wild_life.people.id"], ondelete="SET NULL"
         ),
         sa.PrimaryKeyConstraint("id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_waiting_items_follow_up_date"),
+        op.f("ix_wild_life_waiting_items_follow_up_date"),
         "waiting_items",
         ["follow_up_date"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_table(
         "programs",
@@ -477,37 +477,37 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
-            ["accountable_owner_id"], ["personal_api.people.id"], ondelete="SET NULL"
+            ["accountable_owner_id"], ["wild_life.people.id"], ondelete="SET NULL"
         ),
         sa.ForeignKeyConstraint(
-            ["area_id"], ["personal_api.areas.id"], ondelete="SET NULL"
+            ["area_id"], ["wild_life.areas.id"], ondelete="SET NULL"
         ),
         sa.ForeignKeyConstraint(
-            ["responsible_lead_id"], ["personal_api.people.id"], ondelete="SET NULL"
+            ["responsible_lead_id"], ["wild_life.people.id"], ondelete="SET NULL"
         ),
         sa.PrimaryKeyConstraint("id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_programs_accountable_owner_id"),
+        op.f("ix_wild_life_programs_accountable_owner_id"),
         "programs",
         ["accountable_owner_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_programs_area_id"),
+        op.f("ix_wild_life_programs_area_id"),
         "programs",
         ["area_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_programs_responsible_lead_id"),
+        op.f("ix_wild_life_programs_responsible_lead_id"),
         "programs",
         ["responsible_lead_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_table(
         "metrics",
@@ -537,27 +537,27 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
-            ["area_id"], ["personal_api.areas.id"], ondelete="SET NULL"
+            ["area_id"], ["wild_life.areas.id"], ondelete="SET NULL"
         ),
         sa.ForeignKeyConstraint(
-            ["program_id"], ["personal_api.programs.id"], ondelete="SET NULL"
+            ["program_id"], ["wild_life.programs.id"], ondelete="SET NULL"
         ),
         sa.PrimaryKeyConstraint("id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_metrics_area_id"),
+        op.f("ix_wild_life_metrics_area_id"),
         "metrics",
         ["area_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_metrics_program_id"),
+        op.f("ix_wild_life_metrics_program_id"),
         "metrics",
         ["program_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_table(
         "projects",
@@ -592,47 +592,47 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
-            ["accountable_owner_id"], ["personal_api.people.id"], ondelete="SET NULL"
+            ["accountable_owner_id"], ["wild_life.people.id"], ondelete="SET NULL"
         ),
         sa.ForeignKeyConstraint(
-            ["area_id"], ["personal_api.areas.id"], ondelete="SET NULL"
+            ["area_id"], ["wild_life.areas.id"], ondelete="SET NULL"
         ),
         sa.ForeignKeyConstraint(
-            ["program_id"], ["personal_api.programs.id"], ondelete="SET NULL"
+            ["program_id"], ["wild_life.programs.id"], ondelete="SET NULL"
         ),
         sa.ForeignKeyConstraint(
-            ["responsible_lead_id"], ["personal_api.people.id"], ondelete="SET NULL"
+            ["responsible_lead_id"], ["wild_life.people.id"], ondelete="SET NULL"
         ),
         sa.PrimaryKeyConstraint("id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_projects_accountable_owner_id"),
+        op.f("ix_wild_life_projects_accountable_owner_id"),
         "projects",
         ["accountable_owner_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_projects_area_id"),
+        op.f("ix_wild_life_projects_area_id"),
         "projects",
         ["area_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_projects_program_id"),
+        op.f("ix_wild_life_projects_program_id"),
         "projects",
         ["program_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_projects_responsible_lead_id"),
+        op.f("ix_wild_life_projects_responsible_lead_id"),
         "projects",
         ["responsible_lead_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_table(
         "routines",
@@ -669,30 +669,30 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
-            ["area_id"], ["personal_api.areas.id"], ondelete="SET NULL"
+            ["area_id"], ["wild_life.areas.id"], ondelete="SET NULL"
         ),
         sa.ForeignKeyConstraint(
-            ["program_id"], ["personal_api.programs.id"], ondelete="SET NULL"
+            ["program_id"], ["wild_life.programs.id"], ondelete="SET NULL"
         ),
         sa.ForeignKeyConstraint(
-            ["responsible_id"], ["personal_api.people.id"], ondelete="SET NULL"
+            ["responsible_id"], ["wild_life.people.id"], ondelete="SET NULL"
         ),
         sa.PrimaryKeyConstraint("id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_routines_area_id"),
+        op.f("ix_wild_life_routines_area_id"),
         "routines",
         ["area_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_routines_program_id"),
+        op.f("ix_wild_life_routines_program_id"),
         "routines",
         ["program_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_table(
         "events",
@@ -729,23 +729,23 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
-            ["area_id"], ["personal_api.areas.id"], ondelete="SET NULL"
+            ["area_id"], ["wild_life.areas.id"], ondelete="SET NULL"
         ),
         sa.ForeignKeyConstraint(
-            ["program_id"], ["personal_api.programs.id"], ondelete="SET NULL"
+            ["program_id"], ["wild_life.programs.id"], ondelete="SET NULL"
         ),
         sa.ForeignKeyConstraint(
-            ["project_id"], ["personal_api.projects.id"], ondelete="SET NULL"
+            ["project_id"], ["wild_life.projects.id"], ondelete="SET NULL"
         ),
         sa.PrimaryKeyConstraint("id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_events_area_id"),
+        op.f("ix_wild_life_events_area_id"),
         "events",
         ["area_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_table(
         "goals",
@@ -778,30 +778,30 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
-            ["area_id"], ["personal_api.areas.id"], ondelete="SET NULL"
+            ["area_id"], ["wild_life.areas.id"], ondelete="SET NULL"
         ),
         sa.ForeignKeyConstraint(
-            ["metric_id"], ["personal_api.metrics.id"], ondelete="SET NULL"
+            ["metric_id"], ["wild_life.metrics.id"], ondelete="SET NULL"
         ),
         sa.ForeignKeyConstraint(
-            ["program_id"], ["personal_api.programs.id"], ondelete="SET NULL"
+            ["program_id"], ["wild_life.programs.id"], ondelete="SET NULL"
         ),
         sa.PrimaryKeyConstraint("id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_goals_area_id"),
+        op.f("ix_wild_life_goals_area_id"),
         "goals",
         ["area_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_goals_program_id"),
+        op.f("ix_wild_life_goals_program_id"),
         "goals",
         ["program_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_table(
         "metric_entries",
@@ -825,37 +825,37 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
-            ["metric_id"], ["personal_api.metrics.id"], ondelete="CASCADE"
+            ["metric_id"], ["wild_life.metrics.id"], ondelete="CASCADE"
         ),
         sa.PrimaryKeyConstraint("id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_metric_entries_entry_date"),
+        op.f("ix_wild_life_metric_entries_entry_date"),
         "metric_entries",
         ["entry_date"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_metric_entries_metric_id"),
+        op.f("ix_wild_life_metric_entries_metric_id"),
         "metric_entries",
         ["metric_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_table(
         "project_contributors",
         sa.Column("project_id", sa.UUID(), nullable=False),
         sa.Column("person_id", sa.UUID(), nullable=False),
         sa.ForeignKeyConstraint(
-            ["person_id"], ["personal_api.people.id"], ondelete="CASCADE"
+            ["person_id"], ["wild_life.people.id"], ondelete="CASCADE"
         ),
         sa.ForeignKeyConstraint(
-            ["project_id"], ["personal_api.projects.id"], ondelete="CASCADE"
+            ["project_id"], ["wild_life.projects.id"], ondelete="CASCADE"
         ),
         sa.PrimaryKeyConstraint("project_id", "person_id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_table(
         "routine_instances",
@@ -880,24 +880,24 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
-            ["routine_id"], ["personal_api.routines.id"], ondelete="CASCADE"
+            ["routine_id"], ["wild_life.routines.id"], ondelete="CASCADE"
         ),
         sa.PrimaryKeyConstraint("id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_routine_instances_routine_id"),
+        op.f("ix_wild_life_routine_instances_routine_id"),
         "routine_instances",
         ["routine_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_routine_instances_scheduled_date"),
+        op.f("ix_wild_life_routine_instances_scheduled_date"),
         "routine_instances",
         ["scheduled_date"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_table(
         "tasks",
@@ -939,237 +939,237 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
-            ["accountable_owner_id"], ["personal_api.people.id"], ondelete="SET NULL"
+            ["accountable_owner_id"], ["wild_life.people.id"], ondelete="SET NULL"
         ),
         sa.ForeignKeyConstraint(
-            ["area_id"], ["personal_api.areas.id"], ondelete="SET NULL"
+            ["area_id"], ["wild_life.areas.id"], ondelete="SET NULL"
         ),
         sa.ForeignKeyConstraint(
-            ["assignee_id"], ["personal_api.people.id"], ondelete="SET NULL"
+            ["assignee_id"], ["wild_life.people.id"], ondelete="SET NULL"
         ),
         sa.ForeignKeyConstraint(
-            ["blocked_by_task_id"], ["personal_api.tasks.id"], ondelete="SET NULL"
+            ["blocked_by_task_id"], ["wild_life.tasks.id"], ondelete="SET NULL"
         ),
         sa.ForeignKeyConstraint(
-            ["program_id"], ["personal_api.programs.id"], ondelete="SET NULL"
+            ["program_id"], ["wild_life.programs.id"], ondelete="SET NULL"
         ),
         sa.ForeignKeyConstraint(
-            ["project_id"], ["personal_api.projects.id"], ondelete="SET NULL"
+            ["project_id"], ["wild_life.projects.id"], ondelete="SET NULL"
         ),
         sa.ForeignKeyConstraint(
-            ["responsible_id"], ["personal_api.people.id"], ondelete="SET NULL"
+            ["responsible_id"], ["wild_life.people.id"], ondelete="SET NULL"
         ),
         sa.PrimaryKeyConstraint("id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_tasks_area_id"),
+        op.f("ix_wild_life_tasks_area_id"),
         "tasks",
         ["area_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_tasks_assignee_id"),
+        op.f("ix_wild_life_tasks_assignee_id"),
         "tasks",
         ["assignee_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_tasks_program_id"),
+        op.f("ix_wild_life_tasks_program_id"),
         "tasks",
         ["program_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_tasks_project_id"),
+        op.f("ix_wild_life_tasks_project_id"),
         "tasks",
         ["project_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_table(
         "goal_projects",
         sa.Column("goal_id", sa.UUID(), nullable=False),
         sa.Column("project_id", sa.UUID(), nullable=False),
         sa.ForeignKeyConstraint(
-            ["goal_id"], ["personal_api.goals.id"], ondelete="CASCADE"
+            ["goal_id"], ["wild_life.goals.id"], ondelete="CASCADE"
         ),
         sa.ForeignKeyConstraint(
-            ["project_id"], ["personal_api.projects.id"], ondelete="CASCADE"
+            ["project_id"], ["wild_life.projects.id"], ondelete="CASCADE"
         ),
         sa.PrimaryKeyConstraint("goal_id", "project_id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     # ### end Alembic commands ###
 
 
 def downgrade() -> None:
     # ### commands auto generated by Alembic - please adjust! ###
-    op.drop_table("goal_projects", schema="personal_api")
+    op.drop_table("goal_projects", schema="wild_life")
     op.drop_index(
-        op.f("ix_personal_api_tasks_project_id"),
+        op.f("ix_wild_life_tasks_project_id"),
         table_name="tasks",
-        schema="personal_api",
+        schema="wild_life",
     )
     op.drop_index(
-        op.f("ix_personal_api_tasks_program_id"),
+        op.f("ix_wild_life_tasks_program_id"),
         table_name="tasks",
-        schema="personal_api",
+        schema="wild_life",
     )
     op.drop_index(
-        op.f("ix_personal_api_tasks_assignee_id"),
+        op.f("ix_wild_life_tasks_assignee_id"),
         table_name="tasks",
-        schema="personal_api",
+        schema="wild_life",
     )
     op.drop_index(
-        op.f("ix_personal_api_tasks_area_id"), table_name="tasks", schema="personal_api"
+        op.f("ix_wild_life_tasks_area_id"), table_name="tasks", schema="wild_life"
     )
-    op.drop_table("tasks", schema="personal_api")
+    op.drop_table("tasks", schema="wild_life")
     op.drop_index(
-        op.f("ix_personal_api_routine_instances_scheduled_date"),
+        op.f("ix_wild_life_routine_instances_scheduled_date"),
         table_name="routine_instances",
-        schema="personal_api",
+        schema="wild_life",
     )
     op.drop_index(
-        op.f("ix_personal_api_routine_instances_routine_id"),
+        op.f("ix_wild_life_routine_instances_routine_id"),
         table_name="routine_instances",
-        schema="personal_api",
+        schema="wild_life",
     )
-    op.drop_table("routine_instances", schema="personal_api")
-    op.drop_table("project_contributors", schema="personal_api")
+    op.drop_table("routine_instances", schema="wild_life")
+    op.drop_table("project_contributors", schema="wild_life")
     op.drop_index(
-        op.f("ix_personal_api_metric_entries_metric_id"),
+        op.f("ix_wild_life_metric_entries_metric_id"),
         table_name="metric_entries",
-        schema="personal_api",
+        schema="wild_life",
     )
     op.drop_index(
-        op.f("ix_personal_api_metric_entries_entry_date"),
+        op.f("ix_wild_life_metric_entries_entry_date"),
         table_name="metric_entries",
-        schema="personal_api",
+        schema="wild_life",
     )
-    op.drop_table("metric_entries", schema="personal_api")
+    op.drop_table("metric_entries", schema="wild_life")
     op.drop_index(
-        op.f("ix_personal_api_goals_program_id"),
+        op.f("ix_wild_life_goals_program_id"),
         table_name="goals",
-        schema="personal_api",
+        schema="wild_life",
     )
     op.drop_index(
-        op.f("ix_personal_api_goals_area_id"), table_name="goals", schema="personal_api"
+        op.f("ix_wild_life_goals_area_id"), table_name="goals", schema="wild_life"
     )
-    op.drop_table("goals", schema="personal_api")
+    op.drop_table("goals", schema="wild_life")
     op.drop_index(
-        op.f("ix_personal_api_events_area_id"),
+        op.f("ix_wild_life_events_area_id"),
         table_name="events",
-        schema="personal_api",
+        schema="wild_life",
     )
-    op.drop_table("events", schema="personal_api")
+    op.drop_table("events", schema="wild_life")
     op.drop_index(
-        op.f("ix_personal_api_routines_program_id"),
+        op.f("ix_wild_life_routines_program_id"),
         table_name="routines",
-        schema="personal_api",
+        schema="wild_life",
     )
     op.drop_index(
-        op.f("ix_personal_api_routines_area_id"),
+        op.f("ix_wild_life_routines_area_id"),
         table_name="routines",
-        schema="personal_api",
+        schema="wild_life",
     )
-    op.drop_table("routines", schema="personal_api")
+    op.drop_table("routines", schema="wild_life")
     op.drop_index(
-        op.f("ix_personal_api_projects_responsible_lead_id"),
+        op.f("ix_wild_life_projects_responsible_lead_id"),
         table_name="projects",
-        schema="personal_api",
+        schema="wild_life",
     )
     op.drop_index(
-        op.f("ix_personal_api_projects_program_id"),
+        op.f("ix_wild_life_projects_program_id"),
         table_name="projects",
-        schema="personal_api",
+        schema="wild_life",
     )
     op.drop_index(
-        op.f("ix_personal_api_projects_area_id"),
+        op.f("ix_wild_life_projects_area_id"),
         table_name="projects",
-        schema="personal_api",
+        schema="wild_life",
     )
     op.drop_index(
-        op.f("ix_personal_api_projects_accountable_owner_id"),
+        op.f("ix_wild_life_projects_accountable_owner_id"),
         table_name="projects",
-        schema="personal_api",
+        schema="wild_life",
     )
-    op.drop_table("projects", schema="personal_api")
+    op.drop_table("projects", schema="wild_life")
     op.drop_index(
-        op.f("ix_personal_api_metrics_program_id"),
+        op.f("ix_wild_life_metrics_program_id"),
         table_name="metrics",
-        schema="personal_api",
+        schema="wild_life",
     )
     op.drop_index(
-        op.f("ix_personal_api_metrics_area_id"),
+        op.f("ix_wild_life_metrics_area_id"),
         table_name="metrics",
-        schema="personal_api",
+        schema="wild_life",
     )
-    op.drop_table("metrics", schema="personal_api")
+    op.drop_table("metrics", schema="wild_life")
     op.drop_index(
-        op.f("ix_personal_api_programs_responsible_lead_id"),
+        op.f("ix_wild_life_programs_responsible_lead_id"),
         table_name="programs",
-        schema="personal_api",
+        schema="wild_life",
     )
     op.drop_index(
-        op.f("ix_personal_api_programs_area_id"),
+        op.f("ix_wild_life_programs_area_id"),
         table_name="programs",
-        schema="personal_api",
+        schema="wild_life",
     )
     op.drop_index(
-        op.f("ix_personal_api_programs_accountable_owner_id"),
+        op.f("ix_wild_life_programs_accountable_owner_id"),
         table_name="programs",
-        schema="personal_api",
+        schema="wild_life",
     )
-    op.drop_table("programs", schema="personal_api")
+    op.drop_table("programs", schema="wild_life")
     op.drop_index(
-        op.f("ix_personal_api_waiting_items_follow_up_date"),
+        op.f("ix_wild_life_waiting_items_follow_up_date"),
         table_name="waiting_items",
-        schema="personal_api",
+        schema="wild_life",
     )
-    op.drop_table("waiting_items", schema="personal_api")
+    op.drop_table("waiting_items", schema="wild_life")
     op.drop_index(
-        op.f("ix_personal_api_interactions_person_id"),
+        op.f("ix_wild_life_interactions_person_id"),
         table_name="interactions",
-        schema="personal_api",
+        schema="wild_life",
     )
-    op.drop_table("interactions", schema="personal_api")
-    op.drop_table("entity_tags", schema="personal_api")
+    op.drop_table("interactions", schema="wild_life")
+    op.drop_table("entity_tags", schema="wild_life")
     op.drop_index(
-        op.f("ix_personal_api_delegations_responsible_id"),
+        op.f("ix_wild_life_delegations_responsible_id"),
         table_name="delegations",
-        schema="personal_api",
+        schema="wild_life",
     )
     op.drop_index(
-        op.f("ix_personal_api_delegations_follow_up_date"),
+        op.f("ix_wild_life_delegations_follow_up_date"),
         table_name="delegations",
-        schema="personal_api",
+        schema="wild_life",
     )
-    op.drop_table("delegations", schema="personal_api")
-    op.drop_table("decisions", schema="personal_api")
-    op.drop_table("commitments", schema="personal_api")
+    op.drop_table("delegations", schema="wild_life")
+    op.drop_table("decisions", schema="wild_life")
+    op.drop_table("commitments", schema="wild_life")
     op.drop_index(
-        op.f("ix_personal_api_areas_accountable_owner_id"),
+        op.f("ix_wild_life_areas_accountable_owner_id"),
         table_name="areas",
-        schema="personal_api",
+        schema="wild_life",
     )
-    op.drop_table("areas", schema="personal_api")
-    op.drop_table("tags", schema="personal_api")
-    op.drop_table("reviews", schema="personal_api")
-    op.drop_table("resources", schema="personal_api")
-    op.drop_table("people", schema="personal_api")
+    op.drop_table("areas", schema="wild_life")
+    op.drop_table("tags", schema="wild_life")
+    op.drop_table("reviews", schema="wild_life")
+    op.drop_table("resources", schema="wild_life")
+    op.drop_table("people", schema="wild_life")
     op.drop_index(
-        op.f("ix_personal_api_notes_entry_date"),
+        op.f("ix_wild_life_notes_entry_date"),
         table_name="notes",
-        schema="personal_api",
+        schema="wild_life",
     )
     op.drop_index(
-        op.f("ix_personal_api_notes_entity_id"),
+        op.f("ix_wild_life_notes_entity_id"),
         table_name="notes",
-        schema="personal_api",
+        schema="wild_life",
     )
-    op.drop_table("notes", schema="personal_api")
+    op.drop_table("notes", schema="wild_life")
     # ### end Alembic commands ###

@@ -19,9 +19,9 @@ depends_on: str | Sequence[str] | None = None
 
 def upgrade() -> None:
     op.add_column(
-        'tasks', sa.Column('scheduled_time', sa.Time(), nullable=True), schema='personal_api'
+        'tasks', sa.Column('scheduled_time', sa.Time(), nullable=True), schema='wild_life'
     )
 
 
 def downgrade() -> None:
-    op.drop_column('tasks', 'scheduled_time', schema='personal_api')
+    op.drop_column('tasks', 'scheduled_time', schema='wild_life')

@@ -40,45 +40,45 @@ def upgrade() -> None:
             "id", sa.UUID(), server_default=sa.text("gen_random_uuid()"), nullable=False
         ),
         sa.PrimaryKeyConstraint("id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_change_log_entity_type"),
+        op.f("ix_wild_life_change_log_entity_type"),
         "change_log",
         ["entity_type"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_change_log_entity_id"),
+        op.f("ix_wild_life_change_log_entity_id"),
         "change_log",
         ["entity_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_change_log_created_at"),
+        op.f("ix_wild_life_change_log_created_at"),
         "change_log",
         ["created_at"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
 
 
 def downgrade() -> None:
     op.drop_index(
-        op.f("ix_personal_api_change_log_created_at"),
+        op.f("ix_wild_life_change_log_created_at"),
         table_name="change_log",
-        schema="personal_api",
+        schema="wild_life",
     )
     op.drop_index(
-        op.f("ix_personal_api_change_log_entity_id"),
+        op.f("ix_wild_life_change_log_entity_id"),
         table_name="change_log",
-        schema="personal_api",
+        schema="wild_life",
     )
     op.drop_index(
-        op.f("ix_personal_api_change_log_entity_type"),
+        op.f("ix_wild_life_change_log_entity_type"),
         table_name="change_log",
-        schema="personal_api",
+        schema="wild_life",
     )
-    op.drop_table("change_log", schema="personal_api")
+    op.drop_table("change_log", schema="wild_life")

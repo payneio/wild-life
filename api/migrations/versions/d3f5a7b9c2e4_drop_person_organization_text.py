@@ -17,12 +17,12 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
-    op.drop_column("people", "organization", schema="personal_api")
+    op.drop_column("people", "organization", schema="wild_life")
 
 
 def downgrade() -> None:
     op.add_column(
         "people",
         sa.Column("organization", sa.Text(), nullable=True),
-        schema="personal_api",
+        schema="wild_life",
     )

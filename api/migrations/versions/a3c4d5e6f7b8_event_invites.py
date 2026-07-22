@@ -20,13 +20,13 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     for col in ('organizer', 'rsvp_status', 'rsvp_sent_status'):
         op.add_column(
-            'events', sa.Column(col, sa.Text(), nullable=True), schema='personal_api'
+            'events', sa.Column(col, sa.Text(), nullable=True), schema='wild_life'
         )
     op.add_column(
-        'events', sa.Column('sequence', sa.Integer(), nullable=True), schema='personal_api'
+        'events', sa.Column('sequence', sa.Integer(), nullable=True), schema='wild_life'
     )
 
 
 def downgrade() -> None:
     for col in ('sequence', 'rsvp_sent_status', 'rsvp_status', 'organizer'):
-        op.drop_column('events', col, schema='personal_api')
+        op.drop_column('events', col, schema='wild_life')

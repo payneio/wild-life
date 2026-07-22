@@ -28,7 +28,7 @@ export function Login() {
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-on-accent shadow-sm">
             <KeyRound size={22} />
           </div>
-          <h1 className="text-lg font-semibold tracking-tight text-slate-900">Personal</h1>
+          <h1 className="text-lg font-semibold tracking-tight text-slate-900">Wild Life</h1>
           <p className="text-sm text-slate-500">Enter your API token to continue.</p>
         </div>
         <Input

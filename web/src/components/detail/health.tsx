@@ -1,5 +1,9 @@
-import { StatusBadge } from "@/components/cells"
-import { healthEvents, medications, protocols } from "@/services/api/hooks"
+import { useState } from "react"
+import { RefName } from "@/components/cells"
+import { EntityForm } from "@/components/EntityForm"
+import { STANDING_DOSE_FIELDS } from "@/services/api/fields"
+import { healthEvents, medications, routines } from "@/services/api/hooks"
+import type { Body } from "@/services/api/crud"
 import type {
   Allergy,
   Condition,
@@ -7,17 +11,19 @@ import type {
   HealthEvent,
   InsurancePlan,
   Medication,
+  Routine,
 } from "@/services/api/types"
-import { DaysBadge, RelatedRow, Section, Timeline, type TimelineItem } from "@/components/detail/kit"
+import { DaysBadge, Section, Timeline, type TimelineItem } from "@/components/detail/kit"
 import { cn } from "@/lib/utils"
 import { humanize } from "@/lib/format"
 
-// --- Condition: a care record with a timeline -------------------------------
+// --- Condition: a care timeline -------------------------------------------
+// Medications / Protocols / Metrics / Goals / Health-events are now rendered by
+// the generic RelatedPanel (condition.relations); this adds the dated timeline.
 export function ConditionDetail({ entity }: { entity: Entity }) {
   const c = entity as Condition
   const meds = (medications.useList().data ?? []).filter((m) => m.condition_id === c.id)
   const events = (healthEvents.useList().data ?? []).filter((e) => e.condition_id === c.id)
-  const protos = (protocols.useList().data ?? []).filter((p) => p.condition_id === c.id)
 
   const timeline: TimelineItem[] = []
   for (const e of events)
@@ -44,82 +50,147 @@ export function ConditionDetail({ entity }: { entity: Entity }) {
     timeline.push({ key: "resolved", date: c.resolved_date, title: "Resolved", tone: "good" })
   timeline.sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""))
 
-  const hasRelated = meds.length > 0 || protos.length > 0 || timeline.length > 0
-  if (!hasRelated) return null
+  if (timeline.length === 0) return null
 
   return (
-    <div className="space-y-5">
-      {meds.length > 0 && (
-        <Section title={`Medications · ${meds.length}`}>
-          <div className="space-y-1.5">
-            {meds.map((m) => (
-              <RelatedRow
-                key={m.id}
-                to={`/medications/${m.id}`}
-                title={m.name}
-                badge={<StatusBadge status={m.status} />}
-                meta={m.strength ?? undefined}
-              />
-            ))}
-          </div>
-        </Section>
-      )}
-
-      {protos.length > 0 && (
-        <Section title={`Protocols · ${protos.length}`}>
-          <div className="space-y-1.5">
-            {protos.map((p) => (
-              <RelatedRow
-                key={p.id}
-                to={`/protocols/${p.id}`}
-                title={p.name}
-                badge={<StatusBadge status={p.status} />}
-              />
-            ))}
-          </div>
-        </Section>
-      )}
-
-      {timeline.length > 0 && (
-        <Section title="Care timeline">
-          <Timeline items={timeline} />
-        </Section>
-      )}
-    </div>
+    <Section title="Care timeline">
+      <Timeline items={timeline} />
+    </Section>
   )
 }
 
 // --- Medication: a dose card ------------------------------------------------
-function SlotChip({ slot, amount }: { slot: string; amount: string | null }) {
+function SlotChip({ slot, amount }: { slot: string; amount: number | null }) {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-surface px-2.5 py-1.5 text-xs">
       <span className="font-medium capitalize text-slate-700">{slot}</span>
-      {amount && <span className="text-slate-400">{amount}</span>}
+      {amount != null && <span className="text-slate-400">{amount}</span>}
     </span>
   )
 }
 
+// The cadence part of a dose routine (days-of-week / every-N-days / PRN); null = daily.
+function cadenceLabel(it: Routine): string | null {
+  if (it.as_needed) return "PRN"
+  if (it.days_of_week?.length)
+    return it.days_of_week.map((d) => d[0].toUpperCase() + d.slice(1)).join("/")
+  if (it.interval_days > 1) return `every ${it.interval_days} days`
+  return null
+}
+
 export function MedicationDetail({ entity }: { entity: Entity }) {
   const m = entity as Medication
-  const headline = m.strength || m.dose || null
+  const { data } = routines.useList({ medication_id__eq: m.id, limit: "200" })
+  const create = routines.useCreate()
+  const update = routines.useUpdate()
+  const remove = routines.useRemove()
+  const [editing, setEditing] = useState<Routine | null>(null)
+  const [adding, setAdding] = useState(false)
+  const lines = data ?? []
+  const headline = m.strength || null
+
+  function submit(body: Body) {
+    // A standing dose belongs to this med, no protocol; daily unless set.
+    const patch = { ...body, interval_days: (body.interval_days as number) || 1 }
+    if (editing) update.mutate({ id: editing.id, body: patch })
+    else create.mutate({ ...patch, medication_id: m.id, protocol_id: null })
+    setEditing(null)
+    setAdding(false)
+  }
+
   return (
-    <div className="rounded-xl border border-slate-200 bg-surface-2 p-4">
-      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        {headline ? (
-          <span className="text-lg font-semibold text-slate-900">{headline}</span>
-        ) : (
-          <span className="text-sm text-slate-400">No dose recorded</span>
-        )}
-        {m.strength && m.dose && <span className="text-sm text-slate-500">· {m.dose}</span>}
-        {m.form && <span className="text-sm text-slate-500">{m.form}</span>}
-      </div>
-      {m.schedule?.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {m.schedule.map((s, i) => (
-            <SlotChip key={i} slot={s.slot} amount={s.amount} />
-          ))}
+    <div className="space-y-4">
+      <div className="rounded-xl border border-slate-200 bg-surface-2 p-4">
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+          {headline ? (
+            <span className="text-lg font-semibold text-slate-900">{headline}</span>
+          ) : (
+            <span className="text-sm text-slate-400">No strength recorded</span>
+          )}
+          {m.form && <span className="text-sm text-slate-500">{m.form}</span>}
         </div>
-      )}
+      </div>
+
+      <div>
+        <div className="mb-1.5 flex items-center justify-between">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Doses</h3>
+          {!adding && !editing && (
+            <button
+              className="text-xs font-medium text-indigo-600 hover:underline"
+              onClick={() => setAdding(true)}
+            >
+              + standing dose
+            </button>
+          )}
+        </div>
+        {lines.length === 0 && !adding ? (
+          <p className="text-sm text-slate-400">No doses yet.</p>
+        ) : (
+          <ul className="space-y-1.5">
+            {lines.map((it) => {
+              const standing = it.protocol_id == null
+              return (
+                <li
+                  key={it.id}
+                  className="flex items-start justify-between gap-2 rounded-lg border border-slate-100 px-2.5 py-1.5"
+                >
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {(it.timing ?? []).map((slot) => (
+                      <SlotChip key={slot} slot={slot} amount={it.amount} />
+                    ))}
+                    {cadenceLabel(it) && (
+                      <span className="text-xs text-slate-500">{cadenceLabel(it)}</span>
+                    )}
+                    <span className="text-xs text-slate-400">
+                      {standing ? (
+                        "standing"
+                      ) : (
+                        <>
+                          via <RefName kind="protocol" id={it.protocol_id!} />
+                        </>
+                      )}
+                    </span>
+                  </div>
+                  {standing && (
+                    <div className="whitespace-nowrap">
+                      <button
+                        className="rounded px-1 text-xs text-slate-400 hover:text-slate-700"
+                        onClick={() => {
+                          setEditing(it)
+                          setAdding(false)
+                        }}
+                      >
+                        edit
+                      </button>
+                      <button
+                        className="rounded px-1 text-xs text-slate-400 hover:text-red-600"
+                        onClick={() => remove.mutate(it.id)}
+                      >
+                        delete
+                      </button>
+                    </div>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        )}
+        {(adding || editing) && (
+          <div className="mt-2">
+            <EntityForm
+              key={editing?.id ?? "new"}
+              fields={STANDING_DOSE_FIELDS}
+              initial={editing ?? undefined}
+              onSubmit={submit}
+              onCancel={() => {
+                setEditing(null)
+                setAdding(false)
+              }}
+              submitLabel={editing ? "Save" : "Add dose"}
+            />
+          </div>
+        )}
+      </div>
     </div>
   )
 }

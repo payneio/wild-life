@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """One-time (idempotent) migration of Paul's Microsoft "MADE: Exploration" work
-workspace into personal-api.
+workspace into wild-life-api.
 
 Source:  /data/projects/microsoft/made-exploration  (a markdown work workspace)
-Target:  the personal-api CRUD endpoints (default http://localhost:9005)
+Target:  the wild-life-api CRUD endpoints (default http://localhost:9005)
 
 What it creates
 ---------------
@@ -606,7 +606,7 @@ def get_token(explicit: str | None) -> str:
     if explicit:
         return explicit
     out = subprocess.run(
-        ["castle", "secret", "get", "PERSONAL_API_TOKEN"],
+        ["castle", "secret", "get", "WILD_LIFE_TOKEN"],
         capture_output=True, text=True,
     )
     if out.returncode == 0 and out.stdout.strip():

@@ -1,6 +1,7 @@
 // Field specs + option lists — a leaf module (no component imports) so pages
 // can import these without creating a cycle through registry.ts.
 import type { FieldSpec } from "@/components/EntityForm"
+import { SLOTS, WEEKDAYS } from "@/lib/slots"
 
 // --- option lists -----------------------------------------------------------
 const PRIORITIES = ["low", "medium", "high", "urgent"] as const
@@ -207,13 +208,14 @@ export const CONDITION_FIELDS: FieldSpec[] = [
   { name: "notes", label: "Notes", type: "textarea", full: true },
 ]
 
+const MED_FORM = ["tablet", "capsule", "liquid", "powder", "spray", "injection", "other"] as const
+
 export const MEDICATION_FIELDS: FieldSpec[] = [
   { name: "name", label: "Name" },
   { name: "brand", label: "Brand" },
-  { name: "generic_name", label: "Generic name" },
   { name: "med_type", label: "Type", type: "select", options: MED_TYPE },
   { name: "strength", label: "Strength", placeholder: "40mg" },
-  { name: "dose", label: "Dose", placeholder: "1 tablet" },
+  { name: "form", label: "Form", type: "select", options: MED_FORM },
   { name: "status", label: "Status", type: "select", options: MED_STATUS },
   { name: "start_date", label: "Started", type: "date" },
   { name: "end_date", label: "Stopped", type: "date" },
@@ -238,6 +240,33 @@ export const PROTOCOL_FIELDS: FieldSpec[] = [
   { name: "provider_id", label: "Provider", type: "entity", lookup: "people" },
   { name: "intended_outcome", label: "Intended outcome", type: "textarea", full: true },
   { name: "notes", label: "Notes", type: "textarea", full: true },
+]
+
+// Dose-line (protocol_item) fields, shared by the protocol Steps editor and the
+// medication standing-dose editor. Cadence follows FHIR Timing (see api regimen).
+const DOSE_CADENCE_FIELDS: FieldSpec[] = [
+  { name: "timing", label: "Times of day", type: "multiselect", options: SLOTS, full: true },
+  { name: "days_of_week", label: "Days (blank = every day)", type: "multiselect", options: WEEKDAYS, full: true },
+  { name: "interval_days", label: "Every N days", type: "number", placeholder: "1" },
+  { name: "as_needed", label: "As needed (PRN)", type: "checkbox" },
+  { name: "trigger", label: "PRN reason / condition", full: true },
+  { name: "notes", label: "Notes", type: "textarea", full: true },
+]
+// A medication dose: how many units (of the med's form) + when.
+export const MED_STEP_FIELDS: FieldSpec[] = [
+  { name: "medication_id", label: "Medication", type: "entity", lookup: "medication", full: true },
+  { name: "amount", label: "Amount", type: "number", placeholder: "1" },
+  ...DOSE_CADENCE_FIELDS,
+]
+// A non-medication step (a behavior); no amount.
+export const ACTIVITY_STEP_FIELDS: FieldSpec[] = [
+  { name: "activity", label: "Activity", full: true, placeholder: "e.g. Walk after dinner" },
+  ...DOSE_CADENCE_FIELDS,
+]
+// A medication's standing dose (med is fixed by context).
+export const STANDING_DOSE_FIELDS: FieldSpec[] = [
+  { name: "amount", label: "Amount", type: "number", placeholder: "1" },
+  ...DOSE_CADENCE_FIELDS,
 ]
 
 export const HEALTH_EVENT_FIELDS: FieldSpec[] = [
@@ -312,6 +341,7 @@ export const GOAL_FIELDS: FieldSpec[] = [
   { name: "name", label: "Name", full: true },
   { name: "status", label: "Status", type: "select", options: ["active", "achieved", "paused", "dropped"] },
   { name: "area_id", label: "Area", type: "entity", lookup: "area" },
+  { name: "condition_id", label: "For condition", type: "entity", lookup: "condition" },
   { name: "metric_id", label: "Metric", type: "entity", lookup: "metric" },
   { name: "target_state", label: "Target state" },
   { name: "target_value", label: "Target value", type: "number" },
@@ -327,6 +357,7 @@ export const METRIC_FIELDS: FieldSpec[] = [
   { name: "name", label: "Name" },
   { name: "unit", label: "Unit" },
   { name: "area_id", label: "Area", type: "entity", lookup: "area" },
+  { name: "condition_id", label: "For condition", type: "entity", lookup: "condition" },
   { name: "target_value", label: "Target", type: "number" },
   { name: "target_min", label: "Target min", type: "number" },
   { name: "target_max", label: "Target max", type: "number" },
@@ -336,16 +367,16 @@ export const METRIC_FIELDS: FieldSpec[] = [
 ]
 
 export const ROUTINE_FIELDS: FieldSpec[] = [
-  { name: "name", label: "Name", full: true },
+  { name: "activity", label: "Routine", full: true, placeholder: "e.g. Walk after dinner" },
+  { name: "timing", label: "Times of day", type: "multiselect", options: SLOTS, full: true },
+  { name: "days_of_week", label: "Days (blank = every day)", type: "multiselect", options: WEEKDAYS, full: true },
+  { name: "interval_days", label: "Every N days", type: "number", placeholder: "1" },
+  { name: "as_needed", label: "As needed (PRN)", type: "checkbox" },
   { name: "area_id", label: "Area", type: "entity", lookup: "area" },
-  { name: "frequency", label: "Frequency", placeholder: "daily / weekly / 3x-week" },
-  { name: "preferred_days", label: "Preferred days", type: "tags", placeholder: "Mon, Wed, Fri" },
-  { name: "preferred_time", label: "Preferred time" },
-  { name: "tracking_method", label: "Tracking method" },
+  { name: "responsible_id", label: "Responsible", type: "entity", lookup: "people" },
   { name: "status", label: "Status", type: "select", options: ["active", "paused", "archived"] },
   { name: "start_date", label: "Start", type: "date" },
   { name: "end_date", label: "End", type: "date" },
-  { name: "responsible_id", label: "Responsible", type: "entity", lookup: "people" },
   { name: "notes", label: "Notes", type: "textarea", full: true },
 ]
 

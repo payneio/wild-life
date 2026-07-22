@@ -27,14 +27,14 @@ def upgrade() -> None:
         sa.Column('id', sa.UUID(), server_default=sa.text('gen_random_uuid()'), nullable=False),
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-        sa.ForeignKeyConstraint(['medication_id'], ['personal_api.medications.id'], ondelete='CASCADE'),
+        sa.ForeignKeyConstraint(['medication_id'], ['wild_life.medications.id'], ondelete='CASCADE'),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('medication_id', 'dose_date', 'slot', name='uq_medication_dose'),
-        schema='personal_api',
+        schema='wild_life',
     )
-    op.create_index('ix_personal_api_medication_doses_medication_id', 'medication_doses', ['medication_id'], schema='personal_api')
-    op.create_index('ix_personal_api_medication_doses_dose_date', 'medication_doses', ['dose_date'], schema='personal_api')
+    op.create_index('ix_wild_life_medication_doses_medication_id', 'medication_doses', ['medication_id'], schema='wild_life')
+    op.create_index('ix_wild_life_medication_doses_dose_date', 'medication_doses', ['dose_date'], schema='wild_life')
 
 
 def downgrade() -> None:
-    op.drop_table('medication_doses', schema='personal_api')
+    op.drop_table('medication_doses', schema='wild_life')

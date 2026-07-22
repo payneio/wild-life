@@ -23,7 +23,7 @@ def upgrade() -> None:
         "ix_notes_body_trgm",
         "notes",
         ["body"],
-        schema="personal_api",
+        schema="wild_life",
         postgresql_using="gin",
         postgresql_ops={"body": "gin_trgm_ops"},
     )
@@ -31,13 +31,13 @@ def upgrade() -> None:
         "ix_notes_title_trgm",
         "notes",
         ["title"],
-        schema="personal_api",
+        schema="wild_life",
         postgresql_using="gin",
         postgresql_ops={"title": "gin_trgm_ops"},
     )
 
 
 def downgrade() -> None:
-    op.drop_index("ix_notes_title_trgm", table_name="notes", schema="personal_api")
-    op.drop_index("ix_notes_body_trgm", table_name="notes", schema="personal_api")
+    op.drop_index("ix_notes_title_trgm", table_name="notes", schema="wild_life")
+    op.drop_index("ix_notes_body_trgm", table_name="notes", schema="wild_life")
     # leave the pg_trgm extension in place (may be used elsewhere)

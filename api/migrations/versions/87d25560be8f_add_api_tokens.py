@@ -41,37 +41,37 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
-            ["person_id"], ["personal_api.people.id"], ondelete="SET NULL"
+            ["person_id"], ["wild_life.people.id"], ondelete="SET NULL"
         ),
         sa.PrimaryKeyConstraint("id"),
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_api_tokens_person_id"),
+        op.f("ix_wild_life_api_tokens_person_id"),
         "api_tokens",
         ["person_id"],
         unique=False,
-        schema="personal_api",
+        schema="wild_life",
     )
     op.create_index(
-        op.f("ix_personal_api_api_tokens_token_hash"),
+        op.f("ix_wild_life_api_tokens_token_hash"),
         "api_tokens",
         ["token_hash"],
         unique=True,
-        schema="personal_api",
+        schema="wild_life",
     )
     # ### end Alembic commands ###
 
 
 def downgrade() -> None:
     op.drop_index(
-        op.f("ix_personal_api_api_tokens_token_hash"),
+        op.f("ix_wild_life_api_tokens_token_hash"),
         table_name="api_tokens",
-        schema="personal_api",
+        schema="wild_life",
     )
     op.drop_index(
-        op.f("ix_personal_api_api_tokens_person_id"),
+        op.f("ix_wild_life_api_tokens_person_id"),
         table_name="api_tokens",
-        schema="personal_api",
+        schema="wild_life",
     )
-    op.drop_table("api_tokens", schema="personal_api")
+    op.drop_table("api_tokens", schema="wild_life")
