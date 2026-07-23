@@ -56,7 +56,7 @@ export const EVENT_FIELDS: FieldSpec[] = [
   { name: "end_at", label: "End", type: "datetime" },
   { name: "all_day", label: "All day", type: "checkbox" },
   { name: "location", label: "Location" },
-  { name: "attendees", label: "Attendees", type: "tags" },
+  { name: "attendees", label: "Attendees", type: "attendees", full: true },
   { name: "recurrence", label: "Repeats", type: "recurrence", full: true },
 ]
 

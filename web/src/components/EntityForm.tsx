@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react"
 import { Button, Field, Input, Select, Textarea } from "@/components/ui/primitives"
 import { RecurrenceEditor } from "@/components/RecurrenceEditor"
+import { AttendeeEditor } from "@/components/calendar/AttendeeEditor"
 import { EntityRefField } from "@/components/graph/EntityRefField"
 import { cn } from "@/lib/utils"
 import type { LookupKey } from "@/services/api/lookups"
@@ -15,6 +16,7 @@ export type FieldType =
   | "select"
   | "entity"
   | "tags"
+  | "attendees"
   | "multiselect"
   | "time"
   | "recurrence"
@@ -43,6 +45,7 @@ function initialValue(f: FieldSpec, initial?: Values): unknown {
   const raw = initial?.[f.name]
   if (f.type === "checkbox") return !!raw
   if (f.type === "tags") return Array.isArray(raw) ? (raw as string[]).join(", ") : ""
+  if (f.type === "attendees") return Array.isArray(raw) ? (raw as string[]) : []
   if (f.type === "multiselect") return Array.isArray(raw) ? (raw as string[]) : []
   if (f.type === "datetime") return toLocalInput(raw)
   return raw == null ? "" : raw
@@ -87,6 +90,8 @@ export function EntityForm({
           .split(",")
           .map((s) => s.trim())
           .filter(Boolean)
+      } else if (f.type === "attendees") {
+        out[f.name] = Array.isArray(v) ? v : []
       } else if (f.type === "multiselect") {
         out[f.name] = Array.isArray(v) ? v : []
       } else if (f.type === "datetime") {
@@ -189,6 +194,13 @@ export function EntityForm({
                   value={String(val ?? "")}
                   placeholder="comma, separated"
                   onChange={(e) => set(f.name, e.target.value)}
+                />
+              )
+            case "attendees":
+              return (
+                <AttendeeEditor
+                  value={Array.isArray(val) ? (val as string[]) : []}
+                  onChange={(next) => set(f.name, next)}
                 />
               )
             case "multiselect": {

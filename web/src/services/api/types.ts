@@ -366,6 +366,18 @@ export interface EventItem extends Entity {
   sequence: number | null
   rsvp_status: string | null
   rsvp_sent_status: string | null
+  invites_enabled: boolean
+  cancelled_at: Instant | null
+  /** Computed: true when the organizer is someone else (an invite I received). */
+  received_invite: boolean
+}
+
+/** One guest's invite + RSVP state on a hosted event (GET /events/:id/guests). */
+export interface GuestStatus {
+  email: string
+  name: string | null
+  invited: boolean
+  partstat: string | null
 }
 
 export interface NoteLink {
@@ -584,6 +596,8 @@ export interface DashRow {
 }
 export interface ReviewDashboard {
   generated_for: CalendarDay
+  unrooted_notes_count: number
+  unrooted_events_count: number
   overdue_tasks: DashRow[]
   due_today: DashRow[]
   stale_projects: DashRow[]

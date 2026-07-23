@@ -73,6 +73,15 @@ class ApiClient {
     return handle<T>(resp)
   }
 
+  async put<T>(path: string, body?: unknown): Promise<T> {
+    const resp = await fetch(`${BASE_URL}${path}`, {
+      method: "PUT",
+      headers: authHeaders(body != null),
+      body: body != null ? JSON.stringify(body) : undefined,
+    })
+    return handle<T>(resp)
+  }
+
   async delete<T>(path: string): Promise<T> {
     const resp = await fetch(`${BASE_URL}${path}`, {
       method: "DELETE",

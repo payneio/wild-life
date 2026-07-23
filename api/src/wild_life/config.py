@@ -34,6 +34,28 @@ class Settings(BaseSettings):
     # Reminder lead times in minutes before an event start (comma-separated).
     reminder_leads: str = "1440,60"
 
+    # Calendar mail (iMIP invites over Proton Bridge). Off by default so dev/test
+    # never send real email; production flips WILD_LIFE_MAIL_ENABLED=true. The
+    # SMTP/IMAP endpoints default to the local Proton Bridge; the password maps
+    # from the castle secret PROTONMAIL_API_KEY (the Bridge password) via
+    # WILD_LIFE_SMTP_PASSWORD in the deployment env.
+    mail_enabled: bool = False
+    smtp_host: str = "127.0.0.1"
+    smtp_port: int = 1025
+    imap_host: str = "127.0.0.1"
+    imap_port: int = 1143
+    smtp_user: str = ""
+    smtp_password: str = ""
+    # The organizer / From identity used on outbound invites (mailto sans scheme).
+    mail_from: str = "paul@payne.io"
+    mail_mailbox: str = "INBOX"
+    # IMAP keyword marking already-ingested messages. Distinct from the legacy
+    # calendar-mail sidecar's "CalIngested" so the two can coexist during rollout.
+    mail_keyword: str = "WLCalIngested"
+    # How often the in-process poll loop runs the two-way sync (seconds). The
+    # loop sleeps this long before its first pass, so tests never trigger it.
+    mail_poll_seconds: int = 300
+
     model_config = {
         "env_prefix": "WILD_LIFE_",
         "env_file": ".env",
@@ -43,6 +65,12 @@ class Settings(BaseSettings):
     def cors_origin_list(self) -> list[str]:
         """CORS origins as a list."""
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+    @property
+    def self_address(self) -> str:
+        """The owner's own email — used to tell hosted events (I invite others)
+        from received invites (someone else is the organizer)."""
+        return self.mail_from.strip().lower()
 
     @property
     def reminder_lead_minutes(self) -> list[int]:

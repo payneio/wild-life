@@ -13,6 +13,7 @@ import type {
   Delegation,
   EntityType,
   EventItem,
+  GuestStatus,
   Goal,
   InsurancePlan,
   Interaction,
@@ -241,6 +242,54 @@ export function useEventPeople(id: string | null) {
     queryKey: ["events", id, "people"],
     queryFn: () => apiClient.get<{ id: string; name: string }[]>(`/events/${id}/people`),
     enabled: !!id,
+  })
+}
+
+/** Per-guest invite + RSVP status for a hosted event (the Guests panel). */
+export function useEventGuests(id: string | null) {
+  return useQuery({
+    queryKey: ["events", id, "guests"],
+    queryFn: () => apiClient.get<GuestStatus[]>(`/events/${id}/guests`),
+    enabled: !!id,
+  })
+}
+
+/** Opt an event into invites and send its pending REQUEST/CANCEL now. */
+export function useSendInvites() {
+  const qc = useQueryClient()
+  const invalidate = useInvalidator()
+  return useMutation({
+    mutationFn: (eventId: string) =>
+      apiClient.post<{ disabled: boolean; requests_sent: number; cancels_sent: number }>(
+        `/events/${eventId}/invites/send`,
+        {},
+      ),
+    onSuccess: (_res, eventId) => {
+      void qc.invalidateQueries({ queryKey: ["events", eventId, "guests"] })
+      invalidate("events")
+    },
+  })
+}
+
+// --- preferences (generic single-user settings KV) ---
+export function usePreference<T = Record<string, unknown>>(key: string) {
+  return useQuery({
+    queryKey: ["preferences", key],
+    queryFn: () => apiClient.get<{ key: string; value: T }>(`/preferences/${key}`),
+  })
+}
+
+export function useSetPreference(key: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (value: Record<string, unknown>) =>
+      apiClient.put<{ key: string; value: Record<string, unknown> }>(
+        `/preferences/${key}`,
+        value,
+      ),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["preferences", key] })
+    },
   })
 }
 

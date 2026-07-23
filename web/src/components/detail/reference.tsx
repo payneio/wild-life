@@ -1,9 +1,13 @@
+import { useState } from "react"
 import { CheckCircle2, ExternalLink, MapPin, Repeat } from "lucide-react"
 import { summarizeRecurrence } from "@/lib/rrule"
 import { Button } from "@/components/ui/primitives"
 import { EntityRef } from "@/components/graph/EntityRef"
+import { GuestsPanel } from "@/components/calendar/GuestsPanel"
 import { commitments, events, reviews, useEventPeople } from "@/services/api/hooks"
 import { apiClient } from "@/services/api/client"
+import { showActionToast } from "@/lib/toast"
+import { humanize } from "@/lib/format"
 import { useQueryClient } from "@tanstack/react-query"
 import type {
   Commitment,
@@ -98,9 +102,19 @@ export function EventDetail({ entity }: { entity: Entity }) {
   const update = events.useUpdate()
   if (!e.start_at) return null
   const start = new Date(e.start_at)
-  const isInvite = !!e.organizer
+  const end = e.end_at ? new Date(e.end_at) : null
+  const sameDay = end != null && start.toDateString() === end.toDateString()
+  const timeOpts = { hour: "numeric", minute: "2-digit" } as const
+  // A received invite (organizer is someone else) shows the RSVP control; an
+  // event I host shows the Guests panel instead.
+  const isInvite = e.received_invite
   return (
     <div className="space-y-4">
+      {e.event_type && (
+        <span className="inline-flex w-fit items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+          {humanize(e.event_type)}
+        </span>
+      )}
       <div className="rounded-xl border border-slate-200 bg-surface-2 px-4 py-3">
         <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">When</div>
         <div className="mt-0.5 text-lg font-semibold text-slate-900">
@@ -113,8 +127,10 @@ export function EventDetail({ entity }: { entity: Entity }) {
         <div className="text-sm text-slate-500">
           {e.all_day
             ? "All day"
-            : `${start.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}${
-                e.end_at ? ` – ${formatDateTime(e.end_at)}` : ""
+            : `${start.toLocaleTimeString(undefined, timeOpts)}${
+                end
+                  ? ` – ${sameDay ? end.toLocaleTimeString(undefined, timeOpts) : formatDateTime(e.end_at!)}`
+                  : ""
               }`}
         </div>
         {e.recurrence && (
@@ -142,34 +158,49 @@ export function EventDetail({ entity }: { entity: Entity }) {
           </div>
         </Section>
       )}
-      <EventPeople eventId={e.id} attendees={e.attendees} />
+      {isInvite ? (
+        <EventPeople eventId={e.id} attendees={e.attendees} />
+      ) : (
+        <GuestsPanel event={e} />
+      )}
     </div>
   )
 }
 
-/** Attendees resolved to People (navigable), with a re-match for edited emails. */
+/** Invitees: matched People (navigable chips) + the raw invite emails, always
+ *  visible so you can see who's invited even before they're in your CRM. */
 function EventPeople({ eventId, attendees }: { eventId: string; attendees: string[] }) {
   const people = useEventPeople(eventId).data ?? []
   const qc = useQueryClient()
+  const [busy, setBusy] = useState(false)
   const resync = async () => {
-    await apiClient.post(`/events/${eventId}/reconcile-attendees`, {})
-    void qc.invalidateQueries({ queryKey: ["events", eventId, "people"] })
+    setBusy(true)
+    try {
+      const res = await apiClient.post<{ linked: number }>(`/events/${eventId}/reconcile-attendees`, {})
+      await qc.invalidateQueries({ queryKey: ["events", eventId, "people"] })
+      showActionToast(`Linked ${res.linked} attendee${res.linked === 1 ? "" : "s"} to people`)
+    } finally {
+      setBusy(false)
+    }
   }
-  if (people.length === 0 && (attendees?.length ?? 0) === 0) return null
+  if (people.length === 0 && attendees.length === 0) return null
   return (
     <Section
       title="People"
       action={
-        <button
-          type="button"
-          onClick={resync}
-          className="rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
-        >
-          Match attendees
-        </button>
+        attendees.length > 0 ? (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={resync}
+            className="rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 disabled:opacity-50"
+          >
+            {busy ? "Matching…" : "Match attendees"}
+          </button>
+        ) : undefined
       }
     >
-      {people.length > 0 ? (
+      {people.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {people.map((p) => (
             <EntityRef
@@ -182,10 +213,19 @@ function EventPeople({ eventId, attendees }: { eventId: string; attendees: strin
             </EntityRef>
           ))}
         </div>
-      ) : (
-        <p className="text-xs text-slate-400">
-          No attendees matched to people yet — “Match attendees” to link known emails.
-        </p>
+      )}
+      {attendees.length > 0 && (
+        <div className="mt-1.5 flex flex-wrap gap-1">
+          {attendees.map((a) => (
+            <span
+              key={a}
+              title="Invited"
+              className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] text-slate-500"
+            >
+              {a}
+            </span>
+          ))}
+        </div>
       )}
     </Section>
   )

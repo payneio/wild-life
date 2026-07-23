@@ -21,6 +21,7 @@ import { HistoryPage } from "@/pages/HistoryPage"
 import { NotesPage } from "@/pages/NotesPage"
 import { DuplicatesPage } from "@/pages/DuplicatesPage"
 import { AgentsPage } from "@/pages/AgentsPage"
+import { SettingsPage } from "@/pages/SettingsPage"
 import {
   CommitmentsPage,
   DecisionsPage,
@@ -109,6 +110,7 @@ export const router = createBrowserRouter([
       withDetail("tags", <TagsPage />, "tag"),
       { path: "history", element: <HistoryPage /> },
       { path: "duplicates", element: <DuplicatesPage /> },
+      { path: "settings", element: <SettingsPage /> },
     ],
   },
 ])

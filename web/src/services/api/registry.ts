@@ -171,8 +171,8 @@ export const REGISTRY: Record<string, EntityDef> = {
   ] },
   location: { key: "location", label: "Location", crud: locations, fields: LOCATION_FIELDS, title: (e) => e.name, entityType: "location", titleField: "name", quickCreate: true, extra: LocationDetail, detailHide: ["address", "city", "region"] },
   protocol: { key: "protocol", label: "Protocol", crud: protocols, fields: PROTOCOL_FIELDS, title: (e) => e.name, entityType: "protocol", titleField: "name", quickCreate: true, extra: ProtocolExtra },
-  note: { key: "note", label: "Note", crud: notes, fields: NOTE_FIELDS, title: (e) => e.title || "(untitled)", entityType: "note", titleField: "title", contextLabel: "Rooted to" },
-  event: { key: "event", label: "Event", crud: events, fields: EVENT_FIELDS, title: (e) => e.title, entityType: "event", titleField: "title", extra: EventDetail, detailHide: ["start_at", "end_at", "all_day"], contextLabel: "About", relations: [
+  note: { key: "note", label: "Note", crud: notes, fields: NOTE_FIELDS, title: (e) => e.title || "(untitled)", entityType: "note", titleField: "title", contextLabel: "Filed in" },
+  event: { key: "event", label: "Event", crud: events, fields: EVENT_FIELDS, title: (e) => e.title, entityType: "event", titleField: "title", extra: EventDetail, detailHide: ["start_at", "end_at", "all_day"], contextLabel: "Filed in", relations: [
     { mode: "soft-backref", label: "Notes", type: "note" },
   ] },
   commitment: { key: "commitment", label: "Commitment", crud: commitments, fields: COMMITMENT_FIELDS, title: (e) => e.description, entityType: "commitment", titleField: "description", quickCreate: true, extra: CommitmentDetail, detailHide: ["status", "date_made", "due_date"], relations: [

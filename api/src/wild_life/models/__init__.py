@@ -1,7 +1,7 @@
 """ORM models — import all so Base.metadata and Alembic see every table."""
 
 from wild_life.models.auth import ApiToken
-from wild_life.models.calendar import Event
+from wild_life.models.calendar import AttendeeResponse, Event, SentInvite
 from wild_life.models.core import Area, Program, Project, ProjectContributor
 from wild_life.models.goals import Goal, GoalProject
 from wild_life.models.health import (
@@ -19,6 +19,7 @@ from wild_life.models.locations import Location
 from wild_life.models.notes import Note, NoteMention
 from wild_life.models.organizations import Affiliation, Organization
 from wild_life.models.people import Interaction, Person
+from wild_life.models.preferences import Preference
 from wild_life.models.push import PushSubscription, SentNudge, SentReminder
 from wild_life.models.requests import Request
 from wild_life.models.reviews import Review
@@ -45,6 +46,9 @@ __all__ = [
     "Metric",
     "MetricEntry",
     "Event",
+    "SentInvite",
+    "AttendeeResponse",
+    "Preference",
     "Note",
     "Person",
     "Interaction",

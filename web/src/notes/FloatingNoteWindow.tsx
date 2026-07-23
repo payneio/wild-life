@@ -1,9 +1,10 @@
-import { useRef, useState } from "react"
+import { useRef } from "react"
 import { createPortal } from "react-dom"
 import { ChevronDown, ChevronUp, GripHorizontal, NotebookPen, X } from "lucide-react"
 import { NoteComposer } from "@/components/NoteComposer"
 import { EntityRef } from "@/components/graph/EntityRef"
 import { cn } from "@/lib/utils"
+import { usePersistentState } from "@/lib/persistentState"
 import { useFloatingNote } from "@/notes/floatingNoteContext"
 import type { Body } from "@/services/api/crud"
 import { notes, useCreateNoteWithImages } from "@/services/api/hooks"
@@ -28,7 +29,11 @@ export function FloatingNoteWindow() {
   const resolve = useEntityResolver()
 
   // Desktop drag: track the pointer offset within the header and move the window.
-  const [pos, setPos] = useState<{ left: number; top: number } | null>(null)
+  // Position persists across reloads; clamped so it can never leave the viewport.
+  const [pos, setPos] = usePersistentState<{ left: number; top: number } | null>(
+    "floating_note_pos",
+    null,
+  )
   const drag = useRef<{ dx: number; dy: number } | null>(null)
 
   function onPointerDown(e: React.PointerEvent<HTMLElement>) {
@@ -43,9 +48,11 @@ export function FloatingNoteWindow() {
   }
   function onPointerMove(e: React.PointerEvent<HTMLElement>) {
     if (!drag.current) return
+    const maxLeft = Math.max(8, window.innerWidth - 380 - 8)
+    const maxTop = Math.max(8, window.innerHeight - 48) // keep the header on-screen
     setPos({
-      left: Math.max(8, e.clientX - drag.current.dx),
-      top: Math.max(8, e.clientY - drag.current.dy),
+      left: Math.min(maxLeft, Math.max(8, e.clientX - drag.current.dx)),
+      top: Math.min(maxTop, Math.max(8, e.clientY - drag.current.dy)),
     })
   }
   function onPointerUp(e: React.PointerEvent<HTMLElement>) {
@@ -73,6 +80,17 @@ export function FloatingNoteWindow() {
         initial={existing.data}
         onSubmit={(b: Body) => update.mutate({ id: noteId, body: b })}
       />
+    ) : existing.isError ? (
+      <p className="px-1 py-6 text-center text-sm text-slate-400">
+        Couldn’t load this note.{" "}
+        <button
+          type="button"
+          onClick={() => void existing.refetch()}
+          className="font-medium text-indigo-600 hover:underline"
+        >
+          Retry
+        </button>
+      </p>
     ) : (
       <p className="px-1 py-6 text-center text-sm text-slate-400">Loading…</p>
     )
@@ -101,10 +119,10 @@ export function FloatingNoteWindow() {
     <div
       className={cn(
         "fixed z-[55] flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-surface shadow-floating",
-        // Mobile: a bottom sheet spanning the width. Desktop: docked bottom-right.
-        "inset-x-2 bottom-2 lg:inset-x-auto lg:bottom-4 lg:right-4 lg:top-auto lg:w-[380px]",
+        // Mobile: a bottom sheet, lifted clear of the bottom nav. Desktop: docked bottom-right.
+        "inset-x-2 bottom-16 lg:inset-x-auto lg:bottom-4 lg:right-4 lg:top-auto lg:w-[380px]",
       )}
-      style={pos ? { left: pos.left, top: pos.top, right: "auto", bottom: "auto" } : undefined}
+      style={pos && isDesktop() ? { left: pos.left, top: pos.top, right: "auto", bottom: "auto" } : undefined}
     >
       <header
         onPointerDown={onPointerDown}
@@ -134,9 +152,9 @@ export function FloatingNoteWindow() {
       </header>
       {!minimized && rootType && rootId && (
         <div className="border-b border-slate-100 bg-slate-50/40 px-3 py-1.5 text-xs text-slate-500">
-          On{" "}
+          in{" "}
           <EntityRef type={rootType} id={rootId} className="font-medium text-slate-700">
-            {resolve(rootType, rootId) ?? rootType}
+            {resolve(rootType, rootId) ?? "…"}
           </EntityRef>
         </div>
       )}

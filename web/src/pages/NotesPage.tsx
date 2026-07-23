@@ -1,18 +1,18 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { useNavigate, useParams } from "react-router-dom"
-import { ChevronLeft, ChevronRight, Link2, Pencil, Trash2 } from "lucide-react"
+import { ChevronLeft, ChevronRight, Folder, Link2, Pencil, Trash2 } from "lucide-react"
 import { Backlinks } from "@/components/Backlinks"
 import { ListToolbar } from "@/components/ListToolbar"
 import { MentionChip } from "@/components/MentionChip"
 import { MentionText } from "@/components/MentionText"
 import { NoteComposer } from "@/components/NoteComposer"
-import { EntityRef } from "@/components/graph/EntityRef"
 import { Badge, Card, EmptyState } from "@/components/ui/primitives"
 import { useListFilter, type FilterDef, type ListConfig } from "@/lib/listFilter"
 import type { Body } from "@/services/api/crud"
 import { notes, useCreateNoteWithImages, useNoteCorpus, useNotesCalendar } from "@/services/api/hooks"
 import { cn, formatDate } from "@/lib/utils"
 import { useEntityResolver } from "@/services/api/mentions"
+import { routeFor } from "@/services/api/routes"
 import type { Note } from "@/services/api/types"
 import { groupNotesByDay } from "@/lib/format"
 
@@ -65,18 +65,6 @@ const JournalEntry = memo(function JournalEntry({
           <span>{entryTime(note)}</span>
           {note.note_type !== "journal" && <Badge>{note.note_type}</Badge>}
           {note.mood && <span>· {note.mood}</span>}
-          {note.entity_type && note.entity_id && (
-            <span className="flex items-center gap-1">
-              <span aria-hidden>·</span> on{" "}
-              <EntityRef
-                type={note.entity_type}
-                id={note.entity_id}
-                className="font-medium text-slate-500"
-              >
-                {resolve(note.entity_type, note.entity_id) ?? note.entity_type}
-              </EntityRef>
-            </span>
-          )}
         </div>
         {/* Reveal on hover for pointer devices; always visible on touch (no
             hover) — otherwise notes can't be edited/deleted on mobile. */}
@@ -105,20 +93,36 @@ const JournalEntry = memo(function JournalEntry({
         </div>
       </div>
 
+      {note.entity_type && note.entity_id && (
+        <button
+          type="button"
+          title="Filed in"
+          onClick={() => {
+            const to = routeFor(note.entity_type!, note.entity_id!)
+            if (to) navigate(to)
+          }}
+          className="inline-flex w-fit items-center gap-1 rounded-md bg-indigo-600 px-2 py-0.5 text-xs font-medium text-white transition hover:bg-indigo-700"
+        >
+          <Folder size={11} /> {resolve(note.entity_type, note.entity_id) ?? "…"}
+        </button>
+      )}
+
       {note.title && <h3 className="text-sm font-semibold text-slate-900">{note.title}</h3>}
 
       <MentionText>{note.body || "_Empty note._"}</MentionText>
 
       {(note.tags.length > 0 || note.links.length > 0) && (
         <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-          {note.links.map((l) => (
-            <MentionChip
-              key={`${l.target_type}:${l.target_id}`}
-              type={l.target_type}
-              id={l.target_id}
-              label={resolve(l.target_type, l.target_id) ?? l.target_type}
-            />
-          ))}
+          {note.links
+            .filter((l) => !(l.target_type === note.entity_type && l.target_id === note.entity_id))
+            .map((l) => (
+              <MentionChip
+                key={`${l.target_type}:${l.target_id}`}
+                type={l.target_type}
+                id={l.target_id}
+                label={resolve(l.target_type, l.target_id) ?? "…"}
+              />
+            ))}
           {note.tags.map((t) => (
             <Badge key={t}>{t}</Badge>
           ))}
@@ -275,7 +279,8 @@ export function NotesPage({
       a === "unrooted" ? -1 : b === "unrooted" ? 1 : a.localeCompare(b),
     )
     const filters: FilterDef[] = [{ field: "note_type", label: "Type", options: NOTE_TYPES }]
-    if (kinds.length > 1) filters.push({ field: "root_kind", label: "Rooted", options: kinds })
+    if (kinds.length > 1)
+      filters.push({ field: "root_kind", label: "Filed in", options: kinds, optionLabels: { unrooted: "Unfiled" } })
     return { searchKeys: ["title", "body"], filters, sorts: [{ key: "default", label: "Newest", field: "" }] }
   }, [rows])
 
@@ -314,7 +319,7 @@ export function NotesPage({
           <p className="text-sm text-slate-500">
             {searching
               ? `${results.length} result${results.length === 1 ? "" : "s"}`
-              : `${(data ?? []).length} in ${year}`}
+              : `${notesList.length} in ${year}`}
           </p>
         </div>
         {!searching && (

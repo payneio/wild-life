@@ -663,7 +663,7 @@ function PersonEventsSection({ personId }: { personId: string }) {
             >
               <span className="min-w-0 flex-1 truncate text-sm text-slate-700">{e.title}</span>
               {e.start_at && (
-                <span className="shrink-0 text-xs text-slate-400">{e.start_at.slice(0, 10)}</span>
+                <span className="shrink-0 text-xs text-slate-400">{formatDate(e.start_at)}</span>
               )}
             </button>
           </li>

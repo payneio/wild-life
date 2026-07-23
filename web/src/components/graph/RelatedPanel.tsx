@@ -75,7 +75,7 @@ export function RelatedPanel({
               onClick={() => openNote({ owner: { type: parentType, id: parent.id } })}
               className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
             >
-              <NotebookPen size={13} /> Take notes
+              <NotebookPen size={13} /> New note
             </button>
           )}
           <button
@@ -84,7 +84,7 @@ export function RelatedPanel({
             onClick={() => setOpen(true)}
             className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
           >
-            <Plus size={13} /> Add
+            <Plus size={13} /> {isNotes ? "Link" : "Add"}
           </button>
         </div>
       }

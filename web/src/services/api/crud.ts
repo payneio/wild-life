@@ -6,7 +6,13 @@ import {
   type QueryKey,
 } from "@tanstack/react-query"
 import { apiClient } from "@/services/api/client"
+import { showActionToast } from "@/lib/toast"
 import type { Entity } from "@/services/api/types"
+
+/** Surfaced whenever an optimistic write rolls back — so a failed save is never silent. */
+function onWriteError() {
+  showActionToast("Couldn’t save — the change was undone.", undefined, "error")
+}
 
 type Params = Record<string, string | string[] | undefined>
 export type Body = Record<string, unknown>
@@ -82,6 +88,7 @@ export function createCrud<T extends Entity>(resource: string) {
       onSuccess: () => {
         void qc.invalidateQueries({ queryKey: [resource] })
       },
+      onError: onWriteError,
     })
   }
 
@@ -95,7 +102,10 @@ export function createCrud<T extends Entity>(resource: string) {
         qc.setQueriesData({ queryKey: [resource] }, (old) => mergeById(old, id, body))
         return { prev }
       },
-      onError: (_e, _v, ctx) => rollback(qc, ctx?.prev),
+      onError: (_e, _v, ctx) => {
+        rollback(qc, ctx?.prev)
+        onWriteError()
+      },
       onSettled: () => {
         void qc.invalidateQueries({ queryKey: [resource] })
       },
@@ -111,7 +121,10 @@ export function createCrud<T extends Entity>(resource: string) {
         qc.setQueriesData({ queryKey: [resource] }, (old) => dropById(old, id))
         return { prev }
       },
-      onError: (_e, _v, ctx) => rollback(qc, ctx?.prev),
+      onError: (_e, _v, ctx) => {
+        rollback(qc, ctx?.prev)
+        onWriteError()
+      },
       onSettled: () => {
         void qc.invalidateQueries({ queryKey: [resource] })
       },

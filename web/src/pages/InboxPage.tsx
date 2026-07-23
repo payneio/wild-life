@@ -3,6 +3,7 @@ import { Home, Inbox as InboxIcon, Sparkles } from "lucide-react"
 import { EntityPicker } from "@/components/graph/EntityPicker"
 import { Card } from "@/components/ui/primitives"
 import { Section } from "@/components/detail/kit"
+import { showActionToast } from "@/lib/toast"
 import type { Body, createCrud } from "@/services/api/crud"
 import { events, notes } from "@/services/api/hooks"
 import { useEntityResolver } from "@/services/api/mentions"
@@ -13,11 +14,38 @@ const norm = (t: string) => t.trim().toLowerCase()
 /**
  * Triage surface for unrooted items. "Unrooted = unintentional" — everything here
  * lacks a primary link (`entity_type IS NULL`). Assign each a home (any entity) and
- * it leaves the inbox (the list re-filters via the SSE-driven invalidation).
+ * it leaves the inbox immediately, with an Undo.
  */
 
-/** A one-shot "set home" picker: search any entity type, pick once, write both
- *  columns together — so an item never flickers out of the inbox mid-selection. */
+/** Optimistic rooting: hide filed rows instantly (the list is server-filtered, so
+ *  the cache-merge alone wouldn't remove them), confirm with a toast, offer Undo. */
+function useRooter<T extends Entity>(crud: ReturnType<typeof createCrud<T>>, noun: string) {
+  const update = crud.useUpdate()
+  const resolve = useEntityResolver()
+  const [hidden, setHidden] = useState<Set<string>>(new Set())
+
+  const rootMany = (ids: string[], type: EntityType, entityId: string) => {
+    if (ids.length === 0) return
+    for (const id of ids) update.mutate({ id, body: { entity_type: type, entity_id: entityId } as Body })
+    setHidden((s) => new Set([...s, ...ids]))
+    const label = resolve(type, entityId) ?? type
+    const what = ids.length > 1 ? `${ids.length} ${noun}s` : `${noun}`
+    showActionToast(`Filed ${what} in ${label}`, {
+      label: "Undo",
+      onClick: () => {
+        for (const id of ids) update.mutate({ id, body: { entity_type: null, entity_id: null } as Body })
+        setHidden((s) => {
+          const n = new Set(s)
+          for (const id of ids) n.delete(id)
+          return n
+        })
+      },
+    })
+  }
+  return { hidden, rootMany }
+}
+
+/** A one-shot "set home" picker: search any entity type, pick once. */
 function HomePicker({ label = "Set home…", onPick }: { label?: string; onPick: (type: EntityType, id: string) => void }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLButtonElement>(null)
@@ -35,7 +63,7 @@ function HomePicker({ label = "Set home…", onPick }: { label?: string; onPick:
         <EntityPicker
           getAnchor={() => ref.current}
           allowCreate={false}
-          placeholder="Root to… (search any area, project, person…)"
+          placeholder="File in… (search any area, project, person…)"
           onClose={() => setOpen(false)}
           onSelect={(r) => {
             onPick(r.type, r.id)
@@ -51,29 +79,24 @@ function TriageSection<T extends Entity>({
   title,
   items,
   crud,
+  noun,
   labelFor,
   dateFor,
   emptyMsg,
-  headerExtra,
 }: {
   title: string
   items: T[]
   crud: ReturnType<typeof createCrud<T>>
+  noun: string
   labelFor: (i: T) => string
   dateFor: (i: T) => string | null
   emptyMsg: string
-  headerExtra?: React.ReactNode
 }) {
-  const update = crud.useUpdate()
+  const { hidden, rootMany } = useRooter(crud, noun)
   const [selected, setSelected] = useState<Set<string>>(new Set())
-  const shown = items.slice(0, 100)
+  const visible = items.filter((i) => !hidden.has(i.id))
+  const shown = visible.slice(0, 100)
 
-  const root = (id: string, type: EntityType, entityId: string) =>
-    update.mutate({ id, body: { entity_type: type, entity_id: entityId } as Body })
-  const rootSelected = (type: EntityType, entityId: string) => {
-    selected.forEach((id) => root(id, type, entityId))
-    setSelected(new Set())
-  }
   const toggle = (id: string) =>
     setSelected((s) => {
       const n = new Set(s)
@@ -84,8 +107,8 @@ function TriageSection<T extends Entity>({
 
   return (
     <Card className="p-4">
-      <Section title={`${title} · ${items.length}`} action={headerExtra}>
-        {items.length === 0 ? (
+      <Section title={`${title} · ${visible.length}`}>
+        {visible.length === 0 ? (
           <p className="py-4 text-sm text-slate-400">{emptyMsg}</p>
         ) : (
           <>
@@ -102,17 +125,23 @@ function TriageSection<T extends Entity>({
                     <div className="truncate text-sm text-slate-800">{labelFor(it) || "(empty)"}</div>
                     {dateFor(it) && <div className="text-xs text-slate-400">{dateFor(it)}</div>}
                   </div>
-                  <HomePicker onPick={(type, id) => root(it.id, type, id)} />
+                  <HomePicker onPick={(type, id) => rootMany([it.id], type, id)} />
                 </li>
               ))}
             </ul>
-            {items.length > shown.length && (
-              <p className="pt-2 text-xs text-slate-400">Showing {shown.length} of {items.length}.</p>
+            {visible.length > shown.length && (
+              <p className="pt-2 text-xs text-slate-400">Showing {shown.length} of {visible.length}.</p>
             )}
             {selected.size > 0 && (
               <div className="sticky bottom-2 mt-3 flex items-center justify-between gap-3 rounded-xl border border-indigo-200 bg-indigo-50/80 px-3 py-2 backdrop-blur">
-                <span className="text-sm font-medium text-indigo-800">Root {selected.size} selected</span>
-                <HomePicker label="Root all to…" onPick={(type, id) => rootSelected(type, id)} />
+                <span className="text-sm font-medium text-indigo-800">File {selected.size} selected</span>
+                <HomePicker
+                  label="File all in…"
+                  onPick={(type, id) => {
+                    rootMany([...selected].filter((id) => !hidden.has(id)), type, id)
+                    setSelected(new Set())
+                  }}
+                />
               </div>
             )}
           </>
@@ -132,7 +161,8 @@ export function InboxPage() {
           <InboxIcon size={20} className="text-slate-400" /> Inbox
         </h1>
         <p className="text-sm text-slate-500">
-          Unrooted items — give each an intentional home so it shows up in the right place and in reviews.
+          Unrooted items — file each in the area, project, or person it belongs to, so it shows
+          up in the right place and in reviews.
         </p>
       </div>
 
@@ -140,9 +170,10 @@ export function InboxPage() {
         title="Notes"
         items={noteRows}
         crud={notes}
+        noun="note"
         labelFor={(n) => n.title || n.body?.slice(0, 90) || ""}
         dateFor={(n) => n.entry_date}
-        emptyMsg="Nothing unrooted — inbox zero. ✨"
+        emptyMsg="Nothing unfiled — inbox zero. ✨"
       />
 
       <EventTriage />
@@ -150,13 +181,13 @@ export function InboxPage() {
   )
 }
 
-// --- Events: grouped by title, root a whole group at once -------------------
+// --- Events: grouped by title, file a whole group at once -------------------
 // Synced calendars repeat the same meeting as many rows ("Therapy w/ Jessica"
 // ×24). Grouping by title turns 1,000+ rows into a handful of decisions, and a
 // home you've already assigned to that title is suggested for the rest.
 function EventTriage() {
-  const update = events.useUpdate()
   const resolve = useEntityResolver()
+  const { hidden, rootMany } = useRooter(events, "event")
   const [showSynced, setShowSynced] = useState(false)
   const unrootedData = events.useList({ entity_type__isnull: "true" }).data
   const rootedData = events.useList({ entity_type__isnull: "false" }).data
@@ -171,35 +202,34 @@ function EventTriage() {
   }, [rootedData])
 
   const unrooted = (unrootedData ?? []) as EventItem[]
-  const visible = unrooted.filter((e) => showSynced || !e.external_ref)
-  const syncedHidden = unrooted.length - unrooted.filter((e) => !e.external_ref).length
+  const visible = unrooted.filter((e) => (showSynced || !e.external_ref) && !hidden.has(e.id))
+  const syncedHidden = unrooted.filter((e) => e.external_ref && !hidden.has(e.id)).length
 
   const groups = useMemo(() => {
     const g = new Map<string, EventItem[]>()
-    for (const e of (unrootedData ?? []) as EventItem[]) {
-      if (!showSynced && e.external_ref) continue
+    for (const e of visible) {
       const k = norm(e.title)
       const arr = g.get(k)
       if (arr) arr.push(e)
       else g.set(k, [e])
     }
     return [...g.entries()].sort((a, b) => b[1].length - a[1].length)
-  }, [unrootedData, showSynced])
-
-  const rootAll = (evs: EventItem[], type: EntityType, id: string) =>
-    evs.forEach((e) => update.mutate({ id: e.id, body: { entity_type: type, entity_id: id } as Body }))
+  }, [visible])
 
   const withSuggestion = groups.filter(([k]) => learned.has(k))
   const acceptAll = () =>
     withSuggestion.forEach(([k, evs]) => {
       const s = learned.get(k)!
-      rootAll(evs, s.type, s.id)
+      rootMany(evs.map((e) => e.id), s.type, s.id)
     })
+
+  const countLabel =
+    groups.length < visible.length ? `${visible.length} · ${groups.length} groups` : `${visible.length}`
 
   return (
     <Card className="p-4">
       <Section
-        title={`Events · ${visible.length}`}
+        title={`Events · ${countLabel}`}
         action={
           <div className="flex items-center gap-1">
             {withSuggestion.length > 0 && (
@@ -225,7 +255,7 @@ function EventTriage() {
       >
         {groups.length === 0 ? (
           <p className="py-4 text-sm text-slate-400">
-            {syncedHidden > 0 ? "No un-synced events to triage." : "Nothing unrooted."}
+            {syncedHidden > 0 ? "No un-synced events to triage." : "Nothing unfiled. ✨"}
           </p>
         ) : (
           <ul className="divide-y divide-slate-100">
@@ -246,13 +276,13 @@ function EventTriage() {
                   {s ? (
                     <button
                       type="button"
-                      onClick={() => rootAll(evs, s.type, s.id)}
+                      onClick={() => rootMany(evs.map((e) => e.id), s.type, s.id)}
                       className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700 transition hover:bg-indigo-100"
                     >
-                      <Sparkles size={12} /> {resolve(s.type, s.id) ?? s.type}
+                      <Sparkles size={12} /> {resolve(s.type, s.id) ?? "…"}
                     </button>
                   ) : (
-                    <HomePicker onPick={(type, id) => rootAll(evs, type, id)} />
+                    <HomePicker onPick={(type, id) => rootMany(evs.map((e) => e.id), type, id)} />
                   )}
                 </li>
               )

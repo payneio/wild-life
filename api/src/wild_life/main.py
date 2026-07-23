@@ -1,5 +1,6 @@
 """Main application for wild-life-api."""
 
+import asyncio
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
@@ -16,9 +17,11 @@ from wild_life.auth import BearerAuthMiddleware
 from wild_life.config import settings
 from wild_life.db.session import AsyncSessionLocal
 from wild_life.identity import registry
+from wild_life.mail import scheduler as mail_scheduler
 from wild_life.routers import (
     admin,
     calendar,
+    calendar_mail,
     core,
     goals,
     history,
@@ -30,6 +33,7 @@ from wild_life.routers import (
     nudges,
     organizations,
     people,
+    preferences,
     push,
     reminders,
     requests,
@@ -56,7 +60,22 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             await registry.reload(session)
     except Exception:
         pass
-    yield
+    # Calendar-mail runs in-process: a background loop drives the two-way iMIP
+    # sync on an interval (no external job). It self-gates on mail.is_enabled().
+    mail_task = (
+        asyncio.create_task(mail_scheduler.poll_loop())
+        if settings.mail_poll_seconds > 0
+        else None
+    )
+    try:
+        yield
+    finally:
+        if mail_task is not None:
+            mail_task.cancel()
+            try:
+                await mail_task
+            except asyncio.CancelledError:
+                pass
 
 
 app = FastAPI(
@@ -96,6 +115,9 @@ app.include_router(goals.router)
 app.include_router(metrics.router)
 app.include_router(calendar.router)
 app.include_router(calendar.people_links_router)
+app.include_router(calendar_mail.router)
+app.include_router(calendar_mail.event_invites_router)
+app.include_router(preferences.router)
 app.include_router(notes.router)
 app.include_router(notes.images_router)
 app.include_router(tracking.router)
@@ -125,6 +147,7 @@ _MCP_EXCLUDE = [
     RouteMap(pattern=r"^/note-images.*", mcp_type=MCPType.EXCLUDE),
     RouteMap(pattern=r".*/photo$", mcp_type=MCPType.EXCLUDE),
     RouteMap(pattern=r"^/calendar/reminders/tick$", mcp_type=MCPType.EXCLUDE),
+    RouteMap(pattern=r"^/calendar/mail/tick$", mcp_type=MCPType.EXCLUDE),
     RouteMap(pattern=r"^/nudges/digest$", mcp_type=MCPType.EXCLUDE),
 ]
 

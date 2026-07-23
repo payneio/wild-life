@@ -3,6 +3,7 @@ import { Check, GitMerge, NotebookPen, RotateCcw, Trash2 } from "lucide-react"
 import { MergeDialog } from "@/components/MergeDialog"
 import { Backlinks } from "@/components/Backlinks"
 import { RecurrenceEditor } from "@/components/RecurrenceEditor"
+import { AttendeeEditor } from "@/components/calendar/AttendeeEditor"
 import { EntityRefField } from "@/components/graph/EntityRefField"
 import { NoteRootField } from "@/components/graph/NoteRootField"
 import { RelatedPanel } from "@/components/graph/RelatedPanel"
@@ -119,6 +120,21 @@ function InlineField({
         <input type="checkbox" className="h-4 w-4" checked={!!value} onChange={(e) => onSave(e.target.checked)} />
         <span className="font-medium">{field.label}</span>
       </label>
+    )
+  }
+
+  // --- attendees: a chip editor over a string[] (autosaves on change) --------
+  if (field.type === "attendees") {
+    return (
+      <div className="sm:col-span-2">
+        {label}
+        <div className="mt-0.5">
+          <AttendeeEditor
+            value={Array.isArray(value) ? (value as string[]) : []}
+            onChange={(next) => onSave(next)}
+          />
+        </div>
+      </div>
     )
   }
 
@@ -321,7 +337,7 @@ export function EditableRecord({
               })
             }
           >
-            <NotebookPen size={14} /> {def.entityType === "event" ? "Take meeting notes" : "Take notes"}
+            <NotebookPen size={14} /> {def.entityType === "event" ? "New meeting note" : "New note"}
           </Button>
         )}
         {def.entityType && (

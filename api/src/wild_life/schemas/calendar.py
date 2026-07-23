@@ -3,8 +3,9 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, computed_field
 
+from wild_life.config import settings
 from wild_life.schemas.common import Entity
 
 
@@ -72,3 +73,13 @@ class EventRead(Entity):
     sequence: int | None
     rsvp_status: str | None
     rsvp_sent_status: str | None
+    invites_enabled: bool
+    cancelled_at: datetime | None
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def received_invite(self) -> bool:
+        """True when this is an invite I received (organizer is someone else) —
+        as opposed to an event I host (organizer is me or unset)."""
+        org = (self.organizer or "").replace("mailto:", "").strip().lower()
+        return bool(org) and org != settings.self_address

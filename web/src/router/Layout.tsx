@@ -33,6 +33,7 @@ import {
   ShieldPlus,
   StickyNote,
   Sun,
+  Settings as SettingsIcon,
   Tag as TagIcon,
   Target,
   TriangleAlert,
@@ -47,6 +48,7 @@ import { useTheme } from "@/lib/theme"
 import { cn } from "@/lib/utils"
 import { FloatingNoteWindow } from "@/notes/FloatingNoteWindow"
 import { useFloatingNote } from "@/notes/floatingNoteContext"
+import { useReviewDashboard } from "@/services/api/hooks"
 import {
   disablePush,
   enablePush,
@@ -94,6 +96,7 @@ const REFERENCE: Item[] = [
   { to: "/tags", label: "Tags", icon: TagIcon },
   { to: "/history", label: "History", icon: History },
   { to: "/duplicates", label: "Duplicates", icon: GitMerge },
+  { to: "/settings", label: "Settings", icon: SettingsIcon },
 ]
 
 /** Bottom-bar destinations on mobile (last opens the full-nav sheet). */
@@ -216,9 +219,22 @@ function NavItem({ item, onNavigate }: { item: Item; onNavigate?: () => void }) 
           />
           <Icon size={17} />
           {label}
+          {to === "/inbox" && <InboxBadge />}
         </>
       )}
     </NavLink>
+  )
+}
+
+/** Pending-triage count on the Inbox nav item (notes + non-synced events). */
+function InboxBadge() {
+  const { data } = useReviewDashboard()
+  const n = (data?.unrooted_notes_count ?? 0) + (data?.unrooted_events_count ?? 0)
+  if (!n) return null
+  return (
+    <span className="ml-auto rounded-full bg-indigo-100 px-1.5 py-0.5 text-[11px] font-semibold text-indigo-700">
+      {n}
+    </span>
   )
 }
 

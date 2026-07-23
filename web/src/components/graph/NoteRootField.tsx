@@ -1,7 +1,7 @@
 import { useRef, useState } from "react"
 import { ChevronDown, X } from "lucide-react"
 import { EntityPicker } from "@/components/graph/EntityPicker"
-import { cn } from "@/lib/utils"
+import { EntityRef } from "@/components/graph/EntityRef"
 import { typeLabel, useEntityResolver } from "@/services/api/mentions"
 import type { EntityType } from "@/services/api/types"
 
@@ -59,7 +59,7 @@ export function NoteRootField({
         // Switching the type clears the row until a new one is picked.
         onChange={(e) => onSave({ entity_type: e.target.value || null, entity_id: null })}
       >
-        <option value="">— (unrooted)</option>
+        <option value="">— none</option>
         {ROOTABLE_TYPES.map((t) => (
           <option key={t} value={t}>
             {typeLabel(t)}
@@ -68,34 +68,41 @@ export function NoteRootField({
       </select>
 
       {type && (
-        <>
-          <button
-            ref={btnRef}
-            type="button"
-            onClick={() => setOpen(true)}
-            className="flex flex-1 items-center justify-between gap-2 rounded-lg border border-slate-300 bg-surface px-3 py-1.5 text-left text-sm outline-none transition hover:border-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-          >
-            <span className={cn("truncate", entityId ? "text-slate-900" : "text-slate-400")}>
-              {entityId ? (label ?? "…") : `Pick a ${typeLabel(type).toLowerCase()}…`}
-            </span>
-            <span className="flex shrink-0 items-center text-slate-400">
-              {entityId && (
-                <span
-                  role="button"
-                  tabIndex={-1}
-                  aria-label="Clear"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onSave({ entity_type: entityType, entity_id: null })
-                  }}
-                  className="rounded p-0.5 hover:text-red-600"
-                >
-                  <X size={14} />
-                </span>
-              )}
-              <ChevronDown size={14} />
-            </span>
-          </button>
+        <div className="flex flex-1 items-center gap-2">
+          {entityId ? (
+            <>
+              {/* Current value is a real link you can click through to. */}
+              <EntityRef type={type} id={entityId} className="min-w-0 flex-1 truncate text-sm text-slate-900">
+                {label ?? "…"}
+              </EntityRef>
+              <button
+                ref={btnRef}
+                type="button"
+                onClick={() => setOpen(true)}
+                className="shrink-0 rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+              >
+                Change
+              </button>
+              <button
+                type="button"
+                aria-label="Clear"
+                onClick={() => onSave({ entity_type: entityType, entity_id: null })}
+                className="shrink-0 rounded p-1 text-slate-400 transition hover:text-red-600"
+              >
+                <X size={14} />
+              </button>
+            </>
+          ) : (
+            <button
+              ref={btnRef}
+              type="button"
+              onClick={() => setOpen(true)}
+              className="flex flex-1 items-center justify-between gap-2 rounded-lg border border-slate-300 bg-surface px-3 py-1.5 text-left text-sm outline-none transition hover:border-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+            >
+              <span className="truncate text-slate-400">Pick a {typeLabel(type).toLowerCase()}…</span>
+              <ChevronDown size={14} className="shrink-0 text-slate-400" />
+            </button>
+          )}
           {open && (
             <EntityPicker
               getAnchor={() => btnRef.current}
@@ -108,7 +115,7 @@ export function NoteRootField({
               }}
             />
           )}
-        </>
+        </div>
       )}
     </div>
   )
