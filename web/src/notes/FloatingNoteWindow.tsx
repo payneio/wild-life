@@ -102,6 +102,7 @@ export function FloatingNoteWindow() {
         key="new"
         mode="create"
         autoFocus
+        createLabel="Save"
         placeholder="Take notes…"
         onSubmit={(b, pending) => {
           const rooted: Body = {

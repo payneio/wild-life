@@ -40,6 +40,7 @@ export function NoteComposer({
   autoFocus,
   compact,
   placeholder = "What's on your mind?",
+  createLabel = "Post",
 }: {
   initial?: Note | null
   onSubmit: (body: Body, pending: PendingImage[]) => void
@@ -48,6 +49,8 @@ export function NoteComposer({
   autoFocus?: boolean
   compact?: boolean
   placeholder?: string
+  /** Label for the create-mode submit button ("Post" in the journal, "Save" in the dock). */
+  createLabel?: string
 }) {
   const resolve = useEntityResolver()
   const [title, setTitle] = useState(initial?.title ?? "")
@@ -313,7 +316,7 @@ export function NoteComposer({
           )}
           <span className="hidden text-xs text-slate-300 sm:inline">⌘⏎</span>
           <Button onClick={submit} disabled={mode === "create" && !body.trim()}>
-            {mode === "edit" ? "Save" : "Post"}
+            {mode === "edit" ? "Save" : createLabel}
           </Button>
         </div>
       </div>

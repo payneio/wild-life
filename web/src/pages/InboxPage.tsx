@@ -94,8 +94,10 @@ function TriageSection<T extends Entity>({
 }) {
   const { hidden, rootMany } = useRooter(crud, noun)
   const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [limit, setLimit] = useState(100)
   const visible = items.filter((i) => !hidden.has(i.id))
-  const shown = visible.slice(0, 100)
+  const shown = visible.slice(0, limit)
+  const allSelected = visible.length > 0 && visible.every((i) => selected.has(i.id))
 
   const toggle = (id: string) =>
     setSelected((s) => {
@@ -107,7 +109,20 @@ function TriageSection<T extends Entity>({
 
   return (
     <Card className="p-4">
-      <Section title={`${title} · ${visible.length}`}>
+      <Section
+        title={`${title} · ${visible.length}`}
+        action={
+          visible.length > 0 ? (
+            <button
+              type="button"
+              onClick={() => setSelected(allSelected ? new Set() : new Set(visible.map((i) => i.id)))}
+              className="rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+            >
+              {allSelected ? "Clear" : "Select all"}
+            </button>
+          ) : undefined
+        }
+      >
         {visible.length === 0 ? (
           <p className="py-4 text-sm text-slate-400">{emptyMsg}</p>
         ) : (
@@ -130,7 +145,13 @@ function TriageSection<T extends Entity>({
               ))}
             </ul>
             {visible.length > shown.length && (
-              <p className="pt-2 text-xs text-slate-400">Showing {shown.length} of {visible.length}.</p>
+              <button
+                type="button"
+                onClick={() => setLimit((l) => l + 100)}
+                className="pt-2 text-xs font-medium text-indigo-600 hover:underline"
+              >
+                Show {Math.min(100, visible.length - shown.length)} more
+              </button>
             )}
             {selected.size > 0 && (
               <div className="sticky bottom-2 mt-3 flex items-center justify-between gap-3 rounded-xl border border-indigo-200 bg-indigo-50/80 px-3 py-2 backdrop-blur">
@@ -189,6 +210,7 @@ function EventTriage() {
   const resolve = useEntityResolver()
   const { hidden, rootMany } = useRooter(events, "event")
   const [showSynced, setShowSynced] = useState(false)
+  const [glimit, setGlimit] = useState(150)
   const unrootedData = events.useList({ entity_type__isnull: "true" }).data
   const rootedData = events.useList({ entity_type__isnull: "false" }).data
 
@@ -259,7 +281,7 @@ function EventTriage() {
           </p>
         ) : (
           <ul className="divide-y divide-slate-100">
-            {groups.slice(0, 150).map(([k, evs]) => {
+            {groups.slice(0, glimit).map(([k, evs]) => {
               const s = learned.get(k)
               return (
                 <li key={k} className="flex items-center gap-3 py-2">
@@ -289,8 +311,14 @@ function EventTriage() {
             })}
           </ul>
         )}
-        {groups.length > 150 && (
-          <p className="pt-2 text-xs text-slate-400">Showing 150 of {groups.length} groups.</p>
+        {groups.length > glimit && (
+          <button
+            type="button"
+            onClick={() => setGlimit((l) => l + 150)}
+            className="pt-2 text-xs font-medium text-indigo-600 hover:underline"
+          >
+            Show {Math.min(150, groups.length - glimit)} more
+          </button>
         )}
       </Section>
     </Card>

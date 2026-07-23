@@ -28,7 +28,14 @@ export function CalendarEventRoute() {
   const remove = events.useRemove()
   const [deleting, setDeleting] = useState(false)
 
-  const close = () => navigate("..", { relative: "path" })
+  // Return to wherever the event was opened from (a person/condition timeline,
+  // the calendar grid, …) rather than always dumping onto /calendar. Cold
+  // deep-links (idx 0 — push/permalink) fall back to the calendar.
+  const close = () => {
+    const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0
+    if (idx > 0) navigate(-1)
+    else navigate("..", { relative: "path" })
+  }
   const title = event ? def.title(event) : def.label
 
   const onDelete = () => {
