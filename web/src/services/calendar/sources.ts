@@ -7,7 +7,6 @@ import {
   commitments,
   delegations,
   goals,
-  healthEvents,
   notes,
   people,
   projects,
@@ -24,7 +23,6 @@ export interface SourceMeta {
 export const SOURCES: SourceMeta[] = [
   { key: "task", label: "Tasks", color: "#6366f1" },
   { key: "goal", label: "Goals", color: "#10b981" },
-  { key: "healthEvent", label: "Health", color: "#ef4444" },
   { key: "commitment", label: "Commitments", color: "#f59e0b" },
   { key: "request", label: "Requests", color: "#eab308" },
   { key: "delegation", label: "Delegations", color: "#8b5cf6" },
@@ -71,7 +69,6 @@ export function useCalendarSources(range: Range, enabled: Set<string>) {
   // One list query + one update mutation per source (fixed order → hook-safe).
   const taskQ = tasks.useList(between("scheduled_date"), on("task"))
   const goalQ = goals.useList(between("target_date"), on("goal"))
-  const healthQ = healthEvents.useList(between("occurred_on"), on("healthEvent"))
   const commitQ = commitments.useList(between("due_date"), on("commitment"))
   const reqQ = requests.useList(between("follow_up_date"), on("request"))
   const delegQ = delegations.useList(
@@ -84,7 +81,6 @@ export function useCalendarSources(range: Range, enabled: Set<string>) {
 
   const taskUpd = tasks.useUpdate()
   const goalUpd = goals.useUpdate()
-  const healthUpd = healthEvents.useUpdate()
   const commitUpd = commitments.useUpdate()
   const reqUpd = requests.useUpdate()
   const delegUpd = delegations.useUpdate()
@@ -142,8 +138,6 @@ export function useCalendarSources(range: Range, enabled: Set<string>) {
     }
   if (enabled.has("goal"))
     for (const g of goalQ.data ?? []) push("goal", g.id, `🎯 ${g.name}`, g.target_date, "target_date")
-  if (enabled.has("healthEvent"))
-    for (const h of healthQ.data ?? []) push("healthEvent", h.id, h.title, h.occurred_on, "occurred_on")
   if (enabled.has("commitment"))
     for (const c of commitQ.data ?? []) push("commitment", c.id, c.description, c.due_date, "due_date")
   if (enabled.has("request"))
@@ -170,7 +164,6 @@ export function useCalendarSources(range: Range, enabled: Set<string>) {
   const UPD: Record<string, { mutate: (v: { id: string; body: Record<string, unknown> }) => void } | null> = {
     task: taskUpd,
     goal: goalUpd,
-    healthEvent: healthUpd,
     commitment: commitUpd,
     request: reqUpd,
     delegation: delegUpd,
@@ -194,7 +187,6 @@ export function useCalendarSources(range: Range, enabled: Set<string>) {
 const URL_FOR: Record<string, (id: string) => string> = {
   task: (id) => `/tasks/${id}`,
   goal: (id) => `/goals/${id}`,
-  healthEvent: (id) => `/health-events/${id}`,
   commitment: (id) => `/commitments/${id}`,
   request: (id) => `/requests/${id}`,
   delegation: (id) => `/delegations/${id}`,

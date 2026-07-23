@@ -17,7 +17,6 @@ class ReviewCreate(BaseModel):
     risks: str | None = None
     follow_up_actions: str | None = None
     completed_at: datetime | None = None
-    notes: str | None = None
 
 
 class ReviewUpdate(BaseModel):
@@ -30,7 +29,6 @@ class ReviewUpdate(BaseModel):
     risks: str | None = None
     follow_up_actions: str | None = None
     completed_at: datetime | None = None
-    notes: str | None = None
 
 
 class ReviewRead(Entity):
@@ -43,4 +41,3 @@ class ReviewRead(Entity):
     risks: str | None
     follow_up_actions: str | None
     completed_at: datetime | None
-    notes: str | None

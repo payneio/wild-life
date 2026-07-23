@@ -23,7 +23,6 @@ from wild_life.models.tasks import Task
 WORKER_TASK_FIELDS = frozenset(
     {
         "status",
-        "notes",
         "description",
         "estimated_minutes",
         "scheduled_date",

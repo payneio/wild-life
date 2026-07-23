@@ -22,7 +22,6 @@ class GoalCreate(BaseModel):
     status: GoalStatus = "active"
     progress: float | None = None
     measurement_method: str | None = None
-    notes: str | None = None
 
 
 class GoalUpdate(BaseModel):
@@ -39,7 +38,6 @@ class GoalUpdate(BaseModel):
     status: GoalStatus | None = None
     progress: float | None = None
     measurement_method: str | None = None
-    notes: str | None = None
 
 
 class GoalRead(Entity):
@@ -56,4 +54,3 @@ class GoalRead(Entity):
     status: str
     progress: float | None
     measurement_method: str | None
-    notes: str | None

@@ -26,4 +26,3 @@ class Review(UUIDPrimaryKey, TimestampMixin, Base):
     risks: Mapped[str | None] = mapped_column(Text)
     follow_up_actions: Mapped[str | None] = mapped_column(Text)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    notes: Mapped[str | None] = mapped_column(Text)

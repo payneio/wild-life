@@ -6,8 +6,9 @@ import { ListToolbar } from "@/components/ListToolbar"
 import { MentionChip } from "@/components/MentionChip"
 import { MentionText } from "@/components/MentionText"
 import { NoteComposer } from "@/components/NoteComposer"
+import { EntityRef } from "@/components/graph/EntityRef"
 import { Badge, Card, EmptyState } from "@/components/ui/primitives"
-import { useListFilter, type ListConfig } from "@/lib/listFilter"
+import { useListFilter, type FilterDef, type ListConfig } from "@/lib/listFilter"
 import type { Body } from "@/services/api/crud"
 import { notes, useCreateNoteWithImages, useNoteCorpus, useNotesCalendar } from "@/services/api/hooks"
 import { cn, formatDate } from "@/lib/utils"
@@ -25,11 +26,6 @@ const WORK_TAG = "work:microsoft"
 // Journal excludes both this and the work tag so leftovers don't leak into it.
 const WHITEBOARD_TAG = "whiteboard"
 
-const NOTE_CONFIG: ListConfig = {
-  searchKeys: ["title", "body"],
-  filters: [{ field: "note_type", label: "Type", options: NOTE_TYPES }],
-  sorts: [{ key: "default", label: "Newest", field: "" }],
-}
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
@@ -69,6 +65,18 @@ const JournalEntry = memo(function JournalEntry({
           <span>{entryTime(note)}</span>
           {note.note_type !== "journal" && <Badge>{note.note_type}</Badge>}
           {note.mood && <span>· {note.mood}</span>}
+          {note.entity_type && note.entity_id && (
+            <span className="flex items-center gap-1">
+              <span aria-hidden>·</span> on{" "}
+              <EntityRef
+                type={note.entity_type}
+                id={note.entity_id}
+                className="font-medium text-slate-500"
+              >
+                {resolve(note.entity_type, note.entity_id) ?? note.entity_type}
+              </EntityRef>
+            </span>
+          )}
         </div>
         {/* Reveal on hover for pointer devices; always visible on touch (no
             hover) — otherwise notes can't be edited/deleted on mobile. */}
@@ -250,15 +258,30 @@ export function NotesPage({
     },
     [removeMutate, id, navigate, base],
   )
-  // Merge in a cross-scope permalinked note so its link never dead-ends.
+  // Merge in a cross-scope permalinked note so its link never dead-ends. Stamp a
+  // derived `root_kind` (the note's base entity type, or "unrooted") so the
+  // toolbar can filter the stream by what a note is rooted to.
   const rows = useMemo(() => {
     const list = data ?? []
-    if (focusedNote && !list.some((n) => n.id === focusedNote.id)) return [focusedNote, ...list]
-    return list
+    const merged =
+      focusedNote && !list.some((n) => n.id === focusedNote.id) ? [focusedNote, ...list] : list
+    return merged.map((n) => ({ ...n, root_kind: n.entity_type ?? "unrooted" }))
   }, [data, focusedNote])
+
+  // "Type" filters by note_type (note/journal/idea/meeting/reference); "Rooted"
+  // filters by base entity — options reflect what's present this year.
+  const noteConfig = useMemo<ListConfig>(() => {
+    const kinds = Array.from(new Set(rows.map((n) => n.root_kind))).sort((a, b) =>
+      a === "unrooted" ? -1 : b === "unrooted" ? 1 : a.localeCompare(b),
+    )
+    const filters: FilterDef[] = [{ field: "note_type", label: "Type", options: NOTE_TYPES }]
+    if (kinds.length > 1) filters.push({ field: "root_kind", label: "Rooted", options: kinds })
+    return { searchKeys: ["title", "body"], filters, sorts: [{ key: "default", label: "Newest", field: "" }] }
+  }, [rows])
+
   const { filtered, toolbarProps } = useListFilter(
     rows as unknown as Record<string, unknown>[],
-    NOTE_CONFIG,
+    noteConfig,
     `notes:${scope}`,
   )
   const notesList = filtered as unknown as Note[]

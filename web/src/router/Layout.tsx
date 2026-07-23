@@ -5,7 +5,6 @@ import {
   Bell,
   BellOff,
   Bookmark,
-  Briefcase,
   CalendarDays,
   Building2,
   ClipboardCheck,
@@ -16,6 +15,7 @@ import {
   History,
   Home,
   Hourglass,
+  Inbox,
   Layers,
   Bot,
   LayoutGrid,
@@ -32,7 +32,6 @@ import {
   Send,
   ShieldPlus,
   StickyNote,
-  Stethoscope,
   Sun,
   Tag as TagIcon,
   Target,
@@ -46,6 +45,8 @@ import { GlobalSearch } from "@/components/GlobalSearch"
 import { OverflowDebug } from "@/components/OverflowDebug"
 import { useTheme } from "@/lib/theme"
 import { cn } from "@/lib/utils"
+import { FloatingNoteWindow } from "@/notes/FloatingNoteWindow"
+import { useFloatingNote } from "@/notes/floatingNoteContext"
 import {
   disablePush,
   enablePush,
@@ -58,6 +59,7 @@ type Item = { to: string; label: string; icon: ComponentType<{ size?: number }> 
 
 const PLAN: Item[] = [
   { to: "/today", label: "Today", icon: Home },
+  { to: "/inbox", label: "Inbox", icon: Inbox },
   { to: "/calendar", label: "Calendar", icon: CalendarDays },
   { to: "/whiteboard", label: "Whiteboard", icon: StickyNote },
   { to: "/areas", label: "Areas", icon: Layers },
@@ -76,7 +78,6 @@ const HEALTH: Item[] = [
   { to: "/conditions", label: "Conditions", icon: Activity },
   { to: "/medications", label: "Medications", icon: Pill },
   { to: "/protocols", label: "Protocols", icon: HeartPulse },
-  { to: "/health-events", label: "Health events", icon: Stethoscope },
   { to: "/insurance", label: "Insurance", icon: ShieldPlus },
   { to: "/allergies", label: "Allergies", icon: TriangleAlert },
 ]
@@ -87,7 +88,6 @@ const REFERENCE: Item[] = [
   { to: "/locations", label: "Locations", icon: MapPin },
   { to: "/metrics", label: "Metrics", icon: LineChart },
   { to: "/notes", label: "Journal", icon: NotebookPen },
-  { to: "/work-journal", label: "Work Journal", icon: Briefcase },
   { to: "/commitments", label: "Commitments", icon: HeartHandshake },
   { to: "/decisions", label: "Decisions", icon: Scale },
   { to: "/resources", label: "Resources", icon: Bookmark },
@@ -111,7 +111,7 @@ function Brand() {
         <LayoutGrid size={17} />
       </span>
       <span className="hidden text-[15px] font-semibold tracking-tight text-slate-900 sm:inline">
-        Personal
+        Wild Life
       </span>
     </div>
   )
@@ -342,6 +342,20 @@ function BottomBar({ onMore }: { onMore: () => void }) {
 
 export function Layout() {
   const [moreOpen, setMoreOpen] = useState(false)
+  const { openNote } = useFloatingNote()
+
+  // Global quick-capture: ⌘/Ctrl+Shift+N pops out a fresh, unrooted note from
+  // anywhere, so a stray thought never means losing your place.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === "N" || e.key === "n")) {
+        e.preventDefault()
+        openNote({})
+      }
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [openNote])
 
   return (
     <div className="flex min-h-screen bg-background text-slate-900">
@@ -362,6 +376,15 @@ export function Layout() {
             </div>
           </div>
           <div className="flex items-center gap-1">
+            <button
+              type="button"
+              title="New note (⌘⇧N)"
+              onClick={() => openNote({})}
+              className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+            >
+              <NotebookPen size={17} />
+              <span className="hidden sm:inline">New note</span>
+            </button>
             <ReminderToggle />
             <ThemeToggle />
           </div>
@@ -374,6 +397,7 @@ export function Layout() {
 
       <BottomBar onMore={() => setMoreOpen(true)} />
       {moreOpen && <MoreSheet onClose={() => setMoreOpen(false)} />}
+      <FloatingNoteWindow />
       <OverflowDebug />
     </div>
   )

@@ -4,7 +4,6 @@ import {
   CONDITION_FIELDS,
   MEDICATION_FIELDS,
   PROTOCOL_FIELDS,
-  HEALTH_EVENT_FIELDS,
   INSURANCE_FIELDS,
   ALLERGY_FIELDS,
 } from "@/services/api/fields"
@@ -13,7 +12,6 @@ import { humanize } from "@/lib/format"
 import {
   allergies,
   conditions,
-  healthEvents,
   insurancePlans,
   medications,
   protocols,
@@ -21,7 +19,6 @@ import {
 import type {
   Allergy,
   Condition,
-  HealthEvent,
   InsurancePlan,
   Medication,
   Protocol,
@@ -99,28 +96,6 @@ export function ProtocolsPage() {
   )
 }
 
-// --- Health events ----------------------------------------------------------
-export function HealthEventsPage() {
-  const fields = HEALTH_EVENT_FIELDS
-  const columns: Column<HealthEvent>[] = [
-    { key: "occurred_on", label: "Date", render: (r) => <DateText value={r.occurred_on} /> },
-    { key: "event_type", label: "Type", render: (r) => <Badge>{humanize(r.event_type)}</Badge> },
-    { key: "title", label: "Title", render: (r) => <span className="font-medium">{r.title}</span> },
-    { key: "provider_id", label: "Provider", render: (r) => <RefName kind="people" id={r.provider_id} /> },
-    { key: "condition_id", label: "Condition", render: (r) => <RefName kind="condition" id={r.condition_id} /> },
-  ]
-  return (
-    <SimpleEntityPage
-      title="Health events"
-      subtitle="Visits, labs, procedures, and results"
-      crud={healthEvents}
-      fields={fields}
-      columns={columns}
-      newLabel="New event"
-      emptyText="No health events yet."
-    />
-  )
-}
 
 // --- Insurance --------------------------------------------------------------
 export function InsurancePage() {

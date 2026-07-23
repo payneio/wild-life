@@ -137,7 +137,7 @@ export function CalendarPage() {
     } catch {
       /* default below */
     }
-    return new Set(["event", "task", "goal", "healthEvent"])
+    return new Set(["event", "task", "goal"])
   })
   const toggle = (key: string) =>
     setEnabled((prev) => {

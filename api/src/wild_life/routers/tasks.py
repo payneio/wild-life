@@ -99,7 +99,6 @@ def _spawn_next_occurrence(task: Task) -> Task | None:
         context=task.context,
         recurrence=task.recurrence,
         acceptance_required=task.acceptance_required,
-        notes=task.notes,
     )
 
 

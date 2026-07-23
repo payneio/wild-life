@@ -10,8 +10,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from wild_life import regimen
 from wild_life.db.session import get_session
 from wild_life.identity import Identity, current_identity
+from wild_life.models.calendar import Event
 from wild_life.models.core import Area, Program, Project
 from wild_life.models.goals import Goal
+from wild_life.models.notes import Note
 from wild_life.models.health import Condition, Medication, Protocol
 from wild_life.models.metrics import Metric, MetricEntry
 from wild_life.models.requests import Request
@@ -412,8 +414,25 @@ async def review_dashboard(
                 }
             )
 
+    # Inbox: items with no primary link — unintentional, awaiting triage. Events
+    # exclude externally-synced meetings (external_ref), which are noise here.
+    unrooted_notes_count = (
+        await session.execute(
+            select(func.count()).select_from(Note).where(Note.entity_type.is_(None))
+        )
+    ).scalar_one()
+    unrooted_events_count = (
+        await session.execute(
+            select(func.count())
+            .select_from(Event)
+            .where(Event.entity_type.is_(None), Event.external_ref.is_(None))
+        )
+    ).scalar_one()
+
     return {
         "generated_for": today.isoformat(),
+        "unrooted_notes_count": unrooted_notes_count,
+        "unrooted_events_count": unrooted_events_count,
         "conditions_without_protocol": conditions_without_protocol,
         "metrics_overdue": metrics_overdue,
         "goals_overdue": goals_overdue,

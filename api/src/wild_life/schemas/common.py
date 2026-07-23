@@ -84,7 +84,6 @@ EntityType = Literal[
     "medication",
     "protocol",
     "protocol_item",
-    "health_event",
     "insurance_plan",
     "allergy",
 ]

@@ -7,13 +7,13 @@ from wild_life.models.goals import Goal, GoalProject
 from wild_life.models.health import (
     Allergy,
     Condition,
-    HealthEvent,
     InsurancePlan,
     Medication,
     Protocol,
 )
 from wild_life.models.history import ChangeLog
 from wild_life.models.knowledge import Decision, Resource
+from wild_life.models.links import EntityLink
 from wild_life.models.metrics import Metric, MetricEntry
 from wild_life.models.locations import Location
 from wild_life.models.notes import Note, NoteMention
@@ -40,7 +40,6 @@ __all__ = [
     "Condition",
     "Medication",
     "Protocol",
-    "HealthEvent",
     "InsurancePlan",
     "Allergy",
     "Metric",
@@ -64,6 +63,7 @@ __all__ = [
     "Decision",
     "Tag",
     "EntityTag",
+    "EntityLink",
     "ChangeLog",
     "ApiToken",
 ]

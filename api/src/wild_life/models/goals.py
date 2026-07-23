@@ -38,7 +38,6 @@ class Goal(UUIDPrimaryKey, TimestampMixin, Base):
     # Manual progress 0..100; may also be derived from metrics/projects.
     progress: Mapped[float | None] = mapped_column(Float)
     measurement_method: Mapped[str | None] = mapped_column(Text)
-    notes: Mapped[str | None] = mapped_column(Text)
 
 
 class GoalProject(Base):

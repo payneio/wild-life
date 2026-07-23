@@ -25,6 +25,7 @@ import { Avatar } from "@/components/AuthedImage"
 import { PersonForm } from "@/components/PersonForm"
 import { StatusBadge } from "@/components/cells"
 import { EntityRef } from "@/components/graph/EntityRef"
+import { RelatedPanel } from "@/components/graph/RelatedPanel"
 import {
   Badge,
   Button,
@@ -34,7 +35,6 @@ import {
   Input,
   Modal,
   Select,
-  Textarea,
 } from "@/components/ui/primitives"
 import { usePersistentState } from "@/lib/persistentState"
 import { formatDate, formatDateTime } from "@/lib/utils"
@@ -51,10 +51,12 @@ import {
   useDeletePersonPhoto,
   useDetachTag,
   useEntityTags,
+  usePersonEvents,
   usePersonInteractions,
   useUploadPersonPhoto,
   requests,
 } from "@/services/api/hooks"
+import { REGISTRY_BY_TYPE } from "@/services/api/registry"
 import type { ContactMethod, EntityType, Person } from "@/services/api/types"
 
 // --- birthday helpers -------------------------------------------------------
@@ -502,9 +504,6 @@ function PersonDetail({
   onEdit: () => void
   onDelete: () => void
 }) {
-  const update = people.useUpdate()
-  const [notes, setNotes] = useState(person.notes ?? "")
-  const [notesDirty, setNotesDirty] = useState(false)
   const [merging, setMerging] = useState(false)
   const bday = birthdayInfo(person.birthday)
 
@@ -614,29 +613,12 @@ function PersonDetail({
         </div>
 
         <div className="space-y-4">
-          <Section title="Notes">
-            <Textarea
-              value={notes}
-              placeholder="Add a note…"
-              onChange={(e) => {
-                setNotes(e.target.value)
-                setNotesDirty(true)
-              }}
-            />
-            {notesDirty && (
-              <div className="mt-1 flex justify-end">
-                <Button
-                  variant="secondary"
-                  onClick={() => {
-                    update.mutate({ id: person.id, body: { notes: notes || null } })
-                    setNotesDirty(false)
-                  }}
-                >
-                  Save note
-                </Button>
-              </div>
-            )}
-          </Section>
+          <RelatedPanel
+            parent={person}
+            parentType="person"
+            spec={{ mode: "soft-backref", label: "Notes", type: "note" }}
+            targetDef={REGISTRY_BY_TYPE.note!}
+          />
         </div>
       </div>
 
@@ -648,6 +630,9 @@ function PersonDetail({
         <InteractionSection personId={person.id} />
       </Section>
 
+      <PersonEventsSection personId={person.id} />
+
+
       <Section title="Related">
         <RelatedSection personId={person.id} />
       </Section>
@@ -658,6 +643,33 @@ function PersonDetail({
 
       <Backlinks type="person" id={person.id} />
     </Card>
+  )
+}
+
+// --- a person's events (attendee links) ------------------------------------
+function PersonEventsSection({ personId }: { personId: string }) {
+  const navigate = useNavigate()
+  const events = usePersonEvents(personId).data ?? []
+  if (events.length === 0) return null
+  return (
+    <Section title={`Meetings & events · ${events.length}`}>
+      <ul className="max-h-72 space-y-1 overflow-y-auto pr-1">
+        {events.slice(0, 50).map((e) => (
+          <li key={e.id}>
+            <button
+              type="button"
+              onClick={() => navigate(`/calendar/${e.id}`)}
+              className="flex w-full items-center gap-2 rounded-lg border border-slate-100 bg-surface px-3 py-2 text-left transition hover:border-slate-300"
+            >
+              <span className="min-w-0 flex-1 truncate text-sm text-slate-700">{e.title}</span>
+              {e.start_at && (
+                <span className="shrink-0 text-xs text-slate-400">{e.start_at.slice(0, 10)}</span>
+              )}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </Section>
   )
 }
 

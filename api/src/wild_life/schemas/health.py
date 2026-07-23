@@ -24,18 +24,6 @@ MedType = Literal["prescription", "otc", "supplement"]
 MedStatus = Literal["active", "discontinued", "as_needed", "planned", "completed"]
 ProtocolStatus = Literal["planned", "active", "paused", "completed", "abandoned"]
 Weekday = Literal["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
-HealthEventType = Literal[
-    "appointment",
-    "lab",
-    "procedure",
-    "surgery",
-    "imaging",
-    "test",
-    "vaccination",
-    "injury",
-    "symptom",
-    "note",
-]
 PlanType = Literal["medical", "dental", "vision", "pharmacy"]
 PlanStatus = Literal["active", "inactive"]
 AllergyType = Literal["medication", "food", "environmental", "other"]
@@ -181,58 +169,6 @@ class ProtocolRead(Entity):
     duration: str | None
     condition_id: uuid.UUID | None
     provider_id: uuid.UUID | None
-    notes: str | None
-
-
-# --- HealthEvent ------------------------------------------------------------
-class HealthEventCreate(BaseModel):
-    occurred_on: date
-    event_type: HealthEventType = "appointment"
-    title: str
-    provider_id: uuid.UUID | None = None
-    organization_id: uuid.UUID | None = None
-    condition_id: uuid.UUID | None = None
-    summary: str | None = None
-    findings: str | None = None
-    recommendations: str | None = None
-    follow_up: str | None = None
-    follow_up_date: date | None = None
-    location: str | None = None
-    external_ref: str | None = None
-    notes: str | None = None
-
-
-class HealthEventUpdate(BaseModel):
-    occurred_on: date | None = None
-    event_type: HealthEventType | None = None
-    title: str | None = None
-    provider_id: uuid.UUID | None = None
-    organization_id: uuid.UUID | None = None
-    condition_id: uuid.UUID | None = None
-    summary: str | None = None
-    findings: str | None = None
-    recommendations: str | None = None
-    follow_up: str | None = None
-    follow_up_date: date | None = None
-    location: str | None = None
-    external_ref: str | None = None
-    notes: str | None = None
-
-
-class HealthEventRead(Entity):
-    occurred_on: date
-    event_type: str
-    title: str
-    provider_id: uuid.UUID | None
-    organization_id: uuid.UUID | None
-    condition_id: uuid.UUID | None
-    summary: str | None
-    findings: str | None
-    recommendations: str | None
-    follow_up: str | None
-    follow_up_date: date | None
-    location: str | None
-    external_ref: str | None
     notes: str | None
 
 

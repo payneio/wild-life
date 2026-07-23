@@ -1,9 +1,10 @@
 import { useRef, useState } from "react"
-import { Plus, X } from "lucide-react"
+import { NotebookPen, Plus, X } from "lucide-react"
 import { StatusBadge } from "@/components/cells"
 import { Section } from "@/components/detail/kit"
 import { EntityPicker } from "@/components/graph/EntityPicker"
 import { EntityRef } from "@/components/graph/EntityRef"
+import { useFloatingNote } from "@/notes/floatingNoteContext"
 import type { Body } from "@/services/api/crud"
 import type { EntityDef, RelationSpec } from "@/services/api/registry"
 import type { Entity, EntityType } from "@/services/api/types"
@@ -33,8 +34,13 @@ export function RelatedPanel({
       : { entity_type: parentType, entity_id: parent.id }
   const items = targetDef.crud.useList(params).data ?? []
   const update = targetDef.crud.useUpdate()
+  const { openNote } = useFloatingNote()
   const [open, setOpen] = useState(false)
   const addRef = useRef<HTMLButtonElement>(null)
+  const isNotes = spec.type === "note"
+
+  // Work-item tier: keep the panel out of the way until it actually holds notes.
+  if (items.length === 0 && spec.mode === "soft-backref" && spec.hideWhenEmpty) return null
 
   const linkBody: Body =
     spec.mode === "fk-children"
@@ -62,14 +68,25 @@ export function RelatedPanel({
     <Section
       title={`${spec.label} · ${items.length}`}
       action={
-        <button
-          ref={addRef}
-          type="button"
-          onClick={() => setOpen(true)}
-          className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
-        >
-          <Plus size={13} /> Add
-        </button>
+        <div className="flex items-center gap-1">
+          {isNotes && (
+            <button
+              type="button"
+              onClick={() => openNote({ owner: { type: parentType, id: parent.id } })}
+              className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+            >
+              <NotebookPen size={13} /> Take notes
+            </button>
+          )}
+          <button
+            ref={addRef}
+            type="button"
+            onClick={() => setOpen(true)}
+            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+          >
+            <Plus size={13} /> Add
+          </button>
+        </div>
       }
     >
       {items.length === 0 ? (

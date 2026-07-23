@@ -2,18 +2,17 @@ import { useState } from "react"
 import { RefName } from "@/components/cells"
 import { EntityForm } from "@/components/EntityForm"
 import { STANDING_DOSE_FIELDS } from "@/services/api/fields"
-import { healthEvents, medications, routines } from "@/services/api/hooks"
+import { events, medications, routines } from "@/services/api/hooks"
 import type { Body } from "@/services/api/crud"
 import type {
   Allergy,
   Condition,
   Entity,
-  HealthEvent,
   InsurancePlan,
   Medication,
   Routine,
 } from "@/services/api/types"
-import { DaysBadge, Section, Timeline, type TimelineItem } from "@/components/detail/kit"
+import { Section, Timeline, type TimelineItem } from "@/components/detail/kit"
 import { cn } from "@/lib/utils"
 import { humanize } from "@/lib/format"
 
@@ -23,16 +22,16 @@ import { humanize } from "@/lib/format"
 export function ConditionDetail({ entity }: { entity: Entity }) {
   const c = entity as Condition
   const meds = (medications.useList().data ?? []).filter((m) => m.condition_id === c.id)
-  const events = (healthEvents.useList().data ?? []).filter((e) => e.condition_id === c.id)
+  const evts = events.useList({ entity_type: "condition", entity_id: c.id }).data ?? []
 
   const timeline: TimelineItem[] = []
-  for (const e of events)
+  for (const e of evts)
     timeline.push({
       key: `e${e.id}`,
-      date: e.occurred_on,
+      date: e.start_at ? e.start_at.slice(0, 10) : null,
       title: e.title,
-      meta: humanize(e.event_type),
-      to: `/health-events/${e.id}`,
+      meta: e.event_type ? humanize(e.event_type) : "",
+      to: `/calendar/${e.id}`,
       tone: "accent",
     })
   for (const m of meds)
@@ -191,25 +190,6 @@ export function MedicationDetail({ entity }: { entity: Entity }) {
           </div>
         )}
       </div>
-    </div>
-  )
-}
-
-// --- Health event: a clinical note ------------------------------------------
-export function HealthEventDetail({ entity }: { entity: Entity }) {
-  const e = entity as HealthEvent
-  if (!e.follow_up && !e.follow_up_date) return null
-  return (
-    <div className="rounded-xl border-l-4 border-amber-400 bg-amber-50 px-4 py-3">
-      <div className="flex items-center gap-2">
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">
-          Follow-up
-        </span>
-        {e.follow_up_date && <DaysBadge date={e.follow_up_date} />}
-      </div>
-      {e.follow_up && (
-        <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">{e.follow_up}</p>
-      )}
     </div>
   )
 }

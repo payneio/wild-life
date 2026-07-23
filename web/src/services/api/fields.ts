@@ -27,7 +27,7 @@ const MED_TYPE = ["prescription", "otc", "supplement"] as const
 const MED_STATUS = ["active", "discontinued", "as_needed", "planned", "completed"] as const
 const PROTOCOL_STATUS = ["planned", "active", "paused", "completed", "abandoned"] as const
 const EVENT_TYPE = [
-  "appointment", "lab", "procedure", "surgery", "imaging", "test", "vaccination", "injury", "symptom", "note",
+  "meeting", "appointment", "call", "lab", "procedure", "surgery", "imaging", "test", "vaccination", "injury", "symptom", "note", "other",
 ] as const
 const PLAN_TYPE = ["medical", "dental", "vision", "pharmacy"] as const
 const ALLERGY_TYPE = ["medication", "food", "environmental", "other"] as const
@@ -37,6 +37,7 @@ const ALLERGY_STATUS = ["active", "suspected", "resolved"] as const
 // --- field specs (shared by list edit-form + detail view) -------------------
 export const PROGRAM_FIELDS: FieldSpec[] = [
   { name: "name", label: "Name" },
+  { name: "description", label: "Description", type: "textarea", full: true },
   { name: "area_id", label: "Area", type: "entity", lookup: "area" },
   { name: "status", label: "Status", type: "select", options: PROGRAM_STATUS },
   { name: "intended_outcome", label: "Intended outcome", type: "textarea" },
@@ -45,21 +46,18 @@ export const PROGRAM_FIELDS: FieldSpec[] = [
   { name: "target_date", label: "Target", type: "date" },
   { name: "review_frequency", label: "Review frequency" },
   { name: "reporting_cadence", label: "Reporting cadence" },
-  { name: "notes", label: "Notes", type: "textarea" },
 ]
 
 export const EVENT_FIELDS: FieldSpec[] = [
   { name: "title", label: "Title", full: true },
+  { name: "event_type", label: "Type", type: "select", options: EVENT_TYPE },
+  { name: "description", label: "Description", type: "textarea", full: true },
   { name: "start_at", label: "Start", type: "datetime" },
   { name: "end_at", label: "End", type: "datetime" },
   { name: "all_day", label: "All day", type: "checkbox" },
   { name: "location", label: "Location" },
   { name: "attendees", label: "Attendees", type: "tags" },
   { name: "recurrence", label: "Repeats", type: "recurrence", full: true },
-  { name: "area_id", label: "Area", type: "entity", lookup: "area" },
-  { name: "program_id", label: "Program", type: "entity", lookup: "program" },
-  { name: "project_id", label: "Project", type: "entity", lookup: "project" },
-  { name: "notes", label: "Notes", type: "textarea" },
 ]
 
 export const NOTE_FIELDS: FieldSpec[] = [
@@ -79,7 +77,6 @@ export const COMMITMENT_FIELDS: FieldSpec[] = [
   { name: "date_made", label: "Made on", type: "date" },
   { name: "due_date", label: "Due", type: "date" },
   { name: "evidence", label: "Evidence", type: "textarea" },
-  { name: "notes", label: "Notes", type: "textarea" },
 ]
 
 export const REQUEST_FIELDS: FieldSpec[] = [
@@ -95,7 +92,6 @@ export const REQUEST_FIELDS: FieldSpec[] = [
   { name: "resolution", label: "Resolution", type: "textarea" },
   { name: "next_action", label: "Next action" },
   { name: "last_communication", label: "Last contact", type: "textarea" },
-  { name: "notes", label: "Notes", type: "textarea" },
 ]
 
 export const DECISION_FIELDS: FieldSpec[] = [
@@ -140,7 +136,6 @@ export const TASK_FIELDS: FieldSpec[] = [
   { name: "recurrence", label: "Recurrence", placeholder: "daily / weekly / monthly" },
   { name: "waiting_on", label: "Waiting on" },
   { name: "acceptance_required", label: "Requires acceptance", type: "checkbox" },
-  { name: "notes", label: "Notes", type: "textarea", full: true },
 ]
 
 export const DELEGATION_FIELDS: FieldSpec[] = [
@@ -157,7 +152,6 @@ export const DELEGATION_FIELDS: FieldSpec[] = [
   { name: "instructions", label: "Instructions", type: "textarea", full: true },
   { name: "latest_update", label: "Latest update", type: "textarea", full: true },
   { name: "last_contact_date", label: "Last contact", type: "date" },
-  { name: "notes", label: "Notes", type: "textarea", full: true },
 ]
 
 export const REVIEW_FIELDS: FieldSpec[] = [
@@ -169,7 +163,6 @@ export const REVIEW_FIELDS: FieldSpec[] = [
   { name: "risks", label: "Risks", type: "textarea", full: true },
   { name: "follow_up_actions", label: "Follow-up actions", type: "textarea", full: true },
   { name: "completed_at", label: "Completed", type: "datetime" },
-  { name: "notes", label: "Notes", type: "textarea", full: true },
 ]
 
 export const ORGANIZATION_FIELDS: FieldSpec[] = [
@@ -269,23 +262,6 @@ export const STANDING_DOSE_FIELDS: FieldSpec[] = [
   ...DOSE_CADENCE_FIELDS,
 ]
 
-export const HEALTH_EVENT_FIELDS: FieldSpec[] = [
-  { name: "occurred_on", label: "Date", type: "date" },
-  { name: "event_type", label: "Type", type: "select", options: EVENT_TYPE },
-  { name: "title", label: "Title", full: true },
-  { name: "provider_id", label: "Provider", type: "entity", lookup: "people" },
-  { name: "organization_id", label: "Facility", type: "entity", lookup: "organization" },
-  { name: "condition_id", label: "Condition", type: "entity", lookup: "condition" },
-  { name: "summary", label: "Summary", type: "textarea", full: true },
-  { name: "findings", label: "Findings / results", type: "textarea", full: true },
-  { name: "recommendations", label: "Recommendations", type: "textarea", full: true },
-  { name: "follow_up", label: "Follow-up", type: "textarea" },
-  { name: "follow_up_date", label: "Follow-up date", type: "date" },
-  { name: "location", label: "Location" },
-  { name: "external_ref", label: "External ref", placeholder: "MyChart / OneDrive" },
-  { name: "notes", label: "Notes", type: "textarea", full: true },
-]
-
 export const INSURANCE_FIELDS: FieldSpec[] = [
   { name: "name", label: "Plan name" },
   { name: "plan_type", label: "Type", type: "select", options: PLAN_TYPE },
@@ -317,11 +293,11 @@ export const AREA_FIELDS: FieldSpec[] = [
   { name: "review_frequency", label: "Review frequency", placeholder: "weekly / monthly" },
   { name: "accountable_owner_id", label: "Accountable owner", type: "entity", lookup: "people" },
   { name: "description", label: "Description", type: "textarea", full: true },
-  { name: "notes", label: "Notes", type: "textarea", full: true },
 ]
 
 export const PROJECT_FIELDS: FieldSpec[] = [
   { name: "name", label: "Name", full: true },
+  { name: "description", label: "Description", type: "textarea", full: true },
   { name: "status", label: "Status", type: "select", options: ["proposed", "active", "waiting", "paused", "completed", "cancelled", "archived"] },
   { name: "priority", label: "Priority", type: "select", options: PRIORITIES },
   { name: "area_id", label: "Area", type: "entity", lookup: "area" },
@@ -334,7 +310,6 @@ export const PROJECT_FIELDS: FieldSpec[] = [
   { name: "last_activity_date", label: "Last activity", type: "date" },
   { name: "accountable_owner_id", label: "Accountable", type: "entity", lookup: "people" },
   { name: "responsible_lead_id", label: "Lead", type: "entity", lookup: "people" },
-  { name: "notes", label: "Notes", type: "textarea", full: true },
 ]
 
 export const GOAL_FIELDS: FieldSpec[] = [
@@ -350,7 +325,6 @@ export const GOAL_FIELDS: FieldSpec[] = [
   { name: "target_date", label: "Target date", type: "date" },
   { name: "measurement_method", label: "Measurement", full: true },
   { name: "description", label: "Description", type: "textarea", full: true },
-  { name: "notes", label: "Notes", type: "textarea", full: true },
 ]
 
 export const METRIC_FIELDS: FieldSpec[] = [

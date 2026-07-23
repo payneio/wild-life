@@ -122,29 +122,6 @@ class Protocol(UUIDPrimaryKey, TimestampMixin, Base):
     notes: Mapped[str | None] = mapped_column(Text)
 
 
-class HealthEvent(UUIDPrimaryKey, TimestampMixin, Base):
-    """A dated clinical record entry: a visit, lab, procedure, result, or symptom."""
-
-    __tablename__ = "health_events"
-
-    occurred_on: Mapped[date] = mapped_column(Date, nullable=False, index=True)
-    event_type: Mapped[str] = mapped_column(
-        Text, server_default="appointment", nullable=False
-    )  # appointment/lab/procedure/surgery/imaging/test/vaccination/injury/symptom/note
-    title: Mapped[str] = mapped_column(Text, nullable=False)
-    provider_id: Mapped[uuid.UUID | None] = _people_fk()
-    organization_id: Mapped[uuid.UUID | None] = _org_fk()
-    condition_id: Mapped[uuid.UUID | None] = _condition_fk()
-    summary: Mapped[str | None] = mapped_column(Text)
-    findings: Mapped[str | None] = mapped_column(Text)
-    recommendations: Mapped[str | None] = mapped_column(Text)
-    follow_up: Mapped[str | None] = mapped_column(Text)
-    follow_up_date: Mapped[date | None] = mapped_column(Date)
-    location: Mapped[str | None] = mapped_column(Text)
-    external_ref: Mapped[str | None] = mapped_column(Text)  # OneDrive/MyChart pointer
-    notes: Mapped[str | None] = mapped_column(Text)
-
-
 class InsurancePlan(UUIDPrimaryKey, TimestampMixin, Base):
     """An insurance plan and the identifiers needed to use it."""
 

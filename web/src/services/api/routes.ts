@@ -27,7 +27,6 @@ export const ROUTE_BY_TYPE: Partial<Record<EntityType, string>> = {
   condition: "conditions",
   medication: "medications",
   protocol: "protocols",
-  health_event: "health-events",
   insurance_plan: "insurance",
   allergy: "allergies",
 }

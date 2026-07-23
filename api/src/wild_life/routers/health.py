@@ -15,7 +15,6 @@ from wild_life.regimen import compute_regimen
 from wild_life.models.health import (
     Allergy,
     Condition,
-    HealthEvent,
     InsurancePlan,
     Medication,
     Protocol,
@@ -29,9 +28,6 @@ from wild_life.schemas.health import (
     ConditionCreate,
     ConditionRead,
     ConditionUpdate,
-    HealthEventCreate,
-    HealthEventRead,
-    HealthEventUpdate,
     InsurancePlanCreate,
     InsurancePlanRead,
     InsurancePlanUpdate,
@@ -183,17 +179,6 @@ router.include_router(
 )
 router.include_router(
     crud_router(
-        prefix="/health-events",
-        tag="health",
-        model=HealthEvent,
-        create_schema=HealthEventCreate,
-        read_schema=HealthEventRead,
-        update_schema=HealthEventUpdate,
-        order_by=HealthEvent.occurred_on.desc(),
-    )
-)
-router.include_router(
-    crud_router(
         prefix="/insurance-plans",
         tag="health",
         model=InsurancePlan,
@@ -245,22 +230,6 @@ async def list_condition_medications(
         select(Medication)
         .where(Medication.condition_id == condition_id)
         .order_by(Medication.name)
-    )
-    return list(result.scalars().all())
-
-
-@nested.get("/conditions/{condition_id}/events", response_model=list[HealthEventRead])
-async def list_condition_events(
-    condition_id: UUID, session: AsyncSession = Depends(get_session)
-) -> list[HealthEvent]:
-    """Clinical events linked to a condition (most recent first)."""
-    condition = await session.get(Condition, condition_id)
-    if condition is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Condition not found")
-    result = await session.execute(
-        select(HealthEvent)
-        .where(HealthEvent.condition_id == condition_id)
-        .order_by(HealthEvent.occurred_on.desc())
     )
     return list(result.scalars().all())
 

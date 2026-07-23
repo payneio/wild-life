@@ -55,7 +55,6 @@ class Task(UUIDPrimaryKey, TimestampMixin, Base):
     acceptance_required: Mapped[bool] = mapped_column(
         Boolean, server_default="false", nullable=False
     )
-    notes: Mapped[str | None] = mapped_column(Text)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     # Cooperative claim so exactly one worker/agent works a task at a time.
     claimed_by_id: Mapped[uuid.UUID | None] = mapped_column(

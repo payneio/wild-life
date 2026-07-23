@@ -29,7 +29,6 @@ from wild_life.models import (
     Delegation,
     Event,
     Goal,
-    HealthEvent,
     InsurancePlan,
     Location,
     Medication,
@@ -73,7 +72,6 @@ TYPE_TO_MODEL: dict[str, type[Any]] = {
     "condition": Condition,
     "medication": Medication,
     "protocol": Protocol,
-    "health_event": HealthEvent,
     "insurance_plan": InsurancePlan,
     "allergy": Allergy,
 }
@@ -113,6 +111,17 @@ SOFT_POLY = [
     (Delegation.__table__, "entity_type", "entity_id"),
     (Resource.__table__, "entity_type", "entity_id"),
     (Decision.__table__, "entity_type", "entity_id"),
+    (Event.__table__, "entity_type", "entity_id"),
+    (
+        Base.metadata.tables["wild_life.entity_links"],
+        "target_type",
+        "target_id",
+    ),
+    (
+        Base.metadata.tables["wild_life.entity_links"],
+        "source_type",
+        "source_id",
+    ),
 ]
 
 SKIP_FIELDS = {"id", "created_at", "updated_at"}

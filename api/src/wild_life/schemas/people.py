@@ -37,7 +37,6 @@ class PersonCreate(BaseModel):
     birthday: date | None = None
     important_dates: list[ImportantDate] = []
     photo_url: str | None = None
-    notes: str | None = None
 
 
 class PersonUpdate(BaseModel):
@@ -57,7 +56,6 @@ class PersonUpdate(BaseModel):
     birthday: date | None = None
     important_dates: list[ImportantDate] | None = None
     photo_url: str | None = None
-    notes: str | None = None
 
 
 class PersonRead(Entity):
@@ -77,7 +75,6 @@ class PersonRead(Entity):
     birthday: date | None
     important_dates: list[ImportantDate]
     photo_url: str | None
-    notes: str | None
 
 
 class InteractionCreate(BaseModel):

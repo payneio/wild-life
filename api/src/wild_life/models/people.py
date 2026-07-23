@@ -44,7 +44,6 @@ class Person(UUIDPrimaryKey, TimestampMixin, Base):
         JSONB, server_default="[]", nullable=False
     )
     photo_url: Mapped[str | None] = mapped_column(Text)
-    notes: Mapped[str | None] = mapped_column(Text)
 
 
 class Interaction(UUIDPrimaryKey, TimestampMixin, Base):

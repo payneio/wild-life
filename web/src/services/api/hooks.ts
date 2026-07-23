@@ -14,7 +14,6 @@ import type {
   EntityType,
   EventItem,
   Goal,
-  HealthEvent,
   InsurancePlan,
   Interaction,
   Location,
@@ -85,7 +84,6 @@ export const tags = createCrud<Tag>("tags")
 export const conditions = createCrud<Condition>("conditions")
 export const medications = createCrud<Medication>("medications")
 export const protocols = createCrud<Protocol>("protocols")
-export const healthEvents = createCrud<HealthEvent>("health-events")
 export const insurancePlans = createCrud<InsurancePlan>("insurance-plans")
 export const allergies = createCrud<Allergy>("allergies")
 
@@ -225,6 +223,24 @@ export function useNotesLinkedTo(type: EntityType | null, id: string | null) {
         linked_id: id ?? undefined,
       }),
     enabled: !!type && !!id,
+  })
+}
+
+/** Events a person is linked to (as an attendee) — the people-graph payoff. */
+export function usePersonEvents(id: string | null) {
+  return useQuery({
+    queryKey: ["people", id, "events"],
+    queryFn: () => apiClient.get<EventItem[]>(`/people/${id}/events`),
+    enabled: !!id,
+  })
+}
+
+/** People linked to an event (matched attendees). */
+export function useEventPeople(id: string | null) {
+  return useQuery({
+    queryKey: ["events", id, "people"],
+    queryFn: () => apiClient.get<{ id: string; name: string }[]>(`/events/${id}/people`),
+    enabled: !!id,
   })
 }
 

@@ -31,7 +31,6 @@ const TABLE_TO_TYPE: Record<string, EntityType> = {
   conditions: "condition",
   medications: "medication",
   protocols: "protocol",
-  health_events: "health_event",
   insurance_plans: "insurance_plan",
   allergies: "allergy",
 }

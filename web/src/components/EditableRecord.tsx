@@ -1,11 +1,13 @@
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react"
-import { Check, GitMerge, RotateCcw, Trash2 } from "lucide-react"
+import { Check, GitMerge, NotebookPen, RotateCcw, Trash2 } from "lucide-react"
 import { MergeDialog } from "@/components/MergeDialog"
 import { Backlinks } from "@/components/Backlinks"
 import { RecurrenceEditor } from "@/components/RecurrenceEditor"
 import { EntityRefField } from "@/components/graph/EntityRefField"
+import { NoteRootField } from "@/components/graph/NoteRootField"
 import { RelatedPanel } from "@/components/graph/RelatedPanel"
 import { Button } from "@/components/ui/primitives"
+import { useFloatingNote } from "@/notes/floatingNoteContext"
 import type { FieldSpec } from "@/components/EntityForm"
 import { formatInstant, instantToLocalInput, localInputToInstant } from "@/lib/date"
 import { cn } from "@/lib/utils"
@@ -278,6 +280,7 @@ export function EditableRecord({
 }) {
   const update = def.crud.useUpdate()
   const remove = def.crud.useRemove()
+  const { openNote } = useFloatingNote()
   const [merging, setMerging] = useState(false)
   const row = entity as unknown as Record<string, unknown>
 
@@ -305,6 +308,20 @@ export function EditableRecord({
           >
             {taskDone ? <RotateCcw size={14} /> : <Check size={14} />}
             {taskDone ? "Reopen" : "Complete"}
+          </Button>
+        )}
+        {def.entityType && def.entityType !== "note" && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() =>
+              openNote({
+                owner: { type: def.entityType!, id: entity.id },
+                noteType: def.entityType === "event" ? "meeting" : undefined,
+              })
+            }
+          >
+            <NotebookPen size={14} /> {def.entityType === "event" ? "Take meeting notes" : "Take notes"}
           </Button>
         )}
         {def.entityType && (
@@ -341,6 +358,21 @@ export function EditableRecord({
           />
         ))}
       </div>
+
+      {/* Primary context — the single entity this is "about" (distinct from the
+          many mentions). Any def with a contextLabel gets the polymorphic picker. */}
+      {def.contextLabel && (
+        <div>
+          <div className="text-[11px] font-medium uppercase tracking-wide text-slate-400">{def.contextLabel}</div>
+          <div className="mt-0.5">
+            <NoteRootField
+              entityType={(row.entity_type as string | null) ?? null}
+              entityId={(row.entity_id as string | null) ?? null}
+              onSave={(body) => update.mutate({ id: entity.id, body: body as Body })}
+            />
+          </div>
+        </div>
+      )}
 
       {/* The entity's own rich section */}
       {def.extra && <def.extra entity={entity} />}

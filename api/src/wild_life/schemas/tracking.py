@@ -27,7 +27,6 @@ class CommitmentCreate(BaseModel):
     acceptance_status: str | None = None
     entity_type: EntityType | None = None
     entity_id: uuid.UUID | None = None
-    notes: str | None = None
 
 
 class CommitmentUpdate(BaseModel):
@@ -42,7 +41,6 @@ class CommitmentUpdate(BaseModel):
     acceptance_status: str | None = None
     entity_type: EntityType | None = None
     entity_id: uuid.UUID | None = None
-    notes: str | None = None
 
 
 class CommitmentRead(Entity):
@@ -57,7 +55,6 @@ class CommitmentRead(Entity):
     acceptance_status: str | None
     entity_type: str | None
     entity_id: uuid.UUID | None
-    notes: str | None
 
 
 # --- Delegation -------------------------------------------------------------
@@ -81,7 +78,6 @@ class DelegationCreate(BaseModel):
     accepted_date: date | None = None
     completion_evidence: str | None = None
     escalation_level: int = 0
-    notes: str | None = None
 
 
 class DelegationUpdate(BaseModel):
@@ -104,7 +100,6 @@ class DelegationUpdate(BaseModel):
     accepted_date: date | None = None
     completion_evidence: str | None = None
     escalation_level: int | None = None
-    notes: str | None = None
 
 
 class DelegationRead(Entity):
@@ -127,4 +122,3 @@ class DelegationRead(Entity):
     accepted_date: date | None
     completion_evidence: str | None
     escalation_level: int
-    notes: str | None

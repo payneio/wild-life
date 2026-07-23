@@ -15,6 +15,9 @@ class Event(UUIDPrimaryKey, TimestampMixin, Base):
     __tablename__ = "events"
 
     title: Mapped[str] = mapped_column(Text, nullable=False)
+    # Type facet — meeting/appointment/lab/procedure/… (drives suggested links +
+    # calendar color). Clinical events (folded-in HealthEvents) use the clinical types.
+    event_type: Mapped[str | None] = mapped_column(Text)
     description: Mapped[str | None] = mapped_column(Text)
     location: Mapped[str | None] = mapped_column(Text)
     start_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
@@ -38,19 +41,14 @@ class Event(UUIDPrimaryKey, TimestampMixin, Base):
         UUID(as_uuid=True), ForeignKey("events.id", ondelete="CASCADE"), index=True
     )
     recurrence_id: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    area_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("areas.id", ondelete="SET NULL"), index=True
-    )
-    program_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("programs.id", ondelete="SET NULL")
-    )
-    project_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="SET NULL")
-    )
+    # Primary context — "what this event is about" — the soft-polymorphic pair
+    # used across the app (notes, commitments, …). Replaces the old fixed
+    # area/program/project FK triple. Unrooted = entity_type IS NULL.
+    entity_type: Mapped[str | None] = mapped_column(Text)
+    entity_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
     # Natural key for events synced/imported from an external source
     # (e.g. "proton:<uid>", "invite:<uid>"). Indexed for idempotent dedup lookups.
     external_ref: Mapped[str | None] = mapped_column(Text, index=True)
-    notes: Mapped[str | None] = mapped_column(Text)
     # Invitation / iMIP fields — populated when this event arrived as an emailed
     # meeting request (METHOD:REQUEST). `organizer`/`sequence` are what a valid
     # RSVP (METHOD:REPLY) must echo back. `rsvp_status` is the user's response

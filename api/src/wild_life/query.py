@@ -41,7 +41,6 @@ from wild_life.models import (
     Delegation,
     Event,
     Goal,
-    HealthEvent,
     InsurancePlan,
     Location,
     Medication,
@@ -82,7 +81,6 @@ TYPE_TO_MODEL: dict[str, type[Any]] = {
     "condition": Condition,
     "medication": Medication,
     "protocol": Protocol,
-    "health_event": HealthEvent,
     "insurance_plan": InsurancePlan,
     "allergy": Allergy,
 }
@@ -93,14 +91,14 @@ MODEL_TO_TYPE: dict[type[Any], str] = {m: t for t, m in TYPE_TO_MODEL.items()}
 SEARCH_FIELDS: dict[str, tuple[str, list[str]]] = {
     "person": (
         "name",
-        ["name", "nickname", "relationship", "role", "job_title", "specialty", "notes"],
+        ["name", "nickname", "relationship", "role", "job_title", "specialty"],
     ),
     "organization": ("name", ["name", "org_type", "industry", "description", "notes"]),
     "location": ("name", ["name", "address", "city", "region", "notes"]),
-    "area": ("name", ["name", "description", "desired_standard", "notes"]),
+    "area": ("name", ["name", "description", "desired_standard"]),
     "program": (
         "name",
-        ["name", "description", "intended_outcome", "success_criteria", "notes"],
+        ["name", "description", "intended_outcome", "success_criteria"],
     ),
     "project": (
         "name",
@@ -110,17 +108,16 @@ SEARCH_FIELDS: dict[str, tuple[str, list[str]]] = {
             "intended_outcome",
             "completion_criteria",
             "next_action",
-            "notes",
         ],
     ),
-    "task": ("title", ["title", "description", "context", "notes"]),
+    "task": ("title", ["title", "description", "context"]),
     "routine": ("name", ["name", "frequency", "tracking_method", "notes"]),
     "goal": (
         "name",
-        ["name", "description", "target_state", "measurement_method", "notes"],
+        ["name", "description", "target_state", "measurement_method"],
     ),
     "metric": ("name", ["name", "unit", "data_source", "notes"]),
-    "event": ("title", ["title", "description", "location", "notes"]),
+    "event": ("title", ["title", "description", "location"]),
     "note": ("title", ["title", "body", "mood"]),
     "condition": ("name", ["name", "category", "severity", "description", "notes"]),
     "medication": (
@@ -128,21 +125,9 @@ SEARCH_FIELDS: dict[str, tuple[str, list[str]]] = {
         ["name", "brand", "reason", "instructions", "notes"],
     ),
     "protocol": ("name", ["name", "category", "intended_outcome", "notes"]),
-    "health_event": (
-        "title",
-        [
-            "title",
-            "summary",
-            "findings",
-            "recommendations",
-            "follow_up",
-            "location",
-            "notes",
-        ],
-    ),
     "insurance_plan": ("name", ["name", "network", "member_id", "notes"]),
     "allergy": ("substance", ["substance", "reaction", "notes"]),
-    "commitment": ("description", ["description", "evidence", "notes"]),
+    "commitment": ("description", ["description", "evidence"]),
     "request": (
         "subject",
         [
@@ -151,12 +136,11 @@ SEARCH_FIELDS: dict[str, tuple[str, list[str]]] = {
             "external_label",
             "next_action",
             "last_communication",
-            "notes",
         ],
     ),
     "delegation": (
         "requested_outcome",
-        ["requested_outcome", "instructions", "latest_update", "notes"],
+        ["requested_outcome", "instructions", "latest_update"],
     ),
     "decision": (
         "question",
@@ -165,7 +149,7 @@ SEARCH_FIELDS: dict[str, tuple[str, list[str]]] = {
     "resource": ("title", ["title", "resource_type", "url", "description"]),
     "review": (
         "review_type",
-        ["observations", "decisions", "risks", "follow_up_actions", "notes"],
+        ["observations", "decisions", "risks", "follow_up_actions"],
     ),
 }
 

@@ -47,4 +47,3 @@ class Request(UUIDPrimaryKey, TimestampMixin, Base):
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     last_communication: Mapped[str | None] = mapped_column(Text)
     next_action: Mapped[str | None] = mapped_column(Text)
-    notes: Mapped[str | None] = mapped_column(Text)

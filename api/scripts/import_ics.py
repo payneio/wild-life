@@ -240,6 +240,8 @@ def main() -> int:
                 r = http.post("/events", json=p)
                 if r.status_code >= 400:
                     raise RuntimeError(f"POST failed {r.status_code}: {r.text}\n{p}")
+                # Link attendees to People + inherit a home from a same-title event.
+                http.post(f"/events/{r.json()['id']}/auto-file")
             created += 1
             continue
 
@@ -253,6 +255,8 @@ def main() -> int:
                 else:
                     r = http.patch(f"/events/{prior['id']}", json=changed)
                     r.raise_for_status()
+                    if "attendees" in changed:
+                        http.post(f"/events/{prior['id']}/reconcile-attendees")
                 updated += 1
                 continue
         skipped += 1

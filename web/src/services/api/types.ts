@@ -87,7 +87,6 @@ export type EntityType =
   | "medication"
   | "protocol"
   | "protocol_item"
-  | "health_event"
   | "insurance_plan"
   | "allergy"
 
@@ -120,17 +119,6 @@ export type ProtocolStatus =
   | "paused"
   | "completed"
   | "abandoned"
-export type HealthEventType =
-  | "appointment"
-  | "lab"
-  | "procedure"
-  | "surgery"
-  | "imaging"
-  | "test"
-  | "vaccination"
-  | "injury"
-  | "symptom"
-  | "note"
 export type PlanType = "medical" | "dental" | "vision" | "pharmacy"
 export type AllergyType = "medication" | "food" | "environmental" | "other"
 export type AllergySeverity = "mild" | "moderate" | "severe" | "unknown"
@@ -362,6 +350,7 @@ export interface MetricEntry extends Entity {
 
 export interface EventItem extends Entity {
   title: string
+  event_type: string | null
   description: string | null
   location: string | null
   start_at: Instant
@@ -370,11 +359,9 @@ export interface EventItem extends Entity {
   attendees: string[]
   recurrence: string | null
   recurrence_exdates: Instant[]
-  area_id: ID | null
-  program_id: ID | null
-  project_id: ID | null
+  entity_type: EntityType | null
+  entity_id: ID | null
   external_ref: string | null
-  notes: string | null
   organizer: string | null
   sequence: number | null
   rsvp_status: string | null
@@ -562,23 +549,6 @@ export interface Protocol extends Entity {
   duration: string | null
   condition_id: ID | null
   provider_id: ID | null
-  notes: string | null
-}
-
-export interface HealthEvent extends Entity {
-  occurred_on: CalendarDay
-  event_type: HealthEventType
-  title: string
-  provider_id: ID | null
-  organization_id: ID | null
-  condition_id: ID | null
-  summary: string | null
-  findings: string | null
-  recommendations: string | null
-  follow_up: string | null
-  follow_up_date: CalendarDay | null
-  location: string | null
-  external_ref: string | null
   notes: string | null
 }
 

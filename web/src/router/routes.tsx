@@ -4,6 +4,7 @@ import { EntityDetailRoute } from "@/components/EntityDetailRoute"
 import { CalendarEventRoute, EventsRedirect } from "@/components/CalendarEventRoute"
 import { RecordPage } from "@/components/RecordPage"
 import { TodayPage } from "@/pages/TodayPage"
+import { InboxPage } from "@/pages/InboxPage"
 import { CalendarPage } from "@/pages/CalendarPage"
 import { AreasPage } from "@/pages/AreasPage"
 import { ProjectsPage } from "@/pages/ProjectsPage"
@@ -31,7 +32,6 @@ import {
 import {
   AllergiesPage,
   ConditionsPage,
-  HealthEventsPage,
   InsurancePage,
   MedicationsPage,
   ProtocolsPage,
@@ -53,6 +53,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/today" replace /> },
       { path: "today", element: <TodayPage /> },
+      { path: "inbox", element: <InboxPage /> },
       // Areas & Programs are containers you operate → full-page workspaces,
       // like Projects/Goals/Tasks below (Workbench, not a cramped pane).
       { path: "areas", element: <AreasPage /> },
@@ -86,14 +87,12 @@ export const router = createBrowserRouter([
       { path: "conditions/:id", element: <RecordPage entityKey="condition" backTo="/conditions" backLabel="Conditions" /> },
       withDetail("medications", <MedicationsPage />, "medication"),
       withDetail("protocols", <ProtocolsPage />, "protocol"),
-      withDetail("health-events", <HealthEventsPage />, "healthEvent"),
       withDetail("insurance", <InsurancePage />, "insurancePlan"),
       withDetail("allergies", <AllergiesPage />, "allergy"),
       // Notes is a bespoke page (markdown + @-mentions); it self-renders its
       // detail from the :id param like People. The same component backs the
       // personal Journal and the Microsoft Work Journal, scoped by the work tag.
       { path: "notes", element: <NotesPage scope="personal" />, children: [{ path: ":id", element: <></> }] },
-      { path: "work-journal", element: <NotesPage scope="work" />, children: [{ path: ":id", element: <></> }] },
       { path: "whiteboard", element: <NotesPage scope="whiteboard" />, children: [{ path: ":id", element: <></> }] },
       {
         path: "calendar",

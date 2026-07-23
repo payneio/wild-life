@@ -16,13 +16,15 @@ from datetime import UTC, datetime, timedelta
 from typing import Any, Literal
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import delete, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wild_life.db.session import get_session
 from wild_life.models.calendar import Event
+from wild_life.models.links import EntityLink
+from wild_life.models.people import Person
 from wild_life.routers.crud import crud_router
 from wild_life.schemas.calendar import EventCreate, EventRead, EventUpdate
 
@@ -43,14 +45,13 @@ Scope = Literal["this", "following", "all"]
 # specially so "all" shifts the series by the drag delta.
 _CONTENT_FIELDS = (
     "title",
+    "event_type",
     "description",
     "location",
     "all_day",
     "attendees",
-    "area_id",
-    "program_id",
-    "project_id",
-    "notes",
+    "entity_type",
+    "entity_id",
 )
 
 
@@ -171,9 +172,8 @@ async def edit_occurrence(
             override.location = master.location
             override.all_day = master.all_day
             override.attendees = list(master.attendees or [])
-            override.area_id = master.area_id
-            override.program_id = master.program_id
-            override.project_id = master.project_id
+            override.entity_type = master.entity_type
+            override.entity_id = master.entity_id
         _apply_content(override, changes)
         override.recurrence = None
         if existing is None:
@@ -203,9 +203,8 @@ async def edit_occurrence(
         attendees=list(master.attendees or []),
         recurrence=orig_rule,
         recurrence_exdates=moved,
-        area_id=master.area_id,
-        program_id=master.program_id,
-        project_id=master.project_id,
+        entity_type=master.entity_type,
+        entity_id=master.entity_id,
     )
     _apply_content(new_master, changes)
     session.add(new_master)
@@ -282,3 +281,140 @@ async def delete_occurrence(
     )
     for ov in later:
         await session.delete(ov)
+
+
+# --- Attendee ↔ person links ------------------------------------------------
+# Events carry attendees as raw email strings (the immutable ICS record). This
+# resolves them to People via a generic EntityLink edge, so synced meetings
+# become a people-graph (a person's page shows their events, etc.). Matching is
+# by any email on the person's card; unknown attendees stay raw (never auto-create).
+
+
+async def _person_by_email(session: AsyncSession, email: str) -> UUID | None:
+    return (
+        await session.execute(
+            text(
+                "SELECT id FROM wild_life.people WHERE EXISTS ("
+                "SELECT 1 FROM jsonb_array_elements(emails) el "
+                "WHERE lower(el->>'value') = :email) LIMIT 1"
+            ),
+            {"email": email.strip().lower()},
+        )
+    ).scalar()
+
+
+async def reconcile_event_attendees(session: AsyncSession, event: Event) -> int:
+    """(Re)build this event's attendee links from its current attendee emails."""
+    await session.execute(
+        delete(EntityLink).where(
+            EntityLink.source_type == "event",
+            EntityLink.source_id == event.id,
+            EntityLink.relation == "attendee",
+        )
+    )
+    seen: set[UUID] = set()
+    for email in event.attendees or []:
+        if not email or "@" not in email:
+            continue
+        pid = await _person_by_email(session, email)
+        if pid and pid not in seen:
+            seen.add(pid)
+            session.add(
+                EntityLink(
+                    source_type="event",
+                    source_id=event.id,
+                    target_type="person",
+                    target_id=pid,
+                    relation="attendee",
+                )
+            )
+    return len(seen)
+
+
+@router.post("/{event_id}/reconcile-attendees", operation_id="events_reconcile_attendees")
+async def reconcile_attendees(
+    event_id: UUID, session: AsyncSession = Depends(get_session)
+) -> dict:
+    event = await session.get(Event, event_id)
+    if event is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not found")
+    return {"linked": await reconcile_event_attendees(session, event)}
+
+
+@router.get("/{event_id}/people", operation_id="events_people")
+async def event_people(
+    event_id: UUID, session: AsyncSession = Depends(get_session)
+) -> list[dict]:
+    rows = (
+        await session.execute(
+            select(Person.id, Person.name)
+            .join(EntityLink, EntityLink.target_id == Person.id)
+            .where(
+                EntityLink.source_type == "event",
+                EntityLink.source_id == event_id,
+                EntityLink.target_type == "person",
+                EntityLink.relation == "attendee",
+            )
+        )
+    ).all()
+    return [{"id": str(r.id), "name": r.name} for r in rows]
+
+
+# Reverse side: a person's events — mounted at /people/... (separate prefix).
+people_links_router = APIRouter(tags=["calendar"])
+
+
+@people_links_router.get(
+    "/people/{person_id}/events",
+    response_model=list[EventRead],
+    operation_id="people_events",
+)
+async def person_events(person_id: UUID, session: AsyncSession = Depends(get_session)):
+    stmt = (
+        select(Event)
+        .join(EntityLink, EntityLink.source_id == Event.id)
+        .where(
+            EntityLink.target_type == "person",
+            EntityLink.target_id == person_id,
+            EntityLink.source_type == "event",
+            EntityLink.relation == "attendee",
+        )
+        .order_by(Event.start_at.desc())
+    )
+    return (await session.execute(stmt)).scalars().all()
+
+
+async def inherit_context_from_title(session: AsyncSession, event: Event) -> bool:
+    """If this event has no context yet, adopt the context of an already-rooted
+    event with the same title. Applies your own prior, deliberate rooting to
+    future occurrences (e.g. every "Therapy w/ Jessica" lands in Health)."""
+    if event.entity_type is not None:
+        return False
+    row = (
+        await session.execute(
+            text(
+                "SELECT entity_type, entity_id FROM wild_life.events "
+                "WHERE lower(trim(title)) = lower(trim(:title)) "
+                "AND entity_type IS NOT NULL AND id <> :id LIMIT 1"
+            ),
+            {"title": event.title, "id": event.id},
+        )
+    ).first()
+    if row is None:
+        return False
+    event.entity_type, event.entity_id = row[0], row[1]
+    return True
+
+
+@router.post("/{event_id}/auto-file", operation_id="events_auto_file")
+async def auto_file(
+    event_id: UUID, session: AsyncSession = Depends(get_session)
+) -> dict:
+    """On-import filing: link attendees to people AND inherit a home from a
+    same-title rooted event. Called by the ICS import after each create."""
+    event = await session.get(Event, event_id)
+    if event is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not found")
+    linked = await reconcile_event_attendees(session, event)
+    filed = await inherit_context_from_title(session, event)
+    return {"linked": linked, "filed": filed, "entity_type": event.entity_type}

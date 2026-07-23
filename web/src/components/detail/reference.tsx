@@ -1,7 +1,10 @@
 import { CheckCircle2, ExternalLink, MapPin, Repeat } from "lucide-react"
 import { summarizeRecurrence } from "@/lib/rrule"
 import { Button } from "@/components/ui/primitives"
-import { commitments, events, reviews } from "@/services/api/hooks"
+import { EntityRef } from "@/components/graph/EntityRef"
+import { commitments, events, reviews, useEventPeople } from "@/services/api/hooks"
+import { apiClient } from "@/services/api/client"
+import { useQueryClient } from "@tanstack/react-query"
 import type {
   Commitment,
   Decision,
@@ -139,7 +142,52 @@ export function EventDetail({ entity }: { entity: Entity }) {
           </div>
         </Section>
       )}
+      <EventPeople eventId={e.id} attendees={e.attendees} />
     </div>
+  )
+}
+
+/** Attendees resolved to People (navigable), with a re-match for edited emails. */
+function EventPeople({ eventId, attendees }: { eventId: string; attendees: string[] }) {
+  const people = useEventPeople(eventId).data ?? []
+  const qc = useQueryClient()
+  const resync = async () => {
+    await apiClient.post(`/events/${eventId}/reconcile-attendees`, {})
+    void qc.invalidateQueries({ queryKey: ["events", eventId, "people"] })
+  }
+  if (people.length === 0 && (attendees?.length ?? 0) === 0) return null
+  return (
+    <Section
+      title="People"
+      action={
+        <button
+          type="button"
+          onClick={resync}
+          className="rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+        >
+          Match attendees
+        </button>
+      }
+    >
+      {people.length > 0 ? (
+        <div className="flex flex-wrap gap-1.5">
+          {people.map((p) => (
+            <EntityRef
+              key={p.id}
+              type="person"
+              id={p.id}
+              className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700"
+            >
+              {p.name}
+            </EntityRef>
+          ))}
+        </div>
+      ) : (
+        <p className="text-xs text-slate-400">
+          No attendees matched to people yet — “Match attendees” to link known emails.
+        </p>
+      )}
+    </Section>
   )
 }
 

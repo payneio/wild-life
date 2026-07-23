@@ -31,7 +31,6 @@ class Area(UUIDPrimaryKey, TimestampMixin, Base):
     review_frequency: Mapped[str | None] = mapped_column(Text)  # weekly/monthly/...
     accountable_owner_id: Mapped[uuid.UUID | None] = _person_fk()
     responsible_lead_id: Mapped[uuid.UUID | None] = _person_fk()
-    notes: Mapped[str | None] = mapped_column(Text)
     archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
@@ -56,7 +55,6 @@ class Program(UUIDPrimaryKey, TimestampMixin, Base):
     responsible_lead_id: Mapped[uuid.UUID | None] = _person_fk()
     review_frequency: Mapped[str | None] = mapped_column(Text)
     reporting_cadence: Mapped[str | None] = mapped_column(Text)
-    notes: Mapped[str | None] = mapped_column(Text)
 
 
 class Project(UUIDPrimaryKey, TimestampMixin, Base):
@@ -86,7 +84,6 @@ class Project(UUIDPrimaryKey, TimestampMixin, Base):
     responsible_lead_id: Mapped[uuid.UUID | None] = _person_fk()
     next_action: Mapped[str | None] = mapped_column(Text)
     last_activity_date: Mapped[date | None] = mapped_column(Date)
-    notes: Mapped[str | None] = mapped_column(Text)
 
 
 class ProjectContributor(Base):

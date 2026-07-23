@@ -36,7 +36,6 @@ class Commitment(UUIDPrimaryKey, TimestampMixin, Base):
     # Soft link to area/program/project/person.
     entity_type: Mapped[str | None] = mapped_column(Text)
     entity_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
-    notes: Mapped[str | None] = mapped_column(Text)
 
 
 class Delegation(UUIDPrimaryKey, TimestampMixin, Base):
@@ -73,4 +72,3 @@ class Delegation(UUIDPrimaryKey, TimestampMixin, Base):
     escalation_level: Mapped[int] = mapped_column(
         Integer, server_default="0", nullable=False
     )
-    notes: Mapped[str | None] = mapped_column(Text)

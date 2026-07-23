@@ -29,7 +29,6 @@ class RequestCreate(BaseModel):
     resolution: str | None = None
     last_communication: str | None = None
     next_action: str | None = None
-    notes: str | None = None
 
 
 class RequestUpdate(BaseModel):
@@ -47,7 +46,6 @@ class RequestUpdate(BaseModel):
     resolved_at: datetime | None = None
     last_communication: str | None = None
     next_action: str | None = None
-    notes: str | None = None
 
 
 class RequestResolve(BaseModel):
@@ -70,4 +68,3 @@ class RequestRead(Entity):
     resolved_at: datetime | None
     last_communication: str | None
     next_action: str | None
-    notes: str | None

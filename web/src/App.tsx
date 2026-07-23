@@ -6,6 +6,7 @@ import { LoginGate } from "@/auth/LoginGate"
 import { useAuth } from "@/auth/context"
 import { queryClient } from "@/lib/queryClient"
 import { showToast } from "@/lib/toast"
+import { FloatingNoteProvider } from "@/notes/FloatingNoteProvider"
 import { router } from "@/router/routes"
 import { appEventHandlers, useLiveUpdates } from "@/services/api/live"
 import { pushSupported, registerServiceWorker } from "@/services/push"
@@ -65,7 +66,9 @@ export default function App() {
         <LiveUpdates />
         <Reminders />
         <LoginGate>
-          <RouterProvider router={router} />
+          <FloatingNoteProvider>
+            <RouterProvider router={router} />
+          </FloatingNoteProvider>
         </LoginGate>
       </AuthProvider>
     </QueryClientProvider>

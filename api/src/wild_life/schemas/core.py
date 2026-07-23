@@ -23,7 +23,6 @@ class AreaCreate(BaseModel):
     review_frequency: str | None = None
     accountable_owner_id: uuid.UUID | None = None
     responsible_lead_id: uuid.UUID | None = None
-    notes: str | None = None
 
 
 class AreaUpdate(BaseModel):
@@ -34,7 +33,6 @@ class AreaUpdate(BaseModel):
     review_frequency: str | None = None
     accountable_owner_id: uuid.UUID | None = None
     responsible_lead_id: uuid.UUID | None = None
-    notes: str | None = None
     archived_at: datetime | None = None
 
 
@@ -46,7 +44,6 @@ class AreaRead(Entity):
     review_frequency: str | None
     accountable_owner_id: uuid.UUID | None
     responsible_lead_id: uuid.UUID | None
-    notes: str | None
     archived_at: datetime | None
 
 
@@ -64,7 +61,6 @@ class ProgramCreate(BaseModel):
     responsible_lead_id: uuid.UUID | None = None
     review_frequency: str | None = None
     reporting_cadence: str | None = None
-    notes: str | None = None
 
 
 class ProgramUpdate(BaseModel):
@@ -80,7 +76,6 @@ class ProgramUpdate(BaseModel):
     responsible_lead_id: uuid.UUID | None = None
     review_frequency: str | None = None
     reporting_cadence: str | None = None
-    notes: str | None = None
 
 
 class ProgramRead(Entity):
@@ -96,7 +91,6 @@ class ProgramRead(Entity):
     responsible_lead_id: uuid.UUID | None
     review_frequency: str | None
     reporting_cadence: str | None
-    notes: str | None
 
 
 # --- Project ----------------------------------------------------------------
@@ -115,7 +109,6 @@ class ProjectCreate(BaseModel):
     responsible_lead_id: uuid.UUID | None = None
     next_action: str | None = None
     last_activity_date: date | None = None
-    notes: str | None = None
 
 
 class ProjectUpdate(BaseModel):
@@ -133,7 +126,6 @@ class ProjectUpdate(BaseModel):
     responsible_lead_id: uuid.UUID | None = None
     next_action: str | None = None
     last_activity_date: date | None = None
-    notes: str | None = None
 
 
 class ProjectRead(Entity):
@@ -151,4 +143,3 @@ class ProjectRead(Entity):
     responsible_lead_id: uuid.UUID | None
     next_action: str | None
     last_activity_date: date | None
-    notes: str | None

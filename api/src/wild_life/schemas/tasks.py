@@ -28,7 +28,6 @@ class TaskCreate(BaseModel):
     blocked_by_task_id: uuid.UUID | None = None
     waiting_on: str | None = None
     acceptance_required: bool = False
-    notes: str | None = None
     # Allow backdating on create/import; _sync_completion leaves a provided value untouched.
     completed_at: datetime | None = None
 
@@ -53,7 +52,6 @@ class TaskUpdate(BaseModel):
     blocked_by_task_id: uuid.UUID | None = None
     waiting_on: str | None = None
     acceptance_required: bool | None = None
-    notes: str | None = None
 
 
 class TaskRead(Entity):
@@ -76,7 +74,6 @@ class TaskRead(Entity):
     blocked_by_task_id: uuid.UUID | None
     waiting_on: str | None
     acceptance_required: bool
-    notes: str | None
     completed_at: datetime | None
     claimed_by_id: uuid.UUID | None = None
     claimed_at: datetime | None = None
