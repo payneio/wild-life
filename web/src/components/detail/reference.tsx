@@ -4,7 +4,7 @@ import { summarizeRecurrence } from "@/lib/rrule"
 import { Button } from "@/components/ui/primitives"
 import { EntityRef } from "@/components/graph/EntityRef"
 import { GuestsPanel } from "@/components/calendar/GuestsPanel"
-import { commitments, events, reviews, useEventPeople } from "@/services/api/hooks"
+import { commitments, reviews, useEventPeople, useSetRsvp } from "@/services/api/hooks"
 import { apiClient } from "@/services/api/client"
 import { showActionToast } from "@/lib/toast"
 import { humanize } from "@/lib/format"
@@ -99,7 +99,7 @@ const RSVP_OPTIONS: { value: string; label: string }[] = [
 
 export function EventDetail({ entity }: { entity: Entity }) {
   const e = entity as EventItem
-  const update = events.useUpdate()
+  const setRsvp = useSetRsvp()
   if (!e.start_at) return null
   const start = new Date(e.start_at)
   const end = e.end_at ? new Date(e.end_at) : null
@@ -147,7 +147,7 @@ export function EventDetail({ entity }: { entity: Entity }) {
           <Segmented
             options={RSVP_OPTIONS}
             value={e.rsvp_status ?? "needs-action"}
-            onChange={(v) => update.mutate({ id: e.id, body: { rsvp_status: v } })}
+            onChange={(v) => setRsvp.mutate({ id: e.id, status: v })}
           />
           <div className="mt-2 text-[11px] text-slate-400">
             {e.rsvp_sent_status === e.rsvp_status && e.rsvp_status !== "needs-action"

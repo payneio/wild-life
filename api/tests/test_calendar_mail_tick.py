@@ -231,6 +231,46 @@ def test_received_invite_reply_once(
             client.delete(f"/events/{i}", headers=h)
 
 
+def test_rsvp_endpoint_sends_immediately(
+    client: TestClient, auth_headers: dict, require_db: None, fake_mail: FakeTransport
+) -> None:
+    h = auth_headers
+    made: list[str] = []
+    try:
+        # A received invite (foreign organizer).
+        ev = _event(
+            client, h,
+            organizer="mailto:host@corp.com",
+            external_ref="rsvp-now@corp.com",
+            sequence=0,
+            end_at=END,
+        )
+        made.append(ev["id"])
+        eid = ev["id"]
+
+        # Setting the RSVP emails the REPLY right away — no tick needed.
+        r = client.post(f"/events/{eid}/rsvp", headers=h, json={"status": "accepted"})
+        assert r.status_code == 200, r.text
+        assert r.json()["rsvp_status"] == "accepted"
+        assert r.json()["rsvp_sent_status"] == "accepted"
+        assert fake_mail.sent_to_with_method("REPLY") == ["host@corp.com"]
+
+        # A later tick doesn't resend (sent status already matches).
+        fake_mail.sent.clear()
+        assert _tick(client, h)["replies_sent"] == 0
+
+        # A hosted event rejects the RSVP endpoint.
+        hosted = _event(client, h, attendees=["a@x.com"])
+        made.append(hosted["id"])
+        assert (
+            client.post(f"/events/{hosted['id']}/rsvp", headers=h, json={"status": "accepted"}).status_code
+            == 400
+        )
+    finally:
+        for i in made:
+            client.delete(f"/events/{i}", headers=h)
+
+
 def test_inbound_request_and_cancel(
     client: TestClient, auth_headers: dict, require_db: None, fake_mail: FakeTransport
 ) -> None:

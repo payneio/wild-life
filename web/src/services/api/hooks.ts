@@ -271,6 +271,16 @@ export function useSendInvites() {
   })
 }
 
+/** Set my RSVP to a received invite; the reply is emailed immediately. */
+export function useSetRsvp() {
+  const invalidate = useInvalidator()
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      apiClient.post<EventItem>(`/events/${id}/rsvp`, { status }),
+    onSuccess: () => invalidate("events"),
+  })
+}
+
 // --- preferences (generic single-user settings KV) ---
 export function usePreference<T = Record<string, unknown>>(key: string) {
   return useQuery({

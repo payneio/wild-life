@@ -40,9 +40,11 @@ from wild_life.models.calendar import AttendeeResponse, Event, SentInvite
 from wild_life.routers.calendar import reconcile_event_attendees
 from wild_life.routers.preferences import load_calendar_prefs
 from wild_life.routers.stream import publish_event
+from wild_life.schemas.calendar import EventRead
 from wild_life.schemas.calendar_mail import (
     GuestStatus,
     MailTickResult,
+    RsvpBody,
     SendInvitesResult,
 )
 from wild_life.schemas.preferences import CalendarPrefs
@@ -576,6 +578,42 @@ async def send_invites(
     await session.flush()
     await publish_event("calendar_mail", {"entity": "event", "id": str(event_id)})
     return SendInvitesResult(requests_sent=req, cancels_sent=can)
+
+
+@event_invites_router.post(
+    "/events/{event_id}/rsvp",
+    response_model=EventRead,
+    operation_id="events_rsvp",
+)
+async def set_rsvp(
+    event_id: UUID,
+    body: RsvpBody,
+    session: AsyncSession = Depends(get_session),
+    transport: MailTransport = Depends(get_transport),
+) -> Event:
+    """Set my RSVP to a received invite and email the METHOD:REPLY immediately
+    (no waiting for the poll). The poll remains the safety net if mail is off."""
+    event = await session.get(Event, event_id)
+    if event is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not found")
+    if not event.organizer or _is_hosted(event):
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, detail="Not a received invite"
+        )
+
+    event.rsvp_status = body.status
+    status_value = body.status.lower()
+    if (
+        mail.is_enabled()
+        and status_value in _RSVP_PARTSTAT
+        and status_value != (event.rsvp_sent_status or "").lower()
+    ):
+        await _send_reply(session, transport, event, status_value)
+
+    await session.flush()
+    await session.refresh(event)
+    await publish_event("calendar_mail", {"entity": "event", "id": str(event_id)})
+    return event
 
 
 @event_invites_router.get(

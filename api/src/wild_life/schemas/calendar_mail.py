@@ -23,6 +23,12 @@ class SendInvitesResult(BaseModel):
     cancels_sent: int = 0
 
 
+class RsvpBody(BaseModel):
+    """Set my response to a received invite (and email it to the organizer)."""
+
+    status: str  # accepted | declined | tentative | needs-action
+
+
 class AttendeeResponseRead(BaseModel):
     """A guest's RSVP to a hosted event."""
 
