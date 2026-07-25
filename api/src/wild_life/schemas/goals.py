@@ -51,6 +51,6 @@ class GoalRead(Entity):
     target_value: float | None
     baseline: float | None
     target_date: date | None
-    status: str
+    status: GoalStatus
     progress: float | None
     measurement_method: str | None

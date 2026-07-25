@@ -29,7 +29,7 @@ class LocationUpdate(BaseModel):
 
 class LocationRead(Entity):
     name: str
-    category: str | None
+    category: LocationCategory | None
     address: str | None
     city: str | None
     region: str | None

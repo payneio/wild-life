@@ -56,14 +56,14 @@ class RequestRead(Entity):
     requester_id: uuid.UUID | None
     addressee_id: uuid.UUID | None
     external_label: str | None
-    kind: str
+    kind: RequestKind
     subject: str
     body: str | None
-    entity_type: str | None
+    entity_type: EntityType | None
     entity_id: uuid.UUID | None
     needed_by: date | None
     follow_up_date: date | None
-    status: str
+    status: RequestStatus
     resolution: str | None
     resolved_at: datetime | None
     last_communication: str | None

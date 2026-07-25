@@ -28,7 +28,7 @@ const PRIORITIES = ["low", "medium", "high", "urgent"] as const
 const FIELDS = TASK_FIELDS
 
 const CONFIG: ListConfig = {
-  searchKeys: ["title", "description", "context", "notes", "waiting_on"],
+  searchKeys: ["title", "description", "context", "waiting_on"],
   filters: [
     { field: "status", label: "Status", options: TASK_STATUS },
     { field: "priority", label: "Priority", options: PRIORITIES },

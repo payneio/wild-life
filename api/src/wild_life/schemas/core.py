@@ -39,7 +39,7 @@ class AreaUpdate(BaseModel):
 class AreaRead(Entity):
     name: str
     description: str | None
-    status: str
+    status: AreaStatus
     desired_standard: str | None
     review_frequency: str | None
     accountable_owner_id: uuid.UUID | None
@@ -84,7 +84,7 @@ class ProgramRead(Entity):
     area_id: uuid.UUID | None
     intended_outcome: str | None
     success_criteria: str | None
-    status: str
+    status: ProgramStatus
     start_date: date | None
     target_date: date | None
     accountable_owner_id: uuid.UUID | None
@@ -135,8 +135,8 @@ class ProjectRead(Entity):
     program_id: uuid.UUID | None
     intended_outcome: str | None
     completion_criteria: str | None
-    status: str
-    priority: str
+    status: ProjectStatus
+    priority: Priority
     start_date: date | None
     target_date: date | None
     accountable_owner_id: uuid.UUID | None

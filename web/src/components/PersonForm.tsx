@@ -1,7 +1,7 @@
 import { asDay } from "@/lib/date"
 import { useState } from "react"
 import { Plus, Trash2 } from "lucide-react"
-import { Button, Field, Input, Select, Textarea } from "@/components/ui/primitives"
+import { Button, Field, Input, Select } from "@/components/ui/primitives"
 import type { Body } from "@/services/api/crud"
 import type { ContactMethod, ImportantDate, Person } from "@/services/api/types"
 
@@ -186,7 +186,6 @@ export function PersonForm({
   const [portalUrl, setPortalUrl] = useState(initial?.portal_url ?? "")
   const [preferred, setPreferred] = useState(initial?.preferred_contact ?? "")
   const [birthday, setBirthday] = useState(initial?.birthday ?? "")
-  const [notes, setNotes] = useState(initial?.notes ?? "")
   const [phones, setPhones] = useState<ContactMethod[]>(initial?.phones ?? [])
   const [emails, setEmails] = useState<ContactMethod[]>(initial?.emails ?? [])
   const [addresses, setAddresses] = useState<ContactMethod[]>(initial?.addresses ?? [])
@@ -205,7 +204,6 @@ export function PersonForm({
       portal_url: portalUrl || null,
       preferred_contact: preferred || null,
       birthday: birthday || null,
-      notes: notes || null,
       phones: phones.filter((p) => p.value.trim()),
       emails: emails.filter((e) => e.value.trim()),
       addresses: addresses.filter((a) => a.value.trim()),
@@ -288,9 +286,10 @@ export function PersonForm({
       />
       <DateRows rows={dates} onChange={setDates} />
 
-      <Field label="Notes" className="col-span-2">
-        <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} />
-      </Field>
+      {/* No scalar "notes" field: 1e42b56 moved planning/CRM entities to
+          first-class Note objects rooted at the person (see the Notes panel on
+          PeoplePage), so a textarea here would write to a column that no
+          longer exists. */}
 
       <div className="col-span-2 mt-2 flex justify-end gap-2">
         <Button type="button" variant="secondary" onClick={onCancel}>

@@ -25,6 +25,7 @@ dependencies = [
 
 [project.scripts]
 wild-life = "wild_life.main:run"
+wild-life-openapi = "wild_life.openapi:main"
 
 [build-system]
 requires = ["hatchling"]

@@ -46,6 +46,8 @@ pnpm install
 pnpm dev
 pnpm build                          # tsc -b && vite build  (must pass before deploy)
 pnpm lint
+pnpm test                           # vitest
+pnpm gen:api                        # regenerate API types (after any schema change)
 ```
 
 ## From a code change to live
@@ -77,6 +79,13 @@ Iterate with the dev servers; they never touch the live URLs. Publish separately
   **@web/docs/ui-architecture.md** before adding a page or deciding how an object
   should appear — it has the selection rule and the property test for when an object
   earns bespoke views (e.g. Person, Event, Project).
+- **API types are generated, not mirrored.** `web/src/services/api/schema.gen.ts`
+  is compiled from `api/openapi.json` (itself exported from the FastAPI app), and
+  `services/api/types.ts` only *names* those shapes — `Task = S["TaskRead"]` — plus
+  the few responses with no `response_model`. Enum unions and the `CalendarDay` /
+  `Instant` / `WallTime` brands are derived from the spec, so they can't drift.
+  After any schema change: `pnpm gen:api`, then `tsc` tells you what broke. Both
+  artifacts are committed, so `pnpm build` never needs Python.
 - **SSE-driven reactivity.** Frontend mutations do **not** invalidate the query
   cache themselves (`web/src/services/api/crud.ts`). Every write lands in the
   backend `change_log`, fans out over Postgres `LISTEN/NOTIFY`, and a single

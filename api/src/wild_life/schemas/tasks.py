@@ -57,11 +57,11 @@ class TaskUpdate(BaseModel):
 class TaskRead(Entity):
     title: str
     description: str | None
-    status: str
+    status: TaskStatus
     area_id: uuid.UUID | None
     program_id: uuid.UUID | None
     project_id: uuid.UUID | None
-    priority: str
+    priority: Priority
     accountable_owner_id: uuid.UUID | None
     responsible_id: uuid.UUID | None
     assignee_id: uuid.UUID | None

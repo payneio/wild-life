@@ -6,7 +6,7 @@ from datetime import datetime
 from pydantic import BaseModel, computed_field
 
 from wild_life.config import settings
-from wild_life.schemas.common import Entity
+from wild_life.schemas.common import Entity, EntityType
 
 
 class EventCreate(BaseModel):
@@ -22,7 +22,7 @@ class EventCreate(BaseModel):
     recurrence_exdates: list[str] = []
     recurrence_parent_id: uuid.UUID | None = None
     recurrence_id: datetime | None = None
-    entity_type: str | None = None
+    entity_type: EntityType | None = None
     entity_id: uuid.UUID | None = None
     external_ref: str | None = None
     organizer: str | None = None
@@ -44,7 +44,7 @@ class EventUpdate(BaseModel):
     recurrence_exdates: list[str] | None = None
     recurrence_parent_id: uuid.UUID | None = None
     recurrence_id: datetime | None = None
-    entity_type: str | None = None
+    entity_type: EntityType | None = None
     entity_id: uuid.UUID | None = None
     external_ref: str | None = None
     organizer: str | None = None
@@ -66,7 +66,7 @@ class EventRead(Entity):
     recurrence_exdates: list[str]
     recurrence_parent_id: uuid.UUID | None
     recurrence_id: datetime | None
-    entity_type: str | None
+    entity_type: EntityType | None
     entity_id: uuid.UUID | None
     external_ref: str | None
     organizer: str | None

@@ -32,7 +32,7 @@ class ReviewUpdate(BaseModel):
 
 
 class ReviewRead(Entity):
-    review_type: str
+    review_type: ReviewType
     period_start: date | None
     period_end: date | None
     entities_reviewed: list[str]

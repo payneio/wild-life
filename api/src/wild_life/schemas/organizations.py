@@ -50,14 +50,14 @@ class OrganizationUpdate(BaseModel):
 
 class OrganizationRead(Entity):
     name: str
-    org_type: str | None
+    org_type: OrgType | None
     industry: str | None
     website: str | None
     email: str | None
     phone: str | None
     address: str | None
     description: str | None
-    status: str
+    status: OrgStatus
     notes: str | None
 
 

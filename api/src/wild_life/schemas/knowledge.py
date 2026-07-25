@@ -34,7 +34,7 @@ class ResourceRead(Entity):
     url: str | None
     description: str | None
     tags: list[str]
-    entity_type: str | None
+    entity_type: EntityType | None
     entity_id: uuid.UUID | None
 
 
@@ -73,5 +73,5 @@ class DecisionRead(Entity):
     owner_id: uuid.UUID | None
     decided_on: date | None
     review_date: date | None
-    entity_type: str | None
+    entity_type: EntityType | None
     entity_id: uuid.UUID | None

@@ -37,6 +37,7 @@ import {
   Select,
 } from "@/components/ui/primitives"
 import { usePersistentState } from "@/lib/persistentState"
+import { formatImportantDate } from "@/lib/date"
 import { formatDate, formatDateTime } from "@/lib/utils"
 import { apiClient } from "@/services/api/client"
 import type { Body } from "@/services/api/crud"
@@ -604,7 +605,7 @@ function PersonDetail({
                 {person.important_dates.map((d, i) => (
                   <li key={i} className="flex items-center gap-2 text-slate-600">
                     <span className="text-slate-400">{d.label ?? "date"}:</span>
-                    {formatDate(d.date)}
+                    {formatImportantDate(d.date)}
                   </li>
                 ))}
               </ul>

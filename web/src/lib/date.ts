@@ -80,6 +80,18 @@ export const daysBetween = (from: CalendarDay, to: CalendarDay): number =>
 export const daysFromToday = (d: CalendarDay | Instant | null | undefined): number | null =>
   d == null ? null : daysBetween(today(), asDay(d))
 
+/** Shift `anchor` by the same signed duration as (`from` → `to`). Used to keep an
+ *  event's duration fixed when its start moves: move the end by the start's delta.
+ *  Returns null on unparseable input. */
+export const shiftInstantBy = (anchor: Instant, from: Instant, to: Instant): Instant | null => {
+  try {
+    const delta = Temporal.Instant.from(from).until(Temporal.Instant.from(to))
+    return asInstantBrand(Temporal.Instant.from(anchor).add(delta).toString())
+  } catch {
+    return null
+  }
+}
+
 // --- format (display — accepts day or instant) ------------------------------
 const DAY_OPTS: Intl.DateTimeFormatOptions = { year: "numeric", month: "short", day: "numeric" }
 
@@ -93,6 +105,22 @@ export const formatDay = (
   } catch {
     return String(d)
   }
+}
+
+/** Format a person's important date. The API types this field as a plain string
+ *  because it may be a *yearless* "--MM-DD" (a birthday with no year on record)
+ *  as well as a full ISO day — so it can't go through `formatDay`, which would
+ *  fall through to printing the raw "--03-14". */
+export const formatImportantDate = (d: string | null | undefined): string => {
+  if (!d) return ""
+  const yearless = /^--(\d{2})-(\d{2})$/.exec(d)
+  if (!yearless) return formatDay(asDay(d))
+  // Any leap year works as a carrier so Feb 29 survives; only month/day print.
+  return Temporal.PlainDate.from({
+    year: 2000,
+    month: Number(yearless[1]),
+    day: Number(yearless[2]),
+  }).toLocaleString(undefined, { month: "short", day: "numeric" })
 }
 
 export const formatInstant = (

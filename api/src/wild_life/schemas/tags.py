@@ -29,7 +29,7 @@ class EntityTagCreate(BaseModel):
 
 class EntityTagRead(BaseModel):
     tag_id: uuid.UUID
-    entity_type: str
+    entity_type: EntityType
     entity_id: uuid.UUID
 
     model_config = {"from_attributes": True}

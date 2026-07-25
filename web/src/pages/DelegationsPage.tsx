@@ -32,7 +32,7 @@ const PRIORITIES = ["low", "medium", "high", "urgent"] as const
 const FIELDS = DELEGATION_FIELDS
 
 const CONFIG: ListConfig = {
-  searchKeys: ["requested_outcome", "instructions", "latest_update", "notes"],
+  searchKeys: ["requested_outcome", "instructions", "latest_update"],
   filters: [
     { field: "status", label: "Status", options: DELEGATION_STATUS },
     { field: "priority", label: "Priority", options: PRIORITIES },

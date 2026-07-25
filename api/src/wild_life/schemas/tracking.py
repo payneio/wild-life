@@ -50,10 +50,10 @@ class CommitmentRead(Entity):
     responsible_id: uuid.UUID | None
     date_made: date | None
     due_date: date | None
-    status: str
+    status: CommitmentStatus
     evidence: str | None
     acceptance_status: str | None
-    entity_type: str | None
+    entity_type: EntityType | None
     entity_id: uuid.UUID | None
 
 
@@ -104,18 +104,18 @@ class DelegationUpdate(BaseModel):
 
 class DelegationRead(Entity):
     requested_outcome: str
-    entity_type: str | None
+    entity_type: EntityType | None
     entity_id: uuid.UUID | None
     delegator_id: uuid.UUID | None
     responsible_id: uuid.UUID | None
     accountable_owner_id: uuid.UUID | None
     date_delegated: date | None
     instructions: str | None
-    priority: str
+    priority: Priority
     expected_completion_date: date | None
     follow_up_date: date | None
     acceptance_required: bool
-    status: str
+    status: DelegationStatus
     latest_update: str | None
     last_contact_date: date | None
     delivered_date: date | None

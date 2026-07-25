@@ -17,7 +17,7 @@ class ApiTokenCreate(BaseModel):
 class ApiTokenRead(Entity):
     label: str
     person_id: uuid.UUID | None = None
-    role: str
+    role: TokenRole
     revoked_at: datetime | None = None
 
 

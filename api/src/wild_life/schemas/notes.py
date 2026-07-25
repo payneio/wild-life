@@ -46,7 +46,7 @@ class NoteRead(Entity):
     entry_date: date | None
     mood: str | None
     tags: list[str]
-    entity_type: str | None
+    entity_type: EntityType | None
     entity_id: uuid.UUID | None
     links: list[EntityRef] = []
 
