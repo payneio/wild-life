@@ -1,12 +1,14 @@
 import { useState, type ReactNode } from "react"
 import { AffiliationsEditor } from "@/components/AffiliationsEditor"
-import { EntityForm } from "@/components/EntityForm"
 import { RefName } from "@/components/cells"
+import { Segmented } from "@/components/detail/kit"
+import { SubRecord } from "@/components/record/Record"
+import { useFields } from "@/components/record/context"
+import { recordFields } from "@/components/record/typed"
+import { SLOTS, WEEKDAYS } from "@/lib/slots"
 import { Button, EmptyState, Input } from "@/components/ui/primitives"
-import { cn, formatDate } from "@/lib/utils"
+import { formatDate } from "@/lib/utils"
 import { todayISO } from "@/lib/format"
-import type { Body } from "@/services/api/crud"
-import { ACTIVITY_STEP_FIELDS, MED_STEP_FIELDS } from "@/services/api/fields"
 import { metricEntries, routines, useMetricEntries } from "@/services/api/hooks"
 import type {
   Entity,
@@ -15,6 +17,8 @@ import type {
   Protocol,
   Routine,
 } from "@/services/api/types"
+
+const R = recordFields<Routine>()
 
 function ExtraSection({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -117,7 +121,6 @@ export function MetricExtra({ entity }: { entity: Entity }) {
 // A step is *either* a medication (a cataloged drug/OTC/supplement you track and
 // can check off) *or* an activity (a behavior like "walk after dinner"). The
 // toggle picks one so you never fill both.
-type StepMode = "medication" | "activity"
 
 // One-line "when" summary for a routine: times of day + cadence.
 function stepMeta(it: Routine): string {
@@ -137,117 +140,157 @@ export function ProtocolExtra({ entity }: { entity: Entity }) {
     limit: "200",
   })
   const create = routines.useCreate()
-  const update = routines.useUpdate()
   const remove = routines.useRemove()
-  const [editing, setEditing] = useState<Routine | null>(null)
-  const [adding, setAdding] = useState(false)
-  const [mode, setMode] = useState<StepMode>("medication")
+  const [open, setOpen] = useState<string | null>(null)
   const list = data ?? []
-  const open = adding || !!editing
 
-  function startAdd() {
-    setAdding(true)
-    setEditing(null)
-    setMode("medication")
-  }
-  function startEdit(it: Routine) {
-    setEditing(it)
-    setAdding(false)
-    setMode(it.medication_id ? "medication" : "activity")
-  }
-  function close() {
-    setEditing(null)
-    setAdding(false)
-  }
-
-  function submit(body: Body) {
-    // A step is one kind or the other — clear whichever field this mode drops.
-    const kind =
-      mode === "medication"
-        ? { ...body, activity: null }
-        : { ...body, medication_id: null }
-    const patch = { ...kind, interval_days: (body.interval_days as number) || 1 }
-    if (editing) update.mutate({ id: editing.id, body: patch })
-    else create.mutate({ ...patch, protocol_id: protocol.id, sort_order: list.length })
-    close()
+  // Modeless, like everywhere else: adding a step creates the row immediately
+  // (RoutineCreate needs only protocol_id) and opens it for editing, instead of
+  // collecting a draft in a modal behind a Save button.
+  function add(kind: "medication" | "activity") {
+    create.mutate(
+      {
+        protocol_id: protocol.id,
+        sort_order: list.length,
+        interval_days: 1,
+        ...(kind === "activity" ? { activity: "New step" } : {}),
+      },
+      { onSuccess: (row: Routine) => setOpen(row.id) },
+    )
   }
 
   return (
     <ExtraSection title={`Steps (${list.length})`}>
       <div className="space-y-3">
-        {list.length === 0 && !open ? (
+        {list.length === 0 ? (
           <EmptyState>No steps yet.</EmptyState>
         ) : (
           <ul className="space-y-1 text-sm">
             {list.map((it) => (
-              <li key={it.id} className="flex items-start justify-between gap-2 border-b border-slate-50 py-1.5">
-                <div>
-                  {it.medication_id ? (
-                    <span className="font-medium">
-                      <RefName kind="medication" id={it.medication_id} />
-                    </span>
-                  ) : it.activity ? (
-                    <span className="font-medium">{it.activity}</span>
-                  ) : (
-                    <span className="font-medium text-slate-400">(step)</span>
-                  )}
-                  {it.amount != null ? (
-                    <span className="text-slate-400">
-                      {" "}
-                      · {it.amount}
-                      {it.unit ? ` ${it.unit}` : ""}
-                    </span>
-                  ) : null}
-                  {stepMeta(it) ? <span className="text-slate-500"> {stepMeta(it)}</span> : null}
-                </div>
-                <div className="whitespace-nowrap">
-                  <button className="rounded px-1 text-xs text-slate-400 hover:text-slate-700" onClick={() => startEdit(it)}>
-                    edit
-                  </button>
-                  <button className="rounded px-1 text-xs text-slate-400 hover:text-red-600" onClick={() => remove.mutate(it.id)}>
-                    delete
-                  </button>
-                </div>
-              </li>
+              <StepRow
+                key={it.id}
+                step={it}
+                open={open === it.id}
+                onToggle={() => setOpen(open === it.id ? null : it.id)}
+                onDelete={() => {
+                  if (open === it.id) setOpen(null)
+                  remove.mutate(it.id)
+                }}
+              />
             ))}
           </ul>
         )}
-        {open ? (
-          <div className="space-y-2">
-            <div className="inline-flex rounded-lg border border-slate-200 p-0.5 text-xs">
-              {(["medication", "activity"] as const).map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => setMode(m)}
-                  className={cn(
-                    "rounded-md px-2.5 py-1 font-medium capitalize",
-                    mode === m ? "bg-indigo-600 text-on-accent" : "text-slate-500 hover:text-slate-700",
-                  )}
-                >
-                  {m}
-                </button>
-              ))}
-            </div>
-            <EntityForm
-              key={editing?.id ?? "new"}
-              fields={mode === "medication" ? MED_STEP_FIELDS : ACTIVITY_STEP_FIELDS}
-              initial={editing ?? undefined}
-              onSubmit={submit}
-              onCancel={close}
-              submitLabel={editing ? "Save" : "Add step"}
-            />
-          </div>
-        ) : (
-          <Button variant="secondary" onClick={startAdd}>
-            Add step
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={() => add("medication")}>
+            Add dose
           </Button>
-        )}
+          <Button variant="secondary" onClick={() => add("activity")}>
+            Add activity
+          </Button>
+        </div>
       </div>
     </ExtraSection>
   )
 }
 
+/** One step: a summary line that expands into inline, autosaving fields. */
+function StepRow({
+  step,
+  open,
+  onToggle,
+  onDelete,
+}: {
+  step: Routine
+  open: boolean
+  onToggle: () => void
+  onDelete: () => void
+}) {
+  const isDose = step.medication_id != null
+  return (
+    <li className="border-b border-slate-50 py-1.5">
+      <div className="flex items-start justify-between gap-2">
+        <button
+          type="button"
+          onClick={onToggle}
+          className="flex-1 text-left"
+          aria-expanded={open}
+        >
+          {isDose ? (
+            <span className="font-medium">
+              <RefName kind="medication" id={step.medication_id} />
+            </span>
+          ) : step.activity ? (
+            <span className="font-medium">{step.activity}</span>
+          ) : (
+            <span className="font-medium text-slate-400">(step)</span>
+          )}
+          {step.amount != null ? (
+            <span className="text-slate-400">
+              {" "}
+              · {step.amount}
+              {step.unit ? ` ${step.unit}` : ""}
+            </span>
+          ) : null}
+          {stepMeta(step) ? <span className="text-slate-500"> {stepMeta(step)}</span> : null}
+        </button>
+        <button
+          className="shrink-0 rounded px-1 text-xs text-slate-400 hover:text-red-600"
+          onClick={onDelete}
+        >
+          delete
+        </button>
+      </div>
+      {open && (
+        <SubRecord crud={routines} entity={step}>
+          <div className="mt-2 grid grid-cols-1 gap-x-6 gap-y-3 rounded-lg bg-surface-2 p-3 sm:grid-cols-2">
+            <StepKind />
+            {isDose ? (
+              <>
+                <R.Ref field="medication_id" label="Medication" lookup="medication" />
+                <R.Number field="amount" label="Amount" placeholder="500" />
+                <R.Text field="unit" label="Unit" placeholder="mg" />
+              </>
+            ) : (
+              <R.Text field="activity" label="Activity" full placeholder="e.g. Walk after dinner" />
+            )}
+            <R.MultiSelect field="timing" label="Times of day" options={SLOTS} />
+            <R.MultiSelect field="days_of_week" label="Days (blank = every day)" options={WEEKDAYS} />
+            <R.Number field="interval_days" label="Every N days" placeholder="1" />
+            <R.Textarea field="notes" label="Notes" minRows={2} />
+          </div>
+        </SubRecord>
+      )}
+    </li>
+  )
+}
+
+/**
+ * A step is a dose or an activity, never both. Switching writes both columns at
+ * once so the pair can't land half-applied — the invariant the old modal kept by
+ * clearing the other field on submit.
+ */
+function StepKind() {
+  const { row, save } = useFields(["medication_id", "activity"])
+  const isDose = row.medication_id != null
+  return (
+    <div className="sm:col-span-2">
+      <Segmented
+        options={[
+          { value: "dose", label: "Dose" },
+          { value: "activity", label: "Activity" },
+        ]}
+        value={isDose ? "dose" : "activity"}
+        onChange={(v) =>
+          save(
+            v === "dose"
+              ? { activity: null }
+              : { medication_id: null, amount: null, unit: null },
+          )
+        }
+      />
+    </div>
+  )
+}
 // --- Organization: members --------------------------------------------------
 export function OrganizationExtra({ entity }: { entity: Entity }) {
   return (

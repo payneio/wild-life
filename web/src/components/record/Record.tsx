@@ -212,3 +212,43 @@ export function RecordSection({
     </section>
   )
 }
+
+/**
+ * A chrome-less record surface for rows edited in place *inside* another record
+ * — a protocol's steps, say. Same field primitives, same autosave, but no action
+ * bar, no relations, and no coverage check: a sub-record edits a deliberate
+ * subset of its row, so completeness isn't the contract here.
+ */
+export function SubRecord({
+  crud,
+  entity,
+  children,
+}: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  crud: { useUpdate: () => { mutate: (v: { id: string; body: any }) => void } }
+  entity: Entity
+  children: ReactNode
+}) {
+  const update = crud.useUpdate()
+  const registry = useRef<Set<string>>(new Set())
+  const row = entity as unknown as Record<string, unknown>
+
+  const save = useCallback(
+    (field: string, value: unknown) => update.mutate({ id: entity.id, body: { [field]: value } }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [entity.id],
+  )
+  const saveMany = useCallback(
+    (body: Record<string, unknown>) => update.mutate({ id: entity.id, body }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [entity.id],
+  )
+  const register = useCallback((field: string) => {
+    registry.current.add(field)
+  }, [])
+  const ctx = useMemo(
+    () => ({ row, save, saveMany, register }),
+    [row, save, saveMany, register],
+  )
+  return <RecordContext.Provider value={ctx}>{children}</RecordContext.Provider>
+}
