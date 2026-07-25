@@ -74,7 +74,8 @@ Iterate with the dev servers; they never touch the live URLs. Publish separately
 
 - **Object-first UI (OOUX).** The frontend is built around domain *objects* and
   their *representations*, not pages/flows. One object → a default representation
-  set (reference chip · list row · picker · a modeless detail-editor `EditableRecord`),
+  set (reference chip · list row · picker · a modeless detail-editor composed in
+  `entities/<obj>/Detail.tsx` from the `components/record/` vocabulary),
   framed as pane / modal / full-page by context (routing). Read
   **@web/docs/ui-architecture.md** before adding a page or deciding how an object
   should appear — it has the selection rule and the property test for when an object

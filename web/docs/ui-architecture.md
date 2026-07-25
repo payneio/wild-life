@@ -15,7 +15,7 @@ Object model        what things exist          → the registry
 Representation model in what forms each appears → chip / row / picker / detail-editor / …
 Interaction model   what the user does         → browse / reference / inspect-and-work / …
 Framing             where a representation sits → page + layout (routing)
-Design system       the components that realize → EditableRecord, cells, EntityRefField, …
+Design system       the components that realize → record/ primitives, cells, EntityRefField, …
 ```
 
 Keep these separate. Most of our past confusion came from collapsing *what a thing is*,
@@ -93,7 +93,7 @@ DSL — and its drift risk — is still live. Converting it is the next step.
 
 ## 3. Framing — pane / modal / full-page
 
-The **same** detail representation (`EditableRecord`) is *framed* differently by context.
+The **same** detail representation (the object's `Detail`) is *framed* differently by context.
 This is the **space** argument to `f(…)`, and it's a **routing** decision — not a different
 component:
 
@@ -119,7 +119,7 @@ Pick the representation by intent:
 - **Browse many** → collection (list/table) — or a **canvas** if position or time *is* data
   (§5 spatiality / temporality).
 - **Reference / assign** → chip (`RefName`) or picker (`EntityRefField`).
-- **Inspect-and-work one** → the detail-editor (`EditableRecord`), **framed** by intent + space:
+- **Inspect-and-work one** → the detail-editor (`entities/<obj>/Detail.tsx`), **framed** by intent + space:
   - **peek / reference** a small record with a list beside it → **pane** *(a "Directory")*
   - **go in and work** it → **full-page** *(a "Workbench")*
   - **summoned** from a canvas or a cross-page link → **modal**
@@ -164,14 +164,14 @@ framing/representation change, not a new object.
      list. Tasks, Projects, Goals, Areas, Programs, and Reviews are Workbenches because you
      *work in* them.
 3. **Add bespoke views only when a §5 property earns it.** Otherwise the generic
-   `EditableRecord` + a framing is the answer.
+   a plain `Record` layout + a framing is the answer.
 
 ## Component index
 
 | Concern | File |
 |---|---|
 | Object model | `src/services/api/registry.ts` |
-| Detail + editor (modeless) | `src/components/EditableRecord.tsx` |
+| Detail + editor (modeless) | `src/entities/<obj>/Detail.tsx` · `src/components/record/` |
 | Framings | `EntityDetailRoute.tsx` (pane) · `RecordPage.tsx` (full-page) · `CalendarEventRoute.tsx` (modal) |
 | List page + launcher/pane toggle | `src/components/SimpleEntityPage.tsx` (`detail` prop) |
 | Reference / collection cells | `src/components/cells.tsx` |
