@@ -2,6 +2,7 @@
 
 import uuid
 from datetime import date
+from typing import Literal
 
 from pydantic import BaseModel
 
@@ -54,3 +55,23 @@ class GoalRead(Entity):
     status: GoalStatus
     progress: float | None
     measurement_method: str | None
+
+
+class ComputedProgress(BaseModel):
+    """Progress from three independent sources, plus the headline number.
+
+    `overall` is the first of manual → metric → projects that is set; the rest are
+    returned so the client can show *why* the headline reads what it does.
+    """
+
+    manual: float | None
+    from_projects: float | None
+    linked_projects: int
+    completed_projects: int
+    latest_metric_value: float | None
+    from_metric: float | None
+    metric_baseline: float | None
+    metric_target: float | None
+    metric_direction: Literal["up", "down"] | None
+    metric_met: bool | None
+    overall: float | None

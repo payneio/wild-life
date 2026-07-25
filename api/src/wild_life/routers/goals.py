@@ -12,7 +12,7 @@ from wild_life.models.goals import Goal, GoalProject
 from wild_life.models.metrics import MetricEntry
 from wild_life.routers.crud import crud_router
 from wild_life.schemas.core import ProjectRead
-from wild_life.schemas.goals import GoalCreate, GoalRead, GoalUpdate
+from wild_life.schemas.goals import ComputedProgress, GoalCreate, GoalRead, GoalUpdate
 
 router = APIRouter()
 
@@ -76,7 +76,7 @@ async def unlink_goal_project(
         await session.delete(link)
 
 
-@links.get("/{goal_id}/computed-progress")
+@links.get("/{goal_id}/computed-progress", response_model=ComputedProgress)
 async def goal_computed_progress(
     goal_id: UUID, session: AsyncSession = Depends(get_session)
 ) -> dict:

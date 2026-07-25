@@ -21,7 +21,12 @@ from wild_life.models.routines import Routine, RoutineInstance
 from wild_life.models.tasks import Task
 from wild_life.models.tracking import Delegation
 from wild_life.routers.crud import crud_router
-from wild_life.schemas.reviews import ReviewCreate, ReviewRead, ReviewUpdate
+from wild_life.schemas.reviews import (
+    ReviewCreate,
+    ReviewDashboard,
+    ReviewRead,
+    ReviewUpdate,
+)
 from wild_life.models.reviews import Review
 
 # Trailing window for medication-adherence review.
@@ -79,7 +84,11 @@ async def _rows(session: AsyncSession, stmt: Any) -> list[Any]:
     return list((await session.execute(stmt)).scalars().all())
 
 
-@dashboard.get("/review-dashboard", operation_id="review_dashboard")
+@dashboard.get(
+    "/review-dashboard",
+    operation_id="review_dashboard",
+    response_model=ReviewDashboard,
+)
 async def review_dashboard(
     session: AsyncSession = Depends(get_session),
     identity: Identity = Depends(current_identity),

@@ -1588,6 +1588,137 @@
         "title": "CommitmentUpdate",
         "type": "object"
       },
+      "ComputedProgress": {
+        "description": "Progress from three independent sources, plus the headline number.\n\n`overall` is the first of manual \u2192 metric \u2192 projects that is set; the rest are\nreturned so the client can show *why* the headline reads what it does.",
+        "properties": {
+          "completed_projects": {
+            "title": "Completed Projects",
+            "type": "integer"
+          },
+          "from_metric": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From Metric"
+          },
+          "from_projects": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From Projects"
+          },
+          "latest_metric_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Metric Value"
+          },
+          "linked_projects": {
+            "title": "Linked Projects",
+            "type": "integer"
+          },
+          "manual": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Manual"
+          },
+          "metric_baseline": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric Baseline"
+          },
+          "metric_direction": {
+            "anyOf": [
+              {
+                "enum": [
+                  "up",
+                  "down"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric Direction"
+          },
+          "metric_met": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric Met"
+          },
+          "metric_target": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric Target"
+          },
+          "overall": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overall"
+          }
+        },
+        "required": [
+          "manual",
+          "from_projects",
+          "linked_projects",
+          "completed_projects",
+          "latest_metric_value",
+          "from_metric",
+          "metric_baseline",
+          "metric_target",
+          "metric_direction",
+          "metric_met",
+          "overall"
+        ],
+        "title": "ComputedProgress",
+        "type": "object"
+      },
       "ConditionCreate": {
         "properties": {
           "area_id": {
@@ -2065,6 +2196,21 @@
           "value"
         ],
         "title": "ContactMethod",
+        "type": "object"
+      },
+      "DashRow": {
+        "additionalProperties": true,
+        "description": "One flagged row on the review dashboard.\n\nEvery row carries an `id`; the rest varies by section (a task row has\npriority and due_date, an area row has review_frequency), so extras pass\nthrough rather than being enumerated twenty times over.",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "title": "DashRow",
         "type": "object"
       },
       "DecisionCreate": {
@@ -10857,6 +11003,191 @@
         "title": "ReviewCreate",
         "type": "object"
       },
+      "ReviewDashboard": {
+        "description": "Everything a periodic review should catch, grouped by what's wrong.",
+        "properties": {
+          "completed_with_open_tasks": {
+            "items": {
+              "$ref": "#/components/schemas/DashRow"
+            },
+            "title": "Completed With Open Tasks",
+            "type": "array"
+          },
+          "conditions_without_protocol": {
+            "items": {
+              "$ref": "#/components/schemas/DashRow"
+            },
+            "title": "Conditions Without Protocol",
+            "type": "array"
+          },
+          "delegated_without_owner": {
+            "items": {
+              "$ref": "#/components/schemas/DashRow"
+            },
+            "title": "Delegated Without Owner",
+            "type": "array"
+          },
+          "delegation_followups": {
+            "items": {
+              "$ref": "#/components/schemas/DashRow"
+            },
+            "title": "Delegation Followups",
+            "type": "array"
+          },
+          "due_today": {
+            "items": {
+              "$ref": "#/components/schemas/DashRow"
+            },
+            "title": "Due Today",
+            "type": "array"
+          },
+          "generated_for": {
+            "format": "date",
+            "title": "Generated For",
+            "type": "string"
+          },
+          "goals_overdue": {
+            "items": {
+              "$ref": "#/components/schemas/DashRow"
+            },
+            "title": "Goals Overdue",
+            "type": "array"
+          },
+          "inactive_programs": {
+            "items": {
+              "$ref": "#/components/schemas/DashRow"
+            },
+            "title": "Inactive Programs",
+            "type": "array"
+          },
+          "low_adherence": {
+            "items": {
+              "$ref": "#/components/schemas/DashRow"
+            },
+            "title": "Low Adherence",
+            "type": "array"
+          },
+          "metrics_overdue": {
+            "items": {
+              "$ref": "#/components/schemas/DashRow"
+            },
+            "title": "Metrics Overdue",
+            "type": "array"
+          },
+          "my_inbox": {
+            "items": {
+              "$ref": "#/components/schemas/DashRow"
+            },
+            "title": "My Inbox",
+            "type": "array"
+          },
+          "neglected_areas": {
+            "items": {
+              "$ref": "#/components/schemas/DashRow"
+            },
+            "title": "Neglected Areas",
+            "type": "array"
+          },
+          "open_requests": {
+            "items": {
+              "$ref": "#/components/schemas/DashRow"
+            },
+            "title": "Open Requests",
+            "type": "array"
+          },
+          "overdue_delegations": {
+            "items": {
+              "$ref": "#/components/schemas/DashRow"
+            },
+            "title": "Overdue Delegations",
+            "type": "array"
+          },
+          "overdue_tasks": {
+            "items": {
+              "$ref": "#/components/schemas/DashRow"
+            },
+            "title": "Overdue Tasks",
+            "type": "array"
+          },
+          "projects_missing_next_action": {
+            "items": {
+              "$ref": "#/components/schemas/DashRow"
+            },
+            "title": "Projects Missing Next Action",
+            "type": "array"
+          },
+          "request_followups": {
+            "items": {
+              "$ref": "#/components/schemas/DashRow"
+            },
+            "title": "Request Followups",
+            "type": "array"
+          },
+          "stale_projects": {
+            "items": {
+              "$ref": "#/components/schemas/DashRow"
+            },
+            "title": "Stale Projects",
+            "type": "array"
+          },
+          "unclear_ownership": {
+            "items": {
+              "$ref": "#/components/schemas/DashRow"
+            },
+            "title": "Unclear Ownership",
+            "type": "array"
+          },
+          "unreviewed_deliverables": {
+            "items": {
+              "$ref": "#/components/schemas/DashRow"
+            },
+            "title": "Unreviewed Deliverables",
+            "type": "array"
+          },
+          "unrooted_events_count": {
+            "title": "Unrooted Events Count",
+            "type": "integer"
+          },
+          "unrooted_notes_count": {
+            "title": "Unrooted Notes Count",
+            "type": "integer"
+          },
+          "waiting_without_blocker": {
+            "items": {
+              "$ref": "#/components/schemas/DashRow"
+            },
+            "title": "Waiting Without Blocker",
+            "type": "array"
+          }
+        },
+        "required": [
+          "generated_for",
+          "unrooted_notes_count",
+          "unrooted_events_count",
+          "overdue_tasks",
+          "due_today",
+          "stale_projects",
+          "projects_missing_next_action",
+          "unclear_ownership",
+          "inactive_programs",
+          "neglected_areas",
+          "overdue_delegations",
+          "delegation_followups",
+          "unreviewed_deliverables",
+          "my_inbox",
+          "open_requests",
+          "request_followups",
+          "waiting_without_blocker",
+          "delegated_without_owner",
+          "completed_with_open_tasks",
+          "conditions_without_protocol",
+          "metrics_overdue",
+          "goals_overdue",
+          "low_adherence"
+        ],
+        "title": "ReviewDashboard",
+        "type": "object"
+      },
       "ReviewRead": {
         "properties": {
           "completed_at": {
@@ -15459,9 +15790,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
-                  "title": "Response Goal Computed Progress Goals  Goal Id  Computed Progress Get",
-                  "type": "object"
+                  "$ref": "#/components/schemas/ComputedProgress"
                 }
               }
             },
@@ -20083,9 +20412,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
-                  "title": "Response Review Dashboard",
-                  "type": "object"
+                  "$ref": "#/components/schemas/ReviewDashboard"
                 }
               }
             },

@@ -3,13 +3,12 @@
 // Entity shapes are GENERATED from the API's OpenAPI document (`pnpm gen:api` →
 // `schema.gen.ts`), so they cannot drift from what the routers actually return.
 // This module only *names* them — `Task` reads better than
-// `components["schemas"]["TaskRead"]` at 100+ call sites — and defines the few
-// shapes the spec can't describe.
+// `components["schemas"]["TaskRead"]` at 100+ call sites.
 //
 // Enum unions are derived from the entity that carries them, so adding a status
 // on the backend widens the union here automatically.
 
-import type { CalendarDay, Instant } from "@/lib/date"
+import type { Instant } from "@/lib/date"
 import type { components } from "@/services/api/schema.gen"
 
 type S = components["schemas"]
@@ -60,6 +59,13 @@ export type ContactMethod = S["ContactMethod"]
 export type ImportantDate = S["ImportantDate"]
 export type GuestStatus = S["GuestStatus"]
 export type RegimenEntry = S["RegimenEntry"]
+/** A note's outbound mention (soft-polymorphic target). */
+export type NoteLink = S["EntityRef"]
+
+// --- computed responses -----------------------------------------------------
+export type ComputedProgress = S["ComputedProgress"]
+export type DashRow = S["DashRow"]
+export type ReviewDashboard = S["ReviewDashboard"]
 
 // --- enums (derived from the entity that carries them) ----------------------
 export type Priority = Task["priority"]
@@ -89,58 +95,3 @@ export type AllergyStatus = Allergy["status"]
 /** A protocol's lifecycle is derived client-side (planned/active/completed from
  *  its window); `paused` is the one stored bit. Display state, not an API enum. */
 export type ProtocolState = "paused" | "planned" | "active" | "completed"
-
-// --- shapes the spec can't describe -----------------------------------------
-// These endpoints return ad-hoc dicts with no FastAPI `response_model`, so they
-// produce no schema. Tightening them server-side would let these be generated too.
-
-/** GET /goals/:id/computed-progress */
-export interface ComputedProgress {
-  manual: number | null
-  from_projects: number | null
-  linked_projects: number
-  completed_projects: number
-  latest_metric_value: number | null
-  from_metric: number | null
-  metric_baseline: number | null
-  metric_target: number | null
-  metric_direction: "up" | "down" | null
-  metric_met: boolean | null
-  overall: number | null
-}
-
-export interface NoteLink {
-  target_type: EntityType
-  target_id: ID
-}
-
-// --- review dashboard ---
-export interface DashRow {
-  id: string
-  [key: string]: unknown
-}
-export interface ReviewDashboard {
-  generated_for: CalendarDay
-  unrooted_notes_count: number
-  unrooted_events_count: number
-  overdue_tasks: DashRow[]
-  due_today: DashRow[]
-  stale_projects: DashRow[]
-  projects_missing_next_action: DashRow[]
-  unclear_ownership: DashRow[]
-  inactive_programs: DashRow[]
-  neglected_areas: DashRow[]
-  overdue_delegations: DashRow[]
-  delegation_followups: DashRow[]
-  unreviewed_deliverables: DashRow[]
-  my_inbox: DashRow[]
-  open_requests: DashRow[]
-  request_followups: DashRow[]
-  waiting_without_blocker: DashRow[]
-  delegated_without_owner: DashRow[]
-  completed_with_open_tasks: DashRow[]
-  conditions_without_protocol: DashRow[]
-  metrics_overdue: DashRow[]
-  goals_overdue: DashRow[]
-  low_adherence: DashRow[]
-}

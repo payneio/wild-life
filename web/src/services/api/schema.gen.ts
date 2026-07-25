@@ -2473,6 +2473,37 @@ export interface components {
             /** Status */
             status?: ("open" | "in_progress" | "waiting" | "fulfilled" | "broken" | "cancelled") | null;
         };
+        /**
+         * ComputedProgress
+         * @description Progress from three independent sources, plus the headline number.
+         *
+         *     `overall` is the first of manual → metric → projects that is set; the rest are
+         *     returned so the client can show *why* the headline reads what it does.
+         */
+        ComputedProgress: {
+            /** Completed Projects */
+            completed_projects: number;
+            /** From Metric */
+            from_metric: number | null;
+            /** From Projects */
+            from_projects: number | null;
+            /** Latest Metric Value */
+            latest_metric_value: number | null;
+            /** Linked Projects */
+            linked_projects: number;
+            /** Manual */
+            manual: number | null;
+            /** Metric Baseline */
+            metric_baseline: number | null;
+            /** Metric Direction */
+            metric_direction: ("up" | "down") | null;
+            /** Metric Met */
+            metric_met: boolean | null;
+            /** Metric Target */
+            metric_target: number | null;
+            /** Overall */
+            overall: number | null;
+        };
         /** ConditionCreate */
         ConditionCreate: {
             /** Area Id */
@@ -2579,6 +2610,20 @@ export interface components {
             label?: string | null;
             /** Value */
             value: string;
+        };
+        /**
+         * DashRow
+         * @description One flagged row on the review dashboard.
+         *
+         *     Every row carries an `id`; the rest varies by section (a task row has
+         *     priority and due_date, an area row has review_frequency), so extras pass
+         *     through rather than being enumerated twenty times over.
+         */
+        DashRow: {
+            /** Id */
+            id: string;
+        } & {
+            [key: string]: unknown;
         };
         /** DecisionCreate */
         DecisionCreate: {
@@ -4699,6 +4744,61 @@ export interface components {
             review_type: "daily" | "weekly" | "monthly" | "quarterly" | "area" | "program" | "project" | "delegation";
             /** Risks */
             risks?: string | null;
+        };
+        /**
+         * ReviewDashboard
+         * @description Everything a periodic review should catch, grouped by what's wrong.
+         */
+        ReviewDashboard: {
+            /** Completed With Open Tasks */
+            completed_with_open_tasks: components["schemas"]["DashRow"][];
+            /** Conditions Without Protocol */
+            conditions_without_protocol: components["schemas"]["DashRow"][];
+            /** Delegated Without Owner */
+            delegated_without_owner: components["schemas"]["DashRow"][];
+            /** Delegation Followups */
+            delegation_followups: components["schemas"]["DashRow"][];
+            /** Due Today */
+            due_today: components["schemas"]["DashRow"][];
+            /**
+             * Generated For
+             * Format: date
+             */
+            generated_for: CalendarDay;
+            /** Goals Overdue */
+            goals_overdue: components["schemas"]["DashRow"][];
+            /** Inactive Programs */
+            inactive_programs: components["schemas"]["DashRow"][];
+            /** Low Adherence */
+            low_adherence: components["schemas"]["DashRow"][];
+            /** Metrics Overdue */
+            metrics_overdue: components["schemas"]["DashRow"][];
+            /** My Inbox */
+            my_inbox: components["schemas"]["DashRow"][];
+            /** Neglected Areas */
+            neglected_areas: components["schemas"]["DashRow"][];
+            /** Open Requests */
+            open_requests: components["schemas"]["DashRow"][];
+            /** Overdue Delegations */
+            overdue_delegations: components["schemas"]["DashRow"][];
+            /** Overdue Tasks */
+            overdue_tasks: components["schemas"]["DashRow"][];
+            /** Projects Missing Next Action */
+            projects_missing_next_action: components["schemas"]["DashRow"][];
+            /** Request Followups */
+            request_followups: components["schemas"]["DashRow"][];
+            /** Stale Projects */
+            stale_projects: components["schemas"]["DashRow"][];
+            /** Unclear Ownership */
+            unclear_ownership: components["schemas"]["DashRow"][];
+            /** Unreviewed Deliverables */
+            unreviewed_deliverables: components["schemas"]["DashRow"][];
+            /** Unrooted Events Count */
+            unrooted_events_count: number;
+            /** Unrooted Notes Count */
+            unrooted_notes_count: number;
+            /** Waiting Without Blocker */
+            waiting_without_blocker: components["schemas"]["DashRow"][];
         };
         /** ReviewRead */
         ReviewRead: {
@@ -6998,9 +7098,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["ComputedProgress"];
                 };
             };
             /** @description Validation Error */
@@ -10232,9 +10330,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["ReviewDashboard"];
                 };
             };
         };
