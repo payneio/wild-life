@@ -76,8 +76,11 @@ back to, so nothing can half-own a surface. The old partial-override shape (`ext
 `detailHide`) forced two renderers to agree out-of-band about who drew what, which is
 how Task ended up rendering status, priority and its dates twice.
 
-`def.fields` still exists, but only for the **create** form (`EntityForm`) and the
-list filter/sort config (`listFilter.ts`) — it no longer describes the detail view.
+`def.fields` still exists, but only as **list configuration** — `deriveListConfig`
+reads it to decide which columns are searchable and which make useful filter
+dropdowns. That's data-as-config describing *querying*, not layout, which is where
+the line sits. If you're tempted to add a field there to make something render,
+render it in the layout instead.
 
 Because a written layout *can* drop a field — worse than duplicating one, since the
 data becomes invisible and uneditable — every primitive registers the key it binds and
@@ -86,10 +89,37 @@ converted object's real detail against a complete fixture in `test/fixtures.ts` 
 fails on any unrendered, unexcused key. Deliberate omissions go in `omit` with a
 reason. Converting an object enrols it automatically; add its fixture at the same time.
 
-All 23 registered objects are converted. `EditableRecord`, `DetailSurface`, `extra`
-and `detailHide` are deleted. What remains of the old config-driven path is the
-*create* form: `EntityForm` still switches on `FieldSpec.type`, so that half of the
-DSL — and its drift risk — is still live. Converting it is the next step.
+All 23 registered objects are converted, and `EditableRecord`, `DetailSurface`,
+`EntityForm`, `extra` and `detailHide` are all deleted. No component renders a
+field by switching on a type tag any more.
+
+## 2b. Creation is capture
+
+Creation is *capture*, not form-filling, and the right shape follows from **what the
+creating gesture already knows**:
+
+1. If the gesture carries the data, don't ask again — a calendar drag has already
+   said when, so only the title is missing.
+2. If the object is essentially a name, take the name and nothing else. Refinement
+   belongs in the detail, where fields are grouped.
+3. If a non-name discriminator is required, make the *choice* the affordance — a
+   review is a ritual, so "New weekly" beats a select inside a form.
+4. If the object is meaningless without a relationship, capture that one too.
+
+And decide where you land: capture flows **stay put** so you can keep capturing;
+objects you'll immediately elaborate **open**.
+
+| Surface | Create | After |
+|---|---|---|
+| Task, and every `SimpleEntityPage` list | one-line title (`QuickCreate`) | stay |
+| Event | title only, over the dragged range | stay on the canvas |
+| Delegation | outcome + responsible person | open |
+| Review | type buttons, period computed | open |
+
+Nothing is created until non-empty text is committed, and the new row appears in the
+list you're looking at — so a mistake is visible and deletable in place rather than
+becoming an orphan. For tasks it lands in `inbox`, which is a designed state with a
+triage page, not a stray row.
 
 ## 3. Framing — pane / modal / full-page
 

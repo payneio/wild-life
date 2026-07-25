@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import type { FieldSpec } from "@/components/EntityForm"
+import type { FieldSpec } from "@/services/api/fieldSpec"
 import type { ToolbarProps } from "@/components/ListToolbar"
 import { usePersistentState } from "@/lib/persistentState"
 

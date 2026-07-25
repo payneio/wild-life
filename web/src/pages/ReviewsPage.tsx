@@ -1,27 +1,29 @@
-import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Plus, RefreshCw } from "lucide-react"
-import { EntityForm } from "@/components/EntityForm"
-import { REVIEW_FIELDS } from "@/services/api/fields"
 import { ReviewDashboardView } from "@/components/ReviewDashboard"
-import { Badge, Button, Card, EmptyState, Modal } from "@/components/ui/primitives"
+import { Badge, Button, Card, EmptyState } from "@/components/ui/primitives"
 import { formatDate } from "@/lib/utils"
 import { reviews, useReviewDashboard } from "@/services/api/hooks"
-import type { Body } from "@/services/api/crud"
+import { addDays, today, type CalendarDay } from "@/lib/date"
+import type { Review } from "@/services/api/types"
 
-const FIELDS = REVIEW_FIELDS
+/** The recurring reviews. The entity-scoped types (area, project, …) are made
+ *  from that entity, not from this list. */
+const PERIODIC = ["daily", "weekly", "monthly", "quarterly"] as const
+
+/** The period a review of this kind covers, ending today. */
+function periodFor(kind: (typeof PERIODIC)[number]): { start: CalendarDay; end: CalendarDay } {
+  const end = today()
+  const back = { daily: 0, weekly: 6, monthly: 29, quarterly: 89 }[kind]
+  return { start: addDays(end, -back), end }
+}
 
 export function ReviewsPage() {
   const navigate = useNavigate()
   const { data: dash, isLoading, refetch, isFetching } = useReviewDashboard()
   const { data: reviewList } = reviews.useList()
   const create = reviews.useCreate()
-  const [creating, setCreating] = useState(false)
 
-  function submit(body: Body) {
-    create.mutate(body)
-    setCreating(false)
-  }
 
   return (
     <div className="space-y-6">
@@ -42,10 +44,28 @@ export function ReviewsPage() {
       <div>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-base font-semibold text-slate-900">Review records</h2>
-          <Button onClick={() => setCreating(true)}>
-            <Plus size={16} />
-            New review
-          </Button>
+          {/* A review is a ritual, not a named thing: `review_type` is required
+              and there's no title to type. So the *choice* is the create
+              affordance, and the period follows from it instead of being typed
+              by hand — which is how periods stop being wrong. */}
+          <div className="flex flex-wrap gap-1.5">
+            {PERIODIC.map((kind) => (
+              <Button
+                key={kind}
+                variant="secondary"
+                onClick={() => {
+                  const { start, end } = periodFor(kind)
+                  create.mutate(
+                    { review_type: kind, period_start: start, period_end: end },
+                    { onSuccess: (r: Review) => navigate(`/reviews/${r.id}`) },
+                  )
+                }}
+              >
+                <Plus size={14} />
+                <span className="capitalize">{kind}</span>
+              </Button>
+            ))}
+          </div>
         </div>
         {(reviewList ?? []).length === 0 ? (
           <EmptyState>No reviews recorded yet.</EmptyState>
@@ -68,17 +88,6 @@ export function ReviewsPage() {
         )}
       </div>
 
-      {creating && (
-        <Modal title="New review" onClose={() => setCreating(false)}>
-          <div className="max-h-[70vh] overflow-y-auto pr-1">
-            <EntityForm
-              fields={FIELDS}
-              onSubmit={submit}
-              onCancel={() => setCreating(false)}
-            />
-          </div>
-        </Modal>
-      )}
     </div>
   )
 }

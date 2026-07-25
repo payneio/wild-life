@@ -1,35 +1,17 @@
 import { useMemo, useState } from "react"
 import { Outlet, useNavigate, useParams } from "react-router-dom"
-import { Plus } from "lucide-react"
-import { EntityForm } from "@/components/EntityForm"
-import { DELEGATION_FIELDS } from "@/services/api/fields"
+import { QuickCreate } from "@/components/QuickCreate"
+import { EntityRefField } from "@/components/graph/EntityRefField"
 import { ListToolbar } from "@/components/ListToolbar"
 import { DateText, PriorityBadge, RefName, StatusBadge } from "@/components/cells"
-import { Button, EmptyState, Modal } from "@/components/ui/primitives"
+import { EmptyState } from "@/components/ui/primitives"
+import { DELEGATION_STATUS, PRIORITIES } from "@/services/api/enums"
 import { useListFilter, type ListConfig } from "@/lib/listFilter"
 import { isOverdue } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { delegations } from "@/services/api/hooks"
-import type { Body } from "@/services/api/crud"
 import type { Delegation, DelegationStatus } from "@/services/api/types"
 
-const DELEGATION_STATUS: DelegationStatus[] = [
-  "draft",
-  "requested",
-  "accepted",
-  "in_progress",
-  "waiting_for_update",
-  "blocked",
-  "delivered",
-  "revision_requested",
-  "accepted_as_complete",
-  "declined",
-  "reassigned",
-  "cancelled",
-]
-const PRIORITIES = ["low", "medium", "high", "urgent"] as const
-
-const FIELDS = DELEGATION_FIELDS
 
 const CONFIG: ListConfig = {
   searchKeys: ["requested_outcome", "instructions", "latest_update"],
@@ -109,7 +91,7 @@ export function DelegationsPage() {
   const { id: selectedId } = useParams()
   const { data } = delegations.useList()
   const create = delegations.useCreate()
-  const [creating, setCreating] = useState(false)
+  const [responsible, setResponsible] = useState<string | null>(null)
   const rows = useMemo(() => data ?? [], [data])
   const { filtered, toolbarProps } = useListFilter(
     rows as unknown as Record<string, unknown>[],
@@ -124,10 +106,6 @@ export function DelegationsPage() {
   })).filter((g) => g.items.length > 0)
   const closed = list.filter((d) => CLOSED.has(d.status))
 
-  function submit(body: Body) {
-    create.mutate(body)
-    setCreating(false)
-  }
 
   return (
     <div className="flex flex-col gap-4 lg:flex-row">
@@ -137,11 +115,33 @@ export function DelegationsPage() {
             <h1 className="text-lg font-semibold text-slate-900">Delegations</h1>
             <p className="truncate text-sm text-slate-500">Work you've handed off</p>
           </div>
-          <Button onClick={() => setCreating(true)}>
-            <Plus size={16} />
-            New
-          </Button>
         </div>
+
+        {/* Two fields, because a delegation without a person isn't one — the
+            review dashboard already flags `delegated_without_owner`. Better not
+            to create the defect than to detect it. Opens the new row, since the
+            dates and instructions come next. */}
+        <QuickCreate
+          placeholder="Delegate an outcome…"
+          disabled={!responsible}
+          onCreate={(requested_outcome) => {
+            if (!responsible) return false
+            create.mutate(
+              { requested_outcome, responsible_id: responsible, status: "requested" },
+              {
+                onSuccess: (d: Delegation) => {
+                  setResponsible(null)
+                  navigate(d.id)
+                },
+              },
+            )
+          }}
+          extra={
+            <div className="w-44 shrink-0">
+              <EntityRefField lookup="people" value={responsible} onChange={setResponsible} />
+            </div>
+          }
+        />
 
         <ListToolbar {...toolbarProps} />
 
@@ -197,13 +197,6 @@ export function DelegationsPage() {
       )}
       <Outlet />
 
-      {creating && (
-        <Modal title="New delegation" onClose={() => setCreating(false)}>
-          <div className="max-h-[70vh] overflow-y-auto pr-1">
-            <EntityForm fields={FIELDS} onSubmit={submit} onCancel={() => setCreating(false)} />
-          </div>
-        </Modal>
-      )}
     </div>
   )
 }

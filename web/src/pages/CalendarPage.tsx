@@ -18,12 +18,11 @@ import type {
 import type { EventResizeDoneArg } from "@fullcalendar/interaction"
 import { Button, Modal } from "@/components/ui/primitives"
 import { Segmented } from "@/components/detail/kit"
-import { EntityForm } from "@/components/EntityForm"
+import { QuickCreate } from "@/components/QuickCreate"
 import { RecurrenceScopeDialog } from "@/components/RecurrenceScopeDialog"
 import { UnscheduledTray } from "@/components/UnscheduledTray"
 import { usePersistentState } from "@/lib/persistentState"
 import { events, tasks } from "@/services/api/hooks"
-import { EVENT_FIELDS } from "@/services/api/fields"
 import { editOccurrence, type RecurrenceScope } from "@/services/calendar/recurrence"
 import {
   SOURCES,
@@ -91,6 +90,23 @@ interface PendingMove {
   occurrenceDate: string
   changes: Partial<EventItem>
   revert: () => void
+}
+
+/** The range the drag selected, shown back as the dialog's title. */
+function rangeLabel({
+  start,
+  end,
+  allDay,
+}: {
+  start: string
+  end: string
+  allDay: boolean
+}): string {
+  const s = new Date(start)
+  const day = s.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })
+  if (allDay) return `New event · ${day}`
+  const time = (d: Date) => d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })
+  return `New event · ${day} ${time(s)}–${time(new Date(end))}`
 }
 
 export function CalendarPage() {
@@ -362,18 +378,20 @@ export function CalendarPage() {
         </div>
       </div>
 
+      {/* The drag already said when. Asking for the time again — inside a
+          nine-field form — is asking the user to repeat their own gesture, so
+          this only takes the title and shows the range back as context. */}
       {creating && (
-        <Modal title="New event" onClose={() => setCreating(null)}>
-          <EntityForm
-            fields={EVENT_FIELDS}
-            initial={{
-              start_at: creating.start,
-              end_at: creating.allDay ? null : creating.end,
-              all_day: creating.allDay,
-            }}
-            onCancel={() => setCreating(null)}
-            onSubmit={(body) => {
-              create.mutate(body as Record<string, unknown>)
+        <Modal title={rangeLabel(creating)} onClose={() => setCreating(null)}>
+          <QuickCreate
+            placeholder="What's happening?"
+            onCreate={(title) => {
+              create.mutate({
+                title,
+                start_at: creating.start,
+                end_at: creating.allDay ? null : creating.end,
+                all_day: creating.allDay,
+              })
               setCreating(null)
             }}
           />

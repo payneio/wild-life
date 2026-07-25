@@ -1,8 +1,8 @@
-import { useMemo, useState, type ReactNode } from "react"
+import { useMemo, type ReactNode } from "react"
 import { Outlet, useNavigate, useParams } from "react-router-dom"
-import { Plus } from "lucide-react"
-import { Button, Card, EmptyState, Modal } from "@/components/ui/primitives"
-import { EntityForm, type FieldSpec } from "@/components/EntityForm"
+import { Card, EmptyState } from "@/components/ui/primitives"
+import { QuickCreate } from "@/components/QuickCreate"
+import type { FieldSpec } from "@/services/api/fieldSpec"
 import { ListToolbar } from "@/components/ListToolbar"
 import { deriveListConfig, useListFilter, type FilterDef } from "@/lib/listFilter"
 import { cn } from "@/lib/utils"
@@ -42,12 +42,14 @@ export function SimpleEntityPage<T extends Entity>({
   fields,
   columns,
   newLabel = "New",
+  createPlaceholder,
   listParams,
   emptyText = "Nothing here yet.",
   rowActions,
   storageKey,
   extraFilters,
   detail = "pane",
+  titleField,
 }: {
   title: string
   subtitle?: string
@@ -55,6 +57,10 @@ export function SimpleEntityPage<T extends Entity>({
   fields: FieldSpec[]
   columns: Column<T>[]
   newLabel?: string
+  /** Placeholder for the capture line; defaults to `${newLabel}…`. */
+  createPlaceholder?: string
+  /** The column quick-create writes; defaults to the first column's key. */
+  titleField?: string
   listParams?: Record<string, string | undefined>
   emptyText?: string
   rowActions?: (row: T) => ReactNode
@@ -71,10 +77,10 @@ export function SimpleEntityPage<T extends Entity>({
   const { id: selectedId } = useParams()
   const { data, isLoading } = crud.useList(listParams)
   const create = crud.useCreate()
-  const [creating, setCreating] = useState(false)
   const rows = useMemo(() => data ?? [], [data])
 
   const primaryKey = columns[0]?.key ?? "name"
+  const nameField = titleField ?? primaryKey
   const { filtered, toolbarProps } = useListFilter(
     rows as unknown as Record<string, unknown>[],
     (values) => {
@@ -93,11 +99,14 @@ export function SimpleEntityPage<T extends Entity>({
           <h1 className="text-lg font-semibold text-slate-900">{title}</h1>
           {subtitle && <p className="truncate text-sm text-slate-500">{subtitle}</p>}
         </div>
-        <Button onClick={() => setCreating(true)}>
-          <Plus size={16} />
-          {newLabel}
-        </Button>
       </div>
+
+      {/* Capture, not form-filling: the name is all that's required, and every
+          other field lives in the detail this row opens. */}
+      <QuickCreate
+        placeholder={createPlaceholder ?? `${newLabel}…`}
+        onCreate={(title) => create.mutate({ [nameField]: title } as Body)}
+      />
 
       <ListToolbar {...toolbarProps} />
 
@@ -150,27 +159,11 @@ export function SimpleEntityPage<T extends Entity>({
     </>
   )
 
-  const newModal = creating && (
-    <Modal title={`New ${title}`} onClose={() => setCreating(false)}>
-      <div className="max-h-[70vh] overflow-y-auto pr-1">
-        <EntityForm
-          fields={fields}
-          onSubmit={(body: Body) => {
-            create.mutate(body)
-            setCreating(false)
-          }}
-          onCancel={() => setCreating(false)}
-        />
-      </div>
-    </Modal>
-  )
-
   // Workbench: the list is a full-width launcher; rows open a full page elsewhere.
   if (detail === "page") {
     return (
       <div className="mx-auto max-w-3xl space-y-3">
         {listContent}
-        {newModal}
       </div>
     )
   }
@@ -185,7 +178,6 @@ export function SimpleEntityPage<T extends Entity>({
         </div>
       )}
       <Outlet />
-      {newModal}
     </div>
   )
 }

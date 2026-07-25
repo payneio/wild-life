@@ -1,6 +1,6 @@
 // Field specs + option lists — a leaf module (no component imports) so pages
 // can import these without creating a cycle through registry.ts.
-import type { FieldSpec } from "@/components/EntityForm"
+import type { FieldSpec } from "@/services/api/fieldSpec"
 import { SLOTS, WEEKDAYS } from "@/lib/slots"
 
 // Option lists come from `enums.ts`, the single runtime source shared with the
@@ -195,22 +195,10 @@ export const CONDITION_FIELDS: FieldSpec[] = [
 export const MEDICATION_FIELDS: FieldSpec[] = [
   { name: "name", label: "Name" },
   { name: "brand", label: "Brand" },
-  { name: "med_type", label: "Type", type: "select", options: MED_TYPE, default: "supplement" },
+  { name: "med_type", label: "Type", type: "select", options: MED_TYPE },
   { name: "condition_id", label: "For condition", type: "entity", lookup: "condition" },
-  {
-    name: "prescriber_id",
-    label: "Prescriber",
-    type: "entity",
-    lookup: "people",
-    visibleWhen: (v) => v.med_type === "prescription",
-  },
-  {
-    name: "pharmacy_id",
-    label: "Pharmacy",
-    type: "entity",
-    lookup: "organization",
-    visibleWhen: (v) => v.med_type === "prescription",
-  },
+  { name: "prescriber_id", label: "Prescriber", type: "entity", lookup: "people" },
+  { name: "pharmacy_id", label: "Pharmacy", type: "entity", lookup: "organization" },
   { name: "reason", label: "Reason", type: "textarea" },
   { name: "instructions", label: "Instructions", type: "textarea" },
   { name: "notes", label: "Notes", type: "textarea", full: true },
@@ -233,30 +221,6 @@ export const PROTOCOL_FIELDS: FieldSpec[] = [
 
 // Dose-line (protocol_item) fields, shared by the protocol Steps editor and the
 // medication standing-dose editor. Cadence follows FHIR Timing (see api regimen).
-const DOSE_CADENCE_FIELDS: FieldSpec[] = [
-  { name: "timing", label: "Times of day", type: "multiselect", options: SLOTS, full: true },
-  { name: "days_of_week", label: "Days (blank = every day)", type: "multiselect", options: WEEKDAYS, full: true },
-  { name: "interval_days", label: "Every N days", type: "number", placeholder: "1" },
-  { name: "notes", label: "Notes", type: "textarea", full: true },
-]
-// A medication dose: how many units (of the med's form) + when.
-export const MED_STEP_FIELDS: FieldSpec[] = [
-  { name: "medication_id", label: "Medication", type: "entity", lookup: "medication", full: true },
-  { name: "amount", label: "Amount", type: "number", placeholder: "500" },
-  { name: "unit", label: "Unit", placeholder: "mg" },
-  ...DOSE_CADENCE_FIELDS,
-]
-// A non-medication step (a behavior); no amount.
-export const ACTIVITY_STEP_FIELDS: FieldSpec[] = [
-  { name: "activity", label: "Activity", full: true, placeholder: "e.g. Walk after dinner" },
-  ...DOSE_CADENCE_FIELDS,
-]
-// A medication's standing dose (med is fixed by context).
-export const STANDING_DOSE_FIELDS: FieldSpec[] = [
-  { name: "amount", label: "Amount", type: "number", placeholder: "500" },
-  { name: "unit", label: "Unit", placeholder: "mg" },
-  ...DOSE_CADENCE_FIELDS,
-]
 
 export const INSURANCE_FIELDS: FieldSpec[] = [
   { name: "name", label: "Plan name" },

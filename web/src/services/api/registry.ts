@@ -1,5 +1,5 @@
 import type { ComponentType } from "react"
-import type { FieldSpec } from "@/components/EntityForm"
+import type { FieldSpec } from "@/services/api/fieldSpec"
 import { TaskDetail as TaskRecord } from "@/entities/task/Detail"
 import { TagDetail as TagRecord } from "@/entities/tag/Detail"
 import { ResourceDetail as ResourceRecord } from "@/entities/resource/Detail"

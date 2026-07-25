@@ -1,31 +1,17 @@
-import { useMemo, useState } from "react"
+import { useMemo } from "react"
 import { useNavigate } from "react-router-dom"
-import { Check, Plus } from "lucide-react"
-import { EntityForm } from "@/components/EntityForm"
-import { TASK_FIELDS } from "@/services/api/fields"
+import { Check } from "lucide-react"
+import { QuickCreate } from "@/components/QuickCreate"
+import { PRIORITIES, TASK_STATUS } from "@/services/api/enums"
 import { ListToolbar } from "@/components/ListToolbar"
 import { DateText, PriorityBadge, RefName } from "@/components/cells"
-import { Button, Card, EmptyState, Modal } from "@/components/ui/primitives"
+import { Card, EmptyState } from "@/components/ui/primitives"
 import { useListFilter, type ListConfig } from "@/lib/listFilter"
 import { usePersistentState } from "@/lib/persistentState"
 import { cn } from "@/lib/utils"
 import { tasks } from "@/services/api/hooks"
-import type { Body } from "@/services/api/crud"
 import type { Task } from "@/services/api/types"
 
-const TASK_STATUS = [
-  "inbox",
-  "planned",
-  "in_progress",
-  "waiting",
-  "delegated",
-  "delivered",
-  "completed",
-  "cancelled",
-] as const
-const PRIORITIES = ["low", "medium", "high", "urgent"] as const
-
-const FIELDS = TASK_FIELDS
 
 const CONFIG: ListConfig = {
   searchKeys: ["title", "description", "context", "waiting_on"],
@@ -128,7 +114,6 @@ export function TasksPage() {
     "tasks:unscheduledOnly",
     false,
   )
-  const [creating, setCreating] = useState(false)
 
   const { data, isLoading } = tasks.useList({
     queue,
@@ -144,20 +129,18 @@ export function TasksPage() {
   const all = filtered as unknown as Task[]
   const list = unscheduledOnly ? all.filter((t) => !t.scheduled_date) : all
 
-  function submit(body: Body) {
-    create.mutate(body)
-    setCreating(false)
-  }
 
   return (
     <div className="mx-auto max-w-3xl space-y-3">
-        <div className="flex items-center justify-between">
-          <h1 className="text-lg font-semibold text-slate-900">Tasks</h1>
-          <Button onClick={() => setCreating(true)}>
-            <Plus size={16} />
-            New task
-          </Button>
-        </div>
+        <h1 className="text-lg font-semibold text-slate-900">Tasks</h1>
+
+        {/* Capture: a task is almost always just a sentence. It lands in the
+            inbox — an untriaged task is a designed state here, not a stray row —
+            and the field keeps focus so a run of them can be typed straight in. */}
+        <QuickCreate
+          placeholder="Add a task…"
+          onCreate={(title) => create.mutate({ title, status: "inbox" })}
+        />
 
         <div className="flex flex-wrap items-center gap-2">
           <div className="inline-flex rounded-lg border border-slate-200 p-0.5">
@@ -199,9 +182,9 @@ export function TasksPage() {
         {isLoading ? (
           <EmptyState>Loading…</EmptyState>
         ) : rows.length === 0 ? (
-          <EmptyState>No tasks match.</EmptyState>
+          <EmptyState>No tasks yet — add one above.</EmptyState>
         ) : list.length === 0 ? (
-          <EmptyState>No matches.</EmptyState>
+          <EmptyState>No tasks match these filters.</EmptyState>
         ) : (
           <Card className="max-h-[75vh] overflow-y-auto">
             {list.map((t) => (
@@ -210,13 +193,6 @@ export function TasksPage() {
           </Card>
         )}
 
-      {creating && (
-        <Modal title="New task" onClose={() => setCreating(false)}>
-          <div className="max-h-[70vh] overflow-y-auto pr-1">
-            <EntityForm fields={FIELDS} onSubmit={submit} onCancel={() => setCreating(false)} />
-          </div>
-        </Modal>
-      )}
     </div>
   )
 }
