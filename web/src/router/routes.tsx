@@ -9,7 +9,6 @@ import { CalendarPage } from "@/pages/CalendarPage"
 import { AreasPage } from "@/pages/AreasPage"
 import { ProjectsPage } from "@/pages/ProjectsPage"
 import { TasksPage } from "@/pages/TasksPage"
-import { RoutinesPage } from "@/pages/RoutinesPage"
 import { GoalsPage } from "@/pages/GoalsPage"
 import { DelegationsPage } from "@/pages/DelegationsPage"
 import { ReviewsPage } from "@/pages/ReviewsPage"
@@ -68,7 +67,9 @@ export const router = createBrowserRouter([
       { path: "tasks", element: <TasksPage /> },
       { path: "tasks/:id", element: <RecordPage entityKey="task" backTo="/tasks" backLabel="Tasks" /> },
       { path: "agents", element: <AgentsPage /> },
-      withDetail("routines", <RoutinesPage />, "routine"),
+      // Routines have no standalone list/nav (they're protocol steps), but a routine
+      // stays viewable when referenced (from a protocol, an area, or the review).
+      { path: "routines/:id", element: <RecordPage entityKey="routine" backTo="/protocols" backLabel="Protocols" /> },
       { path: "goals", element: <GoalsPage /> },
       { path: "goals/:id", element: <RecordPage entityKey="goal" backTo="/goals" backLabel="Goals" /> },
       withDetail("delegations", <DelegationsPage />, "delegation"),

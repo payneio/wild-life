@@ -19,7 +19,6 @@ from wild_life.models.health import (
     Medication,
     Protocol,
 )
-from wild_life.models.routines import Routine
 from wild_life.routers.crud import crud_router
 from wild_life.schemas.health import (
     AllergyCreate,
@@ -43,106 +42,9 @@ from wild_life.schemas.health import (
 router = APIRouter()
 
 
-# --- Protocol lifecycle -> medication status ---------------------------------
-# "Today's rhythms" reads a medication's own ``status``, so a protocol ending
-# has to ripple onto the meds it governs, or a finished course keeps showing.
-# A medication can be governed by several protocols, so the ripple is careful:
-# ending one protocol only ends a med when no *other* protocol still holds it.
-_ENDED = {"completed", "abandoned"}
-_HOLDING = {"active", "paused"}  # a protocol in these states still claims its meds
-
-
-async def _governed_medication_ids(
-    session: AsyncSession, protocol_id: UUID
-) -> set[UUID]:
-    """Medication ids the protocol prescribes (its routines' non-null med links)."""
-    rows = await session.execute(
-        select(Routine.medication_id).where(
-            Routine.protocol_id == protocol_id,
-            Routine.medication_id.is_not(None),
-        )
-    )
-    return {mid for mid in rows.scalars().all() if mid is not None}
-
-
-async def _other_governing_statuses(
-    session: AsyncSession, medication_id: UUID, exclude_protocol_id: UUID
-) -> list[str]:
-    """Statuses of the *other* protocols that also prescribe this medication."""
-    rows = await session.execute(
-        select(Protocol.status)
-        .join(Routine, Routine.protocol_id == Protocol.id)
-        .where(
-            Routine.medication_id == medication_id,
-            Protocol.id != exclude_protocol_id,
-        )
-    )
-    return list(rows.scalars().all())
-
-
-async def _reconcile_protocol_medications(
-    session: AsyncSession, protocol: Protocol, new_status: str
-) -> None:
-    """Ripple a protocol's status change onto the medications it governs.
-
-    - ended (completed/abandoned): end each ``active`` med the protocol governs,
-      unless another active/paused protocol still holds it. Meds taken
-      ``as_needed`` — or already ended — are left as the user set them.
-    - activated: bring governed meds that were parked (planned/completed/
-      discontinued) back to ``active``; ``as_needed`` and already-active untouched.
-    - planned/paused: no ripple — a med can stay active while its protocol is
-      merely paused, so its own status is authoritative there.
-    """
-    if new_status not in _ENDED and new_status != "active":
-        return
-    med_ids = await _governed_medication_ids(session, protocol.id)
-    today = datetime.now(UTC).date()
-    for mid in med_ids:
-        med = await session.get(Medication, mid)
-        if med is None:
-            continue
-        if new_status in _ENDED:
-            others = await _other_governing_statuses(session, mid, protocol.id)
-            if any(s in _HOLDING for s in others):
-                continue  # another protocol still needs this med
-            if med.status == "active":
-                med.status = (
-                    "discontinued" if new_status == "abandoned" else "completed"
-                )
-                if med.end_date is None:
-                    med.end_date = protocol.end_date or today
-        elif med.status in {"planned", "completed", "discontinued"}:  # activated
-            med.status = "active"
-            med.end_date = None
-
-
-overrides = APIRouter(tags=["health"])
-
-
-@overrides.patch("/protocols/{protocol_id}", response_model=ProtocolRead)
-async def update_protocol(
-    protocol_id: UUID,
-    payload: ProtocolUpdate,
-    session: AsyncSession = Depends(get_session),
-) -> Protocol:
-    """Patch a protocol; a status change ripples to the meds it governs.
-
-    Overrides the generic CRUD PATCH (registered first, so it wins the route)."""
-    protocol = await session.get(Protocol, protocol_id)
-    if protocol is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not found")
-    data = payload.model_dump(exclude_unset=True)
-    old_status = protocol.status
-    for field, value in data.items():
-        setattr(protocol, field, value)
-    if "status" in data and protocol.status != old_status:
-        await _reconcile_protocol_medications(session, protocol, protocol.status)
-    await session.flush()
-    await session.refresh(protocol)
-    return protocol
-
-
-router.include_router(overrides)
+# Protocol liveness is derived (not paused + in-window), so a protocol ending needs
+# no ripple onto medications — the regimen simply stops surfacing its steps. The old
+# `_reconcile_protocol_medications` sync subsystem is gone.
 
 router.include_router(
     crud_router(

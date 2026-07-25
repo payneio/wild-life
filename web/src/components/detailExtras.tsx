@@ -123,8 +123,7 @@ type StepMode = "medication" | "activity"
 function stepMeta(it: Routine): string {
   const parts: string[] = []
   if (it.timing?.length) parts.push(`@ ${it.timing.join(", ")}`)
-  if (it.as_needed) parts.push("PRN")
-  else if (it.days_of_week?.length)
+  if (it.days_of_week?.length)
     parts.push(it.days_of_week.map((d) => d[0].toUpperCase() + d.slice(1)).join("/"))
   else if (it.interval_days > 1) parts.push(`every ${it.interval_days} days`)
   return parts.join(" · ")
@@ -179,7 +178,7 @@ export function ProtocolExtra({ entity }: { entity: Entity }) {
         {list.length === 0 && !open ? (
           <EmptyState>No steps yet.</EmptyState>
         ) : (
-          <ul className="max-h-80 space-y-1 overflow-y-auto pr-1 text-sm">
+          <ul className="space-y-1 text-sm">
             {list.map((it) => (
               <li key={it.id} className="flex items-start justify-between gap-2 border-b border-slate-50 py-1.5">
                 <div>
@@ -192,9 +191,14 @@ export function ProtocolExtra({ entity }: { entity: Entity }) {
                   ) : (
                     <span className="font-medium text-slate-400">(step)</span>
                   )}
-                  {it.amount != null ? <span className="text-slate-400"> · {it.amount}</span> : null}
+                  {it.amount != null ? (
+                    <span className="text-slate-400">
+                      {" "}
+                      · {it.amount}
+                      {it.unit ? ` ${it.unit}` : ""}
+                    </span>
+                  ) : null}
                   {stepMeta(it) ? <span className="text-slate-500"> {stepMeta(it)}</span> : null}
-                  {it.trigger ? <div className="text-xs text-amber-600">{it.trigger}</div> : null}
                 </div>
                 <div className="whitespace-nowrap">
                   <button className="rounded px-1 text-xs text-slate-400 hover:text-slate-700" onClick={() => startEdit(it)}>

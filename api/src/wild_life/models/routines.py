@@ -12,7 +12,17 @@ lines use.
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, Numeric, Text
+from sqlalchemy import (
+    Boolean,
+    Date,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    Numeric,
+    Text,
+    text,
+)
 from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -35,24 +45,25 @@ class Routine(UUIDPrimaryKey, TimestampMixin, Base):
         ForeignKey("medications.id", ondelete="SET NULL"),
         index=True,
     )
-    protocol_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("protocols.id", ondelete="CASCADE"), index=True
+    # Every routine is a step of a protocol (the one container for anything recurring).
+    protocol_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("protocols.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
-    amount: Mapped[float | None] = mapped_column(
-        Numeric
-    )  # dose quantity (med routines)
+    # The prescribed dose = ``amount`` + ``unit`` — usually a measure ("500" + "mg",
+    # "5" + "ml", "2" + "puffs"), not a pill count.
+    amount: Mapped[float | None] = mapped_column(Numeric)
+    unit: Mapped[str | None] = mapped_column(Text)
 
     # Cadence (FHIR Timing subset): times of day, which weekdays (empty = daily),
-    # every-N-days, and PRN.
+    # every-N-days. (Scheduling is a protocol's job; ad-hoc dosing is "log a dose".)
     timing: Mapped[list[str]] = mapped_column(ARRAY(Text), server_default="{}")
     days_of_week: Mapped[list[str]] = mapped_column(ARRAY(Text), server_default="{}")
     interval_days: Mapped[int] = mapped_column(
         Integer, server_default="1", nullable=False
     )
-    as_needed: Mapped[bool] = mapped_column(
-        Boolean, server_default="false", nullable=False
-    )
-    trigger: Mapped[str | None] = mapped_column(Text)  # PRN reason / condition
     sort_order: Mapped[int] = mapped_column(Integer, server_default="0", nullable=False)
 
     # Context (standalone routines file under an area/program; med/protocol routines
@@ -82,18 +93,37 @@ class Routine(UUIDPrimaryKey, TimestampMixin, Base):
 
 
 class RoutineInstance(UUIDPrimaryKey, TimestampMixin, Base):
-    """A single completed occurrence of a routine (preserves history).
+    """An **intake** — a taking event: what was taken, how much, and when.
 
-    One row = a routine done on a day, at a ``slot`` (a med's time-of-day; ``''``
-    for slotless activities/habits). Absorbs the old ``MedicationDose``.
+    Self-contained: it always names a ``medication_id`` and carries its own dose
+    (``amount`` + ``unit``) and ``completed_at``. ``routine_id`` is **optional** — set
+    when the intake fulfils a prescription (drives compliance/adherence), null for an
+    un-prescribed one-off. Logging against a routine merely *pre-fills* the dose.
+
+    ``ad_hoc`` tells the two apart:
+
+    - ``ad_hoc=False`` — a **scheduled check-off** (the Today checkbox); at most one per
+      ``(routine, scheduled_date, slot)`` via the partial unique index below, so a
+      re-check is idempotent.
+    - ``ad_hoc=True`` — an **extra / PRN / backdated / un-prescribed** intake,
+      unconstrained. Absorbs the old ``MedicationDose``.
+
+    (Table name kept ``routine_instances`` though routine is now optional.)
     """
 
     __tablename__ = "routine_instances"
 
-    routine_id: Mapped[uuid.UUID] = mapped_column(
+    # What was taken (the owner of an intake's history); which plan it fulfils
+    # (optional context). Deleting a medication removes its intakes; deleting a
+    # routine keeps them (a med intake still stands on its own).
+    medication_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("routines.id", ondelete="CASCADE"),
-        nullable=False,
+        ForeignKey("medications.id", ondelete="CASCADE"),
+        index=True,
+    )
+    routine_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("routines.id", ondelete="SET NULL"),
         index=True,
     )
     scheduled_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
@@ -102,4 +132,22 @@ class RoutineInstance(UUIDPrimaryKey, TimestampMixin, Base):
         Text, server_default="pending", nullable=False
     )  # pending/done/skipped
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # The dose actually taken (self-contained; pre-filled from the routine if any).
+    amount: Mapped[float | None] = mapped_column(Numeric)
+    unit: Mapped[str | None] = mapped_column(Text)
+    ad_hoc: Mapped[bool] = mapped_column(
+        Boolean, server_default="false", nullable=False
+    )  # True = extra/PRN/backdated/un-prescribed intake (not a scheduled check-off)
     notes: Mapped[str | None] = mapped_column(Text)
+
+    __table_args__ = (
+        # Scheduled check-offs are unique per (routine, day, slot); ad-hoc intakes aren't.
+        Index(
+            "uq_routine_instance_scheduled",
+            "routine_id",
+            "scheduled_date",
+            "slot",
+            unique=True,
+            postgresql_where=text("ad_hoc = false"),
+        ),
+    )

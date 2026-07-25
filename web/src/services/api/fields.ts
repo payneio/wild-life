@@ -24,8 +24,6 @@ const CONDITION_CATEGORY = [
 ] as const
 const CONDITION_STATUS = ["active", "monitoring", "chronic", "resolved", "ruled_out"] as const
 const MED_TYPE = ["prescription", "otc", "supplement"] as const
-const MED_STATUS = ["active", "discontinued", "as_needed", "planned", "completed"] as const
-const PROTOCOL_STATUS = ["planned", "active", "paused", "completed", "abandoned"] as const
 const EVENT_TYPE = [
   "meeting", "appointment", "call", "lab", "procedure", "surgery", "imaging", "test", "vaccination", "injury", "symptom", "note", "other",
 ] as const
@@ -201,20 +199,25 @@ export const CONDITION_FIELDS: FieldSpec[] = [
   { name: "notes", label: "Notes", type: "textarea", full: true },
 ]
 
-const MED_FORM = ["tablet", "capsule", "liquid", "powder", "spray", "injection", "other"] as const
-
 export const MEDICATION_FIELDS: FieldSpec[] = [
   { name: "name", label: "Name" },
   { name: "brand", label: "Brand" },
-  { name: "med_type", label: "Type", type: "select", options: MED_TYPE },
-  { name: "strength", label: "Strength", placeholder: "40mg" },
-  { name: "form", label: "Form", type: "select", options: MED_FORM },
-  { name: "status", label: "Status", type: "select", options: MED_STATUS },
-  { name: "start_date", label: "Started", type: "date" },
-  { name: "end_date", label: "Stopped", type: "date" },
+  { name: "med_type", label: "Type", type: "select", options: MED_TYPE, default: "supplement" },
   { name: "condition_id", label: "For condition", type: "entity", lookup: "condition" },
-  { name: "prescriber_id", label: "Prescriber", type: "entity", lookup: "people" },
-  { name: "pharmacy_id", label: "Pharmacy", type: "entity", lookup: "organization" },
+  {
+    name: "prescriber_id",
+    label: "Prescriber",
+    type: "entity",
+    lookup: "people",
+    visibleWhen: (v) => v.med_type === "prescription",
+  },
+  {
+    name: "pharmacy_id",
+    label: "Pharmacy",
+    type: "entity",
+    lookup: "organization",
+    visibleWhen: (v) => v.med_type === "prescription",
+  },
   { name: "reason", label: "Reason", type: "textarea" },
   { name: "instructions", label: "Instructions", type: "textarea" },
   { name: "notes", label: "Notes", type: "textarea", full: true },
@@ -223,7 +226,7 @@ export const MEDICATION_FIELDS: FieldSpec[] = [
 export const PROTOCOL_FIELDS: FieldSpec[] = [
   { name: "name", label: "Name" },
   { name: "category", label: "Category" },
-  { name: "status", label: "Status", type: "select", options: PROTOCOL_STATUS },
+  { name: "paused", label: "Paused", type: "checkbox" },
   { name: "area_id", label: "Area", type: "entity", lookup: "area" },
   { name: "program_id", label: "Program", type: "entity", lookup: "program" },
   { name: "duration", label: "Duration", placeholder: "4-6 wk" },
@@ -241,14 +244,13 @@ const DOSE_CADENCE_FIELDS: FieldSpec[] = [
   { name: "timing", label: "Times of day", type: "multiselect", options: SLOTS, full: true },
   { name: "days_of_week", label: "Days (blank = every day)", type: "multiselect", options: WEEKDAYS, full: true },
   { name: "interval_days", label: "Every N days", type: "number", placeholder: "1" },
-  { name: "as_needed", label: "As needed (PRN)", type: "checkbox" },
-  { name: "trigger", label: "PRN reason / condition", full: true },
   { name: "notes", label: "Notes", type: "textarea", full: true },
 ]
 // A medication dose: how many units (of the med's form) + when.
 export const MED_STEP_FIELDS: FieldSpec[] = [
   { name: "medication_id", label: "Medication", type: "entity", lookup: "medication", full: true },
-  { name: "amount", label: "Amount", type: "number", placeholder: "1" },
+  { name: "amount", label: "Amount", type: "number", placeholder: "500" },
+  { name: "unit", label: "Unit", placeholder: "mg" },
   ...DOSE_CADENCE_FIELDS,
 ]
 // A non-medication step (a behavior); no amount.
@@ -258,7 +260,8 @@ export const ACTIVITY_STEP_FIELDS: FieldSpec[] = [
 ]
 // A medication's standing dose (med is fixed by context).
 export const STANDING_DOSE_FIELDS: FieldSpec[] = [
-  { name: "amount", label: "Amount", type: "number", placeholder: "1" },
+  { name: "amount", label: "Amount", type: "number", placeholder: "500" },
+  { name: "unit", label: "Unit", placeholder: "mg" },
   ...DOSE_CADENCE_FIELDS,
 ]
 
@@ -345,7 +348,6 @@ export const ROUTINE_FIELDS: FieldSpec[] = [
   { name: "timing", label: "Times of day", type: "multiselect", options: SLOTS, full: true },
   { name: "days_of_week", label: "Days (blank = every day)", type: "multiselect", options: WEEKDAYS, full: true },
   { name: "interval_days", label: "Every N days", type: "number", placeholder: "1" },
-  { name: "as_needed", label: "As needed (PRN)", type: "checkbox" },
   { name: "area_id", label: "Area", type: "entity", lookup: "area" },
   { name: "responsible_id", label: "Responsible", type: "entity", lookup: "people" },
   { name: "status", label: "Status", type: "select", options: ["active", "paused", "archived"] },

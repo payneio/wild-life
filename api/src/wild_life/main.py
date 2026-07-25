@@ -1,12 +1,16 @@
 """Main application for wild-life-api."""
 
 import asyncio
+import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 import httpx
 from fastmcp import FastMCP
 from fastmcp.server.dependencies import get_http_headers
@@ -94,6 +98,34 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# Use uvicorn's error logger — it already has a handler wired to stderr (journald),
+# so our warnings/exceptions actually surface (a bare "wild_life" logger would fall
+# through to the unconfigured root and be dropped).
+logger = logging.getLogger("uvicorn.error")
+
+
+@app.exception_handler(RequestValidationError)
+async def _log_validation_error(
+    request: Request, exc: RequestValidationError
+) -> JSONResponse:
+    """422s are otherwise invisible in the logs — log the offending fields + body."""
+    logger.warning(
+        "422 %s %s — errors=%s body=%r",
+        request.method,
+        request.url.path,
+        exc.errors(),
+        getattr(exc, "body", None),
+    )
+    return JSONResponse(status_code=422, content={"detail": jsonable_encoder(exc.errors())})
+
+
+@app.exception_handler(Exception)
+async def _log_unhandled(request: Request, exc: Exception) -> JSONResponse:
+    """Log any unhandled error with a full traceback (returns a 500)."""
+    logger.exception("500 %s %s — %s", request.method, request.url.path, exc)
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 
 @app.get("/health")

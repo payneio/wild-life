@@ -10,7 +10,8 @@ import { RelatedPanel } from "@/components/graph/RelatedPanel"
 import { Button } from "@/components/ui/primitives"
 import { useFloatingNote } from "@/notes/floatingNoteContext"
 import type { FieldSpec } from "@/components/EntityForm"
-import { formatInstant, instantToLocalInput, localInputToInstant } from "@/lib/date"
+import type { Instant } from "@/lib/date"
+import { formatInstant, instantToLocalInput, localInputToInstant, shiftInstantBy } from "@/lib/date"
 import { cn } from "@/lib/utils"
 import type { Body } from "@/services/api/crud"
 import { REGISTRY_BY_TYPE, type EntityDef } from "@/services/api/registry"
@@ -300,8 +301,24 @@ export function EditableRecord({
   const [merging, setMerging] = useState(false)
   const row = entity as unknown as Record<string, unknown>
 
-  const save = (name: string, value: unknown) =>
+  const save = (name: string, value: unknown) => {
+    // Moving an existing event's start drags its end along by the same amount, so
+    // the duration you already set is preserved (the common "meeting shifted" edit).
+    if (
+      def.entityType === "event" &&
+      name === "start_at" &&
+      typeof value === "string" &&
+      typeof row.start_at === "string" &&
+      typeof row.end_at === "string"
+    ) {
+      const end = shiftInstantBy(row.end_at as Instant, row.start_at as Instant, value as Instant)
+      if (end) {
+        update.mutate({ id: entity.id, body: { start_at: value, end_at: end } as Body })
+        return
+      }
+    }
     update.mutate({ id: entity.id, body: { [name]: value } as Body })
+  }
 
   const isTask = def.entityType === "task"
   const taskDone = isTask && row.status === "completed"
@@ -309,7 +326,11 @@ export function EditableRecord({
   // Notes is the trailing free-form scratchpad — pull it out of the grid so it
   // always sits at the very bottom, full-width, and grows with what you write.
   const notesField = def.fields.find((f) => f.name === "notes")
-  const gridFields = def.fields.filter((f) => f.name !== "notes")
+  const gridFields = def.fields.filter(
+    (f) =>
+      f.name !== "notes" &&
+      (!f.visibleWhen || f.visibleWhen(row as Record<string, unknown>)),
+  )
 
   return (
     <div className="space-y-5">

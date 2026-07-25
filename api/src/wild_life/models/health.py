@@ -10,7 +10,7 @@ conditions it treats, and the dated clinical record.
 import uuid
 from datetime import date
 
-from sqlalchemy import Date, ForeignKey, Text
+from sqlalchemy import Boolean, Date, ForeignKey, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -84,34 +84,34 @@ class Medication(UUIDPrimaryKey, TimestampMixin, Base):
     med_type: Mapped[str] = mapped_column(
         Text, server_default="supplement", nullable=False
     )  # prescription/otc/supplement
-    form: Mapped[str | None] = mapped_column(Text)  # the dose unit: tablet/capsule/...
-    strength: Mapped[str | None] = mapped_column(Text)  # potency per unit, e.g. "40mg"
-    # How much/when lives on ProtocolItem ("dose lines"), not here — the dose
-    # quantity is the line's ``amount`` of this med's ``form`` (see regimen.py).
+    # A medication is product identity only — no quantities, no status, no dates. The
+    # dose (amount + unit) lives on the Routine (prescribed) and the intake (taken);
+    # whether you're "on" it, and since/until when, derive from its protocol steps
+    # (see regimen.py).
     reason: Mapped[str | None] = mapped_column(Text)
     condition_id: Mapped[uuid.UUID | None] = _condition_fk()
     prescriber_id: Mapped[uuid.UUID | None] = _people_fk()
     pharmacy_id: Mapped[uuid.UUID | None] = _org_fk()
-    status: Mapped[str] = mapped_column(
-        Text, server_default="active", nullable=False
-    )  # active/discontinued/as_needed/planned/completed
-    start_date: Mapped[date | None] = mapped_column(Date)
-    end_date: Mapped[date | None] = mapped_column(Date)
     instructions: Mapped[str | None] = mapped_column(Text)
     notes: Mapped[str | None] = mapped_column(Text)
 
 
 class Protocol(UUIDPrimaryKey, TimestampMixin, Base):
-    """A named, time-boxed treatment regimen bundling dosed steps (ProtocolItems)."""
+    """A named recurring plan (medical or behavioral) bundling steps (Routines).
+
+    Lifecycle derives from the window: ``planned`` (start in the future), ``active``
+    (in-window), ``completed`` (past end). ``paused`` is the one non-derivable state —
+    a deliberate suspension inside the window — and the only stored lifecycle bit.
+    """
 
     __tablename__ = "protocols"
 
     name: Mapped[str] = mapped_column(Text, nullable=False)
     category: Mapped[str | None] = mapped_column(Text)
     intended_outcome: Mapped[str | None] = mapped_column(Text)
-    status: Mapped[str] = mapped_column(
-        Text, server_default="planned", nullable=False
-    )  # planned/active/paused/completed/abandoned
+    paused: Mapped[bool] = mapped_column(
+        Boolean, server_default="false", nullable=False
+    )
     area_id: Mapped[uuid.UUID | None] = _area_fk()
     program_id: Mapped[uuid.UUID | None] = _program_fk()
     start_date: Mapped[date | None] = mapped_column(Date)

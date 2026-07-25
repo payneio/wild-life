@@ -1,6 +1,8 @@
-import { Check } from "lucide-react"
+import { useState } from "react"
+import { Check, Plus } from "lucide-react"
 import { Link } from "react-router-dom"
 import { Card } from "@/components/ui/primitives"
+import { LogDoseModalFor, type DoseTarget } from "@/components/LogDoseModal"
 import {
   routineInstances,
   useCompleteRoutine,
@@ -13,7 +15,7 @@ import { slotRank } from "@/lib/slots"
 import type { RegimenEntry } from "@/services/api/types"
 
 const rowLabel = (e: RegimenEntry): string =>
-  e.amount != null ? `${e.label} · ${e.amount}${e.form ? ` ${e.form}` : ""}` : e.label
+  e.amount != null ? `${e.label} · ${e.amount}${e.unit ? ` ${e.unit}` : ""}` : e.label
 
 const rowSub = (e: RegimenEntry): string | undefined => {
   const parts: string[] = []
@@ -28,16 +30,19 @@ function CheckRow({
   done,
   to,
   onToggle,
+  onLogDose,
 }: {
   label: string
   sub?: string
   done: boolean
   to: string
   onToggle: () => void
+  onLogDose?: () => void
 }) {
-  // The checkbox toggles completion; the label opens the routine's detail.
+  // The checkbox toggles the scheduled completion; the label opens the routine's
+  // detail; the trailing "+" logs an extra/ad-hoc dose (see LogDoseModal).
   return (
-    <div className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-slate-100">
+    <div className="group flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-slate-100">
       <button
         onClick={onToggle}
         title={done ? "Mark not done" : "Mark done"}
@@ -58,6 +63,15 @@ function CheckRow({
         {label}
         {sub && <span className="ml-1.5 text-xs text-slate-400">{sub}</span>}
       </Link>
+      {onLogDose && (
+        <button
+          onClick={onLogDose}
+          title="Log an extra dose"
+          className="shrink-0 rounded-md p-1 text-slate-400 opacity-0 transition hover:bg-slate-200 hover:text-slate-700 focus:opacity-100 group-hover:opacity-100"
+        >
+          <Plus size={14} />
+        </button>
+      )}
     </div>
   )
 }
@@ -68,10 +82,12 @@ export function TodayRhythms() {
   const instQ = routineInstances.useList({
     scheduled_date__eq: d,
     status__eq: "done",
+    ad_hoc__eq: "false", // only scheduled check-offs flip the checkbox
     limit: "300",
   })
   const complete = useCompleteRoutine()
   const uncomplete = useUncompleteRoutine()
+  const [doseTarget, setDoseTarget] = useState<DoseTarget | null>(null)
 
   // The server derives what's due today (cadence + protocol/med liveness), so
   // there's nothing to filter here — just render and toggle.
@@ -85,7 +101,19 @@ export function TodayRhythms() {
     else complete.mutate(vars)
   }
 
-  const section = (title: string, items: RegimenEntry[]) =>
+  const openDose = (e: RegimenEntry) => {
+    if (!e.medication_id) return
+    setDoseTarget({
+      medicationId: e.medication_id,
+      routineId: e.routine_id,
+      label: e.label,
+      defaultAmount: e.amount,
+      defaultUnit: e.unit,
+      defaultSlot: e.slot,
+    })
+  }
+
+  const section = (title: string, items: RegimenEntry[], canLog: boolean) =>
     items.length > 0 ? (
       <div className="mb-3 last:mb-0">
         <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
@@ -99,6 +127,7 @@ export function TodayRhythms() {
             done={doneByKey.has(`${e.routine_id}:${e.slot}`)}
             to={e.medication_id ? `/medications/${e.medication_id}` : `/routines/${e.routine_id}`}
             onToggle={() => toggle(e)}
+            onLogDose={canLog && e.medication_id ? () => openDose(e) : undefined}
           />
         ))}
       </div>
@@ -110,8 +139,9 @@ export function TodayRhythms() {
   return (
     <Card className="p-4">
       <div className="mb-2 text-sm font-semibold text-slate-700">Today's rhythms</div>
-      {section("Medications", meds)}
-      {section("Routines", rest)}
+      {section("Medications", meds, true)}
+      {section("Routines", rest, false)}
+      <LogDoseModalFor target={doseTarget} onClose={() => setDoseTarget(null)} />
     </Card>
   )
 }

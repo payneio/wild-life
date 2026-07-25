@@ -221,6 +221,9 @@ def _clause(col: Any, op: str, raw: str) -> Any:
     if op == "startswith":
         return col.ilike(f"{raw}%")
     v = _coerce(col, raw)
+    # SQLAlchemy forbids ==/!= against a boolean/None singleton — use IS / IS NOT.
+    if op in ("eq", "ne") and (v is None or isinstance(v, bool)):
+        return col.is_(v) if op == "eq" else col.isnot(v)
     return {
         "eq": col == v,
         "ne": col != v,

@@ -26,7 +26,6 @@ import {
   Moon,
   NotebookPen,
   Pill,
-  Repeat,
   Rocket,
   Scale,
   Send,
@@ -68,7 +67,7 @@ const PLAN: Item[] = [
   { to: "/programs", label: "Programs", icon: Rocket },
   { to: "/projects", label: "Projects", icon: FolderKanban },
   { to: "/tasks", label: "Tasks", icon: ListChecks },
-  { to: "/routines", label: "Routines", icon: Repeat },
+  { to: "/protocols", label: "Protocols", icon: HeartPulse },
   { to: "/goals", label: "Goals", icon: Target },
   { to: "/delegations", label: "Delegations", icon: Send },
   { to: "/agents", label: "Agents", icon: Bot },
@@ -79,7 +78,6 @@ const PLAN: Item[] = [
 const HEALTH: Item[] = [
   { to: "/conditions", label: "Conditions", icon: Activity },
   { to: "/medications", label: "Medications", icon: Pill },
-  { to: "/protocols", label: "Protocols", icon: HeartPulse },
   { to: "/insurance", label: "Insurance", icon: ShieldPlus },
   { to: "/allergies", label: "Allergies", icon: TriangleAlert },
 ]
@@ -103,7 +101,7 @@ const REFERENCE: Item[] = [
 const MOBILE_TABS: Item[] = [
   { to: "/today", label: "Today", icon: Home },
   { to: "/tasks", label: "Tasks", icon: ListChecks },
-  { to: "/notes", label: "Journal", icon: NotebookPen },
+  { to: "/calendar", label: "Calendar", icon: CalendarDays },
   { to: "/people", label: "People", icon: Users },
 ]
 
@@ -383,9 +381,16 @@ export function Layout() {
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Sticky top bar: brand (mobile) + global search + theme toggle */}
         <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-slate-200 bg-background/80 px-4 py-2.5 backdrop-blur-md sm:px-6 lg:px-8">
-          <div className="lg:hidden">
+          {/* Mobile: the brand logo doubles as the menu button — tapping it opens
+              the full-nav sheet (the desktop sidebar makes this unneeded at lg+). */}
+          <button
+            type="button"
+            aria-label="Open menu"
+            onClick={() => setMoreOpen(true)}
+            className="rounded-lg lg:hidden"
+          >
             <Brand />
-          </div>
+          </button>
           <div className="min-w-0 flex-1">
             <div className="max-w-xl">
               <GlobalSearch />

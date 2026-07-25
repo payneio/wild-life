@@ -9,6 +9,7 @@ import {
 } from "@/services/api/fields"
 import { Badge } from "@/components/ui/primitives"
 import { humanize } from "@/lib/format"
+import { protocolState } from "@/lib/protocol"
 import {
   allergies,
   conditions,
@@ -56,12 +57,11 @@ export function MedicationsPage() {
       render: (r) => (
         <span className="font-medium">
           {r.name}
-          {r.strength ? <span className="text-slate-400"> · {r.strength}</span> : null}
+          {r.brand ? <span className="text-slate-400"> · {r.brand}</span> : null}
         </span>
       ),
     },
     { key: "med_type", label: "Type", render: (r) => <Badge>{humanize(r.med_type)}</Badge> },
-    { key: "status", label: "Status", render: (r) => <StatusBadge status={r.status} /> },
     { key: "condition_id", label: "For", render: (r) => <RefName kind="condition" id={r.condition_id} /> },
   ]
   return (
@@ -81,7 +81,7 @@ export function ProtocolsPage() {
   const fields = PROTOCOL_FIELDS
   const columns: Column<Protocol>[] = [
     { key: "name", label: "Protocol", render: (r) => <span className="font-medium">{r.name}</span> },
-    { key: "status", label: "Status", render: (r) => <StatusBadge status={r.status} /> },
+    { key: "state", label: "State", render: (r) => <StatusBadge status={protocolState(r)} /> },
     { key: "program_id", label: "Program", render: (r) => <RefName kind="program" id={r.program_id} /> },
     { key: "condition_id", label: "For", render: (r) => <RefName kind="condition" id={r.condition_id} /> },
   ]

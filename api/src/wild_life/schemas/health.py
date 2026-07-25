@@ -21,8 +21,6 @@ ConditionCategory = Literal[
 ]
 ConditionStatus = Literal["active", "monitoring", "chronic", "resolved", "ruled_out"]
 MedType = Literal["prescription", "otc", "supplement"]
-MedStatus = Literal["active", "discontinued", "as_needed", "planned", "completed"]
-ProtocolStatus = Literal["planned", "active", "paused", "completed", "abandoned"]
 Weekday = Literal["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 PlanType = Literal["medical", "dental", "vision", "pharmacy"]
 PlanStatus = Literal["active", "inactive"]
@@ -62,8 +60,8 @@ class ConditionUpdate(BaseModel):
 
 class ConditionRead(Entity):
     name: str
-    category: str | None
-    status: str
+    category: ConditionCategory | None
+    status: ConditionStatus
     area_id: uuid.UUID | None
     program_id: uuid.UUID | None
     severity: str | None
@@ -79,15 +77,10 @@ class MedicationCreate(BaseModel):
     name: str
     brand: str | None = None
     med_type: MedType = "supplement"
-    form: str | None = None
-    strength: str | None = None
     reason: str | None = None
     condition_id: uuid.UUID | None = None
     prescriber_id: uuid.UUID | None = None
     pharmacy_id: uuid.UUID | None = None
-    status: MedStatus = "active"
-    start_date: date | None = None
-    end_date: date | None = None
     instructions: str | None = None
     notes: str | None = None
 
@@ -96,15 +89,10 @@ class MedicationUpdate(BaseModel):
     name: str | None = None
     brand: str | None = None
     med_type: MedType | None = None
-    form: str | None = None
-    strength: str | None = None
     reason: str | None = None
     condition_id: uuid.UUID | None = None
     prescriber_id: uuid.UUID | None = None
     pharmacy_id: uuid.UUID | None = None
-    status: MedStatus | None = None
-    start_date: date | None = None
-    end_date: date | None = None
     instructions: str | None = None
     notes: str | None = None
 
@@ -112,16 +100,11 @@ class MedicationUpdate(BaseModel):
 class MedicationRead(Entity):
     name: str
     brand: str | None
-    med_type: str
-    form: str | None
-    strength: str | None
+    med_type: MedType
     reason: str | None
     condition_id: uuid.UUID | None
     prescriber_id: uuid.UUID | None
     pharmacy_id: uuid.UUID | None
-    status: str
-    start_date: date | None
-    end_date: date | None
     instructions: str | None
     notes: str | None
 
@@ -131,7 +114,7 @@ class ProtocolCreate(BaseModel):
     name: str
     category: str | None = None
     intended_outcome: str | None = None
-    status: ProtocolStatus = "planned"
+    paused: bool = False
     area_id: uuid.UUID | None = None
     program_id: uuid.UUID | None = None
     start_date: date | None = None
@@ -146,7 +129,7 @@ class ProtocolUpdate(BaseModel):
     name: str | None = None
     category: str | None = None
     intended_outcome: str | None = None
-    status: ProtocolStatus | None = None
+    paused: bool | None = None
     area_id: uuid.UUID | None = None
     program_id: uuid.UUID | None = None
     start_date: date | None = None
@@ -161,7 +144,7 @@ class ProtocolRead(Entity):
     name: str
     category: str | None
     intended_outcome: str | None
-    status: str
+    paused: bool
     area_id: uuid.UUID | None
     program_id: uuid.UUID | None
     start_date: date | None
@@ -205,7 +188,7 @@ class InsurancePlanUpdate(BaseModel):
 
 class InsurancePlanRead(Entity):
     name: str
-    plan_type: str | None
+    plan_type: PlanType | None
     organization_id: uuid.UUID | None
     network: str | None
     member_id: str | None
@@ -214,7 +197,7 @@ class InsurancePlanRead(Entity):
     rx_pcn: str | None
     rx_group: str | None
     phone: str | None
-    status: str
+    status: PlanStatus
     notes: str | None
 
 
@@ -241,10 +224,10 @@ class AllergyUpdate(BaseModel):
 
 class AllergyRead(Entity):
     substance: str
-    allergy_type: str | None
+    allergy_type: AllergyType | None
     reaction: str | None
-    severity: str | None
-    status: str
+    severity: AllergySeverity | None
+    status: AllergyStatus
     noted_on: date | None
     notes: str | None
 
@@ -262,8 +245,11 @@ class RegimenEntry(BaseModel):
     label: str  # medication name, or the activity/habit text
     kind: str  # medication / supplement / activity / routine
     slot: str  # a med's time-of-day, or "" for a slotless habit
-    medication_id: uuid.UUID | None = None
-    amount: float | None = None  # number of ``form`` units
-    form: str | None = None  # the dose unit (tablet/capsule/…)
-    source_protocol_id: uuid.UUID | None = None
-    source_protocol_name: str | None = None
+    # Required-but-nullable: `regimen.py` always supplies all five, so the
+    # response always carries the keys. Defaults here would tell clients the
+    # keys may be absent, which is a different (and untrue) contract.
+    medication_id: uuid.UUID | None
+    amount: float | None  # the prescribed dose amount
+    unit: str | None  # the dose unit (mg/ml/…)
+    source_protocol_id: uuid.UUID | None
+    source_protocol_name: str | None

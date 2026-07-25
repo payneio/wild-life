@@ -11,6 +11,7 @@ from wild_life.db.session import get_session
 from wild_life.models.routines import Routine, RoutineInstance
 from wild_life.routers.crud import crud_router
 from wild_life.schemas.routines import (
+    DoseLogCreate,
     RoutineCreate,
     RoutineInstanceCreate,
     RoutineInstanceRead,
@@ -64,11 +65,17 @@ async def list_routine_instances(
 async def _instance_for(
     session: AsyncSession, routine_id: UUID, day: date, slot: str
 ) -> RoutineInstance | None:
+    """The scheduled check-off row for (routine, day, slot).
+
+    Restricted to ``ad_hoc == False`` so the idempotent checkbox upsert/delete never
+    touches a separately-logged ad-hoc/PRN dose.
+    """
     return await session.scalar(
         select(RoutineInstance).where(
             RoutineInstance.routine_id == routine_id,
             RoutineInstance.scheduled_date == day,
             RoutineInstance.slot == slot,
+            RoutineInstance.ad_hoc.is_(False),
         )
     )
 
@@ -88,12 +95,20 @@ async def complete_routine(
 
     ``slot`` is a medication's time-of-day; leave empty for a slotless habit.
     """
-    if await session.get(Routine, routine_id) is None:
+    routine = await session.get(Routine, routine_id)
+    if routine is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Routine not found")
     day = on or date.today()
     instance = await _instance_for(session, routine_id, day, slot)
     if instance is None:
-        instance = RoutineInstance(routine_id=routine_id, scheduled_date=day, slot=slot)
+        instance = RoutineInstance(
+            routine_id=routine_id,
+            medication_id=routine.medication_id,
+            scheduled_date=day,
+            slot=slot,
+            amount=routine.amount,  # record the prescribed dose on the intake
+            unit=routine.unit,
+        )
         session.add(instance)
     instance.status = "done"
     instance.completed_at = datetime.now(timezone.utc)
@@ -117,3 +132,54 @@ async def uncomplete_routine(
 
 
 router.include_router(extra)
+
+# --- Intakes: log a taking event (may be un-prescribed, i.e. no routine) ---------
+intakes = APIRouter(prefix="/intakes", tags=["routines"])
+
+
+@intakes.post("", response_model=RoutineInstanceRead, status_code=status.HTTP_201_CREATED)
+async def log_intake(
+    payload: DoseLogCreate,
+    session: AsyncSession = Depends(get_session),
+) -> RoutineInstance:
+    """Log an intake — always inserts a new ``ad_hoc`` event.
+
+    ``medication_id`` is required (what was taken); ``routine_id`` is optional. When a
+    routine is given it pre-fills any omitted amount/unit/medication, and links the
+    intake to that prescription (for compliance). Un-prescribed intakes just carry a
+    medication + amount/unit. Unlike ``/complete`` this never dedups, so it supports
+    multiple intakes per day, deviations, and backdating (``completed_at`` /
+    ``scheduled_date``).
+    """
+    routine = None
+    if payload.routine_id is not None:
+        routine = await session.get(Routine, payload.routine_id)
+        if routine is None:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Routine not found")
+    medication_id = payload.medication_id or (
+        routine.medication_id if routine else None
+    )
+    if medication_id is None:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="medication_id is required (or a routine that names one)",
+        )
+    instance = RoutineInstance(
+        medication_id=medication_id,
+        routine_id=payload.routine_id,
+        scheduled_date=payload.scheduled_date or date.today(),
+        slot=payload.slot,
+        status="done",
+        completed_at=payload.completed_at or datetime.now(timezone.utc),
+        amount=payload.amount if payload.amount is not None else (routine.amount if routine else None),
+        unit=payload.unit if payload.unit is not None else (routine.unit if routine else None),
+        ad_hoc=True,
+        notes=payload.notes,
+    )
+    session.add(instance)
+    await session.flush()
+    await session.refresh(instance)
+    return instance
+
+
+router.include_router(intakes)

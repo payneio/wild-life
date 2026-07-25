@@ -4,7 +4,7 @@ from datetime import date, timedelta
 from typing import Any
 
 from fastapi import APIRouter, Depends
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wild_life import regimen
@@ -324,7 +324,10 @@ async def review_dashboard(
         for (cid,) in (
             await session.execute(
                 select(Protocol.condition_id).where(
-                    Protocol.status == "active", Protocol.condition_id.isnot(None)
+                    Protocol.paused.is_(False),
+                    Protocol.condition_id.isnot(None),
+                    or_(Protocol.start_date.is_(None), Protocol.start_date <= today),
+                    or_(Protocol.end_date.is_(None), Protocol.end_date >= today),
                 )
             )
         ).all()
@@ -382,14 +385,19 @@ async def review_dashboard(
     low_adherence = []
     for r in await _rows(
         session,
-        select(Routine).where(
-            Routine.medication_id.isnot(None), Routine.as_needed.is_(False)
-        ),
+        select(Routine).where(Routine.medication_id.isnot(None)),
     ):
         med = await session.get(Medication, r.medication_id)
-        if med is None or med.status != "active":
+        proto = await session.get(Protocol, r.protocol_id)
+        # Only judge adherence for a med whose protocol is currently live.
+        if med is None or proto is None or proto.paused:
             continue
-        anchor = med.start_date or r.created_at.date()
+        if not (
+            (proto.start_date is None or proto.start_date <= today)
+            and (proto.end_date is None or proto.end_date >= today)
+        ):
+            continue
+        anchor = proto.start_date or r.created_at.date()
         expected = regimen.expected_days(r, anchor, max(adh_start, anchor), today)
         if expected < 4:
             continue

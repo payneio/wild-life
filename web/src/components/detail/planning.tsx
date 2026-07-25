@@ -372,9 +372,12 @@ export function RoutineDetail({ entity }: { entity: Entity }) {
   const instances = useRoutineInstances(routine.id).data ?? []
   const complete = useCompleteRoutine()
   const doneInst = instances.filter((i) => i.status === "done")
+  // Consistency counts the scheduled check-off (one per day); ad-hoc/extra doses
+  // are shown in Recent but don't inflate the streak or per-day shading.
+  const scheduledDone = doneInst.filter((i) => !i.ad_hoc)
 
   const levels = new Map<string, number>()
-  for (const i of doneInst) {
+  for (const i of scheduledDone) {
     const raw = i.completed_at ?? i.scheduled_date
     if (raw) levels.set(localDay(raw), 3)
   }
@@ -387,7 +390,7 @@ export function RoutineDetail({ entity }: { entity: Entity }) {
     else break
   }
   const weekAgo = daysFromToday
-  const thisWeek = doneInst.filter((i) => {
+  const thisWeek = scheduledDone.filter((i) => {
     const raw = i.completed_at ?? i.scheduled_date
     const d = raw ? localDay(raw) : null
     const diff = d ? weekAgo(d) : null
@@ -405,7 +408,7 @@ export function RoutineDetail({ entity }: { entity: Entity }) {
       <div className="flex items-center justify-between gap-3">
         <div className="grid flex-1 grid-cols-3 gap-2">
           <StatTile value={streak} label="Day streak" tone={streak ? "good" : "muted"} />
-          <StatTile value={doneInst.length} label="Total" />
+          <StatTile value={scheduledDone.length} label="Total" />
           <StatTile value={thisWeek} label="This week" />
         </div>
         <Button onClick={() => complete.mutate({ id: routine.id })}>
@@ -423,9 +426,14 @@ export function RoutineDetail({ entity }: { entity: Entity }) {
             items={recent.map((i) => ({
               key: i.id,
               date: i.completed_at ?? i.scheduled_date,
-              title: "Logged",
-              meta: i.notes ?? undefined,
-              tone: "good" as const,
+              title:
+                i.amount != null
+                  ? `Logged · ${i.amount}${i.unit ? ` ${i.unit}` : ""}`
+                  : "Logged",
+              meta: [i.ad_hoc ? "extra" : null, i.notes]
+                .filter(Boolean)
+                .join(" · ") || undefined,
+              tone: i.ad_hoc ? ("accent" as const) : ("good" as const),
             }))}
           />
         </Section>

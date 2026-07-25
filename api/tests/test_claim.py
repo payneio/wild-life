@@ -1,9 +1,12 @@
 """Integration tests for atomic task claiming (needs the castle Postgres)."""
 
+import uuid
+
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 
 from wild_life.config import settings
+from wild_life.identity import registry
 
 MARK = "ZZ-claim-test"
 
@@ -24,7 +27,15 @@ def _sql(stmt: str, **params: object) -> None:
 def test_task_claim(client: TestClient, auth_headers: dict, require_db: None) -> None:
     owner = auth_headers
     made: dict[str, list[str]] = {"tasks": [], "people": [], "tok": []}
+    # The owner credential claims *as* the configured self-person. Register one for
+    # the test so it doesn't depend on WILD_LIFE_SELF_PERSON_ID in the environment;
+    # restore the original owner mapping afterwards.
+    original_self = settings.self_person_id
     try:
+        me = _post(client, owner, "/people", name=f"{MARK} self")
+        made["people"].append(me["id"])
+        registry.set_owner(settings.token, uuid.UUID(me["id"]))
+
         person = _post(client, owner, "/people", name=f"{MARK} agent")
         made["people"].append(person["id"])
         task = _post(
@@ -74,6 +85,7 @@ def test_task_claim(client: TestClient, auth_headers: dict, require_db: None) ->
         got = client.get(f"/tasks/{tid}", headers=owner).json()
         assert got["claimed_by_id"] is None
     finally:
+        registry.set_owner(settings.token, original_self)
         for tid in made["tasks"]:
             client.delete(f"/tasks/{tid}", headers=owner)
         for pid in made["people"]:

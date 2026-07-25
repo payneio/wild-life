@@ -1,5 +1,5 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react"
-import { X } from "lucide-react"
+import { useEffect, type ButtonHTMLAttributes, type ReactNode } from "react"
+import { Minus, Plus, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 type Variant = "primary" | "secondary" | "ghost" | "danger"
@@ -129,6 +129,67 @@ export function Select({
   return <select className={cn(CONTROL, className)} {...props} />
 }
 
+const STEP_BTN =
+  "flex w-9 shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-surface text-slate-500 transition hover:bg-slate-50 hover:text-slate-800 active:scale-[0.97] disabled:opacity-40 disabled:hover:bg-surface"
+
+/** Numeric input flanked by −/+ buttons, with an optional trailing unit. */
+export function Stepper({
+  value,
+  onChange,
+  step = 1,
+  min = 0,
+  unit,
+  autoFocus,
+}: {
+  value: number | null
+  onChange: (v: number | null) => void
+  step?: number
+  min?: number
+  unit?: string | null
+  autoFocus?: boolean
+}) {
+  const clamp = (v: number) => Math.max(min, Math.round(v * 1000) / 1000)
+  const cur = value ?? 0
+  return (
+    <div className="flex items-stretch gap-1.5">
+      <button
+        type="button"
+        className={STEP_BTN}
+        onClick={() => onChange(clamp(cur - step))}
+        disabled={value != null && value <= min}
+        aria-label="Decrease"
+      >
+        <Minus size={15} />
+      </button>
+      <div className="relative flex-1">
+        <input
+          type="number"
+          step="any"
+          min={min}
+          autoFocus={autoFocus}
+          className={cn(CONTROL, "text-center", unit && "pr-9")}
+          value={value ?? ""}
+          onChange={(e) => onChange(e.target.value === "" ? null : Number(e.target.value))}
+          placeholder="—"
+        />
+        {unit && (
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">
+            {unit}
+          </span>
+        )}
+      </div>
+      <button
+        type="button"
+        className={STEP_BTN}
+        onClick={() => onChange(clamp(cur + step))}
+        aria-label="Increase"
+      >
+        <Plus size={15} />
+      </button>
+    </div>
+  )
+}
+
 export function Modal({
   title,
   onClose,
@@ -138,6 +199,14 @@ export function Modal({
   onClose: () => void
   children: ReactNode
 }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose()
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [onClose])
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/50 p-4 pt-16 backdrop-blur-sm motion-safe:animate-[fadeIn_120ms_ease-out]"

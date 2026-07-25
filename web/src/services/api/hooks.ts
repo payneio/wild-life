@@ -392,6 +392,26 @@ export function useUncompleteRoutine() {
   })
 }
 
+export interface DoseLog {
+  medication_id?: string | null // required unless routine_id supplies it
+  routine_id?: string | null // optional; pre-fills amount/unit/medication
+  amount?: number | null // the dose taken (amount + unit)
+  unit?: string | null
+  slot?: string
+  scheduled_date?: string // LOCAL day of the intake (dayOf(taken_at))
+  completed_at?: string // actual time taken
+  notes?: string | null
+}
+
+/** Log an intake — always inserts a new event (extra / PRN / backdated / un-prescribed). */
+export function useLogDose() {
+  const invalidate = useInvalidator()
+  return useMutation({
+    mutationFn: (body: DoseLog) => apiClient.post<RoutineInstance>("/intakes", body),
+    onSuccess: () => invalidate("routines", "routine-instances"),
+  })
+}
+
 // --- goal <-> project links + computed progress ---
 export function useGoalProjects(goalId: string | null) {
   return useQuery({

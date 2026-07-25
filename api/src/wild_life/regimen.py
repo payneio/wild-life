@@ -1,19 +1,14 @@
 """The daily regimen — what you do/take today — derived from Routines.
 
-A Routine is the single stored unit (a med dose, supplement, activity, or habit);
-the *regimen* is the derived set of routines due in a time window. Each is defined
-in one place, so nothing drifts. Visibility follows the routine's owner:
-
-- **protocol-attached** (``protocol_id``) → in force only while that protocol is
-  ``active`` and today is inside its window.
-- **medication** (``medication_id``, no protocol) → in force while the medication
-  is ``active`` and inside its window.
-- **standalone** (habit) → in force while the routine's own ``status`` is active
-  and inside its own window.
+A Routine is the single stored unit (a med dose, supplement, or activity) and is
+always a **step of a protocol**; the *regimen* is the derived set of routine steps
+due in a time window. Liveness is one rule — a step is in force iff its **protocol**
+is **not paused** and today is inside the protocol's window. Scheduling lives only in
+protocols; anything taken off-schedule is an ad-hoc intake ("log a dose"), not a routine.
 
 On top of that each routine carries an FHIR-style cadence (``days_of_week`` +
-``interval_days``); ``as_needed`` (PRN) routines are never on the scheduled list.
-Deduped per (medication, slot) so a drug shared by two live protocols shows once.
+``interval_days``). Deduped per (medication, slot) so a drug shared by two live
+protocols shows once.
 """
 
 from __future__ import annotations
@@ -53,21 +48,14 @@ def _kind(routine: Routine, med: Medication | None) -> str:
 
 
 def _live_anchor(
-    routine: Routine, med: Medication | None, proto: Protocol | None, day: date
+    proto: Protocol | None, day: date
 ) -> tuple[bool, date | None]:
-    """(is_live_today, cadence_anchor) — anchor is the owner's start date."""
-    if proto is not None:
-        live = proto.status == "active" and _in_window(
-            proto.start_date, proto.end_date, day
-        )
-        return live, proto.start_date
-    if med is not None:
-        live = med.status == "active" and _in_window(med.start_date, med.end_date, day)
-        return live, med.start_date
-    live = routine.status == "active" and _in_window(
-        routine.start_date, routine.end_date, day
-    )
-    return live, routine.start_date
+    """(is_live_today, cadence_anchor). Every routine is a protocol step, so liveness
+    is the protocol's: live iff not paused and today is in its window."""
+    if proto is None:  # defensive — protocol_id is NOT NULL
+        return False, None
+    live = not proto.paused and _in_window(proto.start_date, proto.end_date, day)
+    return live, proto.start_date
 
 
 async def compute_regimen(session: AsyncSession, day: date) -> list[RegimenEntry]:
@@ -83,9 +71,7 @@ async def compute_regimen(session: AsyncSession, day: date) -> list[RegimenEntry
 
     seen: dict[tuple, RegimenEntry] = {}
     for routine, med, proto in rows:
-        if routine.as_needed:  # PRN — taken on demand, not scheduled
-            continue
-        live, anchor = _live_anchor(routine, med, proto, day)
+        live, anchor = _live_anchor(proto, day)
         if not live:
             continue
         if anchor is None:
@@ -105,7 +91,7 @@ async def compute_regimen(session: AsyncSession, day: date) -> list[RegimenEntry
                 slot=slot,
                 medication_id=med.id if med is not None else None,
                 amount=float(routine.amount) if routine.amount is not None else None,
-                form=med.form if med is not None else None,
+                unit=routine.unit,
                 source_protocol_id=proto.id if proto is not None else None,
                 source_protocol_name=proto.name if proto is not None else None,
             )

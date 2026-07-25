@@ -29,6 +29,11 @@ export interface FieldSpec {
   lookup?: LookupKey
   full?: boolean
   placeholder?: string
+  /** Seed value when creating (no `initial`) — e.g. a required select's default,
+   * so it never submits a blank/null the backend rejects. */
+  default?: unknown
+  /** Show this field only when the predicate (over the current values) holds. */
+  visibleWhen?: (values: Record<string, unknown>) => boolean
 }
 
 type Values = Record<string, unknown>
@@ -42,7 +47,7 @@ function toLocalInput(iso: unknown): string {
 }
 
 function initialValue(f: FieldSpec, initial?: Values): unknown {
-  const raw = initial?.[f.name]
+  const raw = initial?.[f.name] ?? (initial ? undefined : f.default)
   if (f.type === "checkbox") return !!raw
   if (f.type === "tags") return Array.isArray(raw) ? (raw as string[]).join(", ") : ""
   if (f.type === "attendees") return Array.isArray(raw) ? (raw as string[]) : []
@@ -114,6 +119,7 @@ export function EntityForm({
       }}
     >
       {fields.map((f) => {
+        if (f.visibleWhen && !f.visibleWhen(body)) return null
         const val = body[f.name]
         const control = () => {
           switch (f.type) {

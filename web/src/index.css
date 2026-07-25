@@ -188,6 +188,43 @@ h1,
   letter-spacing: -0.01em;
 }
 
+/* ---------------------------------------------------------------------------
+   Mobile typography.
+
+   The dense desktop UI leans on `text-xs`/`text-sm` (12/14px) and a handful of
+   hardcoded 10–11px labels. On a phone that reads too small and un-premium, so
+   on ≤640px we scale the *type* up a notch without touching the spacing scale
+   (`--spacing` is separate) — Tailwind's `text-*` utilities all resolve through
+   these theme vars, and their line-heights are unitless ratios that scale for
+   free. Larger steps (`text-lg`+) already read fine and are left untouched to
+   keep the hierarchy from ballooning.
+--------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  :root {
+    --text-xs: 0.8125rem; /* 12 → 13 */
+    --text-sm: 0.9375rem; /* 14 → 15 */
+    --text-base: 1.0625rem; /* 16 → 17 */
+  }
+
+  /* Hardcoded micro-labels can't ride the theme vars — nudge them up directly.
+     Unlayered rules outrank Tailwind's layered utilities regardless of order. */
+  .text-\[10px\] {
+    font-size: 0.75rem; /* 10 → 12 */
+  }
+  .text-\[11px\] {
+    font-size: 0.78125rem; /* 11 → 12.5 */
+  }
+
+  /* iOS Safari zooms the viewport when focusing a control under 16px. Floor the
+     text at 16px (but never shrink a deliberately larger field) so focusing an
+     input stays put — the hallmark of a native-feeling mobile form. */
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    font-size: max(16px, 1em);
+  }
+}
+
 /* Smooth the light↔dark flip without animating every navigation. */
 body,
 body * {
