@@ -56,13 +56,37 @@ Every registered object gets this **default representation set**:
 | **Reference** | a name/avatar chip standing in for the object | `RefName`, `cells.tsx` |
 | **Collection item** | one row in a list/launcher | `SimpleEntityPage` row, `TaskRow` |
 | **Selector** | a picker/autocomplete result | `EntityRefField` (`graph/`) |
-| **Detail + Editor** | the object's canonical surface | `EditableRecord` |
+| **Detail + Editor** | the object's canonical surface | `entities/<obj>/Detail.tsx` (converted) · `EditableRecord` (legacy) |
 | **Visualization** | a bespoke rendering | calendar block, `GoalProgress` |
 
-**Detail and editor are fused.** `EditableRecord` is modeless — every field is content
-that's editable in place and autosaves (single-field `PATCH`; the SSE stream fans the
-change back, see AGENTS.md → *SSE-driven reactivity*). There is no read-mode/edit-mode
-toggle because in a single-user tool the intent is always *see-and-work*.
+**Detail and editor are fused.** Every field is content that's editable in place and
+autosaves (single-field `PATCH`; the SSE stream fans the change back, see AGENTS.md →
+*SSE-driven reactivity*). There is no read-mode/edit-mode toggle because in a
+single-user tool the intent is always *see-and-work*.
+
+**Detail layouts are composed, not configured.** An object's detail lives in
+`src/entities/<obj>/Detail.tsx` and writes its fields as JSX using the vocabulary in
+`components/record/` — `<Record>` supplies the chrome (action bar, `relations` panels,
+backlinks, timestamps) and the entity supplies the layout. Field primitives are
+*called*, never dispatched to by a type tag, and `recordFields<T>()` makes every
+`field` prop `keyof T`.
+
+The override is **total**: an object either has `def.detail` or falls back to the
+generic `EditableRecord`, never both. Partial overrides (the old `extra` +
+`detailHide` pair) forced two renderers to agree out-of-band about who drew what,
+which is how Task ended up rendering status, priority and its dates twice.
+
+Because a written layout *can* drop a field — worse than duplicating one, since the
+data becomes invisible and uneditable — every primitive registers the key it binds and
+`<Record>` compares that against the row. `entities/coverage.test.tsx` mounts each
+converted object's real detail against a complete fixture in `test/fixtures.ts` and
+fails on any unrendered, unexcused key. Deliberate omissions go in `omit` with a
+reason. Converting an object enrols it automatically; add its fixture at the same time.
+
+*Migration state:* task, tag, resource, location, decision, area, program, commitment,
+request, review, organization are converted. The rest still use `EditableRecord` +
+`fields`/`extra`. When the last one converts, `EditableRecord`, `EntityForm`'s field
+switch, `fields.ts`, `extra` and `detailHide` all become unreachable and get deleted.
 
 ## 3. Framing — pane / modal / full-page
 
