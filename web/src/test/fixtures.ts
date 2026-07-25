@@ -1,5 +1,18 @@
 import type { CalendarDay, Instant, WallTime } from "@/lib/date"
-import type { Decision, Entity, Location, Resource, Tag, Task } from "@/services/api/types"
+import type {
+  Area,
+  Commitment,
+  Decision,
+  Entity,
+  Location,
+  Organization,
+  Program,
+  Request,
+  Resource,
+  Review,
+  Tag,
+  Task,
+} from "@/services/api/types"
 
 /**
  * A complete row per converted entity, for the coverage suite.
@@ -83,6 +96,95 @@ export const DECISION: Decision = {
   entity_id: null,
 }
 
+export const AREA: Area = {
+  ...BASE,
+  name: "Health",
+  description: "Body and mind upkeep",
+  status: "active",
+  desired_standard: "Sleep 7h, move daily",
+  review_frequency: "weekly",
+  accountable_owner_id: null,
+  responsible_lead_id: null,
+  archived_at: null,
+}
+
+export const PROGRAM: Program = {
+  ...BASE,
+  name: "Home admin",
+  description: "Recurring household paperwork",
+  area_id: null,
+  intended_outcome: "Nothing lapses",
+  success_criteria: "No late fees",
+  status: "active",
+  start_date: "2026-01-01" as CalendarDay,
+  target_date: null,
+  accountable_owner_id: null,
+  responsible_lead_id: null,
+  review_frequency: "monthly",
+  reporting_cadence: null,
+}
+
+export const COMMITMENT: Commitment = {
+  ...BASE,
+  description: "Send the signed lease back",
+  status: "open",
+  owner_id: null,
+  responsible_id: null,
+  beneficiary_id: null,
+  date_made: "2026-07-10" as CalendarDay,
+  due_date: "2026-07-30" as CalendarDay,
+  acceptance_status: null,
+  evidence: null,
+  entity_type: null,
+  entity_id: null,
+}
+
+export const REQUEST: Request = {
+  ...BASE,
+  subject: "Need the updated floor plan",
+  kind: "deliverable",
+  status: "open",
+  body: "The one with the revised kitchen wall",
+  requester_id: null,
+  addressee_id: null,
+  external_label: null,
+  needed_by: "2026-08-05" as CalendarDay,
+  follow_up_date: null,
+  resolved_at: null,
+  next_action: "Chase by email",
+  last_communication: null,
+  resolution: null,
+  entity_type: null,
+  entity_id: null,
+}
+
+export const REVIEW: Review = {
+  ...BASE,
+  review_type: "weekly",
+  period_start: "2026-07-13" as CalendarDay,
+  period_end: "2026-07-19" as CalendarDay,
+  completed_at: null,
+  observations: "Inbox stayed under control",
+  decisions: null,
+  risks: null,
+  follow_up_actions: null,
+  entities_reviewed: [],
+}
+
+export const ORGANIZATION: Organization = {
+  ...BASE,
+  name: "Northwest Dental",
+  org_type: "vendor",
+  status: "active",
+  industry: "Healthcare",
+  description: null,
+  website: "https://example.com",
+  email: null,
+  phone: "206-555-0101",
+  address: "100 Pine St",
+  notes: null,
+}
+
 /** Keyed by `EntityDef.key`. Every def carrying a `detail` needs an entry. */
 export const FIXTURES: Record<string, Entity> = {
   task: TASK,
@@ -90,4 +192,10 @@ export const FIXTURES: Record<string, Entity> = {
   resource: RESOURCE,
   location: LOCATION,
   decision: DECISION,
+  area: AREA,
+  program: PROGRAM,
+  commitment: COMMITMENT,
+  request: REQUEST,
+  review: REVIEW,
+  organization: ORGANIZATION,
 }

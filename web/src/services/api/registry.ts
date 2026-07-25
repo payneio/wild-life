@@ -1,33 +1,26 @@
 import type { ComponentType } from "react"
 import type { FieldSpec } from "@/components/EntityForm"
-import {
-  MetricExtra,
-  OrganizationExtra,
-  ProtocolExtra,
-} from "@/components/detailExtras"
-import {
-  GoalDetail,
-  ProgramDetail,
-  ProjectDetail,
-  RoutineDetail,
-} from "@/components/detail/planning"
+import { MetricExtra, ProtocolExtra } from "@/components/detailExtras"
+import { GoalDetail, ProjectDetail, RoutineDetail } from "@/components/detail/planning"
 import { TaskDetail as TaskRecord } from "@/entities/task/Detail"
 import { TagDetail as TagRecord } from "@/entities/tag/Detail"
 import { ResourceDetail as ResourceRecord } from "@/entities/resource/Detail"
 import { LocationDetail as LocationRecord } from "@/entities/location/Detail"
 import { DecisionDetail as DecisionRecord } from "@/entities/decision/Detail"
-import { DelegationDetail, RequestDetail } from "@/components/detail/followup"
+import { AreaDetail as AreaRecord } from "@/entities/area/Detail"
+import { ProgramDetail as ProgramRecord } from "@/entities/program/Detail"
+import { CommitmentDetail as CommitmentRecord } from "@/entities/commitment/Detail"
+import { RequestDetail as RequestRecord } from "@/entities/request/Detail"
+import { ReviewDetail as ReviewRecord } from "@/entities/review/Detail"
+import { OrganizationDetail as OrganizationRecord } from "@/entities/organization/Detail"
+import { DelegationDetail } from "@/components/detail/followup"
 import {
   AllergyDetail,
   ConditionDetail,
   InsuranceDetail,
   MedicationDetail,
 } from "@/components/detail/health"
-import {
-  CommitmentDetail,
-  EventDetail,
-  ReviewDetail,
-} from "@/components/detail/reference"
+import { EventDetail } from "@/components/detail/reference"
 import type { createCrud } from "@/services/api/crud"
 import type { Entity, EntityType } from "@/services/api/types"
 import {
@@ -137,7 +130,7 @@ import {
 } from "@/services/api/fields"
 
 export const REGISTRY: Record<string, EntityDef> = {
-  area: { key: "area", label: "Area", crud: areas, fields: AREA_FIELDS, title: (e) => e.name, entityType: "area", titleField: "name", quickCreate: true, relations: [
+  area: { key: "area", label: "Area", crud: areas, fields: AREA_FIELDS, title: (e) => e.name, entityType: "area", titleField: "name", quickCreate: true, detail: AreaRecord, relations: [
     { mode: "fk-children", label: "Programs", type: "program", fkField: "area_id" },
     { mode: "fk-children", label: "Projects", type: "project", fkField: "area_id" },
     { mode: "fk-children", label: "Goals", type: "goal", fkField: "area_id" },
@@ -159,7 +152,7 @@ export const REGISTRY: Record<string, EntityDef> = {
     { mode: "fk-children", label: "Goals measured by this", type: "goal", fkField: "metric_id" },
   ] },
   routine: { key: "routine", label: "Routine", crud: routines, fields: ROUTINE_FIELDS, title: (e) => e.activity ?? e.name ?? "Routine", entityType: "routine", titleField: "activity", quickCreate: true, extra: RoutineDetail },
-  program: { key: "program", label: "Program", crud: programs, fields: PROGRAM_FIELDS, title: (e) => e.name, entityType: "program", titleField: "name", quickCreate: true, extra: ProgramDetail, relations: [
+  program: { key: "program", label: "Program", crud: programs, fields: PROGRAM_FIELDS, title: (e) => e.name, entityType: "program", titleField: "name", quickCreate: true, detail: ProgramRecord, relations: [
     { mode: "fk-children", label: "Projects", type: "project", fkField: "program_id", inherit: ["area_id"] },
     { mode: "fk-children", label: "Metrics", type: "metric", fkField: "program_id", inherit: ["area_id"] },
     { mode: "fk-children", label: "Goals", type: "goal", fkField: "program_id", inherit: ["area_id"] },
@@ -172,10 +165,10 @@ export const REGISTRY: Record<string, EntityDef> = {
   delegation: { key: "delegation", label: "Delegation", crud: delegations, fields: DELEGATION_FIELDS, title: (e) => e.requested_outcome, entityType: "delegation", titleField: "requested_outcome", quickCreate: true, extra: DelegationDetail, detailHide: ["status", "priority", "date_delegated", "expected_completion_date", "follow_up_date", "escalation_level"], relations: [
     { mode: "soft-backref", label: "Notes", type: "note", hideWhenEmpty: true },
   ] },
-  review: { key: "review", label: "Review", crud: reviews, fields: REVIEW_FIELDS, title: (e) => `${e.review_type} review`, entityType: "review", titleField: "review_type", extra: ReviewDetail, detailHide: ["completed_at", "period_start", "period_end"], relations: [
+  review: { key: "review", label: "Review", crud: reviews, fields: REVIEW_FIELDS, title: (e) => `${e.review_type} review`, entityType: "review", titleField: "review_type", detail: ReviewRecord, relations: [
     { mode: "soft-backref", label: "Notes", type: "note", hideWhenEmpty: true },
   ] },
-  organization: { key: "organization", label: "Organization", crud: organizations, fields: ORGANIZATION_FIELDS, title: (e) => e.name, entityType: "organization", titleField: "name", quickCreate: true, extra: OrganizationExtra, relations: [
+  organization: { key: "organization", label: "Organization", crud: organizations, fields: ORGANIZATION_FIELDS, title: (e) => e.name, entityType: "organization", titleField: "name", quickCreate: true, detail: OrganizationRecord, relations: [
     { mode: "fk-children", label: "Insurance plans", type: "insurance_plan", fkField: "organization_id" },
   ] },
   location: { key: "location", label: "Location", crud: locations, fields: LOCATION_FIELDS, title: (e) => e.name, entityType: "location", titleField: "name", quickCreate: true, detail: LocationRecord },
@@ -184,10 +177,10 @@ export const REGISTRY: Record<string, EntityDef> = {
   event: { key: "event", label: "Event", crud: events, fields: EVENT_FIELDS, title: (e) => e.title, entityType: "event", titleField: "title", extra: EventDetail, detailHide: ["start_at", "end_at", "all_day"], contextLabel: "Filed in", relations: [
     { mode: "soft-backref", label: "Notes", type: "note" },
   ] },
-  commitment: { key: "commitment", label: "Commitment", crud: commitments, fields: COMMITMENT_FIELDS, title: (e) => e.description, entityType: "commitment", titleField: "description", quickCreate: true, extra: CommitmentDetail, detailHide: ["status", "date_made", "due_date"], relations: [
+  commitment: { key: "commitment", label: "Commitment", crud: commitments, fields: COMMITMENT_FIELDS, title: (e) => e.description, entityType: "commitment", titleField: "description", quickCreate: true, detail: CommitmentRecord, relations: [
     { mode: "soft-backref", label: "Notes", type: "note", hideWhenEmpty: true },
   ] },
-  request: { key: "request", label: "Request", crud: requests, fields: REQUEST_FIELDS, title: (e) => e.subject, entityType: "request", titleField: "subject", quickCreate: true, extra: RequestDetail, detailHide: ["status", "kind", "needed_by", "follow_up_date", "resolved_at"], relations: [
+  request: { key: "request", label: "Request", crud: requests, fields: REQUEST_FIELDS, title: (e) => e.subject, entityType: "request", titleField: "subject", quickCreate: true, detail: RequestRecord, relations: [
     { mode: "soft-backref", label: "Notes", type: "note", hideWhenEmpty: true },
   ] },
   decision: { key: "decision", label: "Decision", crud: decisions, fields: DECISION_FIELDS, title: (e) => e.question, entityType: "decision", titleField: "question", quickCreate: true, detail: DecisionRecord, relations: [
