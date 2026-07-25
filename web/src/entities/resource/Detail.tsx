@@ -2,21 +2,12 @@ import { ExternalLink } from "lucide-react"
 import { Record, RecordSection } from "@/components/record/Record"
 import { useField } from "@/components/record/context"
 import { recordFields } from "@/components/record/typed"
+import { RESOURCE_TYPE } from "@/services/api/enums"
 import { REGISTRY } from "@/services/api/registry"
 import type { Entity, Resource } from "@/services/api/types"
 
 const F = recordFields<Resource>()
 
-const TYPES = [
-  "link",
-  "document",
-  "book",
-  "template",
-  "tool",
-  "account",
-  "location",
-  "reference",
-] as const
 
 /** The URL, with the "open it" affordance attached to the field it belongs to. */
 function UrlField() {
@@ -60,7 +51,7 @@ export function ResourceDetail({
       <RecordSection>
         <F.Title field="title" placeholder="Resource title" />
         <UrlField />
-        <F.Select field="resource_type" label="Type" options={TYPES} />
+        <F.Select field="resource_type" label="Type" options={RESOURCE_TYPE} />
         <F.Tags field="tags" label="Tags" />
         <F.Textarea field="description" label="Description" />
         {/* Editable for the first time: RESOURCE_FIELDS never listed the

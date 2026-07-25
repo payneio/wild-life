@@ -1,18 +1,18 @@
 import { Record, RecordSection } from "@/components/record/Record"
 import { recordFields } from "@/components/record/typed"
+import { AREA_STATUS } from "@/services/api/enums"
 import { REGISTRY } from "@/services/api/registry"
 import type { Area, Entity } from "@/services/api/types"
 
 const F = recordFields<Area>()
 
-const STATUS = ["active", "inactive", "archived"] as const
 
 export function AreaDetail({ entity, onClose }: { entity: Entity; onClose: () => void }) {
   return (
     <Record def={REGISTRY.area} entity={entity} onClose={onClose}>
       <RecordSection>
         <F.Title field="name" placeholder="Area name" />
-        <F.Select field="status" label="Status" options={STATUS} />
+        <F.Select field="status" label="Status" options={AREA_STATUS} />
         <F.Text field="review_frequency" label="Review frequency" placeholder="weekly" />
         <F.Textarea field="description" label="Description" minRows={2} />
       </RecordSection>

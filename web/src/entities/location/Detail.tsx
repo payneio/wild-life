@@ -2,12 +2,12 @@ import { MapPin } from "lucide-react"
 import { Record, RecordSection } from "@/components/record/Record"
 import { useFields } from "@/components/record/context"
 import { recordFields } from "@/components/record/typed"
+import { LOCATION_CATEGORY } from "@/services/api/enums"
 import { REGISTRY } from "@/services/api/registry"
 import type { Entity, Location } from "@/services/api/types"
 
 const F = recordFields<Location>()
 
-const CATEGORIES = ["home", "work", "venue", "city", "other"] as const
 
 /** Maps link over whatever address parts are filled in. Read-only, and derived —
  *  so it claims no fields; the inputs above it own them. */
@@ -39,7 +39,7 @@ export function LocationDetail({
     <Record def={REGISTRY.location} entity={entity} onClose={onClose}>
       <RecordSection>
         <F.Title field="name" placeholder="Location name" />
-        <F.Select field="category" label="Category" options={CATEGORIES} />
+        <F.Select field="category" label="Category" options={LOCATION_CATEGORY} />
       </RecordSection>
 
       <RecordSection title="Address">

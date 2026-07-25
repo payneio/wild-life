@@ -1,26 +1,12 @@
 import { Record, RecordSection } from "@/components/record/Record"
 import { EventDetail as EventWhenWho } from "@/components/detail/reference"
 import { recordFields } from "@/components/record/typed"
+import { EVENT_TYPE } from "@/services/api/enums"
 import { REGISTRY } from "@/services/api/registry"
 import type { Entity, EventItem } from "@/services/api/types"
 
 const F = recordFields<EventItem>()
 
-const TYPES = [
-  "meeting",
-  "appointment",
-  "call",
-  "lab",
-  "procedure",
-  "surgery",
-  "imaging",
-  "test",
-  "vaccination",
-  "injury",
-  "symptom",
-  "note",
-  "other",
-] as const
 
 /**
  * Temporality earns Event its bespoke views (the when/where block, RSVP, the
@@ -81,7 +67,7 @@ export function EventDetail({
       </RecordSection>
 
       <RecordSection title="What & where">
-        <F.Select field="event_type" label="Type" options={TYPES} />
+        <F.Select field="event_type" label="Type" options={EVENT_TYPE} />
         <F.Text field="location" label="Location" />
         <F.Textarea field="description" label="Description" minRows={2} />
       </RecordSection>

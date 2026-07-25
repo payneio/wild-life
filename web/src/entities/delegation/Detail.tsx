@@ -5,25 +5,12 @@ import { recordFields } from "@/components/record/typed"
 import { AgeTile, DeltaTile, Segmented, StatTile } from "@/components/detail/kit"
 import { shiftDays } from "@/components/detail/dates"
 import { Button } from "@/components/ui/primitives"
+import { DELEGATION_STATUS } from "@/services/api/enums"
 import { REGISTRY } from "@/services/api/registry"
 import type { Delegation, Entity, Priority } from "@/services/api/types"
 
 const F = recordFields<Delegation>()
 
-const STATUS = [
-  "draft",
-  "requested",
-  "accepted",
-  "in_progress",
-  "waiting_for_update",
-  "blocked",
-  "delivered",
-  "revision_requested",
-  "accepted_as_complete",
-  "declined",
-  "reassigned",
-  "cancelled",
-] as const
 
 const PRIORITY: { value: Priority; label: string }[] = [
   { value: "low", label: "Low" },
@@ -100,7 +87,7 @@ export function DelegationDetail({ entity, onClose }: { entity: Entity; onClose:
       <Tiles />
 
       <RecordSection>
-        <F.Select field="status" label="Status" options={STATUS} />
+        <F.Select field="status" label="Status" options={DELEGATION_STATUS} />
         <F.Number field="escalation_level" label="Escalation" />
       </RecordSection>
 

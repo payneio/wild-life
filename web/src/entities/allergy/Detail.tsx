@@ -2,14 +2,12 @@ import { Record, RecordSection } from "@/components/record/Record"
 import { useFields } from "@/components/record/context"
 import { recordFields } from "@/components/record/typed"
 import { cn } from "@/lib/utils"
+import { ALLERGY_SEVERITY, ALLERGY_STATUS, ALLERGY_TYPE } from "@/services/api/enums"
 import { REGISTRY } from "@/services/api/registry"
 import type { Allergy, Entity } from "@/services/api/types"
 
 const F = recordFields<Allergy>()
 
-const TYPES = ["medication", "food", "environmental", "other"] as const
-const SEVERITY = ["mild", "moderate", "severe", "unknown"] as const
-const STATUS = ["active", "suspected", "resolved"] as const
 
 const SEVERITY_TONE: Record<string, string> = {
   mild: "border-amber-300 bg-amber-50",
@@ -44,9 +42,9 @@ export function AllergyDetail({ entity, onClose }: { entity: Entity; onClose: ()
       <SeverityBanner />
 
       <RecordSection>
-        <F.Select field="severity" label="Severity" options={SEVERITY} />
-        <F.Select field="status" label="Status" options={STATUS} />
-        <F.Select field="allergy_type" label="Type" options={TYPES} />
+        <F.Select field="severity" label="Severity" options={ALLERGY_SEVERITY} />
+        <F.Select field="status" label="Status" options={ALLERGY_STATUS} />
+        <F.Select field="allergy_type" label="Type" options={ALLERGY_TYPE} />
         <F.Date field="noted_on" label="Noted on" />
         <F.Textarea field="reaction" label="Reaction" minRows={2} />
         <F.Textarea field="notes" label="Notes" minRows={2} />

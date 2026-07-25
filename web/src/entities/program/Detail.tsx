@@ -1,12 +1,12 @@
 import { Record, RecordSection } from "@/components/record/Record"
 import { ProgramDetail as ProgramStats } from "@/components/detail/planning"
 import { recordFields } from "@/components/record/typed"
+import { PROGRAM_STATUS } from "@/services/api/enums"
 import { REGISTRY } from "@/services/api/registry"
 import type { Entity, Program } from "@/services/api/types"
 
 const F = recordFields<Program>()
 
-const STATUS = ["proposed", "active", "paused", "completed", "cancelled"] as const
 
 /**
  * A container: the portfolio stats it earns as a §5 view stay, they just sit
@@ -22,7 +22,7 @@ export function ProgramDetail({ entity, onClose }: { entity: Entity; onClose: ()
       <ProgramStats entity={entity} />
 
       <RecordSection>
-        <F.Select field="status" label="Status" options={STATUS} />
+        <F.Select field="status" label="Status" options={PROGRAM_STATUS} />
         <F.Ref field="area_id" label="Area" lookup="area" />
         <F.Date field="start_date" label="Start" />
         <F.Date field="target_date" label="Target" />

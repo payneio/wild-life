@@ -2,13 +2,12 @@ import { Phone } from "lucide-react"
 import { Record, RecordSection } from "@/components/record/Record"
 import { useFields } from "@/components/record/context"
 import { recordFields } from "@/components/record/typed"
+import { PLAN_STATUS, PLAN_TYPE } from "@/services/api/enums"
 import { REGISTRY } from "@/services/api/registry"
 import type { Entity, InsurancePlan } from "@/services/api/types"
 
 const F = recordFields<InsurancePlan>()
 
-const TYPES = ["medical", "dental", "vision", "pharmacy"] as const
-const STATUS = ["active", "inactive"] as const
 
 /** Tap-to-call, derived from the phone field the layout owns below. */
 function CallLink() {
@@ -40,8 +39,8 @@ export function InsurancePlanDetail({
     <Record def={REGISTRY.insurancePlan} entity={entity} onClose={onClose}>
       <RecordSection>
         <F.Title field="name" placeholder="Plan name" />
-        <F.Select field="plan_type" label="Type" options={TYPES} />
-        <F.Select field="status" label="Status" options={STATUS} />
+        <F.Select field="plan_type" label="Type" options={PLAN_TYPE} />
+        <F.Select field="status" label="Status" options={PLAN_STATUS} />
         <F.Ref field="organization_id" label="Carrier" lookup="organization" />
         <F.Text field="network" label="Network" />
       </RecordSection>

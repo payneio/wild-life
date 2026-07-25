@@ -2,20 +2,12 @@ import { Record, RecordSection } from "@/components/record/Record"
 import { useField } from "@/components/record/context"
 import { recordFields } from "@/components/record/typed"
 import { ScheduleChips, Segmented } from "@/components/detail/kit"
+import { OFF_LANE, STEPS } from "@/entities/task/status"
 import { REGISTRY } from "@/services/api/registry"
 import type { Entity, Priority, Task, TaskStatus } from "@/services/api/types"
 
 const F = recordFields<Task>()
 
-/** The lane a task normally walks. */
-const STEPS: { value: TaskStatus; label: string }[] = [
-  { value: "planned", label: "Planned" },
-  { value: "in_progress", label: "In progress" },
-  { value: "waiting", label: "Waiting" },
-  { value: "completed", label: "Done" },
-]
-/** The rest of the statuses — reachable, but not part of the everyday lane. */
-const OFF_LANE: TaskStatus[] = ["inbox", "delegated", "delivered", "cancelled"]
 
 const PRIORITIES: { value: Priority; label: string }[] = [
   { value: "low", label: "Low" },

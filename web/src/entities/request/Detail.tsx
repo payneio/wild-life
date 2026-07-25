@@ -5,6 +5,7 @@ import { recordFields } from "@/components/record/typed"
 import { AgeTile, DeltaTile, Segmented } from "@/components/detail/kit"
 import { shiftDays } from "@/components/detail/dates"
 import { Button } from "@/components/ui/primitives"
+import { REQUEST_KIND } from "@/services/api/enums"
 import { REGISTRY } from "@/services/api/registry"
 import type { Entity, Request } from "@/services/api/types"
 
@@ -15,7 +16,6 @@ const STATUS: { value: string; label: string }[] = [
   { value: "resolved", label: "Resolved" },
   { value: "cancelled", label: "Cancelled" },
 ]
-const KIND = ["question", "decision", "input", "deliverable"] as const
 
 /** Status plus the two things you actually do with an open request. */
 function Cockpit() {
@@ -81,7 +81,7 @@ export function RequestDetail({ entity, onClose }: { entity: Entity; onClose: ()
       <Cockpit />
 
       <RecordSection>
-        <F.Select field="kind" label="Kind" options={KIND} />
+        <F.Select field="kind" label="Kind" options={REQUEST_KIND} />
         <F.Date field="needed_by" label="Needed by" />
         <F.Date field="follow_up_date" label="Follow up" />
         <F.DateTime field="resolved_at" label="Resolved at" />

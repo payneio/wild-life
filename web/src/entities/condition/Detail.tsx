@@ -1,30 +1,20 @@
 import { Record, RecordSection } from "@/components/record/Record"
 import { ConditionDetail as ConditionTimeline } from "@/components/detail/health"
 import { recordFields } from "@/components/record/typed"
+import { CONDITION_CATEGORY, CONDITION_STATUS } from "@/services/api/enums"
 import { REGISTRY } from "@/services/api/registry"
 import type { Condition, Entity } from "@/services/api/types"
 
 const F = recordFields<Condition>()
 
-const CATEGORY = [
-  "gastrointestinal",
-  "cardiovascular",
-  "dermatologic",
-  "musculoskeletal",
-  "urologic",
-  "auditory",
-  "mental_health",
-  "other",
-] as const
-const STATUS = ["active", "monitoring", "chronic", "resolved", "ruled_out"] as const
 
 export function ConditionDetail({ entity, onClose }: { entity: Entity; onClose: () => void }) {
   return (
     <Record def={REGISTRY.condition} entity={entity} onClose={onClose}>
       <RecordSection>
         <F.Title field="name" placeholder="Condition" />
-        <F.Select field="status" label="Status" options={STATUS} />
-        <F.Select field="category" label="Category" options={CATEGORY} />
+        <F.Select field="status" label="Status" options={CONDITION_STATUS} />
+        <F.Select field="category" label="Category" options={CONDITION_CATEGORY} />
         <F.Text field="severity" label="Severity" />
         <F.Textarea field="description" label="Description" minRows={2} />
       </RecordSection>

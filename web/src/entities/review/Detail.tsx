@@ -4,21 +4,12 @@ import { useFields } from "@/components/record/context"
 import { recordFields } from "@/components/record/typed"
 import { Button } from "@/components/ui/primitives"
 import { formatDate } from "@/lib/utils"
+import { REVIEW_TYPE } from "@/services/api/enums"
 import { REGISTRY } from "@/services/api/registry"
 import type { Entity, Review } from "@/services/api/types"
 
 const F = recordFields<Review>()
 
-const TYPES = [
-  "daily",
-  "weekly",
-  "monthly",
-  "quarterly",
-  "area",
-  "program",
-  "project",
-  "delegation",
-] as const
 
 /** Completion is a single act, so it gets a button rather than a datetime input. */
 function Completion() {
@@ -61,7 +52,7 @@ export function ReviewDetail({ entity, onClose }: { entity: Entity; onClose: () 
   return (
     <Record def={REGISTRY.review} entity={entity} onClose={onClose}>
       <RecordSection>
-        <F.Select field="review_type" label="Type" options={TYPES} />
+        <F.Select field="review_type" label="Type" options={REVIEW_TYPE} />
         <F.Date field="period_start" label="Period start" />
         <F.Date field="period_end" label="Period end" />
       </RecordSection>

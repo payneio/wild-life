@@ -1,21 +1,12 @@
 import { Record, RecordSection } from "@/components/record/Record"
 import { ProjectDetail as ProjectBoard } from "@/components/detail/planning"
 import { recordFields } from "@/components/record/typed"
+import { PRIORITIES, PROJECT_STATUS } from "@/services/api/enums"
 import { REGISTRY } from "@/services/api/registry"
 import type { Entity, Project } from "@/services/api/types"
 
 const F = recordFields<Project>()
 
-const STATUS = [
-  "proposed",
-  "active",
-  "waiting",
-  "paused",
-  "completed",
-  "cancelled",
-  "archived",
-] as const
-const PRIORITY = ["low", "medium", "high", "urgent"] as const
 
 /**
  * A container you operate: the progress ring and task board are the §5 view and
@@ -35,8 +26,8 @@ export function ProjectDetail({ entity, onClose }: { entity: Entity; onClose: ()
       <ProjectBoard entity={entity} />
 
       <RecordSection>
-        <F.Select field="status" label="Status" options={STATUS} />
-        <F.Select field="priority" label="Priority" options={PRIORITY} />
+        <F.Select field="status" label="Status" options={PROJECT_STATUS} />
+        <F.Select field="priority" label="Priority" options={PRIORITIES} />
         <F.Text field="next_action" label="Next action" full />
         <F.Textarea field="description" label="Description" minRows={2} />
       </RecordSection>

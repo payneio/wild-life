@@ -2,12 +2,12 @@ import { Record, RecordSection } from "@/components/record/Record"
 import { RoutineDetail as RoutineConsistency } from "@/components/detail/planning"
 import { recordFields } from "@/components/record/typed"
 import { SLOTS, WEEKDAYS } from "@/lib/slots"
+import { ROUTINE_STATUS } from "@/services/api/enums"
 import { REGISTRY } from "@/services/api/registry"
 import type { Entity, Routine } from "@/services/api/types"
 
 const F = recordFields<Routine>()
 
-const STATUS = ["active", "paused", "archived"] as const
 
 /**
  * Every routine is a protocol step. `timing` and `days_of_week` are the first
@@ -29,7 +29,7 @@ export function RoutineDetail({ entity, onClose }: { entity: Entity; onClose: ()
       <RecordSection>
         <F.Title field="activity" placeholder="What's the routine?" />
         <F.Text field="name" label="Name" />
-        <F.Select field="status" label="Status" options={STATUS} />
+        <F.Select field="status" label="Status" options={ROUTINE_STATUS} />
       </RecordSection>
 
       <RoutineConsistency entity={entity} />

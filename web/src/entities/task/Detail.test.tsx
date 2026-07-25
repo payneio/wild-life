@@ -6,6 +6,8 @@ import { Record } from "@/components/record/Record"
 import { recordFields } from "@/components/record/typed"
 import { REGISTRY } from "@/services/api/registry"
 import { TaskDetail } from "@/entities/task/Detail"
+import { OFF_LANE, STEPS } from "@/entities/task/status"
+import { TASK_STATUS } from "@/services/api/enums"
 import { TASK } from "@/test/fixtures"
 import type { Task } from "@/services/api/types"
 
@@ -30,12 +32,23 @@ describe("TaskDetail", () => {
     expect(screen.getByDisplayValue("@errands")).toBeInTheDocument()
   })
 
-  it("keeps every status reachable, including the off-lane ones", () => {
+  it("offers every status the column accepts", () => {
+    // Driven by the enum, so adding a status on the backend fails here instead
+    // of quietly becoming unsettable. The old lane offered four of the eight,
+    // which is how `cancelled` and `delegated` ended up unreachable.
+    const offered = new Set<string>([...STEPS.map((s) => s.value), ...OFF_LANE])
+    for (const status of TASK_STATUS) {
+      expect(offered.has(status), `status "${status}" is offered by no control`).toBe(true)
+    }
+  })
+
+  it("renders the off-lane statuses as an overflow", () => {
     mount(<TaskDetail entity={TASK} onClose={() => {}} />)
-    // The old segmented control offered four of the eight statuses, so
-    // `cancelled` and `delegated` could not be set from the detail page at all.
-    for (const status of ["inbox", "delegated", "delivered", "cancelled"]) {
+    for (const status of OFF_LANE) {
       expect(screen.getByRole("option", { name: status })).toBeInTheDocument()
+    }
+    for (const step of STEPS) {
+      expect(screen.getByRole("button", { name: step.label })).toBeInTheDocument()
     }
   })
 })

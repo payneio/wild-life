@@ -3,34 +3,27 @@
 import type { FieldSpec } from "@/components/EntityForm"
 import { SLOTS, WEEKDAYS } from "@/lib/slots"
 
-// --- option lists -----------------------------------------------------------
-const PRIORITIES = ["low", "medium", "high", "urgent"] as const
-const PROGRAM_STATUS = ["proposed", "active", "paused", "completed", "cancelled"] as const
-const TASK_STATUS = [
-  "inbox", "planned", "in_progress", "waiting", "delegated", "delivered", "completed", "cancelled",
-] as const
-const DELEGATION_STATUS = [
-  "draft", "requested", "accepted", "in_progress", "waiting_for_update", "blocked",
-  "delivered", "revision_requested", "accepted_as_complete", "declined", "reassigned", "cancelled",
-] as const
-const COMMIT_STATUS = ["open", "in_progress", "waiting", "fulfilled", "broken", "cancelled"] as const
-const REQUEST_KIND = ["question", "decision", "input", "deliverable"] as const
-const REQUEST_STATUS = ["open", "resolved", "cancelled"] as const
-const REVIEW_TYPE = ["daily", "weekly", "monthly", "quarterly", "area", "program", "project", "delegation"] as const
-const ORG_STATUS = ["active", "inactive", "archived"] as const
-const CONDITION_CATEGORY = [
-  "gastrointestinal", "cardiovascular", "dermatologic", "musculoskeletal",
-  "urologic", "auditory", "mental_health", "other",
-] as const
-const CONDITION_STATUS = ["active", "monitoring", "chronic", "resolved", "ruled_out"] as const
-const MED_TYPE = ["prescription", "otc", "supplement"] as const
-const EVENT_TYPE = [
-  "meeting", "appointment", "call", "lab", "procedure", "surgery", "imaging", "test", "vaccination", "injury", "symptom", "note", "other",
-] as const
-const PLAN_TYPE = ["medical", "dental", "vision", "pharmacy"] as const
-const ALLERGY_TYPE = ["medication", "food", "environmental", "other"] as const
-const ALLERGY_SEVERITY = ["mild", "moderate", "severe", "unknown"] as const
-const ALLERGY_STATUS = ["active", "suspected", "resolved"] as const
+// Option lists come from `enums.ts`, the single runtime source shared with the
+// detail layouts and checked against the generated unions.
+import {
+  ALLERGY_SEVERITY,
+  ALLERGY_STATUS,
+  ALLERGY_TYPE,
+  COMMIT_STATUS,
+  CONDITION_CATEGORY,
+  CONDITION_STATUS,
+  DELEGATION_STATUS,
+  EVENT_TYPE,
+  MED_TYPE,
+  ORG_STATUS,
+  PLAN_TYPE,
+  PRIORITIES,
+  PROGRAM_STATUS,
+  REQUEST_KIND,
+  REQUEST_STATUS,
+  REVIEW_TYPE,
+  TASK_STATUS,
+} from "@/services/api/enums"
 
 // --- field specs (shared by list edit-form + detail view) -------------------
 export const PROGRAM_FIELDS: FieldSpec[] = [

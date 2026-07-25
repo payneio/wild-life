@@ -1,12 +1,12 @@
 import { Record, RecordSection } from "@/components/record/Record"
 import { GoalDetail as GoalProgress } from "@/components/detail/planning"
 import { recordFields } from "@/components/record/typed"
+import { GOAL_STATUS } from "@/services/api/enums"
 import { REGISTRY } from "@/services/api/registry"
 import type { Entity, Goal } from "@/services/api/types"
 
 const F = recordFields<Goal>()
 
-const STATUS = ["active", "achieved", "paused", "dropped"] as const
 
 export function GoalDetail({ entity, onClose }: { entity: Entity; onClose: () => void }) {
   return (
@@ -19,7 +19,7 @@ export function GoalDetail({ entity, onClose }: { entity: Entity; onClose: () =>
       <GoalProgress entity={entity} />
 
       <RecordSection>
-        <F.Select field="status" label="Status" options={STATUS} />
+        <F.Select field="status" label="Status" options={GOAL_STATUS} />
         <F.Date field="target_date" label="Target date" />
         {/* Manual override; the ring prefers the computed value when there is
             one, so this stays editable but is not the whole story. */}
