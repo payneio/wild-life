@@ -16,10 +16,13 @@ export function EntityRefField({
   lookup,
   value,
   onChange,
+  required,
 }: {
   lookup: LookupKey
   value: string | null
   onChange: (id: string | null) => void
+  /** Non-nullable column: offer no clear, since the API would reject null. */
+  required?: boolean
 }) {
   const type = LOOKUP_TO_TYPE[lookup]
   const resolve = useEntityResolver()
@@ -41,7 +44,7 @@ export function EntityRefField({
           {value ? (label ?? "…") : "—"}
         </span>
         <span className="flex shrink-0 items-center text-slate-400">
-          {value && (
+          {value && !required && (
             <span
               role="button"
               tabIndex={-1}

@@ -326,10 +326,12 @@ export function RecordRef({
   field,
   label,
   lookup,
+  required,
 }: {
   field: string
   label?: string
   lookup: LookupKey
+  required?: boolean
 }) {
   const { value, save } = useField(field)
   return (
@@ -338,6 +340,7 @@ export function RecordRef({
         lookup={lookup}
         value={value ? String(value) : null}
         onChange={(id) => save(id ?? null)}
+        required={required}
       />
     </Wrap>
   )

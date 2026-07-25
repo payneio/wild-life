@@ -50,7 +50,19 @@ export function recordFields<T>() {
     Time: RecordTime as (p: { field: K; label?: string }) => ReactNode,
     DateTime: RecordDateTime as (p: { field: K; label?: string }) => ReactNode,
     Checkbox: RecordCheckbox as (p: { field: K; label: string }) => ReactNode,
-    Ref: RecordRef as (p: { field: K; label?: string; lookup: LookupKey }) => ReactNode,
+    /**
+     * A scalar FK. Whether the column is nullable is already in the generated
+     * type, so the compiler — not a convention — decides whether `required` has
+     * to be declared: a non-nullable ref must pass it, which suppresses the
+     * clear affordance the API would reject.
+     */
+    Ref: RecordRef as <K2 extends K>(
+      p: {
+        field: K2
+        label?: string
+        lookup: LookupKey
+      } & (null extends T[K2] ? { required?: false } : { required: true }),
+    ) => ReactNode,
     Recurrence: RecordRecurrence as (p: { field: K; label?: string }) => ReactNode,
     Tags: RecordTags as (p: { field: K; label?: string }) => ReactNode,
     MultiSelect: RecordMultiSelect as (p: {

@@ -52,7 +52,7 @@ export function RoutineDetail({ entity, onClose }: { entity: Entity; onClose: ()
       </RecordSection>
 
       <RecordSection title="Context">
-        <F.Ref field="protocol_id" label="Protocol" lookup="protocol" />
+        <F.Ref field="protocol_id" label="Protocol" lookup="protocol" required />
         <F.Ref field="area_id" label="Area" lookup="area" />
         <F.Ref field="program_id" label="Program" lookup="program" />
         <F.Ref field="responsible_id" label="Responsible" lookup="people" />
