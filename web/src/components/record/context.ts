@@ -19,6 +19,9 @@ import { createContext, useCallback, useContext, useEffect, useRef } from "react
 export interface RecordCtx {
   row: Record<string, unknown>
   save: (field: string, value: unknown) => void
+  /** Write several fields in one PATCH — for controls that own a pair, like the
+   *  `entity_type`/`entity_id` soft-poly link, where two writes could race. */
+  saveMany: (body: Record<string, unknown>) => void
   register: (field: string) => void
 }
 
@@ -39,6 +42,16 @@ export function useField(field: string) {
   useEffect(() => register(field), [field, register])
   const onSave = useCallback((v: unknown) => save(field, v), [field, save])
   return { value: row[field], save: onSave }
+}
+
+/** Bind several fields at once: the row, a multi-field save, and their claims. */
+export function useFields(fields: readonly string[]) {
+  const { row, saveMany, register } = useRecordCtx()
+  const key = fields.join(",")
+  useEffect(() => {
+    for (const f of key.split(",")) register(f)
+  }, [key, register])
+  return { row, save: saveMany }
 }
 
 /** Keys every record carries but no layout is expected to render. */

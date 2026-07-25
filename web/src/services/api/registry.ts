@@ -12,6 +12,10 @@ import {
   RoutineDetail,
 } from "@/components/detail/planning"
 import { TaskDetail as TaskRecord } from "@/entities/task/Detail"
+import { TagDetail as TagRecord } from "@/entities/tag/Detail"
+import { ResourceDetail as ResourceRecord } from "@/entities/resource/Detail"
+import { LocationDetail as LocationRecord } from "@/entities/location/Detail"
+import { DecisionDetail as DecisionRecord } from "@/entities/decision/Detail"
 import { DelegationDetail, RequestDetail } from "@/components/detail/followup"
 import {
   AllergyDetail,
@@ -21,12 +25,8 @@ import {
 } from "@/components/detail/health"
 import {
   CommitmentDetail,
-  DecisionDetail,
   EventDetail,
-  LocationDetail,
-  ResourceDetail,
   ReviewDetail,
-  TagDetail,
 } from "@/components/detail/reference"
 import type { createCrud } from "@/services/api/crud"
 import type { Entity, EntityType } from "@/services/api/types"
@@ -178,7 +178,7 @@ export const REGISTRY: Record<string, EntityDef> = {
   organization: { key: "organization", label: "Organization", crud: organizations, fields: ORGANIZATION_FIELDS, title: (e) => e.name, entityType: "organization", titleField: "name", quickCreate: true, extra: OrganizationExtra, relations: [
     { mode: "fk-children", label: "Insurance plans", type: "insurance_plan", fkField: "organization_id" },
   ] },
-  location: { key: "location", label: "Location", crud: locations, fields: LOCATION_FIELDS, title: (e) => e.name, entityType: "location", titleField: "name", quickCreate: true, extra: LocationDetail, detailHide: ["address", "city", "region"] },
+  location: { key: "location", label: "Location", crud: locations, fields: LOCATION_FIELDS, title: (e) => e.name, entityType: "location", titleField: "name", quickCreate: true, detail: LocationRecord },
   protocol: { key: "protocol", label: "Protocol", crud: protocols, fields: PROTOCOL_FIELDS, title: (e) => e.name, entityType: "protocol", titleField: "name", quickCreate: true, extra: ProtocolExtra },
   note: { key: "note", label: "Note", crud: notes, fields: NOTE_FIELDS, title: (e) => e.title || "(untitled)", entityType: "note", titleField: "title", contextLabel: "Filed in" },
   event: { key: "event", label: "Event", crud: events, fields: EVENT_FIELDS, title: (e) => e.title, entityType: "event", titleField: "title", extra: EventDetail, detailHide: ["start_at", "end_at", "all_day"], contextLabel: "Filed in", relations: [
@@ -190,11 +190,11 @@ export const REGISTRY: Record<string, EntityDef> = {
   request: { key: "request", label: "Request", crud: requests, fields: REQUEST_FIELDS, title: (e) => e.subject, entityType: "request", titleField: "subject", quickCreate: true, extra: RequestDetail, detailHide: ["status", "kind", "needed_by", "follow_up_date", "resolved_at"], relations: [
     { mode: "soft-backref", label: "Notes", type: "note", hideWhenEmpty: true },
   ] },
-  decision: { key: "decision", label: "Decision", crud: decisions, fields: DECISION_FIELDS, title: (e) => e.question, entityType: "decision", titleField: "question", quickCreate: true, extra: DecisionDetail, detailHide: ["decision"], relations: [
+  decision: { key: "decision", label: "Decision", crud: decisions, fields: DECISION_FIELDS, title: (e) => e.question, entityType: "decision", titleField: "question", quickCreate: true, detail: DecisionRecord, relations: [
     { mode: "soft-backref", label: "Notes", type: "note", hideWhenEmpty: true },
   ] },
-  resource: { key: "resource", label: "Resource", crud: resources, fields: RESOURCE_FIELDS, title: (e) => e.title, entityType: "resource", titleField: "title", quickCreate: true, extra: ResourceDetail, detailHide: ["url"] },
-  tag: { key: "tag", label: "Tag", crud: tags, fields: TAG_FIELDS, title: (e) => e.name, titleField: "name", quickCreate: true, extra: TagDetail, detailHide: ["color"] },
+  resource: { key: "resource", label: "Resource", crud: resources, fields: RESOURCE_FIELDS, title: (e) => e.title, entityType: "resource", titleField: "title", quickCreate: true, detail: ResourceRecord },
+  tag: { key: "tag", label: "Tag", crud: tags, fields: TAG_FIELDS, title: (e) => e.name, titleField: "name", quickCreate: true, detail: TagRecord },
   condition: { key: "condition", label: "Condition", crud: conditions, fields: CONDITION_FIELDS, title: (e) => e.name, entityType: "condition", titleField: "name", quickCreate: true, extra: ConditionDetail, relations: [
     { mode: "fk-children", label: "Medications", type: "medication", fkField: "condition_id" },
     { mode: "fk-children", label: "Protocols", type: "protocol", fkField: "condition_id" },

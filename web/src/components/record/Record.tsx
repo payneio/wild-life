@@ -62,10 +62,18 @@ export function Record({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [entity.id],
   )
+  const saveMany = useCallback(
+    (body: Record<string, unknown>) => update.mutate({ id: entity.id, body: body as Body }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [entity.id],
+  )
   const register = useCallback((field: string) => {
     registry.current.add(field)
   }, [])
-  const ctx = useMemo(() => ({ row, save, register }), [row, save, register])
+  const ctx = useMemo(
+    () => ({ row, save, saveMany, register }),
+    [row, save, saveMany, register],
+  )
 
   useCoverage(row, registry, omit, def.key, onCoverage)
 

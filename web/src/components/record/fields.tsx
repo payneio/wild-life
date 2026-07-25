@@ -1,7 +1,8 @@
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react"
 import { EntityRefField } from "@/components/graph/EntityRefField"
 import { RecurrenceEditor } from "@/components/RecurrenceEditor"
-import { useField } from "@/components/record/context"
+import { NoteRootField } from "@/components/graph/NoteRootField"
+import { useField, useFields } from "@/components/record/context"
 import { instantToLocalInput, localInputToInstant } from "@/lib/date"
 import { cn } from "@/lib/utils"
 import type { LookupKey } from "@/services/api/lookups"
@@ -346,6 +347,52 @@ export function RecordRecurrence({ field, label }: { field: string; label?: stri
   return (
     <Wrap label={label} full>
       <RecurrenceEditor value={value ? String(value) : ""} onChange={(v) => save(v || null)} />
+    </Wrap>
+  )
+}
+
+/**
+ * The soft-poly "filed in" link — one control owning the `entity_type` /
+ * `entity_id` pair, written in a single PATCH so the two can't land apart.
+ */
+export function RecordRoot({ label = "Filed in" }: { label?: string }) {
+  const { row, save } = useFields(["entity_type", "entity_id"])
+  return (
+    <Wrap label={label} full>
+      <NoteRootField
+        entityType={(row.entity_type as string | null) ?? null}
+        entityId={(row.entity_id as string | null) ?? null}
+        onSave={(body) => save(body as Record<string, unknown>)}
+      />
+    </Wrap>
+  )
+}
+
+/** A comma-separated tag list over a string[] column. */
+export function RecordTags({ field, label }: { field: string; label?: string }) {
+  const { value, save } = useField(field)
+  const { draft, setDraft, setFocused } = useDraft(value, (v) =>
+    Array.isArray(v) ? (v as string[]).join(", ") : "",
+  )
+  return (
+    <Wrap label={label} full>
+      <input
+        type="text"
+        value={draft}
+        placeholder="comma, separated"
+        className={GHOST}
+        onFocus={() => setFocused(true)}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={() => {
+          setFocused(false)
+          save(
+            draft
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean),
+          )
+        }}
+      />
     </Wrap>
   )
 }

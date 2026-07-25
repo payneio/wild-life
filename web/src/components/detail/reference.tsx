@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { CheckCircle2, ExternalLink, MapPin, Repeat } from "lucide-react"
+import { CheckCircle2, Repeat } from "lucide-react"
 import { summarizeRecurrence } from "@/lib/rrule"
 import { Button } from "@/components/ui/primitives"
 import { EntityRef } from "@/components/graph/EntityRef"
@@ -11,83 +11,12 @@ import { humanize } from "@/lib/format"
 import { useQueryClient } from "@tanstack/react-query"
 import type {
   Commitment,
-  Decision,
   Entity,
   EventItem,
-  Location,
-  Resource,
   Review,
-  Tag,
 } from "@/services/api/types"
 import { AgeTile, DeltaTile, Section, Segmented } from "@/components/detail/kit"
 import { formatDate, formatDateTime } from "@/lib/utils"
-
-// --- Decision: the choice, front and center ---------------------------------
-export function DecisionDetail({ entity }: { entity: Entity }) {
-  const d = entity as Decision
-  if (!d.decision && !d.review_date) return null
-  return (
-    <div className="space-y-3">
-      {d.decision && (
-        <div className="rounded-xl border-l-4 border-indigo-500 bg-surface-2 px-4 py-3">
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-indigo-600">
-            Decision
-          </div>
-          <p className="mt-1 whitespace-pre-wrap text-sm font-medium text-slate-800">
-            {d.decision}
-          </p>
-        </div>
-      )}
-      {d.review_date && (
-        <div className="text-xs text-slate-500">
-          Revisit on {formatDate(d.review_date)}
-        </div>
-      )}
-    </div>
-  )
-}
-
-// --- Resource: open the thing -----------------------------------------------
-export function ResourceDetail({ entity }: { entity: Entity }) {
-  const r = entity as Resource
-  if (!r.url) return null
-  return (
-    <a
-      href={r.url}
-      target="_blank"
-      rel="noreferrer"
-      className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3.5 py-2 text-sm font-medium text-on-accent shadow-sm transition hover:bg-indigo-700"
-    >
-      <ExternalLink size={15} /> Open resource
-    </a>
-  )
-}
-
-// --- Location: address + map ------------------------------------------------
-export function LocationDetail({ entity }: { entity: Entity }) {
-  const l = entity as Location
-  const parts = [l.address, l.city, l.region].filter(Boolean)
-  if (parts.length === 0) return null
-  const q = encodeURIComponent(parts.join(", "))
-  return (
-    <div className="space-y-2">
-      <div className="rounded-xl border border-slate-200 bg-surface-2 px-4 py-3 text-sm text-slate-700">
-        {l.address && <div>{l.address}</div>}
-        {(l.city || l.region) && (
-          <div className="text-slate-500">{[l.city, l.region].filter(Boolean).join(", ")}</div>
-        )}
-      </div>
-      <a
-        href={`https://www.google.com/maps/search/?api=1&query=${q}`}
-        target="_blank"
-        rel="noreferrer"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:underline"
-      >
-        <MapPin size={14} /> Open in Maps
-      </a>
-    </div>
-  )
-}
 
 // --- Event: when & where (+ RSVP for emailed invitations) -------------------
 const RSVP_OPTIONS: { value: string; label: string }[] = [
@@ -294,17 +223,3 @@ export function ReviewDetail({ entity }: { entity: Entity }) {
   )
 }
 
-// --- Tag: identity swatch ---------------------------------------------------
-export function TagDetail({ entity }: { entity: Entity }) {
-  const t = entity as Tag
-  if (!t.color) return null
-  return (
-    <div className="flex items-center gap-3">
-      <span
-        className="h-10 w-10 rounded-xl border border-slate-200"
-        style={{ backgroundColor: t.color }}
-      />
-      <span className="font-mono text-sm text-slate-500">{t.color}</span>
-    </div>
-  )
-}

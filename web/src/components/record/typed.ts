@@ -6,7 +6,9 @@ import {
   RecordNumber,
   RecordRecurrence,
   RecordRef,
+  RecordRoot,
   RecordSelect,
+  RecordTags,
   RecordText,
   RecordTextarea,
   RecordTime,
@@ -48,5 +50,8 @@ export function recordFields<T>() {
     Checkbox: RecordCheckbox as (p: { field: K; label: string }) => ReactNode,
     Ref: RecordRef as (p: { field: K; label?: string; lookup: LookupKey }) => ReactNode,
     Recurrence: RecordRecurrence as (p: { field: K; label?: string }) => ReactNode,
+    Tags: RecordTags as (p: { field: K; label?: string }) => ReactNode,
+    /** Owns the entity_type/entity_id pair, so it takes no `field`. */
+    Root: RecordRoot,
   }
 }
