@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { useQueryClient } from "@tanstack/react-query"
 import { DetailDrawer } from "@/components/DetailDrawer"
-import { EditableRecord } from "@/components/EditableRecord"
+import { DetailSurface } from "@/components/record/DetailSurface"
 import { RecurrenceScopeDialog } from "@/components/RecurrenceScopeDialog"
 import { EmptyState, Modal } from "@/components/ui/primitives"
 import { events } from "@/services/api/hooks"
@@ -63,7 +63,7 @@ export function CalendarEventRoute() {
   ) : isError || !event ? (
     <EmptyState>Not found.</EmptyState>
   ) : (
-    <EditableRecord def={def} entity={event} onClose={close} onDelete={onDelete} variant="pane" />
+    <DetailSurface def={def} entity={event} onClose={close} onDelete={onDelete} variant="pane" />
   )
 
   return (

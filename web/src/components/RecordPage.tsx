@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom"
 import { ChevronLeft } from "lucide-react"
-import { EditableRecord } from "@/components/EditableRecord"
+import { DetailSurface } from "@/components/record/DetailSurface"
 import { EmptyState } from "@/components/ui/primitives"
 import { REGISTRY } from "@/services/api/registry"
 import type { Entity } from "@/services/api/types"
@@ -39,7 +39,7 @@ export function RecordPage({
       ) : isError || !data ? (
         <EmptyState>Not found.</EmptyState>
       ) : (
-        <EditableRecord def={def} entity={data as Entity} onClose={close} variant="page" />
+        <DetailSurface def={def} entity={data as Entity} onClose={close} variant="page" />
       )}
     </div>
   )

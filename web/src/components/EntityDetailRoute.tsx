@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom"
 import { X } from "lucide-react"
 import { DetailDrawer } from "@/components/DetailDrawer"
-import { EditableRecord } from "@/components/EditableRecord"
+import { DetailSurface } from "@/components/record/DetailSurface"
 import { Card, EmptyState } from "@/components/ui/primitives"
 import { REGISTRY } from "@/services/api/registry"
 import type { Entity } from "@/services/api/types"
@@ -25,7 +25,7 @@ export function EntityDetailRoute({ entityKey }: { entityKey: string }) {
   ) : isError || !data ? (
     <EmptyState>Not found.</EmptyState>
   ) : (
-    <EditableRecord def={def} entity={data as Entity} onClose={close} variant="pane" />
+    <DetailSurface def={def} entity={data as Entity} onClose={close} variant="pane" />
   )
 
   return (

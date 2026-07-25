@@ -10,8 +10,8 @@ import {
   ProgramDetail,
   ProjectDetail,
   RoutineDetail,
-  TaskDetail,
 } from "@/components/detail/planning"
+import { TaskDetail as TaskRecord } from "@/entities/task/Detail"
 import { DelegationDetail, RequestDetail } from "@/components/detail/followup"
 import {
   AllergyDetail,
@@ -89,9 +89,18 @@ export interface EntityDef {
   /** Whether this type can be created inline from a picker with just its title
    *  (i.e. its Create schema requires nothing beyond `titleField`). */
   quickCreate?: boolean
-  /** Optional rich section shown below the shared field list in the detail view. */
+  /** The entity's own detail layout, composed from the `Record` primitives.
+   *  When set it *fully* owns the surface and `fields`/`extra`/`detailHide` are
+   *  not consulted — see `DetailSurface`. Migrating an entity means adding this
+   *  and deleting its `extra`/`detailHide`. */
+  detail?: ComponentType<{ entity: Entity; onClose: () => void; onDelete?: () => void }>
+  /** Optional rich section shown below the shared field list in the detail view.
+   *  Legacy: superseded by `detail` for converted entities. */
   extra?: ComponentType<{ entity: Entity }>
-  /** Fields the `extra` already renders — hidden from the generic facts grid. */
+  /** Fields the `extra` already renders — hidden from the generic facts grid.
+   *  Legacy and currently inert: `EditableRecord` never read it, and honouring
+   *  it now would make read-only extras (Location's address, Tag's colour)
+   *  uneditable. Removed per entity as each is converted to `detail`. */
   detailHide?: string[]
   /** Related collections rendered as generic add/link/create panels. */
   relations?: RelationSpec[]
@@ -157,7 +166,7 @@ export const REGISTRY: Record<string, EntityDef> = {
     { mode: "soft-backref", label: "Events", type: "event", hideWhenEmpty: true },
     { mode: "soft-backref", label: "Notes", type: "note" },
   ] },
-  task: { key: "task", label: "Task", crud: tasks, fields: TASK_FIELDS, title: (e) => e.title, entityType: "task", titleField: "title", quickCreate: true, extra: TaskDetail, detailHide: ["status", "priority", "scheduled_date", "due_date"], relations: [
+  task: { key: "task", label: "Task", crud: tasks, fields: TASK_FIELDS, title: (e) => e.title, entityType: "task", titleField: "title", quickCreate: true, detail: TaskRecord, relations: [
     { mode: "soft-backref", label: "Notes", type: "note", hideWhenEmpty: true },
   ] },
   delegation: { key: "delegation", label: "Delegation", crud: delegations, fields: DELEGATION_FIELDS, title: (e) => e.requested_outcome, entityType: "delegation", titleField: "requested_outcome", quickCreate: true, extra: DelegationDetail, detailHide: ["status", "priority", "date_delegated", "expected_completion_date", "follow_up_date", "escalation_level"], relations: [

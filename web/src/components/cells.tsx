@@ -15,6 +15,7 @@ import {
   usePeopleLookup,
   useProgramLookup,
   useProjectLookup,
+  useTaskLookup,
   useProtocolLookup,
   type LookupKey,
 } from "@/services/api/lookups"
@@ -32,6 +33,7 @@ const LOOKUP_HOOKS = {
   area: useAreaLookup,
   program: useProgramLookup,
   project: useProjectLookup,
+  task: useTaskLookup,
   people: usePeopleLookup,
   goal: useGoalLookup,
   metric: useMetricLookup,

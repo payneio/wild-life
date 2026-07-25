@@ -21,71 +21,24 @@ import type {
   Entity,
   Goal,
   MetricEntry,
-  Priority,
   Program,
   Project,
   Routine,
   Task,
-  TaskStatus,
 } from "@/services/api/types"
 import {
   Heatmap,
   ProgressRing,
-  ScheduleChips,
   Section,
-  Segmented,
   StatTile,
   Timeline,
 } from "@/components/detail/kit"
 import { daysFromToday } from "@/components/detail/dates"
 import { localDay, todayISO, ymd } from "@/lib/format"
 
-// --- Task: a command surface -------------------------------------------------
-const TASK_STEPS: { value: TaskStatus; label: string }[] = [
-  { value: "planned", label: "Planned" },
-  { value: "in_progress", label: "In progress" },
-  { value: "waiting", label: "Waiting" },
-  { value: "completed", label: "Done" },
-]
-const PRIORITY_STEPS: { value: Priority; label: string }[] = [
-  { value: "low", label: "Low" },
-  { value: "medium", label: "Med" },
-  { value: "high", label: "High" },
-  { value: "urgent", label: "Urgent" },
-]
-
-export function TaskDetail({ entity }: { entity: Entity }) {
-  const t = entity as Task
-  const update = tasks.useUpdate()
-  const set = (body: Record<string, unknown>) => update.mutate({ id: t.id, body })
-  const offStep = !TASK_STEPS.some((s) => s.value === t.status)
-  return (
-    <div className="space-y-4">
-      <Section title="Status" action={offStep ? <StatusBadge status={t.status} /> : undefined}>
-        <Segmented
-          options={TASK_STEPS}
-          value={t.status}
-          onChange={(v) => set({ status: v })}
-        />
-      </Section>
-      <Section title="Priority">
-        <Segmented
-          options={PRIORITY_STEPS}
-          value={t.priority}
-          onChange={(v) => set({ priority: v })}
-        />
-      </Section>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Section title="Scheduled">
-          <ScheduleChips value={t.scheduled_date} onSet={(d) => set({ scheduled_date: d })} />
-        </Section>
-        <Section title="Due">
-          <ScheduleChips value={t.due_date} onSet={(d) => set({ due_date: d })} />
-        </Section>
-      </div>
-    </div>
-  )
-}
+// Task's detail surface moved to `entities/task/Detail.tsx` — it composes the
+// `Record` primitives directly instead of inserting a fragment below the generic
+// field grid.
 
 // --- Project: progress + task board -----------------------------------------
 function TaskGroup({

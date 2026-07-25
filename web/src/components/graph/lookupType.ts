@@ -8,6 +8,7 @@ export const LOOKUP_TO_TYPE: Record<LookupKey, EntityType> = {
   area: "area",
   program: "program",
   project: "project",
+  task: "task",
   people: "person",
   goal: "goal",
   metric: "metric",

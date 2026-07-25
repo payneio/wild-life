@@ -11,6 +11,7 @@ import {
   programs,
   projects,
   protocols,
+  tasks,
 } from "@/services/api/hooks"
 
 export interface Option {
@@ -22,6 +23,7 @@ export type LookupKey =
   | "area"
   | "program"
   | "project"
+  | "task"
   | "people"
   | "goal"
   | "metric"
@@ -54,6 +56,7 @@ function useLookup(
 export const useAreaLookup = () => useLookup(areas.useList, "name")
 export const useProgramLookup = () => useLookup(programs.useList, "name")
 export const useProjectLookup = () => useLookup(projects.useList, "name")
+export const useTaskLookup = () => useLookup(tasks.useList, "title")
 export const usePeopleLookup = () => useLookup(people.useList, "name")
 export const useGoalLookup = () => useLookup(goals.useList, "name")
 export const useMetricLookup = () => useLookup(metrics.useList, "name")
