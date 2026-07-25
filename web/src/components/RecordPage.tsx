@@ -1,15 +1,14 @@
 import { useNavigate, useParams } from "react-router-dom"
 import { ChevronLeft } from "lucide-react"
-import { DetailSurface } from "@/components/record/DetailSurface"
 import { EmptyState } from "@/components/ui/primitives"
 import { REGISTRY } from "@/services/api/registry"
 import type { Entity } from "@/services/api/types"
 
 /**
  * Full-page ("workbench") frame for a single record. The item gets the whole
- * screen to work in — the same EditableRecord as the pane/modal, just variant
- * "page". Used for entities you go *into* to do work (Tasks, Projects, …) rather
- * than peek at beside a list.
+ * screen to work in — the same `detail` layout as the pane/modal, just framed
+ * standalone. Used for entities you go *into* to do work (Tasks, Projects, …)
+ * rather than peek at beside a list.
  */
 export function RecordPage({
   entityKey,
@@ -39,7 +38,7 @@ export function RecordPage({
       ) : isError || !data ? (
         <EmptyState>Not found.</EmptyState>
       ) : (
-        <DetailSurface def={def} entity={data as Entity} onClose={close} variant="page" />
+        <def.detail entity={data as Entity} onClose={close} />
       )}
     </div>
   )

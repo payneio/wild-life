@@ -56,7 +56,7 @@ Every registered object gets this **default representation set**:
 | **Reference** | a name/avatar chip standing in for the object | `RefName`, `cells.tsx` |
 | **Collection item** | one row in a list/launcher | `SimpleEntityPage` row, `TaskRow` |
 | **Selector** | a picker/autocomplete result | `EntityRefField` (`graph/`) |
-| **Detail + Editor** | the object's canonical surface | `entities/<obj>/Detail.tsx` (converted) · `EditableRecord` (legacy) |
+| **Detail + Editor** | the object's canonical surface | `entities/<obj>/Detail.tsx` |
 | **Visualization** | a bespoke rendering | calendar block, `GoalProgress` |
 
 **Detail and editor are fused.** Every field is content that's editable in place and
@@ -71,10 +71,13 @@ backlinks, timestamps) and the entity supplies the layout. Field primitives are
 *called*, never dispatched to by a type tag, and `recordFields<T>()` makes every
 `field` prop `keyof T`.
 
-The override is **total**: an object either has `def.detail` or falls back to the
-generic `EditableRecord`, never both. Partial overrides (the old `extra` +
-`detailHide` pair) forced two renderers to agree out-of-band about who drew what,
-which is how Task ended up rendering status, priority and its dates twice.
+`def.detail` is **required** — there is no generic field-grid renderer left to fall
+back to, so nothing can half-own a surface. The old partial-override shape (`extra` +
+`detailHide`) forced two renderers to agree out-of-band about who drew what, which is
+how Task ended up rendering status, priority and its dates twice.
+
+`def.fields` still exists, but only for the **create** form (`EntityForm`) and the
+list filter/sort config (`listFilter.ts`) — it no longer describes the detail view.
 
 Because a written layout *can* drop a field — worse than duplicating one, since the
 data becomes invisible and uneditable — every primitive registers the key it binds and
@@ -83,10 +86,10 @@ converted object's real detail against a complete fixture in `test/fixtures.ts` 
 fails on any unrendered, unexcused key. Deliberate omissions go in `omit` with a
 reason. Converting an object enrols it automatically; add its fixture at the same time.
 
-*Migration state:* task, tag, resource, location, decision, area, program, commitment,
-request, review, organization are converted. The rest still use `EditableRecord` +
-`fields`/`extra`. When the last one converts, `EditableRecord`, `EntityForm`'s field
-switch, `fields.ts`, `extra` and `detailHide` all become unreachable and get deleted.
+All 23 registered objects are converted. `EditableRecord`, `DetailSurface`, `extra`
+and `detailHide` are deleted. What remains of the old config-driven path is the
+*create* form: `EntityForm` still switches on `FieldSpec.type`, so that half of the
+DSL — and its drift risk — is still live. Converting it is the next step.
 
 ## 3. Framing — pane / modal / full-page
 

@@ -7,6 +7,8 @@ import {
   RecordRecurrence,
   RecordRef,
   RecordRoot,
+  RecordAttendees,
+  RecordMultiSelect,
   RecordSelect,
   RecordTags,
   RecordText,
@@ -51,6 +53,12 @@ export function recordFields<T>() {
     Ref: RecordRef as (p: { field: K; label?: string; lookup: LookupKey }) => ReactNode,
     Recurrence: RecordRecurrence as (p: { field: K; label?: string }) => ReactNode,
     Tags: RecordTags as (p: { field: K; label?: string }) => ReactNode,
+    MultiSelect: RecordMultiSelect as (p: {
+      field: K
+      label?: string
+      options: readonly string[]
+    }) => ReactNode,
+    Attendees: RecordAttendees as (p: { field: K; label?: string }) => ReactNode,
     /** Owns the entity_type/entity_id pair, so it takes no `field`. */
     Root: RecordRoot,
   }

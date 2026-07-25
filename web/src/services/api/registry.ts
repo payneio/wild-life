@@ -1,6 +1,5 @@
 import type { ComponentType } from "react"
 import type { FieldSpec } from "@/components/EntityForm"
-import { GoalDetail, ProjectDetail, RoutineDetail } from "@/components/detail/planning"
 import { TaskDetail as TaskRecord } from "@/entities/task/Detail"
 import { TagDetail as TagRecord } from "@/entities/tag/Detail"
 import { ResourceDetail as ResourceRecord } from "@/entities/resource/Detail"
@@ -18,8 +17,12 @@ import { AllergyDetail as AllergyRecord } from "@/entities/allergy/Detail"
 import { InsurancePlanDetail as InsurancePlanRecord } from "@/entities/insurancePlan/Detail"
 import { ProtocolDetail as ProtocolRecord } from "@/entities/protocol/Detail"
 import { MetricDetail as MetricRecord } from "@/entities/metric/Detail"
-import { DelegationDetail } from "@/components/detail/followup"
-import { EventDetail } from "@/components/detail/reference"
+import { ProjectDetail as ProjectRecord } from "@/entities/project/Detail"
+import { GoalDetail as GoalRecord } from "@/entities/goal/Detail"
+import { RoutineDetail as RoutineRecord } from "@/entities/routine/Detail"
+import { DelegationDetail as DelegationRecord } from "@/entities/delegation/Detail"
+import { NoteDetail as NoteRecord } from "@/entities/note/Detail"
+import { EventDetail as EventRecord } from "@/entities/event/Detail"
 import type { createCrud } from "@/services/api/crud"
 import type { Entity, EntityType } from "@/services/api/types"
 import {
@@ -81,19 +84,11 @@ export interface EntityDef {
   /** Whether this type can be created inline from a picker with just its title
    *  (i.e. its Create schema requires nothing beyond `titleField`). */
   quickCreate?: boolean
-  /** The entity's own detail layout, composed from the `Record` primitives.
-   *  When set it *fully* owns the surface and `fields`/`extra`/`detailHide` are
-   *  not consulted — see `DetailSurface`. Migrating an entity means adding this
-   *  and deleting its `extra`/`detailHide`. */
-  detail?: ComponentType<{ entity: Entity; onClose: () => void; onDelete?: () => void }>
-  /** Optional rich section shown below the shared field list in the detail view.
-   *  Legacy: superseded by `detail` for converted entities. */
-  extra?: ComponentType<{ entity: Entity }>
-  /** Fields the `extra` already renders — hidden from the generic facts grid.
-   *  Legacy and currently inert: `EditableRecord` never read it, and honouring
-   *  it now would make read-only extras (Location's address, Tag's colour)
-   *  uneditable. Removed per entity as each is converted to `detail`. */
-  detailHide?: string[]
+  /** The entity's detail layout, composed from the `Record` primitives. It owns
+   *  the whole surface — there is no generic field-grid renderer to coordinate
+   *  with, which is what made a field render twice. `fields` below is now only
+   *  the *create* form and the list filter/sort config. */
+  detail: ComponentType<{ entity: Entity; onClose: () => void; onDelete?: () => void }>
   /** Related collections rendered as generic add/link/create panels. */
   relations?: RelationSpec[]
   /** If set, the detail shows a polymorphic "primary context" picker (writes the
@@ -138,19 +133,19 @@ export const REGISTRY: Record<string, EntityDef> = {
     { mode: "soft-backref", label: "Events", type: "event", hideWhenEmpty: true },
     { mode: "soft-backref", label: "Notes", type: "note" },
   ] },
-  project: { key: "project", label: "Project", crud: projects, fields: PROJECT_FIELDS, title: (e) => e.name, entityType: "project", titleField: "name", quickCreate: true, extra: ProjectDetail, detailHide: ["next_action"], relations: [
+  project: { key: "project", label: "Project", crud: projects, fields: PROJECT_FIELDS, title: (e) => e.name, entityType: "project", titleField: "name", quickCreate: true, detail: ProjectRecord, relations: [
     { mode: "soft-backref", label: "Events", type: "event", hideWhenEmpty: true },
     { mode: "soft-backref", label: "Notes", type: "note" },
     { mode: "soft-backref", label: "Resources", type: "resource" },
     { mode: "soft-backref", label: "Decisions", type: "decision" },
   ] },
-  goal: { key: "goal", label: "Goal", crud: goals, fields: GOAL_FIELDS, title: (e) => e.name, entityType: "goal", titleField: "name", quickCreate: true, extra: GoalDetail, detailHide: ["progress"], relations: [
+  goal: { key: "goal", label: "Goal", crud: goals, fields: GOAL_FIELDS, title: (e) => e.name, entityType: "goal", titleField: "name", quickCreate: true, detail: GoalRecord, relations: [
     { mode: "soft-backref", label: "Notes", type: "note" },
   ] },
   metric: { key: "metric", label: "Metric", crud: metrics, fields: METRIC_FIELDS, title: (e) => e.name, entityType: "metric", titleField: "name", quickCreate: true, detail: MetricRecord, relations: [
     { mode: "fk-children", label: "Goals measured by this", type: "goal", fkField: "metric_id" },
   ] },
-  routine: { key: "routine", label: "Routine", crud: routines, fields: ROUTINE_FIELDS, title: (e) => e.activity ?? e.name ?? "Routine", entityType: "routine", titleField: "activity", quickCreate: true, extra: RoutineDetail },
+  routine: { key: "routine", label: "Routine", crud: routines, fields: ROUTINE_FIELDS, title: (e) => e.activity ?? e.name ?? "Routine", entityType: "routine", titleField: "activity", quickCreate: true, detail: RoutineRecord },
   program: { key: "program", label: "Program", crud: programs, fields: PROGRAM_FIELDS, title: (e) => e.name, entityType: "program", titleField: "name", quickCreate: true, detail: ProgramRecord, relations: [
     { mode: "fk-children", label: "Projects", type: "project", fkField: "program_id", inherit: ["area_id"] },
     { mode: "fk-children", label: "Metrics", type: "metric", fkField: "program_id", inherit: ["area_id"] },
@@ -161,7 +156,7 @@ export const REGISTRY: Record<string, EntityDef> = {
   task: { key: "task", label: "Task", crud: tasks, fields: TASK_FIELDS, title: (e) => e.title, entityType: "task", titleField: "title", quickCreate: true, detail: TaskRecord, relations: [
     { mode: "soft-backref", label: "Notes", type: "note", hideWhenEmpty: true },
   ] },
-  delegation: { key: "delegation", label: "Delegation", crud: delegations, fields: DELEGATION_FIELDS, title: (e) => e.requested_outcome, entityType: "delegation", titleField: "requested_outcome", quickCreate: true, extra: DelegationDetail, detailHide: ["status", "priority", "date_delegated", "expected_completion_date", "follow_up_date", "escalation_level"], relations: [
+  delegation: { key: "delegation", label: "Delegation", crud: delegations, fields: DELEGATION_FIELDS, title: (e) => e.requested_outcome, entityType: "delegation", titleField: "requested_outcome", quickCreate: true, detail: DelegationRecord, relations: [
     { mode: "soft-backref", label: "Notes", type: "note", hideWhenEmpty: true },
   ] },
   review: { key: "review", label: "Review", crud: reviews, fields: REVIEW_FIELDS, title: (e) => `${e.review_type} review`, entityType: "review", titleField: "review_type", detail: ReviewRecord, relations: [
@@ -172,8 +167,8 @@ export const REGISTRY: Record<string, EntityDef> = {
   ] },
   location: { key: "location", label: "Location", crud: locations, fields: LOCATION_FIELDS, title: (e) => e.name, entityType: "location", titleField: "name", quickCreate: true, detail: LocationRecord },
   protocol: { key: "protocol", label: "Protocol", crud: protocols, fields: PROTOCOL_FIELDS, title: (e) => e.name, entityType: "protocol", titleField: "name", quickCreate: true, detail: ProtocolRecord },
-  note: { key: "note", label: "Note", crud: notes, fields: NOTE_FIELDS, title: (e) => e.title || "(untitled)", entityType: "note", titleField: "title", contextLabel: "Filed in" },
-  event: { key: "event", label: "Event", crud: events, fields: EVENT_FIELDS, title: (e) => e.title, entityType: "event", titleField: "title", extra: EventDetail, detailHide: ["start_at", "end_at", "all_day"], contextLabel: "Filed in", relations: [
+  note: { key: "note", label: "Note", crud: notes, fields: NOTE_FIELDS, title: (e) => e.title || "(untitled)", entityType: "note", titleField: "title", detail: NoteRecord },
+  event: { key: "event", label: "Event", crud: events, fields: EVENT_FIELDS, title: (e) => e.title, entityType: "event", titleField: "title", detail: EventRecord, relations: [
     { mode: "soft-backref", label: "Notes", type: "note" },
   ] },
   commitment: { key: "commitment", label: "Commitment", crud: commitments, fields: COMMITMENT_FIELDS, title: (e) => e.description, entityType: "commitment", titleField: "description", quickCreate: true, detail: CommitmentRecord, relations: [

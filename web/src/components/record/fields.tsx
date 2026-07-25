@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, useState, type ReactNode } from "react"
 import { EntityRefField } from "@/components/graph/EntityRefField"
 import { RecurrenceEditor } from "@/components/RecurrenceEditor"
 import { NoteRootField } from "@/components/graph/NoteRootField"
+import { AttendeeEditor } from "@/components/calendar/AttendeeEditor"
 import { useField, useFields } from "@/components/record/context"
 import { instantToLocalInput, localInputToInstant } from "@/lib/date"
 import { cn } from "@/lib/utils"
@@ -392,6 +393,67 @@ export function RecordTags({ field, label }: { field: string; label?: string }) 
               .filter(Boolean),
           )
         }}
+      />
+    </Wrap>
+  )
+}
+
+/**
+ * A chip-toggle set over a string[] column.
+ *
+ * The generic editor had no `multiselect` case at all, so `timing` and
+ * `days_of_week` fell through to a text input and round-tripped an array as the
+ * string "morning,evening". Options outside the fixed list are still shown, so
+ * editing never silently drops a legacy value.
+ */
+export function RecordMultiSelect({
+  field,
+  label,
+  options,
+}: {
+  field: string
+  label?: string
+  options: readonly string[]
+}) {
+  const { value, save } = useField(field)
+  const selected = Array.isArray(value) ? (value as string[]) : []
+  const opts = [...options, ...selected.filter((s) => !options.includes(s))]
+  return (
+    <Wrap label={label} full>
+      <div className="flex flex-wrap gap-1.5">
+        {opts.map((o) => {
+          const on = selected.includes(o)
+          return (
+            <button
+              key={o}
+              type="button"
+              onClick={() =>
+                save(on ? selected.filter((x) => x !== o) : [...selected, o])
+              }
+              className={cn(
+                "rounded-full px-2.5 py-1 text-xs font-medium transition",
+                on
+                  ? "bg-indigo-600 text-on-accent"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200",
+              )}
+            >
+              {o}
+            </button>
+          )
+        })}
+      </div>
+    </Wrap>
+  )
+}
+
+/** Invite list — a chip editor over the raw attendee emails. */
+export function RecordAttendees({ field, label }: { field: string; label?: string }) {
+  const { value, save } = useField(field)
+  return (
+    <Wrap label={label} full>
+      <AttendeeEditor
+        value={Array.isArray(value) ? (value as string[]) : []}
+        onChange={(next) => save(next)}
       />
     </Wrap>
   )
