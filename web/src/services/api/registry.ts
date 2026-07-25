@@ -1,6 +1,5 @@
 import type { ComponentType } from "react"
 import type { FieldSpec } from "@/components/EntityForm"
-import { MetricExtra, ProtocolExtra } from "@/components/detailExtras"
 import { GoalDetail, ProjectDetail, RoutineDetail } from "@/components/detail/planning"
 import { TaskDetail as TaskRecord } from "@/entities/task/Detail"
 import { TagDetail as TagRecord } from "@/entities/tag/Detail"
@@ -13,13 +12,13 @@ import { CommitmentDetail as CommitmentRecord } from "@/entities/commitment/Deta
 import { RequestDetail as RequestRecord } from "@/entities/request/Detail"
 import { ReviewDetail as ReviewRecord } from "@/entities/review/Detail"
 import { OrganizationDetail as OrganizationRecord } from "@/entities/organization/Detail"
+import { ConditionDetail as ConditionRecord } from "@/entities/condition/Detail"
+import { MedicationDetail as MedicationRecord } from "@/entities/medication/Detail"
+import { AllergyDetail as AllergyRecord } from "@/entities/allergy/Detail"
+import { InsurancePlanDetail as InsurancePlanRecord } from "@/entities/insurancePlan/Detail"
+import { ProtocolDetail as ProtocolRecord } from "@/entities/protocol/Detail"
+import { MetricDetail as MetricRecord } from "@/entities/metric/Detail"
 import { DelegationDetail } from "@/components/detail/followup"
-import {
-  AllergyDetail,
-  ConditionDetail,
-  InsuranceDetail,
-  MedicationDetail,
-} from "@/components/detail/health"
 import { EventDetail } from "@/components/detail/reference"
 import type { createCrud } from "@/services/api/crud"
 import type { Entity, EntityType } from "@/services/api/types"
@@ -148,7 +147,7 @@ export const REGISTRY: Record<string, EntityDef> = {
   goal: { key: "goal", label: "Goal", crud: goals, fields: GOAL_FIELDS, title: (e) => e.name, entityType: "goal", titleField: "name", quickCreate: true, extra: GoalDetail, detailHide: ["progress"], relations: [
     { mode: "soft-backref", label: "Notes", type: "note" },
   ] },
-  metric: { key: "metric", label: "Metric", crud: metrics, fields: METRIC_FIELDS, title: (e) => e.name, entityType: "metric", titleField: "name", quickCreate: true, extra: MetricExtra, relations: [
+  metric: { key: "metric", label: "Metric", crud: metrics, fields: METRIC_FIELDS, title: (e) => e.name, entityType: "metric", titleField: "name", quickCreate: true, detail: MetricRecord, relations: [
     { mode: "fk-children", label: "Goals measured by this", type: "goal", fkField: "metric_id" },
   ] },
   routine: { key: "routine", label: "Routine", crud: routines, fields: ROUTINE_FIELDS, title: (e) => e.activity ?? e.name ?? "Routine", entityType: "routine", titleField: "activity", quickCreate: true, extra: RoutineDetail },
@@ -172,7 +171,7 @@ export const REGISTRY: Record<string, EntityDef> = {
     { mode: "fk-children", label: "Insurance plans", type: "insurance_plan", fkField: "organization_id" },
   ] },
   location: { key: "location", label: "Location", crud: locations, fields: LOCATION_FIELDS, title: (e) => e.name, entityType: "location", titleField: "name", quickCreate: true, detail: LocationRecord },
-  protocol: { key: "protocol", label: "Protocol", crud: protocols, fields: PROTOCOL_FIELDS, title: (e) => e.name, entityType: "protocol", titleField: "name", quickCreate: true, extra: ProtocolExtra },
+  protocol: { key: "protocol", label: "Protocol", crud: protocols, fields: PROTOCOL_FIELDS, title: (e) => e.name, entityType: "protocol", titleField: "name", quickCreate: true, detail: ProtocolRecord },
   note: { key: "note", label: "Note", crud: notes, fields: NOTE_FIELDS, title: (e) => e.title || "(untitled)", entityType: "note", titleField: "title", contextLabel: "Filed in" },
   event: { key: "event", label: "Event", crud: events, fields: EVENT_FIELDS, title: (e) => e.title, entityType: "event", titleField: "title", extra: EventDetail, detailHide: ["start_at", "end_at", "all_day"], contextLabel: "Filed in", relations: [
     { mode: "soft-backref", label: "Notes", type: "note" },
@@ -188,16 +187,16 @@ export const REGISTRY: Record<string, EntityDef> = {
   ] },
   resource: { key: "resource", label: "Resource", crud: resources, fields: RESOURCE_FIELDS, title: (e) => e.title, entityType: "resource", titleField: "title", quickCreate: true, detail: ResourceRecord },
   tag: { key: "tag", label: "Tag", crud: tags, fields: TAG_FIELDS, title: (e) => e.name, titleField: "name", quickCreate: true, detail: TagRecord },
-  condition: { key: "condition", label: "Condition", crud: conditions, fields: CONDITION_FIELDS, title: (e) => e.name, entityType: "condition", titleField: "name", quickCreate: true, extra: ConditionDetail, relations: [
+  condition: { key: "condition", label: "Condition", crud: conditions, fields: CONDITION_FIELDS, title: (e) => e.name, entityType: "condition", titleField: "name", quickCreate: true, detail: ConditionRecord, relations: [
     { mode: "fk-children", label: "Medications", type: "medication", fkField: "condition_id" },
     { mode: "fk-children", label: "Protocols", type: "protocol", fkField: "condition_id" },
     { mode: "fk-children", label: "Metrics (labs)", type: "metric", fkField: "condition_id" },
     { mode: "fk-children", label: "Goals", type: "goal", fkField: "condition_id" },
     { mode: "soft-backref", label: "Events", type: "event", hideWhenEmpty: true },
   ] },
-  medication: { key: "medication", label: "Medication", crud: medications, fields: MEDICATION_FIELDS, title: (e) => e.name, entityType: "medication", titleField: "name", quickCreate: true, extra: MedicationDetail },
-  insurancePlan: { key: "insurancePlan", label: "Insurance plan", crud: insurancePlans, fields: INSURANCE_FIELDS, title: (e) => e.name, entityType: "insurance_plan", titleField: "name", quickCreate: true, extra: InsuranceDetail, detailHide: ["member_id", "group_number", "rx_bin", "rx_pcn", "rx_group", "network", "phone"] },
-  allergy: { key: "allergy", label: "Allergy", crud: allergies, fields: ALLERGY_FIELDS, title: (e) => e.substance, entityType: "allergy", titleField: "substance", quickCreate: true, extra: AllergyDetail, detailHide: ["severity", "reaction"] },
+  medication: { key: "medication", label: "Medication", crud: medications, fields: MEDICATION_FIELDS, title: (e) => e.name, entityType: "medication", titleField: "name", quickCreate: true, detail: MedicationRecord },
+  insurancePlan: { key: "insurancePlan", label: "Insurance plan", crud: insurancePlans, fields: INSURANCE_FIELDS, title: (e) => e.name, entityType: "insurance_plan", titleField: "name", quickCreate: true, detail: InsurancePlanRecord },
+  allergy: { key: "allergy", label: "Allergy", crud: allergies, fields: ALLERGY_FIELDS, title: (e) => e.substance, entityType: "allergy", titleField: "substance", quickCreate: true, detail: AllergyRecord },
 }
 
 /** Registry keyed by `entityType` — used to resolve a relation's target def

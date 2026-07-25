@@ -1,12 +1,18 @@
 import type { CalendarDay, Instant, WallTime } from "@/lib/date"
 import type {
+  Allergy,
   Area,
   Commitment,
+  Condition,
   Decision,
   Entity,
+  InsurancePlan,
   Location,
+  Medication,
+  Metric,
   Organization,
   Program,
+  Protocol,
   Request,
   Resource,
   Review,
@@ -185,8 +191,100 @@ export const ORGANIZATION: Organization = {
   notes: null,
 }
 
+export const CONDITION: Condition = {
+  ...BASE,
+  name: "Plantar fasciitis",
+  category: "musculoskeletal",
+  status: "active",
+  severity: "moderate",
+  description: "Left heel, worse in the morning",
+  onset_date: "2026-05-02" as CalendarDay,
+  resolved_date: null,
+  diagnosed_by_id: null,
+  area_id: null,
+  program_id: null,
+  notes: null,
+}
+
+export const MEDICATION: Medication = {
+  ...BASE,
+  name: "Ibuprofen",
+  brand: "Advil",
+  med_type: "otc",
+  condition_id: null,
+  prescriber_id: null,
+  pharmacy_id: null,
+  reason: "Inflammation",
+  instructions: "With food",
+  notes: null,
+}
+
+export const ALLERGY: Allergy = {
+  ...BASE,
+  substance: "Penicillin",
+  allergy_type: "medication",
+  severity: "severe",
+  status: "active",
+  reaction: "Hives, swelling",
+  noted_on: "2019-03-11" as CalendarDay,
+  notes: null,
+}
+
+export const INSURANCE_PLAN: InsurancePlan = {
+  ...BASE,
+  name: "Premera Blue Cross PPO",
+  plan_type: "medical",
+  status: "active",
+  organization_id: null,
+  network: "PPO",
+  member_id: "ABC123456",
+  group_number: "1000042",
+  rx_bin: "003858",
+  rx_pcn: "A4",
+  rx_group: "RX7890",
+  phone: "800-555-0100",
+  notes: null,
+}
+
+export const PROTOCOL: Protocol = {
+  ...BASE,
+  name: "Heel rehab",
+  category: "physio",
+  intended_outcome: "Pain-free walking",
+  paused: false,
+  area_id: null,
+  program_id: null,
+  start_date: "2026-06-01" as CalendarDay,
+  end_date: null,
+  duration: "8 weeks",
+  condition_id: null,
+  provider_id: null,
+  notes: null,
+}
+
+export const METRIC: Metric = {
+  ...BASE,
+  name: "Resting heart rate",
+  area_id: null,
+  program_id: null,
+  condition_id: null,
+  unit: "bpm",
+  target_value: 55,
+  target_min: null,
+  target_max: 65,
+  measurement_frequency: "daily",
+  data_source: "Watch",
+  notes: null,
+}
+
 /** Keyed by `EntityDef.key`. Every def carrying a `detail` needs an entry. */
 export const FIXTURES: Record<string, Entity> = {
+  condition: CONDITION,
+  medication: MEDICATION,
+  allergy: ALLERGY,
+  insurancePlan: INSURANCE_PLAN,
+  protocol: PROTOCOL,
+  metric: METRIC,
   task: TASK,
   tag: TAG,
   resource: RESOURCE,
