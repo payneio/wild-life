@@ -4,6 +4,7 @@ import {
   RecordDate,
   RecordDateTime,
   RecordNumber,
+  RecordPhone,
   RecordRecurrence,
   RecordRef,
   RecordRoot,
@@ -65,6 +66,7 @@ export function recordFields<T>() {
         intent?: PickerIntent
       } & (null extends T[K2] ? { required?: false } : { required: true }),
     ) => ReactNode,
+    Phone: RecordPhone as (p: { field: K; label?: string; placeholder?: string }) => ReactNode,
     Recurrence: RecordRecurrence as (p: { field: K; label?: string }) => ReactNode,
     Tags: RecordTags as (p: { field: K; label?: string }) => ReactNode,
     MultiSelect: RecordMultiSelect as (p: {

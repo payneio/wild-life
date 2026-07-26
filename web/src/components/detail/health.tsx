@@ -12,6 +12,7 @@ import { Heatmap, Section, Timeline, type TimelineItem } from "@/components/deta
 import { LogDoseModal } from "@/components/LogDoseModal"
 import { cn } from "@/lib/utils"
 import { dayLabel, formatInstant, humanize, localDay } from "@/lib/format"
+import { formatPhone } from "@/lib/phone"
 
 // --- Condition: a care timeline -------------------------------------------
 // Medications / Protocols / Metrics / Goals / Health-events are now rendered by
@@ -220,7 +221,7 @@ export function InsuranceDetail({ entity }: { entity: Entity }) {
           href={`tel:${p.phone}`}
           className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:underline"
         >
-          Call {p.phone}
+          Call {formatPhone(p.phone)}
         </a>
       )}
     </div>

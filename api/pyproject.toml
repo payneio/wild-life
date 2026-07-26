@@ -21,6 +21,7 @@ dependencies = [
     # <7: icalendar 7.x has a parameter-parsing regression that crashes on some
     # real Proton invite exports (same pin the calendar-mail sidecar uses).
     "icalendar<7",
+    "phonenumbers>=9.0.34",
 ]
 
 [project.scripts]

@@ -28,7 +28,7 @@ export function OrganizationDetail({
       <RecordSection title="Contact">
         <F.Text field="website" label="Website" placeholder="https://…" />
         <F.Text field="email" label="Email" />
-        <F.Text field="phone" label="Phone" />
+        <F.Phone field="phone" label="Phone" />
         <F.Text field="address" label="Address" full />
       </RecordSection>
 

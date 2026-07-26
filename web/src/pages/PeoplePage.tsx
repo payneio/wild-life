@@ -59,6 +59,7 @@ import {
 } from "@/services/api/hooks"
 import { REGISTRY_BY_TYPE } from "@/services/api/registry"
 import type { ContactMethod, EntityType, Person } from "@/services/api/types"
+import { formatPhone, phoneDigits } from "@/lib/phone"
 
 // --- birthday helpers -------------------------------------------------------
 interface BdayInfo {
@@ -107,10 +108,13 @@ function MethodList({
   icon,
   rows,
   href,
+  display = (v) => v,
 }: {
   icon: React.ReactNode
   rows: ContactMethod[]
   href: (v: string) => string
+  /** Stored value → shown value. Phones store E.164 and show local form. */
+  display?: (v: string) => string
 }) {
   if (rows.length === 0) return null
   return (
@@ -124,10 +128,10 @@ function MethodList({
             target="_blank"
             rel="noreferrer"
           >
-            {r.value}
+            {display(r.value)}
           </a>
           {r.label && <span className="text-xs text-slate-400">{r.label}</span>}
-          <CopyButton text={r.value} />
+          <CopyButton text={display(r.value)} />
         </li>
       ))}
     </ul>
@@ -565,6 +569,7 @@ function PersonDetail({
                   icon={<Phone size={14} />}
                   rows={person.phones}
                   href={(v) => `tel:${v.replace(/[^+\d]/g, "")}`}
+                  display={formatPhone}
                 />
                 <MethodList
                   icon={<Mail size={14} />}
@@ -754,12 +759,14 @@ export function PeoplePage() {
       if (relFilter && p.relationship !== relFilter) return false
       if (tagFilter && !tagPersonIds.has(p.id)) return false
       if (!q) return true
-      const hay = [
-        p.name,
-        p.nickname,
-        ...p.emails.map((e) => e.value),
-        ...p.phones.map((e) => e.value),
-      ]
+      // Phones are matched on digits alone, so "2063996403", "206-399-6403" and
+      // "(206) 399" all find the same person — you type the number, not the
+      // punctuation it happens to be stored or displayed with.
+      const qDigits = phoneDigits(q)
+      if (qDigits.length >= 3 && p.phones.some((e) => phoneDigits(e.value).includes(qDigits))) {
+        return true
+      }
+      const hay = [p.name, p.nickname, ...p.emails.map((e) => e.value)]
         .filter(Boolean)
         .join(" ")
         .toLowerCase()
@@ -885,7 +892,7 @@ export function PeoplePage() {
                         <span className="block truncate text-xs text-slate-400">
                           {p.job_title ||
                             p.emails[0]?.value ||
-                            p.phones[0]?.value ||
+                            formatPhone(p.phones[0]?.value) ||
                             ""}
                         </span>
                       </span>

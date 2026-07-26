@@ -3,8 +3,11 @@
 import uuid
 from datetime import date, datetime
 
-from pydantic import BaseModel
+from typing import Annotated
 
+from pydantic import BaseModel, BeforeValidator
+
+from wild_life.phone import normalize_methods
 from wild_life.schemas.common import Entity
 
 
@@ -13,6 +16,14 @@ class ContactMethod(BaseModel):
 
     value: str
     label: str | None = None
+
+
+# `ContactMethod` is shared by phones, emails and addresses, so canonicalisation
+# binds to the phone *fields* rather than the model.
+PhoneMethods = Annotated[list[ContactMethod], BeforeValidator(normalize_methods)]
+OptionalPhoneMethods = Annotated[
+    list[ContactMethod] | None, BeforeValidator(normalize_methods)
+]
 
 
 class ImportantDate(BaseModel):
@@ -29,7 +40,7 @@ class PersonCreate(BaseModel):
     specialty: str | None = None
     patient_id: str | None = None
     portal_url: str | None = None
-    phones: list[ContactMethod] = []
+    phones: PhoneMethods = []
     emails: list[ContactMethod] = []
     addresses: list[ContactMethod] = []
     websites: list[str] = []
@@ -48,7 +59,7 @@ class PersonUpdate(BaseModel):
     specialty: str | None = None
     patient_id: str | None = None
     portal_url: str | None = None
-    phones: list[ContactMethod] | None = None
+    phones: OptionalPhoneMethods = None
     emails: list[ContactMethod] | None = None
     addresses: list[ContactMethod] | None = None
     websites: list[str] | None = None

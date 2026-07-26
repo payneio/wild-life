@@ -8,6 +8,7 @@ import { instantToLocalInput, localInputToInstant } from "@/lib/date"
 import { cn } from "@/lib/utils"
 import type { LookupKey } from "@/services/api/lookups"
 import type { PickerIntent } from "@/services/api/mentions"
+import { formatPhone, formatWhileTyping, toE164 } from "@/lib/phone"
 
 /**
  * The record field vocabulary.
@@ -162,6 +163,43 @@ export function RecordText({
         onBlur={() => {
           setFocused(false)
           save(orNull(draft))
+        }}
+      />
+    </Wrap>
+  )
+}
+
+/**
+ * A phone number. Formats as you type — `2063996403` becomes `(206) 399-6403`
+ * under the caret — and commits E.164, matching what the API stores. Unfocused,
+ * it renders the stored E.164 back in local form, so old rows and new ones look
+ * identical.
+ */
+export function RecordPhone({
+  field,
+  label,
+  placeholder,
+}: {
+  field: string
+  label?: string
+  placeholder?: string
+}) {
+  const { value, save } = useField(field)
+  const { draft, setDraft, setFocused } = useDraft(value, (v) => formatPhone(asText(v)))
+  return (
+    <Wrap label={label}>
+      <input
+        type="tel"
+        inputMode="tel"
+        autoComplete="tel"
+        value={draft}
+        placeholder={placeholder ?? "—"}
+        className={GHOST}
+        onFocus={() => setFocused(true)}
+        onChange={(e) => setDraft(formatWhileTyping(e.target.value, draft))}
+        onBlur={() => {
+          setFocused(false)
+          save(orNull(toE164(draft)))
         }}
       />
     </Wrap>

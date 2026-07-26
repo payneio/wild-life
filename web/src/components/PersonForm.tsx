@@ -4,6 +4,7 @@ import { Plus, Trash2 } from "lucide-react"
 import { Button, Field, Input, Select } from "@/components/ui/primitives"
 import type { Body } from "@/services/api/crud"
 import type { ContactMethod, ImportantDate, Person } from "@/services/api/types"
+import { formatPhone, formatWhileTyping, toE164 } from "@/lib/phone"
 
 const LABELS = ["mobile", "home", "work", "main", "other", "company", "custom"]
 
@@ -16,11 +17,17 @@ function MethodRows({
   rows,
   onChange,
   placeholder,
+  formatValue,
+  commitValue,
 }: {
   title: string
   rows: ContactMethod[]
   onChange: (rows: ContactMethod[]) => void
   placeholder: string
+  /** Reformat under the caret as the user types (phones only). */
+  formatValue?: (next: string, prev: string) => string
+  /** Canonicalise on blur — what actually gets stored. */
+  commitValue?: (v: string) => string
 }) {
   const set = (i: number, patch: Partial<ContactMethod>) =>
     onChange(rows.map((r, j) => (j === i ? { ...r, ...patch } : r)))
@@ -41,9 +48,15 @@ function MethodRows({
           <div key={i} className="flex gap-1.5">
             <Input
               className="flex-1"
+              type={formatValue ? "tel" : undefined}
               value={r.value}
               placeholder={placeholder}
-              onChange={(e) => set(i, { value: e.target.value })}
+              onChange={(e) =>
+                set(i, {
+                  value: formatValue ? formatValue(e.target.value, r.value) : e.target.value,
+                })
+              }
+              onBlur={commitValue ? () => set(i, { value: commitValue(r.value) }) : undefined}
             />
             <Input
               className="w-28"
@@ -186,7 +199,11 @@ export function PersonForm({
   const [portalUrl, setPortalUrl] = useState(initial?.portal_url ?? "")
   const [preferred, setPreferred] = useState(initial?.preferred_contact ?? "")
   const [birthday, setBirthday] = useState(initial?.birthday ?? "")
-  const [phones, setPhones] = useState<ContactMethod[]>(initial?.phones ?? [])
+  // Seeded in display form: stored phones are E.164, and editing "+12063996403"
+  // is nobody's idea of a good time. The API re-normalises on save.
+  const [phones, setPhones] = useState<ContactMethod[]>(
+    () => initial?.phones?.map((p) => ({ ...p, value: formatPhone(p.value) })) ?? [],
+  )
   const [emails, setEmails] = useState<ContactMethod[]>(initial?.emails ?? [])
   const [addresses, setAddresses] = useState<ContactMethod[]>(initial?.addresses ?? [])
   const [websites, setWebsites] = useState<string[]>(initial?.websites ?? [])
@@ -265,7 +282,14 @@ export function PersonForm({
         />
       </Field>
 
-      <MethodRows title="Phones" rows={phones} onChange={setPhones} placeholder="+1 555…" />
+      <MethodRows
+        title="Phones"
+        rows={phones}
+        onChange={setPhones}
+        placeholder="(206) 555-0134"
+        formatValue={formatWhileTyping}
+        commitValue={toE164}
+      />
       <MethodRows
         title="Emails"
         rows={emails}

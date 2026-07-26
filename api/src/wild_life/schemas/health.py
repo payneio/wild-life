@@ -6,7 +6,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-from wild_life.schemas.common import Entity
+from wild_life.schemas.common import Entity, PhoneNumber
 
 # --- enums ------------------------------------------------------------------
 ConditionCategory = Literal[
@@ -166,7 +166,7 @@ class InsurancePlanCreate(BaseModel):
     rx_bin: str | None = None
     rx_pcn: str | None = None
     rx_group: str | None = None
-    phone: str | None = None
+    phone: PhoneNumber = None
     status: PlanStatus = "active"
     notes: str | None = None
 
@@ -181,7 +181,7 @@ class InsurancePlanUpdate(BaseModel):
     rx_bin: str | None = None
     rx_pcn: str | None = None
     rx_group: str | None = None
-    phone: str | None = None
+    phone: PhoneNumber = None
     status: PlanStatus | None = None
     notes: str | None = None
 

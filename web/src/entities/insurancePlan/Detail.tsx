@@ -5,6 +5,7 @@ import { recordFields } from "@/components/record/typed"
 import { PLAN_STATUS, PLAN_TYPE } from "@/services/api/enums"
 import { REGISTRY } from "@/services/api/registry"
 import type { Entity, InsurancePlan } from "@/services/api/types"
+import { formatPhone } from "@/lib/phone"
 
 const F = recordFields<InsurancePlan>()
 
@@ -19,7 +20,7 @@ function CallLink() {
       href={`tel:${phone}`}
       className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:underline sm:col-span-2"
     >
-      <Phone size={14} /> Call {phone}
+      <Phone size={14} /> Call {formatPhone(phone)}
     </a>
   )
 }
@@ -52,7 +53,7 @@ export function InsurancePlanDetail({
           <F.Text field="rx_bin" label="RX BIN" />
           <F.Text field="rx_pcn" label="RX PCN" />
           <F.Text field="rx_group" label="RX Group" />
-          <F.Text field="phone" label="Phone" />
+          <F.Phone field="phone" label="Phone" />
           <CallLink />
         </RecordSection>
       </div>

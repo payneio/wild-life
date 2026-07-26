@@ -6,7 +6,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-from wild_life.schemas.common import Entity
+from wild_life.schemas.common import Entity, PhoneNumber
 
 OrgType = Literal[
     "employer",
@@ -28,7 +28,7 @@ class OrganizationCreate(BaseModel):
     industry: str | None = None
     website: str | None = None
     email: str | None = None
-    phone: str | None = None
+    phone: PhoneNumber = None
     address: str | None = None
     description: str | None = None
     status: OrgStatus = "active"
@@ -41,7 +41,7 @@ class OrganizationUpdate(BaseModel):
     industry: str | None = None
     website: str | None = None
     email: str | None = None
-    phone: str | None = None
+    phone: PhoneNumber = None
     address: str | None = None
     description: str | None = None
     status: OrgStatus | None = None

@@ -1180,6 +1180,15 @@ wheels = [
 ]
 
 [[package]]
+name = "phonenumbers"
+version = "9.0.34"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/86/c3/e154829a50679c38ae28ec9c4f151f2c425db5e70fd445266e76f6d6cd65/phonenumbers-9.0.34.tar.gz", hash = "sha256:00751c75d1166485ca80ce02ec15b6a61a2628e9b313381579330bc70c934075", size = 2306776, upload-time = "2026-07-03T06:30:37.358Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/16/0a/3a7980f3b071dde9a297d85cf6b18ba4bc2e5024e1c453b3da8a1dc14268/phonenumbers-9.0.34-py2.py3-none-any.whl", hash = "sha256:1221bf8e65bd2c02770226488af806d4636814bc997104d3a1f7de6ed6410bd2", size = 2595344, upload-time = "2026-07-03T06:30:33.913Z" },
+]
+
+[[package]]
 name = "platformdirs"
 version = "4.10.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2049,6 +2058,7 @@ dependencies = [
     { name = "greenlet" },
     { name = "httpx" },
     { name = "icalendar" },
+    { name = "phonenumbers" },
     { name = "psycopg", extra = ["binary"] },
     { name = "pydantic-settings" },
     { name = "python-dateutil" },
@@ -2075,6 +2085,7 @@ requires-dist = [
     { name = "greenlet", specifier = ">=3.0.0" },
     { name = "httpx", specifier = ">=0.27.0" },
     { name = "icalendar", specifier = "<7" },
+    { name = "phonenumbers", specifier = ">=9.0.34" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.1.0" },
     { name = "pydantic-settings", specifier = ">=2.0.0" },
     { name = "python-dateutil", specifier = ">=2.9.0.post0" },

@@ -2,9 +2,11 @@
 
 import uuid
 from datetime import datetime
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, BeforeValidator, ConfigDict
+
+from wild_life.phone import normalize_phone
 
 # --- shared enums -----------------------------------------------------------
 Priority = Literal["low", "medium", "high", "urgent"]
@@ -87,6 +89,13 @@ EntityType = Literal[
     "insurance_plan",
     "allergy",
 ]
+
+
+# --- canonical scalars ------------------------------------------------------
+# Phones are stored E.164 (see `wild_life.phone`). Normalising here rather than
+# in a route means every writer gets it — the web app, the OpenAPI-derived MCP
+# tools, and any import script.
+PhoneNumber = Annotated[str | None, BeforeValidator(normalize_phone)]
 
 
 # --- base models ------------------------------------------------------------
