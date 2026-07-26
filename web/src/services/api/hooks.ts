@@ -227,6 +227,13 @@ export function useNotesLinkedTo(type: EntityType | null, id: string | null) {
   })
 }
 
+// The three below each read from *two* tables (events + entity_links, or
+// attendee_responses + sent_invites), and a query key has only one prefix — so
+// the child-resource rule documented under "nested / relationship reads" can't
+// be applied cleanly here. They stay keyed by the parent and lean on the
+// explicit invalidate in their mutations; a real fix needs invalidation to
+// accept a set of resources, not one prefix.
+
 /** Events a person is linked to (as an attendee) — the people-graph payoff. */
 export function usePersonEvents(id: string | null) {
   return useQuery({
@@ -304,9 +311,15 @@ export function useSetPreference(key: string) {
 }
 
 // --- nested / relationship reads ---
+//
+// A nested query's key MUST start with the resource whose *changes* should
+// refresh it — the child, not the parent. The SSE stream invalidates by the
+// changed row's table (`live.ts`), so `["metrics", id, "entries"]` never heard
+// about a new metric entry: that fires `["metric-entries"]`. The endpoint the
+// data comes from is irrelevant; what matters is what makes it stale.
 export function usePersonInteractions(personId: string | null) {
   return useQuery({
-    queryKey: ["people", personId, "interactions"],
+    queryKey: ["interactions", "by-person", personId],
     queryFn: () => apiClient.get<Interaction[]>(`/people/${personId}/interactions`),
     enabled: !!personId,
   })
@@ -315,7 +328,7 @@ export function usePersonInteractions(personId: string | null) {
 // --- person <-> organization affiliations ---
 export function usePersonAffiliations(personId: string | null) {
   return useQuery({
-    queryKey: ["people", personId, "affiliations"],
+    queryKey: ["affiliations", "by-person", personId],
     queryFn: () => apiClient.get<Affiliation[]>(`/people/${personId}/affiliations`),
     enabled: !!personId,
   })
@@ -323,7 +336,7 @@ export function usePersonAffiliations(personId: string | null) {
 
 export function useOrganizationAffiliations(orgId: string | null) {
   return useQuery({
-    queryKey: ["organizations", orgId, "affiliations"],
+    queryKey: ["affiliations", "by-organization", orgId],
     queryFn: () => apiClient.get<Affiliation[]>(`/organizations/${orgId}/affiliations`),
     enabled: !!orgId,
   })
@@ -350,7 +363,7 @@ export function useDeleteAffiliation() {
 
 export function useMetricEntries(metricId: string | null) {
   return useQuery({
-    queryKey: ["metrics", metricId, "entries"],
+    queryKey: ["metric-entries", "by-metric", metricId],
     queryFn: () => apiClient.get<MetricEntry[]>(`/metrics/${metricId}/entries`),
     enabled: !!metricId,
   })
@@ -358,7 +371,7 @@ export function useMetricEntries(metricId: string | null) {
 
 export function useRoutineInstances(routineId: string | null) {
   return useQuery({
-    queryKey: ["routines", routineId, "instances"],
+    queryKey: ["routine-instances", "by-routine", routineId],
     queryFn: () => apiClient.get<RoutineInstance[]>(`/routines/${routineId}/instances`),
     enabled: !!routineId,
   })
@@ -415,7 +428,7 @@ export function useLogDose() {
 // --- goal <-> project links + computed progress ---
 export function useGoalProjects(goalId: string | null) {
   return useQuery({
-    queryKey: ["goals", goalId, "projects"],
+    queryKey: ["goal-projects", "by-goal", goalId],
     queryFn: () => apiClient.get<Project[]>(`/goals/${goalId}/projects`),
     enabled: !!goalId,
   })
