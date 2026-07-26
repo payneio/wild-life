@@ -14,6 +14,7 @@ import {
   CONDITION_STATUS,
   DELEGATION_STATUS,
   EVENT_TYPE,
+  MEASUREMENT_FREQUENCIES,
   MED_TYPE,
   ORG_STATUS,
   PLAN_TYPE,
@@ -295,7 +296,7 @@ export const METRIC_FIELDS: FieldSpec[] = [
   { name: "target_value", label: "Target", type: "number" },
   { name: "target_min", label: "Target min", type: "number" },
   { name: "target_max", label: "Target max", type: "number" },
-  { name: "measurement_frequency", label: "Frequency" },
+  { name: "measurement_frequency", label: "Reading cadence", type: "select", options: MEASUREMENT_FREQUENCIES },
   { name: "data_source", label: "Data source" },
   { name: "notes", label: "Notes", type: "textarea", full: true },
 ]

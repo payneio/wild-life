@@ -1,11 +1,11 @@
 """Schemas for Metric and MetricEntry."""
 
 import uuid
-from datetime import date
+from datetime import datetime
 
 from pydantic import BaseModel
 
-from wild_life.schemas.common import Entity
+from wild_life.schemas.common import Entity, MeasurementFrequency
 
 
 class MetricCreate(BaseModel):
@@ -17,7 +17,7 @@ class MetricCreate(BaseModel):
     target_value: float | None = None
     target_min: float | None = None
     target_max: float | None = None
-    measurement_frequency: str | None = None
+    measurement_frequency: MeasurementFrequency | None = None
     data_source: str | None = None
     notes: str | None = None
 
@@ -31,7 +31,7 @@ class MetricUpdate(BaseModel):
     target_value: float | None = None
     target_min: float | None = None
     target_max: float | None = None
-    measurement_frequency: str | None = None
+    measurement_frequency: MeasurementFrequency | None = None
     data_source: str | None = None
     notes: str | None = None
 
@@ -45,26 +45,26 @@ class MetricRead(Entity):
     target_value: float | None
     target_min: float | None
     target_max: float | None
-    measurement_frequency: str | None
+    measurement_frequency: MeasurementFrequency | None
     data_source: str | None
     notes: str | None
 
 
 class MetricEntryCreate(BaseModel):
     metric_id: uuid.UUID
-    entry_date: date
+    recorded_at: datetime
     value: float
     notes: str | None = None
 
 
 class MetricEntryUpdate(BaseModel):
-    entry_date: date | None = None
+    recorded_at: datetime | None = None
     value: float | None = None
     notes: str | None = None
 
 
 class MetricEntryRead(Entity):
     metric_id: uuid.UUID
-    entry_date: date
+    recorded_at: datetime
     value: float
     notes: str | None

@@ -26,6 +26,9 @@ TaskStatus = Literal[
     "cancelled",
 ]
 RoutineStatus = Literal["active", "paused", "archived"]
+# How often a metric is expected to be read. Its one effect: the review dashboard
+# flags a metric whose latest entry is older than this (see routers/reviews.py).
+MeasurementFrequency = Literal["daily", "weekly", "monthly", "quarterly", "yearly"]
 RoutineInstanceStatus = Literal["pending", "done", "skipped"]
 GoalStatus = Literal["active", "achieved", "paused", "dropped"]
 CommitmentStatus = Literal[

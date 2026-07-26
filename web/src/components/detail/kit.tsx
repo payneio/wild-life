@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import { daysFromToday, shiftDays, todayISO } from "@/components/detail/dates"
 import { localDay, ymd } from "@/lib/format"
+import { compareInstants } from "@/lib/date"
 import type { CalendarDay, Instant } from "@/lib/date"
 
 /** Shared building blocks for the bespoke entity detail views. All colors go
@@ -397,5 +398,45 @@ export function Heatmap({
         </div>
       ))}
     </div>
+  )
+}
+
+// --- metric sparkline -------------------------------------------------------
+/** Value-over-time polyline for a metric's entries. One implementation, because
+ *  two of these had already drifted apart in size and padding — and would have
+ *  drifted again the next time the entry's time field was renamed. Points are
+ *  evenly spaced by rank, not by elapsed time: this is a shape, not a chart. */
+export function Sparkline({
+  entries,
+  width = 240,
+  height = 40,
+  pad = 0,
+}: {
+  entries: { value: number; recorded_at: Instant }[]
+  width?: number
+  height?: number
+  pad?: number
+}) {
+  if (entries.length < 2) return null
+  const sorted = [...entries].sort((a, b) => compareInstants(a.recorded_at, b.recorded_at))
+  const vals = sorted.map((e) => e.value)
+  const min = Math.min(...vals)
+  const span = Math.max(...vals) - min || 1
+  const points = sorted
+    .map((e, i) => {
+      const x = (i / (sorted.length - 1)) * width
+      const y = height - ((e.value - min) / span) * (height - pad * 2) - pad
+      return `${x.toFixed(1)},${y.toFixed(1)}`
+    })
+    .join(" ")
+  return (
+    <svg
+      width="100%"
+      viewBox={`0 0 ${width} ${height}`}
+      className="text-indigo-500"
+      preserveAspectRatio="none"
+    >
+      <polyline points={points} fill="none" stroke="currentColor" strokeWidth={1.5} />
+    </svg>
   )
 }

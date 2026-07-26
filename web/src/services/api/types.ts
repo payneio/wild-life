@@ -77,6 +77,7 @@ export type ProgramStatus = Program["status"]
 export type ProjectStatus = Project["status"]
 export type TaskStatus = Task["status"]
 export type RoutineStatus = Routine["status"]
+export type MeasurementFrequency = NonNullable<Metric["measurement_frequency"]>
 export type RoutineInstanceStatus = RoutineInstance["status"]
 export type GoalStatus = Goal["status"]
 export type CommitmentStatus = Commitment["status"]

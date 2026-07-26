@@ -107,7 +107,7 @@ async def goal_computed_progress(
         latest = await session.execute(
             select(MetricEntry.value)
             .where(MetricEntry.metric_id == goal.metric_id)
-            .order_by(MetricEntry.entry_date.desc())
+            .order_by(MetricEntry.recorded_at.desc())
             .limit(1)
         )
         latest_value = latest.scalar_one_or_none()
@@ -115,7 +115,7 @@ async def goal_computed_progress(
             earliest = await session.execute(
                 select(MetricEntry.value)
                 .where(MetricEntry.metric_id == goal.metric_id)
-                .order_by(MetricEntry.entry_date.asc())
+                .order_by(MetricEntry.recorded_at.asc())
                 .limit(1)
             )
             baseline_val = earliest.scalar_one_or_none()

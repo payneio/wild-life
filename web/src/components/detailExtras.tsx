@@ -1,19 +1,24 @@
 import { useState, type ReactNode } from "react"
 import { AffiliationsEditor } from "@/components/AffiliationsEditor"
 import { RefName } from "@/components/cells"
-import { Segmented } from "@/components/detail/kit"
+import { Segmented, Sparkline } from "@/components/detail/kit"
 import { SubRecord } from "@/components/record/Record"
 import { useFields } from "@/components/record/context"
 import { recordFields } from "@/components/record/typed"
 import { SLOTS, WEEKDAYS } from "@/lib/slots"
 import { Button, EmptyState, Input } from "@/components/ui/primitives"
-import { formatDate } from "@/lib/utils"
-import { todayISO } from "@/lib/format"
+import {
+  compareInstants,
+  dayLabel,
+  formatClock,
+  instantToLocalInput,
+  localInputToInstant,
+  nowInstant,
+} from "@/lib/date"
 import { metricEntries, routines, useMetricEntries } from "@/services/api/hooks"
 import type {
   Entity,
   Metric,
-  MetricEntry,
   Protocol,
   Routine,
 } from "@/services/api/types"
@@ -35,64 +40,51 @@ function ExtraSection({ title, children }: { title: string; children: ReactNode 
 // rendered by the generic RelatedPanel from `area.relations` — navigable and
 // with inline add/create — so AreaExtra is gone.
 
-function Sparkline({ entries }: { entries: MetricEntry[] }) {
-  if (entries.length < 2) return null
-  const sorted = [...entries].sort((a, b) => a.entry_date.localeCompare(b.entry_date))
-  const vals = sorted.map((e) => e.value)
-  const min = Math.min(...vals)
-  const max = Math.max(...vals)
-  const span = max - min || 1
-  const w = 240
-  const h = 40
-  const pts = sorted
-    .map((e, i) => {
-      const x = (i / (sorted.length - 1)) * w
-      const y = h - ((e.value - min) / span) * h
-      return `${x.toFixed(1)},${y.toFixed(1)}`
-    })
-    .join(" ")
-  return (
-    <svg width={w} height={h} className="text-indigo-500">
-      <polyline points={pts} fill="none" stroke="currentColor" strokeWidth={1.5} />
-    </svg>
-  )
-}
-
 export function MetricExtra({ entity }: { entity: Entity }) {
   const metric = entity as Metric
   const { data } = useMetricEntries(metric.id)
   const create = metricEntries.useCreate()
   const [value, setValue] = useState("")
-  const [date, setDate] = useState("")
+  // Capture already knows *when* — you're recording a reading you just took — so
+  // "when" is prefilled with now and only touched to back-date one. Blank is not
+  // a state worth having; it just means today, which is what now already says.
+  const [when, setWhen] = useState(() => instantToLocalInput(nowInstant()))
   const list = data ?? []
-  const recent = [...list].sort((a, b) => b.entry_date.localeCompare(a.entry_date))
+  const recent = [...list].sort((a, b) => compareInstants(b.recorded_at, a.recorded_at))
+
+  const add = () => {
+    if (!value.trim()) return
+    create.mutate({
+      metric_id: metric.id,
+      value: Number(value),
+      recorded_at: localInputToInstant(when) ?? nowInstant(),
+    })
+    setValue("")
+    setWhen(instantToLocalInput(nowInstant()))
+  }
+
   return (
     <div className="space-y-3">
       <ExtraSection title="Trend">
         {list.length < 2 ? <p className="text-sm text-slate-400">Need ≥2 entries.</p> : <Sparkline entries={list} />}
       </ExtraSection>
       <div className="flex gap-2">
-        <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+        <Input
+          type="datetime-local"
+          value={when}
+          onChange={(e) => setWhen(e.target.value)}
+          className="w-auto"
+        />
         <Input
           type="number"
           placeholder={metric.unit ?? "value"}
           value={value}
           onChange={(e) => setValue(e.target.value)}
-        />
-        <Button
-          variant="secondary"
-          onClick={() => {
-            if (value) {
-              create.mutate({
-                metric_id: metric.id,
-                value: Number(value),
-                entry_date: date || todayISO(),
-              })
-              setValue("")
-              setDate("")
-            }
+          onKeyDown={(e) => {
+            if (e.key === "Enter") add()
           }}
-        >
+        />
+        <Button variant="secondary" onClick={add}>
           Add
         </Button>
       </div>
@@ -102,9 +94,14 @@ export function MetricExtra({ entity }: { entity: Entity }) {
         ) : (
           <ul className="max-h-48 space-y-1 overflow-y-auto text-sm">
             {recent.map((e) => (
-              <li key={e.id} className="flex justify-between border-b border-slate-50 py-1">
-                <span>{formatDate(e.entry_date)}</span>
-                <span className="font-medium">
+              <li key={e.id} className="flex justify-between gap-3 border-b border-slate-50 py-1">
+                <span className="flex min-w-0 gap-2">
+                  <span className="truncate">{dayLabel(e.recorded_at)}</span>
+                  {/* The whole point of storing an instant: several readings a
+                      day are only distinguishable by their time. */}
+                  <span className="shrink-0 text-slate-400">{formatClock(e.recorded_at)}</span>
+                </span>
+                <span className="shrink-0 font-medium">
                   {e.value}
                   {metric.unit ? ` ${metric.unit}` : ""}
                 </span>

@@ -20,7 +20,6 @@ import {
 import type {
   Entity,
   Goal,
-  MetricEntry,
   Program,
   Project,
   Routine,
@@ -30,6 +29,7 @@ import {
   Heatmap,
   ProgressRing,
   Section,
+  Sparkline,
   StatTile,
   Timeline,
 } from "@/components/detail/kit"
@@ -195,29 +195,6 @@ export function ProgramDetail({ entity }: { entity: Entity }) {
 }
 
 // --- Goal: progress ring + linked projects ----------------------------------
-function Sparkline({ entries }: { entries: MetricEntry[] }) {
-  if (entries.length < 2) return null
-  const sorted = [...entries].sort((a, b) => a.entry_date.localeCompare(b.entry_date))
-  const vals = sorted.map((e) => e.value)
-  const min = Math.min(...vals)
-  const max = Math.max(...vals)
-  const span = max - min || 1
-  const w = 280
-  const h = 48
-  const pts = sorted
-    .map((e, i) => {
-      const x = (i / (sorted.length - 1)) * w
-      const y = h - ((e.value - min) / span) * (h - 4) - 2
-      return `${x.toFixed(1)},${y.toFixed(1)}`
-    })
-    .join(" ")
-  return (
-    <svg width="100%" viewBox={`0 0 ${w} ${h}`} className="text-indigo-500">
-      <polyline points={pts} fill="none" stroke="currentColor" strokeWidth={1.5} />
-    </svg>
-  )
-}
-
 export function GoalDetail({ entity }: { entity: Entity }) {
   const goal = entity as Goal
   const linked = useGoalProjects(goal.id).data ?? []

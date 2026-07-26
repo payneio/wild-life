@@ -58,6 +58,11 @@ export const isPast = (d: CalendarDay): boolean => Temporal.PlainDate.compare(d,
 export const compareDays = (a: CalendarDay, b: CalendarDay): number =>
   Temporal.PlainDate.compare(a, b)
 
+/** Chronological order for two instants. Not `localeCompare`: two ISO stamps for
+ *  the same moment can carry different offsets, and those don't sort as text. */
+export const compareInstants = (a: Instant, b: Instant): number =>
+  Temporal.Instant.compare(a, b)
+
 // --- arithmetic -------------------------------------------------------------
 export const addDays = (d: CalendarDay, n: number): CalendarDay =>
   asDayBrand(Temporal.PlainDate.from(d).add({ days: n }).toString())
@@ -141,6 +146,20 @@ export const formatInstant = (
       })
   } catch {
     return String(i)
+  }
+}
+
+/** Just the clock time an instant falls at, in the device zone ("8:12 AM").
+ *  Pairs with `dayLabel` when a list groups by day and only needs the time. */
+export const formatClock = (i: Instant | null | undefined): string => {
+  if (!i) return ""
+  try {
+    return Temporal.Instant.from(i).toZonedDateTimeISO(tz()).toLocaleString(undefined, {
+      hour: "numeric",
+      minute: "2-digit",
+    })
+  } catch {
+    return ""
   }
 }
 

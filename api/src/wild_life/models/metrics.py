@@ -1,9 +1,9 @@
 """Metric — a measurable variable tracked over time — and its entries."""
 
 import uuid
-from datetime import date
+from datetime import datetime
 
-from sqlalchemy import Date, Float, ForeignKey, Text
+from sqlalchemy import DateTime, Float, ForeignKey, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -28,7 +28,9 @@ class Metric(UUIDPrimaryKey, TimestampMixin, Base):
     target_value: Mapped[float | None] = mapped_column(Float)
     target_min: Mapped[float | None] = mapped_column(Float)
     target_max: Mapped[float | None] = mapped_column(Float)
-    measurement_frequency: Mapped[str | None] = mapped_column(Text)
+    measurement_frequency: Mapped[str | None] = mapped_column(
+        Text
+    )  # MeasurementFrequency; drives the review dashboard's overdue check
     data_source: Mapped[str | None] = mapped_column(Text)
     notes: Mapped[str | None] = mapped_column(Text)
 
@@ -42,6 +44,10 @@ class MetricEntry(UUIDPrimaryKey, TimestampMixin, Base):
         nullable=False,
         index=True,
     )
-    entry_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
+    # A reading happens at a moment, not on a day — some metrics are read several
+    # times daily, and the time is what tells those entries apart.
+    recorded_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, index=True
+    )
     value: Mapped[float] = mapped_column(Float, nullable=False)
     notes: Mapped[str | None] = mapped_column(Text)

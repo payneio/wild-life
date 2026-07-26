@@ -39,7 +39,7 @@ router.include_router(
         create_schema=MetricEntryCreate,
         read_schema=MetricEntryRead,
         update_schema=MetricEntryUpdate,
-        order_by=MetricEntry.entry_date.desc(),
+        order_by=MetricEntry.recorded_at.desc(),
     )
 )
 
@@ -56,7 +56,7 @@ async def list_metric_entries(
     result = await session.execute(
         select(MetricEntry)
         .where(MetricEntry.metric_id == metric_id)
-        .order_by(MetricEntry.entry_date.asc())
+        .order_by(MetricEntry.recorded_at.asc())
     )
     return list(result.scalars().all())
 

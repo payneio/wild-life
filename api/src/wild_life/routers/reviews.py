@@ -33,22 +33,15 @@ from wild_life.models.reviews import Review
 ADHERENCE_DAYS = 14
 
 
-def _freq_days(freq: str | None) -> int | None:
-    """Map a free-text measurement frequency to a day interval (best-effort)."""
-    if not freq:
-        return None
-    f = freq.lower()
-    if "daily" in f or "/day" in f or "day" in f:
-        return 1
-    if "week" in f:
-        return 7
-    if "month" in f:
-        return 30
-    if "quarter" in f:
-        return 90
-    if "year" in f or "annual" in f:
-        return 365
-    return None
+# How long a reading stays fresh, per MeasurementFrequency. An exact lookup, not
+# a guess: the field is a closed enum, so an unknown value is a bug, not prose.
+FREQUENCY_DAYS: dict[str, int] = {
+    "daily": 1,
+    "weekly": 7,
+    "monthly": 30,
+    "quarterly": 90,
+    "yearly": 365,
+}
 
 
 router = APIRouter()
@@ -357,15 +350,19 @@ async def review_dashboard(
     for m in await _rows(
         session, select(Metric).where(Metric.measurement_frequency.isnot(None))
     ):
-        interval = _freq_days(m.measurement_frequency)
+        interval = FREQUENCY_DAYS.get(m.measurement_frequency or "")
         if interval is None:
             continue
         latest = await session.scalar(
-            select(func.max(MetricEntry.entry_date)).where(
+            select(func.max(MetricEntry.recorded_at)).where(
                 MetricEntry.metric_id == m.id
             )
         )
-        if latest is None or latest < today - timedelta(days=interval):
+        # `recorded_at` comes back in UTC; `today` is local. Compare like for
+        # like, or an evening reading reads as next-day and stays "fresh" a day
+        # too long.
+        latest_day = latest.astimezone().date() if latest else None
+        if latest_day is None or latest_day < today - timedelta(days=interval):
             metrics_overdue.append(
                 {
                     "id": str(m.id),

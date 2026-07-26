@@ -3659,7 +3659,7 @@ export interface components {
             /** Data Source */
             data_source?: string | null;
             /** Measurement Frequency */
-            measurement_frequency?: string | null;
+            measurement_frequency?: ("daily" | "weekly" | "monthly" | "quarterly" | "yearly") | null;
             /** Name */
             name: string;
             /** Notes */
@@ -3678,17 +3678,17 @@ export interface components {
         /** MetricEntryCreate */
         MetricEntryCreate: {
             /**
-             * Entry Date
-             * Format: date
-             */
-            entry_date: CalendarDay;
-            /**
              * Metric Id
              * Format: uuid
              */
             metric_id: string;
             /** Notes */
             notes?: string | null;
+            /**
+             * Recorded At
+             * Format: date-time
+             */
+            recorded_at: Instant;
             /** Value */
             value: number;
         };
@@ -3699,11 +3699,6 @@ export interface components {
              * Format: date-time
              */
             created_at: Instant;
-            /**
-             * Entry Date
-             * Format: date
-             */
-            entry_date: CalendarDay;
             /**
              * Id
              * Format: uuid
@@ -3717,6 +3712,11 @@ export interface components {
             /** Notes */
             notes: string | null;
             /**
+             * Recorded At
+             * Format: date-time
+             */
+            recorded_at: Instant;
+            /**
              * Updated At
              * Format: date-time
              */
@@ -3726,10 +3726,10 @@ export interface components {
         };
         /** MetricEntryUpdate */
         MetricEntryUpdate: {
-            /** Entry Date */
-            entry_date?: CalendarDay | null;
             /** Notes */
             notes?: string | null;
+            /** Recorded At */
+            recorded_at?: Instant | null;
             /** Value */
             value?: number | null;
         };
@@ -3752,7 +3752,7 @@ export interface components {
              */
             id: string;
             /** Measurement Frequency */
-            measurement_frequency: string | null;
+            measurement_frequency: ("daily" | "weekly" | "monthly" | "quarterly" | "yearly") | null;
             /** Name */
             name: string;
             /** Notes */
@@ -3782,7 +3782,7 @@ export interface components {
             /** Data Source */
             data_source?: string | null;
             /** Measurement Frequency */
-            measurement_frequency?: string | null;
+            measurement_frequency?: ("daily" | "weekly" | "monthly" | "quarterly" | "yearly") | null;
             /** Name */
             name?: string | null;
             /** Notes */

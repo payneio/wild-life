@@ -6381,6 +6381,13 @@
           "measurement_frequency": {
             "anyOf": [
               {
+                "enum": [
+                  "daily",
+                  "weekly",
+                  "monthly",
+                  "quarterly",
+                  "yearly"
+                ],
                 "type": "string"
               },
               {
@@ -6469,11 +6476,6 @@
       },
       "MetricEntryCreate": {
         "properties": {
-          "entry_date": {
-            "format": "date",
-            "title": "Entry Date",
-            "type": "string"
-          },
           "metric_id": {
             "format": "uuid",
             "title": "Metric Id",
@@ -6490,6 +6492,11 @@
             ],
             "title": "Notes"
           },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
           "value": {
             "title": "Value",
             "type": "number"
@@ -6497,7 +6504,7 @@
         },
         "required": [
           "metric_id",
-          "entry_date",
+          "recorded_at",
           "value"
         ],
         "title": "MetricEntryCreate",
@@ -6508,11 +6515,6 @@
           "created_at": {
             "format": "date-time",
             "title": "Created At",
-            "type": "string"
-          },
-          "entry_date": {
-            "format": "date",
-            "title": "Entry Date",
             "type": "string"
           },
           "id": {
@@ -6536,6 +6538,11 @@
             ],
             "title": "Notes"
           },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
           "updated_at": {
             "format": "date-time",
             "title": "Updated At",
@@ -6551,7 +6558,7 @@
           "created_at",
           "updated_at",
           "metric_id",
-          "entry_date",
+          "recorded_at",
           "value",
           "notes"
         ],
@@ -6560,18 +6567,6 @@
       },
       "MetricEntryUpdate": {
         "properties": {
-          "entry_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Entry Date"
-          },
           "notes": {
             "anyOf": [
               {
@@ -6582,6 +6577,18 @@
               }
             ],
             "title": "Notes"
+          },
+          "recorded_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recorded At"
           },
           "value": {
             "anyOf": [
@@ -6648,6 +6655,13 @@
           "measurement_frequency": {
             "anyOf": [
               {
+                "enum": [
+                  "daily",
+                  "weekly",
+                  "monthly",
+                  "quarterly",
+                  "yearly"
+                ],
                 "type": "string"
               },
               {
@@ -6792,6 +6806,13 @@
           "measurement_frequency": {
             "anyOf": [
               {
+                "enum": [
+                  "daily",
+                  "weekly",
+                  "monthly",
+                  "quarterly",
+                  "yearly"
+                ],
                 "type": "string"
               },
               {

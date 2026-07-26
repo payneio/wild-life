@@ -20,6 +20,7 @@ import type {
   ConditionStatus,
   DelegationStatus,
   GoalStatus,
+  MeasurementFrequency,
   MedType,
   OrgStatus,
   PlanStatus,
@@ -83,6 +84,25 @@ export const ROUTINE_STATUS = [
   "paused",
   "archived",
 ] as const satisfies readonly RoutineStatus[]
+
+/** How often a metric is expected to be read. Its one effect is the review
+ *  dashboard's "overdue for a reading" list, so the labels say that out loud
+ *  rather than making you infer it from an adverb. */
+export const MEASUREMENT_FREQUENCIES = [
+  "daily",
+  "weekly",
+  "monthly",
+  "quarterly",
+  "yearly",
+] as const satisfies readonly MeasurementFrequency[]
+
+export const FREQUENCY_LABEL: Record<MeasurementFrequency, string> = {
+  daily: "a day",
+  weekly: "a week",
+  monthly: "a month",
+  quarterly: "a quarter",
+  yearly: "a year",
+}
 
 export const DELEGATION_STATUS = [
   "draft",
