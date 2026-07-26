@@ -32,7 +32,9 @@ SCHEMA = "wild_life"
 
 def upgrade() -> None:
     # 1. Routine gains the dose unit; backfill from the linked med's form.
-    op.add_column("routines", sa.Column("unit", sa.Text(), nullable=True), schema=SCHEMA)
+    op.add_column(
+        "routines", sa.Column("unit", sa.Text(), nullable=True), schema=SCHEMA
+    )
     op.execute(
         f"UPDATE {SCHEMA}.routines r SET unit = m.form "
         f"FROM {SCHEMA}.medications m "
@@ -68,9 +70,7 @@ def upgrade() -> None:
         ondelete="CASCADE",  # the medication owns its intake history
     )
     # routine_id becomes optional; deleting a routine keeps its historical intakes.
-    op.alter_column(
-        "routine_instances", "routine_id", nullable=True, schema=SCHEMA
-    )
+    op.alter_column("routine_instances", "routine_id", nullable=True, schema=SCHEMA)
     op.drop_constraint(
         "routine_instances_routine_id_fkey",
         "routine_instances",
@@ -125,9 +125,7 @@ def downgrade() -> None:
         referent_schema=SCHEMA,
         ondelete="CASCADE",
     )
-    op.alter_column(
-        "routine_instances", "routine_id", nullable=False, schema=SCHEMA
-    )
+    op.alter_column("routine_instances", "routine_id", nullable=False, schema=SCHEMA)
     op.drop_constraint(
         "routine_instances_medication_id_fkey",
         "routine_instances",

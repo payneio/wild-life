@@ -239,7 +239,8 @@ def test_rsvp_endpoint_sends_immediately(
     try:
         # A received invite (foreign organizer).
         ev = _event(
-            client, h,
+            client,
+            h,
             organizer="mailto:host@corp.com",
             external_ref="rsvp-now@corp.com",
             sequence=0,
@@ -263,7 +264,9 @@ def test_rsvp_endpoint_sends_immediately(
         hosted = _event(client, h, attendees=["a@x.com"])
         made.append(hosted["id"])
         assert (
-            client.post(f"/events/{hosted['id']}/rsvp", headers=h, json={"status": "accepted"}).status_code
+            client.post(
+                f"/events/{hosted['id']}/rsvp", headers=h, json={"status": "accepted"}
+            ).status_code
             == 400
         )
     finally:

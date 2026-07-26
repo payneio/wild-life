@@ -364,9 +364,7 @@ def upgrade() -> None:
         sa.Column("tag_id", sa.UUID(), nullable=False),
         sa.Column("entity_type", sa.Text(), nullable=False),
         sa.Column("entity_id", sa.UUID(), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["tag_id"], ["wild_life.tags.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["tag_id"], ["wild_life.tags.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("tag_id", "entity_type", "entity_id"),
         schema="wild_life",
     )

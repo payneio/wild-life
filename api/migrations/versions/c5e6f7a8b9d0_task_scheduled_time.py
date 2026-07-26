@@ -11,17 +11,19 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision: str = 'c5e6f7a8b9d0'
-down_revision: str | None = 'b4d5e6f7a8c9'
+revision: str = "c5e6f7a8b9d0"
+down_revision: str | None = "b4d5e6f7a8c9"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
     op.add_column(
-        'tasks', sa.Column('scheduled_time', sa.Time(), nullable=True), schema='wild_life'
+        "tasks",
+        sa.Column("scheduled_time", sa.Time(), nullable=True),
+        schema="wild_life",
     )
 
 
 def downgrade() -> None:
-    op.drop_column('tasks', 'scheduled_time', schema='wild_life')
+    op.drop_column("tasks", "scheduled_time", schema="wild_life")

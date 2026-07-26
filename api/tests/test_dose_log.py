@@ -58,18 +58,39 @@ def test_intakes(client: TestClient, auth_headers: dict, require_db: None) -> No
 
         # /intakes against a routine pre-fills amount/unit/medication, and always
         # inserts — two per day both stick, and a deviation amount is honoured.
-        _post(client, h, "/intakes", routine_id=rid,
-              scheduled_date="2026-07-17", completed_at="2026-07-17T15:30:00Z")
-        _post(client, h, "/intakes", routine_id=rid, amount=250,
-              scheduled_date="2026-07-17")
+        _post(
+            client,
+            h,
+            "/intakes",
+            routine_id=rid,
+            scheduled_date="2026-07-17",
+            completed_at="2026-07-17T15:30:00Z",
+        )
+        _post(
+            client,
+            h,
+            "/intakes",
+            routine_id=rid,
+            amount=250,
+            scheduled_date="2026-07-17",
+        )
         ad_hoc = _instances(client, h, routine_id__eq=rid, ad_hoc__eq="true")
         assert len(ad_hoc) == 2, ad_hoc
         assert {float(d["amount"]) for d in ad_hoc} == {500.0, 250.0}
-        assert all(d["unit"] == "mg" and d["medication_id"] == med["id"] for d in ad_hoc)
+        assert all(
+            d["unit"] == "mg" and d["medication_id"] == med["id"] for d in ad_hoc
+        )
 
         # An UN-PRESCRIBED intake: no routine, self-contained medication + amount + unit.
-        loose = _post(client, h, "/intakes", medication_id=med["id"], amount=200,
-                      unit="mg", scheduled_date="2026-07-16")
+        loose = _post(
+            client,
+            h,
+            "/intakes",
+            medication_id=med["id"],
+            amount=200,
+            unit="mg",
+            scheduled_date="2026-07-16",
+        )
         assert loose["routine_id"] is None
         assert loose["medication_id"] == med["id"]
         assert loose["amount"] == 200 and loose["unit"] == "mg"

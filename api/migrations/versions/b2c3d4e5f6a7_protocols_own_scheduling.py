@@ -30,16 +30,16 @@ SCHEMA = "wild_life"
 
 def upgrade() -> None:
     # routines: protocol required; PRN retired.
-    op.alter_column(
-        "routines", "protocol_id", nullable=False, schema=SCHEMA
-    )
+    op.alter_column("routines", "protocol_id", nullable=False, schema=SCHEMA)
     op.drop_column("routines", "as_needed", schema=SCHEMA)
     op.drop_column("routines", "trigger", schema=SCHEMA)
 
     # protocols: status enum -> derived + a lone `paused` bit.
     op.add_column(
         "protocols",
-        sa.Column("paused", sa.Boolean(), server_default=sa.text("false"), nullable=False),
+        sa.Column(
+            "paused", sa.Boolean(), server_default=sa.text("false"), nullable=False
+        ),
         schema=SCHEMA,
     )
     op.execute(f"UPDATE {SCHEMA}.protocols SET paused = true WHERE status = 'paused'")
@@ -64,17 +64,13 @@ def downgrade() -> None:
     )
     op.add_column(
         "medications",
-        sa.Column(
-            "status", sa.Text(), server_default="active", nullable=False
-        ),
+        sa.Column("status", sa.Text(), server_default="active", nullable=False),
         schema=SCHEMA,
     )
 
     op.add_column(
         "protocols",
-        sa.Column(
-            "status", sa.Text(), server_default="planned", nullable=False
-        ),
+        sa.Column("status", sa.Text(), server_default="planned", nullable=False),
         schema=SCHEMA,
     )
     op.execute(

@@ -32,22 +32,30 @@ depends_on: str | Sequence[str] | None = None
 
 def upgrade() -> None:
     conn = op.get_bind()
-    op.add_column("events", sa.Column("event_type", sa.Text(), nullable=True), schema="wild_life")
+    op.add_column(
+        "events", sa.Column("event_type", sa.Text(), nullable=True), schema="wild_life"
+    )
 
     preventative = conn.execute(
-        sa.text("SELECT id FROM wild_life.conditions WHERE name = 'Preventative' LIMIT 1")
+        sa.text(
+            "SELECT id FROM wild_life.conditions WHERE name = 'Preventative' LIMIT 1"
+        )
     ).scalar()
 
-    hes = conn.execute(
-        sa.text(
-            """
+    hes = (
+        conn.execute(
+            sa.text(
+                """
             SELECT id, occurred_on, event_type, title, provider_id, organization_id,
                    condition_id, summary, findings, recommendations, follow_up,
                    location, external_ref
             FROM wild_life.health_events
             """
+            )
         )
-    ).mappings().all()
+        .mappings()
+        .all()
+    )
 
     for he in hes:
         ctx = he["condition_id"] or preventative
@@ -97,9 +105,16 @@ def upgrade() -> None:
                     RETURNING id
                     """
                 ),
-                {"body": "\n\n".join(parts), "eid": event_id, "entry_date": he["occurred_on"]},
+                {
+                    "body": "\n\n".join(parts),
+                    "eid": event_id,
+                    "entry_date": he["occurred_on"],
+                },
             ).scalar_one()
-            for col, ttype in (("provider_id", "person"), ("organization_id", "organization")):
+            for col, ttype in (
+                ("provider_id", "person"),
+                ("organization_id", "organization"),
+            ):
                 if he[col]:
                     conn.execute(
                         sa.text(

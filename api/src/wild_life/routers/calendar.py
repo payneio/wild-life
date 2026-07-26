@@ -331,7 +331,9 @@ async def reconcile_event_attendees(session: AsyncSession, event: Event) -> int:
     return len(seen)
 
 
-@router.post("/{event_id}/reconcile-attendees", operation_id="events_reconcile_attendees")
+@router.post(
+    "/{event_id}/reconcile-attendees", operation_id="events_reconcile_attendees"
+)
 async def reconcile_attendees(
     event_id: UUID, session: AsyncSession = Depends(get_session)
 ) -> dict:

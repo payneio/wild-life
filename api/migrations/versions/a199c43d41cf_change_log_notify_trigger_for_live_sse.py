@@ -8,11 +8,10 @@ Create Date: 2026-07-15 12:52:11.256788
 from collections.abc import Sequence
 
 from alembic import op
-import sqlalchemy as sa
 
 
-revision: str = 'a199c43d41cf'
-down_revision: str | None = '8c9e89f4c05b'
+revision: str = "a199c43d41cf"
+down_revision: str | None = "8c9e89f4c05b"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
@@ -49,7 +48,5 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.execute(
-        "DROP TRIGGER IF EXISTS change_log_notify ON wild_life.change_log;"
-    )
+    op.execute("DROP TRIGGER IF EXISTS change_log_notify ON wild_life.change_log;")
     op.execute("DROP FUNCTION IF EXISTS wild_life.notify_change();")

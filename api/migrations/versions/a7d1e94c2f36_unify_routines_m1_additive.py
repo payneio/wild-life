@@ -58,9 +58,7 @@ def upgrade() -> None:
     )
     op.add_column(
         "routines",
-        sa.Column(
-            "interval_days", sa.Integer(), server_default="1", nullable=False
-        ),
+        sa.Column("interval_days", sa.Integer(), server_default="1", nullable=False),
         schema=SCHEMA,
     )
     op.add_column(
@@ -117,7 +115,15 @@ def downgrade() -> None:
     op.drop_index("ix_routines_protocol_id", table_name="routines", schema=SCHEMA)
     op.drop_index("ix_routines_medication_id", table_name="routines", schema=SCHEMA)
     for col in (
-        "sort_order", "trigger", "as_needed", "interval_days", "days_of_week",
-        "timing", "amount", "protocol_id", "medication_id", "activity",
+        "sort_order",
+        "trigger",
+        "as_needed",
+        "interval_days",
+        "days_of_week",
+        "timing",
+        "amount",
+        "protocol_id",
+        "medication_id",
+        "activity",
     ):
         op.drop_column("routines", col, schema=SCHEMA)

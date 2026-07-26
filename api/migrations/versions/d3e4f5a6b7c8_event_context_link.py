@@ -22,8 +22,12 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
-    op.add_column("events", sa.Column("entity_type", sa.Text(), nullable=True), schema="wild_life")
-    op.add_column("events", sa.Column("entity_id", sa.UUID(), nullable=True), schema="wild_life")
+    op.add_column(
+        "events", sa.Column("entity_type", sa.Text(), nullable=True), schema="wild_life"
+    )
+    op.add_column(
+        "events", sa.Column("entity_id", sa.UUID(), nullable=True), schema="wild_life"
+    )
 
     # Fold the old FK triple into the polymorphic pair, most specific wins.
     op.execute(
@@ -46,9 +50,15 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.add_column("events", sa.Column("area_id", sa.UUID(), nullable=True), schema="wild_life")
-    op.add_column("events", sa.Column("program_id", sa.UUID(), nullable=True), schema="wild_life")
-    op.add_column("events", sa.Column("project_id", sa.UUID(), nullable=True), schema="wild_life")
+    op.add_column(
+        "events", sa.Column("area_id", sa.UUID(), nullable=True), schema="wild_life"
+    )
+    op.add_column(
+        "events", sa.Column("program_id", sa.UUID(), nullable=True), schema="wild_life"
+    )
+    op.add_column(
+        "events", sa.Column("project_id", sa.UUID(), nullable=True), schema="wild_life"
+    )
     op.execute(
         sa.text(
             """

@@ -137,7 +137,9 @@ router.include_router(extra)
 intakes = APIRouter(prefix="/intakes", tags=["routines"])
 
 
-@intakes.post("", response_model=RoutineInstanceRead, status_code=status.HTTP_201_CREATED)
+@intakes.post(
+    "", response_model=RoutineInstanceRead, status_code=status.HTTP_201_CREATED
+)
 async def log_intake(
     payload: DoseLogCreate,
     session: AsyncSession = Depends(get_session),
@@ -171,8 +173,12 @@ async def log_intake(
         slot=payload.slot,
         status="done",
         completed_at=payload.completed_at or datetime.now(timezone.utc),
-        amount=payload.amount if payload.amount is not None else (routine.amount if routine else None),
-        unit=payload.unit if payload.unit is not None else (routine.unit if routine else None),
+        amount=payload.amount
+        if payload.amount is not None
+        else (routine.amount if routine else None),
+        unit=payload.unit
+        if payload.unit is not None
+        else (routine.unit if routine else None),
         ad_hoc=True,
         notes=payload.notes,
     )

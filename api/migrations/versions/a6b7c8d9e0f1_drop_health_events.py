@@ -27,11 +27,25 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.create_table(
         "health_events",
-        sa.Column("id", sa.UUID(), server_default=sa.text("gen_random_uuid()"), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "id", sa.UUID(), server_default=sa.text("gen_random_uuid()"), nullable=False
+        ),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.Column("occurred_on", sa.Date(), nullable=False),
-        sa.Column("event_type", sa.Text(), server_default="appointment", nullable=False),
+        sa.Column(
+            "event_type", sa.Text(), server_default="appointment", nullable=False
+        ),
         sa.Column("title", sa.Text(), nullable=False),
         sa.Column("provider_id", sa.UUID(), nullable=True),
         sa.Column("organization_id", sa.UUID(), nullable=True),
@@ -47,4 +61,9 @@ def downgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
         schema="wild_life",
     )
-    op.create_index("ix_health_events_occurred_on", "health_events", ["occurred_on"], schema="wild_life")
+    op.create_index(
+        "ix_health_events_occurred_on",
+        "health_events",
+        ["occurred_on"],
+        schema="wild_life",
+    )

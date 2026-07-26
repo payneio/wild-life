@@ -119,7 +119,9 @@ async def _log_validation_error(
         exc.errors(),
         getattr(exc, "body", None),
     )
-    return JSONResponse(status_code=422, content={"detail": jsonable_encoder(exc.errors())})
+    return JSONResponse(
+        status_code=422, content={"detail": jsonable_encoder(exc.errors())}
+    )
 
 
 @app.exception_handler(Exception)

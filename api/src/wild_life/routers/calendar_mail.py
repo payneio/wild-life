@@ -597,9 +597,7 @@ async def set_rsvp(
     if event is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not found")
     if not event.organizer or _is_hosted(event):
-        raise HTTPException(
-            status.HTTP_400_BAD_REQUEST, detail="Not a received invite"
-        )
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Not a received invite")
 
     event.rsvp_status = body.status
     status_value = body.status.lower()

@@ -42,7 +42,9 @@ def upgrade() -> None:
     # Backfill: email -> person map, then link each event's matched attendees.
     conn = op.get_bind()
     email_to_person: dict[str, object] = {}
-    for p in conn.execute(sa.text("SELECT id, emails FROM wild_life.people")).mappings():
+    for p in conn.execute(
+        sa.text("SELECT id, emails FROM wild_life.people")
+    ).mappings():
         for e in p["emails"] or []:
             v = (e.get("value") or "").strip().lower()
             if v:
@@ -72,5 +74,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index("ix_entity_links_target", table_name="entity_links", schema="wild_life")
+    op.drop_index(
+        "ix_entity_links_target", table_name="entity_links", schema="wild_life"
+    )
     op.drop_table("entity_links", schema="wild_life")

@@ -47,9 +47,7 @@ def _kind(routine: Routine, med: Medication | None) -> str:
     return "activity" if routine.protocol_id is not None else "routine"
 
 
-def _live_anchor(
-    proto: Protocol | None, day: date
-) -> tuple[bool, date | None]:
+def _live_anchor(proto: Protocol | None, day: date) -> tuple[bool, date | None]:
     """(is_live_today, cadence_anchor). Every routine is a protocol step, so liveness
     is the protocol's: live iff not paused and today is in its window."""
     if proto is None:  # defensive — protocol_id is NOT NULL

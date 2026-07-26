@@ -115,7 +115,5 @@ def downgrade() -> None:
         )
     )
     conn.execute(
-        text(
-            f"UPDATE {SCHEMA}.routines SET activity = NULL WHERE activity = name"
-        )
+        text(f"UPDATE {SCHEMA}.routines SET activity = NULL WHERE activity = name")
     )

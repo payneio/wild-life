@@ -144,9 +144,7 @@ def upgrade() -> None:
             ["event_id"], [f"{SCHEMA}.events.id"], ondelete="CASCADE"
         ),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint(
-            "event_id", "attendee_email", name="uq_attendee_response"
-        ),
+        sa.UniqueConstraint("event_id", "attendee_email", name="uq_attendee_response"),
         schema=SCHEMA,
     )
     op.create_index(

@@ -15,50 +15,50 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision: str = 'b4d5e6f7a8c9'
-down_revision: str | None = 'a3c4d5e6f7b8'
+revision: str = "b4d5e6f7a8c9"
+down_revision: str | None = "a3c4d5e6f7b8"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
     op.add_column(
-        'events',
-        sa.Column('recurrence_parent_id', sa.UUID(), nullable=True),
-        schema='wild_life',
+        "events",
+        sa.Column("recurrence_parent_id", sa.UUID(), nullable=True),
+        schema="wild_life",
     )
     op.add_column(
-        'events',
-        sa.Column('recurrence_id', sa.DateTime(timezone=True), nullable=True),
-        schema='wild_life',
+        "events",
+        sa.Column("recurrence_id", sa.DateTime(timezone=True), nullable=True),
+        schema="wild_life",
     )
     op.create_foreign_key(
-        'fk_events_recurrence_parent',
-        'events',
-        'events',
-        ['recurrence_parent_id'],
-        ['id'],
-        source_schema='wild_life',
-        referent_schema='wild_life',
-        ondelete='CASCADE',
+        "fk_events_recurrence_parent",
+        "events",
+        "events",
+        ["recurrence_parent_id"],
+        ["id"],
+        source_schema="wild_life",
+        referent_schema="wild_life",
+        ondelete="CASCADE",
     )
     op.create_index(
-        'ix_wild_life_events_recurrence_parent_id',
-        'events',
-        ['recurrence_parent_id'],
+        "ix_wild_life_events_recurrence_parent_id",
+        "events",
+        ["recurrence_parent_id"],
         unique=False,
-        schema='wild_life',
+        schema="wild_life",
     )
 
 
 def downgrade() -> None:
     op.drop_index(
-        'ix_wild_life_events_recurrence_parent_id',
-        table_name='events',
-        schema='wild_life',
+        "ix_wild_life_events_recurrence_parent_id",
+        table_name="events",
+        schema="wild_life",
     )
     op.drop_constraint(
-        'fk_events_recurrence_parent', 'events', schema='wild_life', type_='foreignkey'
+        "fk_events_recurrence_parent", "events", schema="wild_life", type_="foreignkey"
     )
-    op.drop_column('events', 'recurrence_id', schema='wild_life')
-    op.drop_column('events', 'recurrence_parent_id', schema='wild_life')
+    op.drop_column("events", "recurrence_id", schema="wild_life")
+    op.drop_column("events", "recurrence_parent_id", schema="wild_life")
