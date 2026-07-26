@@ -30,8 +30,9 @@ export function ProgramDetail({ entity, onClose }: { entity: Entity; onClose: ()
       </RecordSection>
 
       <RecordSection title="Intent">
+        {/* The why, in prose. What must be *true* is the Outcomes panel below —
+            this field used to hold both, and restated its own goals. */}
         <F.Textarea field="intended_outcome" label="Intended outcome" minRows={2} />
-        <F.Textarea field="success_criteria" label="Success criteria" minRows={2} />
       </RecordSection>
 
       <RecordSection title="Ownership & cadence">

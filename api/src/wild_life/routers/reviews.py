@@ -12,7 +12,7 @@ from wild_life.db.session import get_session
 from wild_life.identity import Identity, current_identity
 from wild_life.models.calendar import Event
 from wild_life.models.core import Area, Program, Project
-from wild_life.models.goals import Goal
+from wild_life.models.outcomes import Outcome
 from wild_life.models.notes import Note
 from wild_life.models.health import Condition, Medication, Protocol
 from wild_life.models.metrics import Metric, MetricEntry
@@ -319,7 +319,7 @@ async def review_dashboard(
         if p.id in open_task_project_ids
     ]
 
-    # --- health / goals / metrics neglect + drift --------------------------
+    # --- health / outcomes / metrics neglect + drift ------------------------
     # Active conditions with no active protocol running.
     active_protocol_condition_ids = {
         cid
@@ -372,17 +372,22 @@ async def review_dashboard(
                 }
             )
 
-    # Goals past their target date but not achieved.
-    goals_overdue = [
+    # Targets past their date without having been achieved. Standards have no
+    # date to be past, and a deliverable's date lives on the work, not the claim.
+    outcomes_overdue = [
         {
-            "id": str(g.id),
-            "name": g.name,
-            "status": g.status,
-            "target_date": g.target_date.isoformat() if g.target_date else None,
+            "id": str(o.id),
+            "name": o.statement,
+            "status": o.status,
+            "target_date": o.by_when.isoformat() if o.by_when else None,
         }
-        for g in await _rows(
+        for o in await _rows(
             session,
-            select(Goal).where(Goal.target_date < today, Goal.status != "achieved"),
+            select(Outcome).where(
+                Outcome.kind == "target",
+                Outcome.by_when < today,
+                Outcome.status != "achieved",
+            ),
         )
     ]
 
@@ -449,7 +454,7 @@ async def review_dashboard(
         "unrooted_events_count": unrooted_events_count,
         "conditions_without_protocol": conditions_without_protocol,
         "metrics_overdue": metrics_overdue,
-        "goals_overdue": goals_overdue,
+        "outcomes_overdue": outcomes_overdue,
         "low_adherence": low_adherence,
         "overdue_tasks": [task_row(t) for t in overdue_tasks],
         "due_today": [task_row(t) for t in due_today],

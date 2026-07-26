@@ -15,7 +15,7 @@ import { dayLabel, formatInstant, humanize, localDay } from "@/lib/format"
 import { formatPhone } from "@/lib/phone"
 
 // --- Condition: a care timeline -------------------------------------------
-// Medications / Protocols / Metrics / Goals / Health-events are now rendered by
+// Medications / Protocols / Metrics / Outcomes / Health-events are now rendered by
 // the generic RelatedPanel (condition.relations); this adds the dated timeline.
 export function ConditionDetail({ entity }: { entity: Entity }) {
   const c = entity as Condition

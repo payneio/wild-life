@@ -27,7 +27,7 @@ class Area(UUIDPrimaryKey, TimestampMixin, Base):
     status: Mapped[str] = mapped_column(
         Text, server_default="active", nullable=False
     )  # active/inactive/archived
-    desired_standard: Mapped[str | None] = mapped_column(Text)
+    intended_outcome: Mapped[str | None] = mapped_column(Text)
     review_frequency: Mapped[str | None] = mapped_column(Text)  # weekly/monthly/...
     accountable_owner_id: Mapped[uuid.UUID | None] = _person_fk()
     responsible_lead_id: Mapped[uuid.UUID | None] = _person_fk()
@@ -45,7 +45,6 @@ class Program(UUIDPrimaryKey, TimestampMixin, Base):
         UUID(as_uuid=True), ForeignKey("areas.id", ondelete="SET NULL"), index=True
     )
     intended_outcome: Mapped[str | None] = mapped_column(Text)
-    success_criteria: Mapped[str | None] = mapped_column(Text)
     status: Mapped[str] = mapped_column(
         Text, server_default="proposed", nullable=False
     )  # proposed/active/paused/completed/cancelled
@@ -71,7 +70,6 @@ class Project(UUIDPrimaryKey, TimestampMixin, Base):
         UUID(as_uuid=True), ForeignKey("programs.id", ondelete="SET NULL"), index=True
     )
     intended_outcome: Mapped[str | None] = mapped_column(Text)
-    completion_criteria: Mapped[str | None] = mapped_column(Text)
     status: Mapped[str] = mapped_column(
         Text, server_default="proposed", nullable=False
     )  # proposed/active/waiting/paused/completed/cancelled

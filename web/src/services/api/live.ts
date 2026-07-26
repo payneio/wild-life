@@ -18,6 +18,19 @@ interface Envelope {
 export const appEventHandlers: Record<string, (e: Envelope) => void> = {}
 
 /**
+ * Reads that are computed from *another* table, and so go stale when it changes.
+ *
+ * A query key can only start with one resource, but an outcome's evaluation is
+ * derived from its readings as much as from the claim itself — a new reading
+ * changes the verdict without touching the `outcomes` row, so nothing would
+ * invalidate it. Declaring the dependency here keeps every refresh on the one
+ * SSE path instead of tempting a mutation to invalidate on its own behalf.
+ */
+export const DERIVED_FROM: Record<string, readonly string[]> = {
+  "metric-entries": ["outcomes"],
+}
+
+/**
  * The app's single live connection. One SSE stream (`GET /stream`) carries every
  * server event; `kind:"change"` drives a debounced `invalidateQueries()` so the
  * whole UI stays live — your own edits and external changes travel the same path.
@@ -35,6 +48,7 @@ export function useLiveUpdates(token: string | null): void {
 
     const invalidateSoon = (resource: string) => {
       pending.add(resource)
+      for (const derived of DERIVED_FROM[resource] ?? []) pending.add(derived)
       if (debounce) return
       debounce = setTimeout(() => {
         debounce = null

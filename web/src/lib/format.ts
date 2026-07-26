@@ -69,3 +69,16 @@ export function groupNotesByDay<
   }
   return groups
 }
+
+/** A band in words: "90–130", "under 100", "at least 4". Either bound may be
+ *  absent, and a one-sided claim should read as one rather than as a range with
+ *  a hole in it. */
+export function formatBand(
+  min: number | null | undefined,
+  max: number | null | undefined,
+): string | null {
+  if (min != null && max != null) return min === max ? `${min}` : `${min}–${max}`
+  if (max != null) return `under ${max}`
+  if (min != null) return `at least ${min}`
+  return null
+}

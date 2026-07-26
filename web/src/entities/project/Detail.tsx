@@ -33,8 +33,9 @@ export function ProjectDetail({ entity, onClose }: { entity: Entity; onClose: ()
       </RecordSection>
 
       <RecordSection title="Intent">
+        {/* Completion criteria are now "Done when" outcomes — testable claims
+            rather than a paragraph nothing could check. */}
         <F.Textarea field="intended_outcome" label="Intended outcome" minRows={2} />
-        <F.Textarea field="completion_criteria" label="Completion criteria" minRows={2} />
       </RecordSection>
 
       <RecordSection title="Dates">

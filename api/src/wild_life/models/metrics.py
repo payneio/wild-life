@@ -25,9 +25,11 @@ class Metric(UUIDPrimaryKey, TimestampMixin, Base):
         UUID(as_uuid=True), ForeignKey("conditions.id", ondelete="SET NULL"), index=True
     )  # a lab/vital belongs to a health condition
     unit: Mapped[str | None] = mapped_column(Text)
-    target_value: Mapped[float | None] = mapped_column(Float)
-    target_min: Mapped[float | None] = mapped_column(Float)
-    target_max: Mapped[float | None] = mapped_column(Float)
+    # The *externally defined* normal band — a lab's reference range, a clinical
+    # guideline. Context to draw behind the trend, never a target: what I'm aiming
+    # for is a claim, and claims live on Outcome.
+    reference_min: Mapped[float | None] = mapped_column(Float)
+    reference_max: Mapped[float | None] = mapped_column(Float)
     measurement_frequency: Mapped[str | None] = mapped_column(
         Text
     )  # MeasurementFrequency; drives the review dashboard's overdue check

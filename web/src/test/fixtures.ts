@@ -8,7 +8,7 @@ import type {
   Delegation,
   Entity,
   EventItem,
-  Goal,
+  Outcome,
   InsurancePlan,
   Location,
   Medication,
@@ -113,7 +113,7 @@ export const AREA: Area = {
   name: "Health",
   description: "Body and mind upkeep",
   status: "active",
-  desired_standard: "Sleep 7h, move daily",
+  intended_outcome: "A body that keeps up with what I ask of it",
   review_frequency: "weekly",
   accountable_owner_id: null,
   responsible_lead_id: null,
@@ -126,7 +126,6 @@ export const PROGRAM: Program = {
   description: "Recurring household paperwork",
   area_id: null,
   intended_outcome: "Nothing lapses",
-  success_criteria: "No late fees",
   status: "active",
   start_date: "2026-01-01" as CalendarDay,
   target_date: null,
@@ -275,9 +274,8 @@ export const METRIC: Metric = {
   program_id: null,
   condition_id: null,
   unit: "bpm",
-  target_value: 55,
-  target_min: null,
-  target_max: 65,
+  reference_min: null,
+  reference_max: 65,
   measurement_frequency: "daily",
   data_source: "Watch",
   notes: null,
@@ -290,7 +288,6 @@ export const PROJECT: Project = {
   area_id: null,
   program_id: null,
   intended_outcome: "A kitchen we want to cook in",
-  completion_criteria: "Final inspection signed off",
   status: "active",
   priority: "high",
   start_date: "2026-06-01" as CalendarDay,
@@ -301,21 +298,20 @@ export const PROJECT: Project = {
   last_activity_date: "2026-07-20" as CalendarDay,
 }
 
-export const GOAL: Goal = {
+export const OUTCOME: Outcome = {
   ...BASE,
-  name: "Run a half marathon",
+  statement: "Run a half marathon",
+  kind: "target",
   description: null,
-  area_id: null,
-  program_id: null,
-  condition_id: null,
-  metric_id: null,
-  baseline: 5,
-  target_value: 21,
-  target_state: null,
-  target_date: "2026-11-01" as CalendarDay,
+  entity_type: "area",
+  entity_id: "00000000-0000-4000-8000-000000000001",
   status: "active",
-  progress: 40,
-  measurement_method: "Longest run, km",
+  metric_id: null,
+  target_min: 21,
+  target_max: null,
+  baseline: 5,
+  by_when: "2026-11-01" as CalendarDay,
+  satisfied_at: null,
 }
 
 export const ROUTINE: Routine = {
@@ -406,10 +402,32 @@ export const EVENT: EventItem = {
   received_invite: false,
 }
 
+/** Shapes of one object whose layout is conditional, so coverage can check all
+ *  of them. An Outcome renders different fields per kind — a standard has no
+ *  deadline to miss and a deliverable has no band to sit in — so no single row
+ *  can exercise the whole layout. */
+export const VARIANTS: Record<string, Entity[]> = {
+  outcome: ([
+    OUTCOME,
+    { ...OUTCOME, kind: "standard", baseline: null, by_when: null },
+    {
+      ...OUTCOME,
+      kind: "deliverable",
+      statement: "Final inspection signed off",
+      metric_id: null,
+      target_min: null,
+      target_max: null,
+      baseline: null,
+      by_when: null,
+      satisfied_at: null,
+    },
+  ] satisfies Outcome[]),
+}
+
 /** Keyed by `EntityDef.key`. Every def carrying a `detail` needs an entry. */
 export const FIXTURES: Record<string, Entity> = {
   project: PROJECT,
-  goal: GOAL,
+  outcome: OUTCOME,
   routine: ROUTINE,
   delegation: DELEGATION,
   note: NOTE,

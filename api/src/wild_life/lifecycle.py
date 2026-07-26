@@ -46,7 +46,7 @@ LIFECYCLE: dict[str, dict[str, LifecyclePhase]] = {
         "completed": "done",
         "cancelled": "cancelled",
     },
-    "goal": {
+    "outcome": {
         "active": "active",
         "achieved": "done",
         "paused": "blocked",

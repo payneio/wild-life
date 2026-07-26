@@ -273,18 +273,15 @@ export const PROJECT_FIELDS: FieldSpec[] = [
   { name: "responsible_lead_id", label: "Lead", type: "entity", lookup: "people" },
 ]
 
-export const GOAL_FIELDS: FieldSpec[] = [
-  { name: "name", label: "Name", full: true },
+export const OUTCOME_FIELDS: FieldSpec[] = [
+  { name: "statement", label: "Statement", full: true },
+  { name: "kind", label: "Kind", type: "select", options: ["standard", "target", "deliverable"] },
   { name: "status", label: "Status", type: "select", options: ["active", "achieved", "paused", "dropped"] },
-  { name: "area_id", label: "Area", type: "entity", lookup: "area" },
-  { name: "condition_id", label: "For condition", type: "entity", lookup: "condition" },
   { name: "metric_id", label: "Metric", type: "entity", lookup: "metric" },
-  { name: "target_state", label: "Target state" },
-  { name: "target_value", label: "Target value", type: "number" },
+  { name: "target_min", label: "At least", type: "number" },
+  { name: "target_max", label: "At most", type: "number" },
   { name: "baseline", label: "Baseline", type: "number" },
-  { name: "progress", label: "Progress %", type: "number" },
-  { name: "target_date", label: "Target date", type: "date" },
-  { name: "measurement_method", label: "Measurement", full: true },
+  { name: "by_when", label: "By when", type: "date" },
   { name: "description", label: "Description", type: "textarea", full: true },
 ]
 
@@ -293,9 +290,8 @@ export const METRIC_FIELDS: FieldSpec[] = [
   { name: "unit", label: "Unit" },
   { name: "area_id", label: "Area", type: "entity", lookup: "area" },
   { name: "condition_id", label: "For condition", type: "entity", lookup: "condition" },
-  { name: "target_value", label: "Target", type: "number" },
-  { name: "target_min", label: "Target min", type: "number" },
-  { name: "target_max", label: "Target max", type: "number" },
+  { name: "reference_min", label: "Normal from", type: "number" },
+  { name: "reference_max", label: "Normal to", type: "number" },
   { name: "measurement_frequency", label: "Reading cadence", type: "select", options: MEASUREMENT_FREQUENCIES },
   { name: "data_source", label: "Data source" },
   { name: "notes", label: "Notes", type: "textarea", full: true },

@@ -10,7 +10,7 @@ import type {
   ConditionStatus,
   DelegationStatus,
   EntityType,
-  GoalStatus,
+  OutcomeStatus,
   OrgStatus,
   PlanStatus,
   ProgramStatus,
@@ -38,7 +38,7 @@ const _total: {
   task: Record<TaskStatus, LifecyclePhase>
   project: Record<ProjectStatus, LifecyclePhase>
   program: Record<ProgramStatus, LifecyclePhase>
-  goal: Record<GoalStatus, LifecyclePhase>
+  outcome: Record<OutcomeStatus, LifecyclePhase>
   request: Record<RequestStatus, LifecyclePhase>
   delegation: Record<DelegationStatus, LifecyclePhase>
   commitment: Record<CommitmentStatus, LifecyclePhase>

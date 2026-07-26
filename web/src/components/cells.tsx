@@ -7,7 +7,7 @@ import { formatDate } from "@/lib/utils"
 import {
   useAreaLookup,
   useConditionLookup,
-  useGoalLookup,
+  useOutcomeLookup,
   useMedicationLookup,
   useMetricLookup,
   useOrganizationLookup,
@@ -34,7 +34,7 @@ const LOOKUP_HOOKS = {
   project: useProjectLookup,
   task: useTaskLookup,
   people: usePeopleLookup,
-  goal: useGoalLookup,
+  outcome: useOutcomeLookup,
   metric: useMetricLookup,
   organization: useOrganizationLookup,
   condition: useConditionLookup,

@@ -15,7 +15,7 @@ const TABLE_TO_TYPE: Record<string, EntityType> = {
   projects: "project",
   areas: "area",
   programs: "program",
-  goals: "goal",
+  outcomes: "outcome",
   metrics: "metric",
   routines: "routine",
   events: "event",

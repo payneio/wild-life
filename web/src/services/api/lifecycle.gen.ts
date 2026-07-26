@@ -46,12 +46,6 @@ export const LIFECYCLE = {
     "revision_requested": "active",
     "waiting_for_update": "blocked",
   },
-  "goal": {
-    "achieved": "done",
-    "active": "active",
-    "dropped": "cancelled",
-    "paused": "blocked",
-  },
   "insurance_plan": {
     "active": "active",
     "inactive": "done",
@@ -60,6 +54,12 @@ export const LIFECYCLE = {
     "active": "active",
     "archived": "done",
     "inactive": "blocked",
+  },
+  "outcome": {
+    "achieved": "done",
+    "active": "active",
+    "dropped": "cancelled",
+    "paused": "blocked",
   },
   "program": {
     "active": "active",

@@ -36,7 +36,7 @@ function ExtraSection({ title, children }: { title: string; children: ReactNode 
   )
 }
 
-// Area's child collections (programs/projects/goals/routines/metrics) are now
+// Area's child collections (programs/projects/outcomes/routines/metrics) are now
 // rendered by the generic RelatedPanel from `area.relations` — navigable and
 // with inline add/create — so AreaExtra is gone.
 

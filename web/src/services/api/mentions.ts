@@ -78,7 +78,7 @@ export const typeLabel = (type: EntityType): string => {
  * What a picker is *for*, which decides whether finished rows may be offered.
  *
  *  - `assign`    — creating a live relationship (a scalar FK, re-parenting a row,
- *    linking a project to a goal). Selecting a completed or archived row would
+ *    linking a project to an outcome). Selecting a completed or archived row would
  *    author a contradiction: a live child under a dead parent. Terminal rows are
  *    withheld behind a reveal.
  *  - `reference` — naming something that exists (an @-mention, rooting a note,

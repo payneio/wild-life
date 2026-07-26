@@ -717,7 +717,7 @@
             ],
             "title": "Description"
           },
-          "desired_standard": {
+          "intended_outcome": {
             "anyOf": [
               {
                 "type": "string"
@@ -726,7 +726,7 @@
                 "type": "null"
               }
             ],
-            "title": "Desired Standard"
+            "title": "Intended Outcome"
           },
           "name": {
             "title": "Name",
@@ -814,7 +814,12 @@
             ],
             "title": "Description"
           },
-          "desired_standard": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "intended_outcome": {
             "anyOf": [
               {
                 "type": "string"
@@ -823,12 +828,7 @@
                 "type": "null"
               }
             ],
-            "title": "Desired Standard"
-          },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
+            "title": "Intended Outcome"
           },
           "name": {
             "title": "Name",
@@ -879,7 +879,7 @@
           "name",
           "description",
           "status",
-          "desired_standard",
+          "intended_outcome",
           "review_frequency",
           "accountable_owner_id",
           "responsible_lead_id",
@@ -925,7 +925,7 @@
             ],
             "title": "Description"
           },
-          "desired_standard": {
+          "intended_outcome": {
             "anyOf": [
               {
                 "type": "string"
@@ -934,7 +934,7 @@
                 "type": "null"
               }
             ],
-            "title": "Desired Standard"
+            "title": "Intended Outcome"
           },
           "name": {
             "anyOf": [
@@ -1154,7 +1154,7 @@
                   "project",
                   "task",
                   "routine",
-                  "goal",
+                  "outcome",
                   "metric",
                   "event",
                   "note",
@@ -1316,7 +1316,7 @@
                   "project",
                   "task",
                   "routine",
-                  "goal",
+                  "outcome",
                   "metric",
                   "event",
                   "note",
@@ -1502,7 +1502,7 @@
                   "project",
                   "task",
                   "routine",
-                  "goal",
+                  "outcome",
                   "metric",
                   "event",
                   "note",
@@ -1586,137 +1586,6 @@
           }
         },
         "title": "CommitmentUpdate",
-        "type": "object"
-      },
-      "ComputedProgress": {
-        "description": "Progress from three independent sources, plus the headline number.\n\n`overall` is the first of manual \u2192 metric \u2192 projects that is set; the rest are\nreturned so the client can show *why* the headline reads what it does.",
-        "properties": {
-          "completed_projects": {
-            "title": "Completed Projects",
-            "type": "integer"
-          },
-          "from_metric": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "From Metric"
-          },
-          "from_projects": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "From Projects"
-          },
-          "latest_metric_value": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Latest Metric Value"
-          },
-          "linked_projects": {
-            "title": "Linked Projects",
-            "type": "integer"
-          },
-          "manual": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Manual"
-          },
-          "metric_baseline": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Metric Baseline"
-          },
-          "metric_direction": {
-            "anyOf": [
-              {
-                "enum": [
-                  "up",
-                  "down"
-                ],
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Metric Direction"
-          },
-          "metric_met": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Metric Met"
-          },
-          "metric_target": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Metric Target"
-          },
-          "overall": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Overall"
-          }
-        },
-        "required": [
-          "manual",
-          "from_projects",
-          "linked_projects",
-          "completed_projects",
-          "latest_metric_value",
-          "from_metric",
-          "metric_baseline",
-          "metric_target",
-          "metric_direction",
-          "metric_met",
-          "overall"
-        ],
-        "title": "ComputedProgress",
         "type": "object"
       },
       "ConditionCreate": {
@@ -2270,7 +2139,7 @@
                   "project",
                   "task",
                   "routine",
-                  "goal",
+                  "outcome",
                   "metric",
                   "event",
                   "note",
@@ -2417,7 +2286,7 @@
                   "project",
                   "task",
                   "routine",
-                  "goal",
+                  "outcome",
                   "metric",
                   "event",
                   "note",
@@ -2581,7 +2450,7 @@
                   "project",
                   "task",
                   "routine",
-                  "goal",
+                  "outcome",
                   "metric",
                   "event",
                   "note",
@@ -2769,7 +2638,7 @@
                   "project",
                   "task",
                   "routine",
-                  "goal",
+                  "outcome",
                   "metric",
                   "event",
                   "note",
@@ -3016,7 +2885,7 @@
                   "project",
                   "task",
                   "routine",
-                  "goal",
+                  "outcome",
                   "metric",
                   "event",
                   "note",
@@ -3293,7 +3162,7 @@
                   "project",
                   "task",
                   "routine",
-                  "goal",
+                  "outcome",
                   "metric",
                   "event",
                   "note",
@@ -3567,7 +3436,7 @@
               "project",
               "task",
               "routine",
-              "goal",
+              "outcome",
               "metric",
               "event",
               "note",
@@ -3612,7 +3481,7 @@
               "project",
               "task",
               "routine",
-              "goal",
+              "outcome",
               "metric",
               "event",
               "note",
@@ -3657,7 +3526,7 @@
               "project",
               "task",
               "routine",
-              "goal",
+              "outcome",
               "metric",
               "event",
               "note",
@@ -3692,6 +3561,163 @@
           "entity_id"
         ],
         "title": "EntityTagRead",
+        "type": "object"
+      },
+      "Evaluation": {
+        "description": "Where an outcome actually stands, and the parts that say why.\n\n`state` is the headline; everything else is returned so a surface can show its\nreasoning rather than an unexplained percentage. Nothing here is stored \u2014 an\noutcome's `status` says whether the claim is live, never whether it is met.",
+        "properties": {
+          "advanced_by": {
+            "title": "Advanced By",
+            "type": "integer"
+          },
+          "baseline": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline"
+          },
+          "days_remaining": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days Remaining"
+          },
+          "is_stale": {
+            "title": "Is Stale",
+            "type": "boolean"
+          },
+          "latest_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest At"
+          },
+          "latest_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Value"
+          },
+          "pace_actual": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pace Actual"
+          },
+          "pace_required": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pace Required"
+          },
+          "progress": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Progress"
+          },
+          "reference_max": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference Max"
+          },
+          "reference_min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference Min"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "target_max": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Max"
+          },
+          "target_min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Min"
+          }
+        },
+        "required": [
+          "state",
+          "latest_value",
+          "latest_at",
+          "is_stale",
+          "target_min",
+          "target_max",
+          "reference_min",
+          "reference_max",
+          "progress",
+          "baseline",
+          "days_remaining",
+          "pace_required",
+          "pace_actual",
+          "advanced_by"
+        ],
+        "title": "Evaluation",
         "type": "object"
       },
       "EventCreate": {
@@ -3753,7 +3779,7 @@
                   "project",
                   "task",
                   "routine",
-                  "goal",
+                  "outcome",
                   "metric",
                   "event",
                   "note",
@@ -3992,7 +4018,7 @@
                   "project",
                   "task",
                   "routine",
-                  "goal",
+                  "outcome",
                   "metric",
                   "event",
                   "note",
@@ -4270,7 +4296,7 @@
                   "project",
                   "task",
                   "routine",
-                  "goal",
+                  "outcome",
                   "metric",
                   "event",
                   "note",
@@ -4449,495 +4475,6 @@
           }
         },
         "title": "EventUpdate",
-        "type": "object"
-      },
-      "GoalCreate": {
-        "properties": {
-          "area_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Area Id"
-          },
-          "baseline": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Baseline"
-          },
-          "condition_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Condition Id"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "measurement_method": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Measurement Method"
-          },
-          "metric_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Metric Id"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "program_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Program Id"
-          },
-          "progress": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Progress"
-          },
-          "status": {
-            "default": "active",
-            "enum": [
-              "active",
-              "achieved",
-              "paused",
-              "dropped"
-            ],
-            "title": "Status",
-            "type": "string"
-          },
-          "target_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Target Date"
-          },
-          "target_state": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Target State"
-          },
-          "target_value": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Target Value"
-          }
-        },
-        "required": [
-          "name"
-        ],
-        "title": "GoalCreate",
-        "type": "object"
-      },
-      "GoalRead": {
-        "properties": {
-          "area_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Area Id"
-          },
-          "baseline": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Baseline"
-          },
-          "condition_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Condition Id"
-          },
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "measurement_method": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Measurement Method"
-          },
-          "metric_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Metric Id"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "program_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Program Id"
-          },
-          "progress": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Progress"
-          },
-          "status": {
-            "enum": [
-              "active",
-              "achieved",
-              "paused",
-              "dropped"
-            ],
-            "title": "Status",
-            "type": "string"
-          },
-          "target_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Target Date"
-          },
-          "target_state": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Target State"
-          },
-          "target_value": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Target Value"
-          },
-          "updated_at": {
-            "format": "date-time",
-            "title": "Updated At",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "created_at",
-          "updated_at",
-          "name",
-          "description",
-          "area_id",
-          "program_id",
-          "metric_id",
-          "condition_id",
-          "target_state",
-          "target_value",
-          "baseline",
-          "target_date",
-          "status",
-          "progress",
-          "measurement_method"
-        ],
-        "title": "GoalRead",
-        "type": "object"
-      },
-      "GoalUpdate": {
-        "properties": {
-          "area_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Area Id"
-          },
-          "baseline": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Baseline"
-          },
-          "condition_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Condition Id"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "measurement_method": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Measurement Method"
-          },
-          "metric_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Metric Id"
-          },
-          "name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Name"
-          },
-          "program_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Program Id"
-          },
-          "progress": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Progress"
-          },
-          "status": {
-            "anyOf": [
-              {
-                "enum": [
-                  "active",
-                  "achieved",
-                  "paused",
-                  "dropped"
-                ],
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Status"
-          },
-          "target_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Target Date"
-          },
-          "target_state": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Target State"
-          },
-          "target_value": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Target Value"
-          }
-        },
-        "title": "GoalUpdate",
         "type": "object"
       },
       "GuestStatus": {
@@ -6309,7 +5846,7 @@
               "project",
               "task",
               "routine",
-              "goal",
+              "outcome",
               "metric",
               "event",
               "note",
@@ -6423,7 +5960,7 @@
             ],
             "title": "Program Id"
           },
-          "target_max": {
+          "reference_max": {
             "anyOf": [
               {
                 "type": "number"
@@ -6432,9 +5969,9 @@
                 "type": "null"
               }
             ],
-            "title": "Target Max"
+            "title": "Reference Max"
           },
-          "target_min": {
+          "reference_min": {
             "anyOf": [
               {
                 "type": "number"
@@ -6443,18 +5980,7 @@
                 "type": "null"
               }
             ],
-            "title": "Target Min"
-          },
-          "target_value": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Target Value"
+            "title": "Reference Min"
           },
           "unit": {
             "anyOf": [
@@ -6697,7 +6223,7 @@
             ],
             "title": "Program Id"
           },
-          "target_max": {
+          "reference_max": {
             "anyOf": [
               {
                 "type": "number"
@@ -6706,9 +6232,9 @@
                 "type": "null"
               }
             ],
-            "title": "Target Max"
+            "title": "Reference Max"
           },
-          "target_min": {
+          "reference_min": {
             "anyOf": [
               {
                 "type": "number"
@@ -6717,18 +6243,7 @@
                 "type": "null"
               }
             ],
-            "title": "Target Min"
-          },
-          "target_value": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Target Value"
+            "title": "Reference Min"
           },
           "unit": {
             "anyOf": [
@@ -6756,9 +6271,8 @@
           "program_id",
           "condition_id",
           "unit",
-          "target_value",
-          "target_min",
-          "target_max",
+          "reference_min",
+          "reference_max",
           "measurement_frequency",
           "data_source",
           "notes"
@@ -6855,7 +6369,7 @@
             ],
             "title": "Program Id"
           },
-          "target_max": {
+          "reference_max": {
             "anyOf": [
               {
                 "type": "number"
@@ -6864,9 +6378,9 @@
                 "type": "null"
               }
             ],
-            "title": "Target Max"
+            "title": "Reference Max"
           },
-          "target_min": {
+          "reference_min": {
             "anyOf": [
               {
                 "type": "number"
@@ -6875,18 +6389,7 @@
                 "type": "null"
               }
             ],
-            "title": "Target Min"
-          },
-          "target_value": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Target Value"
+            "title": "Reference Min"
           },
           "unit": {
             "anyOf": [
@@ -6931,7 +6434,7 @@
                   "project",
                   "task",
                   "routine",
-                  "goal",
+                  "outcome",
                   "metric",
                   "event",
                   "note",
@@ -7111,7 +6614,7 @@
                   "project",
                   "task",
                   "routine",
-                  "goal",
+                  "outcome",
                   "metric",
                   "event",
                   "note",
@@ -7253,7 +6756,7 @@
                   "project",
                   "task",
                   "routine",
-                  "goal",
+                  "outcome",
                   "metric",
                   "event",
                   "note",
@@ -7786,6 +7289,512 @@
           }
         },
         "title": "OrganizationUpdate",
+        "type": "object"
+      },
+      "OutcomeCreate": {
+        "properties": {
+          "baseline": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline"
+          },
+          "by_when": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "By When"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "entity_id": {
+            "format": "uuid",
+            "title": "Entity Id",
+            "type": "string"
+          },
+          "entity_type": {
+            "enum": [
+              "area",
+              "program",
+              "project",
+              "task",
+              "routine",
+              "outcome",
+              "metric",
+              "event",
+              "note",
+              "person",
+              "organization",
+              "location",
+              "commitment",
+              "request",
+              "delegation",
+              "review",
+              "resource",
+              "decision",
+              "condition",
+              "medication",
+              "protocol",
+              "protocol_item",
+              "insurance_plan",
+              "allergy"
+            ],
+            "title": "Entity Type",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "standard",
+              "target",
+              "deliverable"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "metric_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric Id"
+          },
+          "satisfied_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Satisfied At"
+          },
+          "statement": {
+            "title": "Statement",
+            "type": "string"
+          },
+          "status": {
+            "default": "active",
+            "enum": [
+              "active",
+              "achieved",
+              "paused",
+              "dropped"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "target_max": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Max"
+          },
+          "target_min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Min"
+          }
+        },
+        "required": [
+          "statement",
+          "kind",
+          "entity_type",
+          "entity_id"
+        ],
+        "title": "OutcomeCreate",
+        "type": "object"
+      },
+      "OutcomeRead": {
+        "properties": {
+          "baseline": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline"
+          },
+          "by_when": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "By When"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "entity_id": {
+            "format": "uuid",
+            "title": "Entity Id",
+            "type": "string"
+          },
+          "entity_type": {
+            "enum": [
+              "area",
+              "program",
+              "project",
+              "task",
+              "routine",
+              "outcome",
+              "metric",
+              "event",
+              "note",
+              "person",
+              "organization",
+              "location",
+              "commitment",
+              "request",
+              "delegation",
+              "review",
+              "resource",
+              "decision",
+              "condition",
+              "medication",
+              "protocol",
+              "protocol_item",
+              "insurance_plan",
+              "allergy"
+            ],
+            "title": "Entity Type",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "standard",
+              "target",
+              "deliverable"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "metric_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric Id"
+          },
+          "satisfied_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Satisfied At"
+          },
+          "statement": {
+            "title": "Statement",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "achieved",
+              "paused",
+              "dropped"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "target_max": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Max"
+          },
+          "target_min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Min"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "created_at",
+          "updated_at",
+          "statement",
+          "kind",
+          "entity_type",
+          "entity_id",
+          "description",
+          "status",
+          "metric_id",
+          "target_min",
+          "target_max",
+          "baseline",
+          "by_when",
+          "satisfied_at"
+        ],
+        "title": "OutcomeRead",
+        "type": "object"
+      },
+      "OutcomeUpdate": {
+        "properties": {
+          "baseline": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline"
+          },
+          "by_when": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "By When"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "entity_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Id"
+          },
+          "entity_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "area",
+                  "program",
+                  "project",
+                  "task",
+                  "routine",
+                  "outcome",
+                  "metric",
+                  "event",
+                  "note",
+                  "person",
+                  "organization",
+                  "location",
+                  "commitment",
+                  "request",
+                  "delegation",
+                  "review",
+                  "resource",
+                  "decision",
+                  "condition",
+                  "medication",
+                  "protocol",
+                  "protocol_item",
+                  "insurance_plan",
+                  "allergy"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Type"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "standard",
+                  "target",
+                  "deliverable"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "metric_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric Id"
+          },
+          "satisfied_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Satisfied At"
+          },
+          "statement": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Statement"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "active",
+                  "achieved",
+                  "paused",
+                  "dropped"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "target_max": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Max"
+          },
+          "target_min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Min"
+          }
+        },
+        "title": "OutcomeUpdate",
         "type": "object"
       },
       "PersonCreate": {
@@ -8471,17 +8480,6 @@
             "title": "Status",
             "type": "string"
           },
-          "success_criteria": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Success Criteria"
-          },
           "target_date": {
             "anyOf": [
               {
@@ -8620,17 +8618,6 @@
             "title": "Status",
             "type": "string"
           },
-          "success_criteria": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Success Criteria"
-          },
           "target_date": {
             "anyOf": [
               {
@@ -8657,7 +8644,6 @@
           "description",
           "area_id",
           "intended_outcome",
-          "success_criteria",
           "status",
           "start_date",
           "target_date",
@@ -8792,17 +8778,6 @@
             ],
             "title": "Status"
           },
-          "success_criteria": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Success Criteria"
-          },
           "target_date": {
             "anyOf": [
               {
@@ -8844,17 +8819,6 @@
               }
             ],
             "title": "Area Id"
-          },
-          "completion_criteria": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Completion Criteria"
           },
           "description": {
             "anyOf": [
@@ -9011,17 +8975,6 @@
             ],
             "title": "Area Id"
           },
-          "completion_criteria": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Completion Criteria"
-          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -9167,7 +9120,6 @@
           "area_id",
           "program_id",
           "intended_outcome",
-          "completion_criteria",
           "status",
           "priority",
           "start_date",
@@ -9205,17 +9157,6 @@
               }
             ],
             "title": "Area Id"
-          },
-          "completion_criteria": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Completion Criteria"
           },
           "description": {
             "anyOf": [
@@ -10015,7 +9956,7 @@
                   "project",
                   "task",
                   "routine",
-                  "goal",
+                  "outcome",
                   "metric",
                   "event",
                   "note",
@@ -10206,7 +10147,7 @@
                   "project",
                   "task",
                   "routine",
-                  "goal",
+                  "outcome",
                   "metric",
                   "event",
                   "note",
@@ -10446,7 +10387,7 @@
                   "project",
                   "task",
                   "routine",
-                  "goal",
+                  "outcome",
                   "metric",
                   "event",
                   "note",
@@ -10636,7 +10577,7 @@
                   "project",
                   "task",
                   "routine",
-                  "goal",
+                  "outcome",
                   "metric",
                   "event",
                   "note",
@@ -10744,7 +10685,7 @@
                   "project",
                   "task",
                   "routine",
-                  "goal",
+                  "outcome",
                   "metric",
                   "event",
                   "note",
@@ -10865,7 +10806,7 @@
                   "project",
                   "task",
                   "routine",
-                  "goal",
+                  "outcome",
                   "metric",
                   "event",
                   "note",
@@ -11098,13 +11039,6 @@
             "title": "Generated For",
             "type": "string"
           },
-          "goals_overdue": {
-            "items": {
-              "$ref": "#/components/schemas/DashRow"
-            },
-            "title": "Goals Overdue",
-            "type": "array"
-          },
           "inactive_programs": {
             "items": {
               "$ref": "#/components/schemas/DashRow"
@@ -11145,6 +11079,13 @@
               "$ref": "#/components/schemas/DashRow"
             },
             "title": "Open Requests",
+            "type": "array"
+          },
+          "outcomes_overdue": {
+            "items": {
+              "$ref": "#/components/schemas/DashRow"
+            },
+            "title": "Outcomes Overdue",
             "type": "array"
           },
           "overdue_delegations": {
@@ -11234,7 +11175,7 @@
           "completed_with_open_tasks",
           "conditions_without_protocol",
           "metrics_overdue",
-          "goals_overdue",
+          "outcomes_overdue",
           "low_adherence"
         ],
         "title": "ReviewDashboard",
@@ -15101,7 +15042,7 @@
                 "project",
                 "task",
                 "routine",
-                "goal",
+                "outcome",
                 "metric",
                 "event",
                 "note",
@@ -15754,379 +15695,6 @@
         "summary": "Update",
         "tags": [
           "calendar"
-        ]
-      }
-    },
-    "/goals": {
-      "get": {
-        "operationId": "goals_list",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/GoalRead"
-                  },
-                  "title": "Response Goals List",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          }
-        },
-        "summary": "List All",
-        "tags": [
-          "goals"
-        ]
-      },
-      "post": {
-        "operationId": "goals_create",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GoalCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GoalRead"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Create",
-        "tags": [
-          "goals"
-        ]
-      }
-    },
-    "/goals/{goal_id}/computed-progress": {
-      "get": {
-        "description": "Progress from manual entry, linked-project completion, and latest metric.",
-        "operationId": "goal_computed_progress_goals__goal_id__computed_progress_get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "goal_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Goal Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ComputedProgress"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Goal Computed Progress",
-        "tags": [
-          "goals"
-        ]
-      }
-    },
-    "/goals/{goal_id}/projects": {
-      "get": {
-        "operationId": "list_goal_projects_goals__goal_id__projects_get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "goal_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Goal Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/ProjectRead"
-                  },
-                  "title": "Response List Goal Projects Goals  Goal Id  Projects Get",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "List Goal Projects",
-        "tags": [
-          "goals"
-        ]
-      }
-    },
-    "/goals/{goal_id}/projects/{project_id}": {
-      "delete": {
-        "operationId": "unlink_goal_project_goals__goal_id__projects__project_id__delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "goal_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Goal Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "project_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Project Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Unlink Goal Project",
-        "tags": [
-          "goals"
-        ]
-      },
-      "post": {
-        "operationId": "link_goal_project_goals__goal_id__projects__project_id__post",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "goal_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Goal Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "project_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Project Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Link Goal Project",
-        "tags": [
-          "goals"
-        ]
-      }
-    },
-    "/goals/{item_id}": {
-      "delete": {
-        "operationId": "goals_delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Delete",
-        "tags": [
-          "goals"
-        ]
-      },
-      "get": {
-        "operationId": "goals_get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GoalRead"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Get One",
-        "tags": [
-          "goals"
-        ]
-      },
-      "patch": {
-        "operationId": "goals_update",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GoalUpdate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GoalRead"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Update",
-        "tags": [
-          "goals"
         ]
       }
     },
@@ -17156,7 +16724,7 @@
                     "project",
                     "task",
                     "routine",
-                    "goal",
+                    "outcome",
                     "metric",
                     "event",
                     "note",
@@ -17787,7 +17355,7 @@
                     "project",
                     "task",
                     "routine",
-                    "goal",
+                    "outcome",
                     "metric",
                     "event",
                     "note",
@@ -17862,7 +17430,7 @@
                     "project",
                     "task",
                     "routine",
-                    "goal",
+                    "outcome",
                     "metric",
                     "event",
                     "note",
@@ -18593,6 +18161,242 @@
         "summary": "List Organization Affiliations",
         "tags": [
           "organizations"
+        ]
+      }
+    },
+    "/outcomes": {
+      "get": {
+        "operationId": "outcomes_list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OutcomeRead"
+                  },
+                  "title": "Response Outcomes List",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List All",
+        "tags": [
+          "outcomes"
+        ]
+      },
+      "post": {
+        "operationId": "outcomes_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OutcomeCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutcomeRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create",
+        "tags": [
+          "outcomes"
+        ]
+      }
+    },
+    "/outcomes/{item_id}": {
+      "delete": {
+        "operationId": "outcomes_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete",
+        "tags": [
+          "outcomes"
+        ]
+      },
+      "get": {
+        "operationId": "outcomes_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutcomeRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get One",
+        "tags": [
+          "outcomes"
+        ]
+      },
+      "patch": {
+        "operationId": "outcomes_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OutcomeUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutcomeRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update",
+        "tags": [
+          "outcomes"
+        ]
+      }
+    },
+    "/outcomes/{outcome_id}/evaluation": {
+      "get": {
+        "description": "Where an outcome stands right now, computed \u2014 never stored.\n\nOne rule per kind: a standard is in its band or breached, a target is a\nfraction of the way from baseline to the edge (and on pace or behind), a\ndeliverable is accepted or outstanding. An outcome with no metric is\n`unmeasured`, which is a legitimate state and not a failure.",
+        "operationId": "evaluate_outcome_outcomes__outcome_id__evaluation_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "outcome_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outcome Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Evaluation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Evaluate Outcome",
+        "tags": [
+          "outcomes"
         ]
       }
     },
@@ -21584,7 +21388,7 @@
                 "project",
                 "task",
                 "routine",
-                "goal",
+                "outcome",
                 "metric",
                 "event",
                 "note",

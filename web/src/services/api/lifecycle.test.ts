@@ -46,7 +46,7 @@ describe("isTerminal", () => {
     // Paused/waiting are blocked, not finished — still assignable.
     expect(isTerminal("project", "paused")).toBe(false)
     expect(isTerminal("task", "completed")).toBe(true)
-    expect(isTerminal("goal", "dropped")).toBe(true)
+    expect(isTerminal("outcome", "dropped")).toBe(true)
   })
 
   it("treats dormant as open", () => {

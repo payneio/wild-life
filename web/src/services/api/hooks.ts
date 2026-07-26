@@ -7,14 +7,14 @@ import type {
   Allergy,
   Area,
   Commitment,
-  ComputedProgress,
+  Evaluation,
   Condition,
   Decision,
   Delegation,
   EntityType,
   EventItem,
   GuestStatus,
-  Goal,
+  Outcome,
   InsurancePlan,
   Interaction,
   Location,
@@ -50,7 +50,7 @@ export const locations = createCrud<Location>("locations")
 export const affiliations = createCrud<Affiliation>("affiliations")
 export const routines = createCrud<Routine>("routines")
 export const routineInstances = createCrud<RoutineInstance>("routine-instances")
-export const goals = createCrud<Goal>("goals")
+export const outcomes = createCrud<Outcome>("outcomes")
 export const metrics = createCrud<Metric>("metrics")
 export const metricEntries = createCrud<MetricEntry>("metric-entries")
 export const events = createCrud<EventItem>("events")
@@ -425,40 +425,15 @@ export function useLogDose() {
   })
 }
 
-// --- goal <-> project links + computed progress ---
-export function useGoalProjects(goalId: string | null) {
+// --- where an outcome actually stands ---
+// Keyed under "outcomes" so an edit to the claim refreshes it; a *reading*
+// changes the verdict without touching that row, which `DERIVED_FROM` in
+// live.ts handles.
+export function useOutcomeEvaluation(outcomeId: string | null) {
   return useQuery({
-    queryKey: ["goal-projects", "by-goal", goalId],
-    queryFn: () => apiClient.get<Project[]>(`/goals/${goalId}/projects`),
-    enabled: !!goalId,
-  })
-}
-
-export function useGoalProgress(goalId: string | null) {
-  return useQuery({
-    queryKey: ["goals", goalId, "progress"],
-    queryFn: () =>
-      apiClient.get<ComputedProgress>(`/goals/${goalId}/computed-progress`),
-    enabled: !!goalId,
-  })
-}
-
-export function useLinkGoalProject() {
-  const invalidate = useInvalidator()
-  return useMutation({
-    mutationFn: ({ goalId, projectId }: { goalId: string; projectId: string }) =>
-      apiClient.post(`/goals/${goalId}/projects/${projectId}`),
-    // Goal computed-progress derives from linked projects — refresh goals too.
-    onSuccess: () => invalidate("goals"),
-  })
-}
-
-export function useUnlinkGoalProject() {
-  const invalidate = useInvalidator()
-  return useMutation({
-    mutationFn: ({ goalId, projectId }: { goalId: string; projectId: string }) =>
-      apiClient.delete(`/goals/${goalId}/projects/${projectId}`),
-    onSuccess: () => invalidate("goals"),
+    queryKey: ["outcomes", outcomeId, "evaluation"],
+    queryFn: () => apiClient.get<Evaluation>(`/outcomes/${outcomeId}/evaluation`),
+    enabled: !!outcomeId,
   })
 }
 

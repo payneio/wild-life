@@ -14,9 +14,8 @@ class MetricCreate(BaseModel):
     program_id: uuid.UUID | None = None
     condition_id: uuid.UUID | None = None
     unit: str | None = None
-    target_value: float | None = None
-    target_min: float | None = None
-    target_max: float | None = None
+    reference_min: float | None = None
+    reference_max: float | None = None
     measurement_frequency: MeasurementFrequency | None = None
     data_source: str | None = None
     notes: str | None = None
@@ -28,9 +27,8 @@ class MetricUpdate(BaseModel):
     program_id: uuid.UUID | None = None
     condition_id: uuid.UUID | None = None
     unit: str | None = None
-    target_value: float | None = None
-    target_min: float | None = None
-    target_max: float | None = None
+    reference_min: float | None = None
+    reference_max: float | None = None
     measurement_frequency: MeasurementFrequency | None = None
     data_source: str | None = None
     notes: str | None = None
@@ -42,9 +40,8 @@ class MetricRead(Entity):
     program_id: uuid.UUID | None
     condition_id: uuid.UUID | None
     unit: str | None
-    target_value: float | None
-    target_min: float | None
-    target_max: float | None
+    reference_min: float | None
+    reference_max: float | None
     measurement_frequency: MeasurementFrequency | None
     data_source: str | None
     notes: str | None

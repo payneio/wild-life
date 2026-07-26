@@ -10,7 +10,7 @@ import { AreasPage } from "@/pages/AreasPage"
 import { ProgramsPage } from "@/pages/ProgramsPage"
 import { ProjectsPage } from "@/pages/ProjectsPage"
 import { TasksPage } from "@/pages/TasksPage"
-import { GoalsPage } from "@/pages/GoalsPage"
+import { OutcomesPage } from "@/pages/OutcomesPage"
 import { DelegationsPage } from "@/pages/DelegationsPage"
 import { ReviewsPage } from "@/pages/ReviewsPage"
 import { PeoplePage } from "@/pages/PeoplePage"
@@ -55,12 +55,12 @@ export const router = createBrowserRouter([
       { path: "today", element: <TodayPage /> },
       { path: "inbox", element: <InboxPage /> },
       // Areas & Programs are containers you operate → full-page workspaces,
-      // like Projects/Goals/Tasks below (Workbench, not a cramped pane).
+      // like Projects/Tasks below (Workbench, not a cramped pane).
       { path: "areas", element: <AreasPage /> },
       { path: "areas/:id", element: <RecordPage entityKey="area" backTo="/areas" backLabel="Areas" /> },
       { path: "programs", element: <ProgramsPage /> },
       { path: "programs/:id", element: <RecordPage entityKey="program" backTo="/programs" backLabel="Programs" /> },
-      // Projects, Goals, Tasks are Workbenches: a full-width launcher list whose
+      // Projects, Outcomes, Tasks are Workbenches: a full-width launcher list whose
       // rows open a full-page editable record, not a cramped side pane.
       { path: "projects", element: <ProjectsPage /> },
       { path: "projects/:id", element: <RecordPage entityKey="project" backTo="/projects" backLabel="Projects" /> },
@@ -70,8 +70,8 @@ export const router = createBrowserRouter([
       // Routines have no standalone list/nav (they're protocol steps), but a routine
       // stays viewable when referenced (from a protocol, an area, or the review).
       { path: "routines/:id", element: <RecordPage entityKey="routine" backTo="/protocols" backLabel="Protocols" /> },
-      { path: "goals", element: <GoalsPage /> },
-      { path: "goals/:id", element: <RecordPage entityKey="goal" backTo="/goals" backLabel="Goals" /> },
+      { path: "outcomes", element: <OutcomesPage /> },
+      { path: "outcomes/:id", element: <RecordPage entityKey="outcome" backTo="/outcomes" backLabel="Outcomes" /> },
       withDetail("delegations", <DelegationsPage />, "delegation"),
       withDetail("requests", <RequestsPage />, "request"),
       // Review is a Workbench (you work in a review) — deep-linkable full-page record.
@@ -83,7 +83,7 @@ export const router = createBrowserRouter([
       withDetail("organizations", <OrganizationsPage />, "organization"),
       withDetail("locations", <LocationsPage />, "location"),
       withDetail("metrics", <MetricsPage />, "metric"),
-      // Condition is the health hub (it contains meds/protocols/labs/goals) →
+      // Condition is the health hub (it contains meds/protocols/labs/outcomes) →
       // full-page workbench with related panels, like Area/Project.
       { path: "conditions", element: <ConditionsPage /> },
       { path: "conditions/:id", element: <RecordPage entityKey="condition" backTo="/conditions" backLabel="Conditions" /> },

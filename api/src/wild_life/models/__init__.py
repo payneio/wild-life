@@ -3,7 +3,6 @@
 from wild_life.models.auth import ApiToken
 from wild_life.models.calendar import AttendeeResponse, Event, SentInvite
 from wild_life.models.core import Area, Program, Project, ProjectContributor
-from wild_life.models.goals import Goal, GoalProject
 from wild_life.models.health import (
     Allergy,
     Condition,
@@ -17,6 +16,7 @@ from wild_life.models.links import EntityLink
 from wild_life.models.metrics import Metric, MetricEntry
 from wild_life.models.locations import Location
 from wild_life.models.notes import Note, NoteMention
+from wild_life.models.outcomes import Outcome
 from wild_life.models.organizations import Affiliation, Organization
 from wild_life.models.people import Interaction, Person
 from wild_life.models.preferences import Preference
@@ -36,8 +36,7 @@ __all__ = [
     "Task",
     "Routine",
     "RoutineInstance",
-    "Goal",
-    "GoalProject",
+    "Outcome",
     "Condition",
     "Medication",
     "Protocol",

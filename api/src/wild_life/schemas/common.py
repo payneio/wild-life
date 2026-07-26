@@ -30,7 +30,12 @@ RoutineStatus = Literal["active", "paused", "archived"]
 # flags a metric whose latest entry is older than this (see routers/reviews.py).
 MeasurementFrequency = Literal["daily", "weekly", "monthly", "quarterly", "yearly"]
 RoutineInstanceStatus = Literal["pending", "done", "skipped"]
-GoalStatus = Literal["active", "achieved", "paused", "dropped"]
+OutcomeStatus = Literal["active", "achieved", "paused", "dropped"]
+# What kind of claim an outcome makes. A standard must hold continuously, a target
+# must become true by a date, a deliverable is accepted once. The kind is declared
+# rather than inferred from which fields are filled: capture asks for exactly the
+# right ones, and the evaluator has a single rule per kind.
+OutcomeKind = Literal["standard", "target", "deliverable"]
 CommitmentStatus = Literal[
     "open", "in_progress", "waiting", "fulfilled", "broken", "cancelled"
 ]
@@ -72,7 +77,7 @@ EntityType = Literal[
     "project",
     "task",
     "routine",
-    "goal",
+    "outcome",
     "metric",
     "event",
     "note",

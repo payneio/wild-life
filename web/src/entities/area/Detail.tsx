@@ -19,7 +19,7 @@ export function AreaDetail({ entity, onClose }: { entity: Entity; onClose: () =>
 
       <RecordSection title="Standard">
         <F.Textarea
-          field="desired_standard"
+          field="intended_outcome"
           label="Desired standard"
           placeholder="What does good look like here?"
           minRows={2}

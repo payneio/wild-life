@@ -15,7 +15,7 @@ const ROOTABLE_TYPES: EntityType[] = [
   "area",
   "program",
   "project",
-  "goal",
+  "outcome",
   "task",
   "event",
   "person",

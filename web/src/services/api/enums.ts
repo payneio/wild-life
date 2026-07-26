@@ -19,7 +19,8 @@ import type {
   ConditionCategory,
   ConditionStatus,
   DelegationStatus,
-  GoalStatus,
+  OutcomeKind,
+  OutcomeStatus,
   MeasurementFrequency,
   MedType,
   OrgStatus,
@@ -72,12 +73,18 @@ export const TASK_STATUS = [
   "cancelled",
 ] as const satisfies readonly TaskStatus[]
 
-export const GOAL_STATUS = [
+export const OUTCOME_STATUS = [
   "active",
   "achieved",
   "paused",
   "dropped",
-] as const satisfies readonly GoalStatus[]
+] as const satisfies readonly OutcomeStatus[]
+
+export const OUTCOME_KIND = [
+  "standard",
+  "target",
+  "deliverable",
+] as const satisfies readonly OutcomeKind[]
 
 export const ROUTINE_STATUS = [
   "active",

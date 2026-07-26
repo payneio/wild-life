@@ -68,7 +68,7 @@ const PLAN: Item[] = [
   { to: "/projects", label: "Projects", icon: FolderKanban },
   { to: "/tasks", label: "Tasks", icon: ListChecks },
   { to: "/protocols", label: "Protocols", icon: HeartPulse },
-  { to: "/goals", label: "Goals", icon: Target },
+  { to: "/outcomes", label: "Outcomes", icon: Target },
   { to: "/delegations", label: "Delegations", icon: Send },
   { to: "/agents", label: "Agents", icon: Bot },
   { to: "/requests", label: "Requests", icon: Hourglass },

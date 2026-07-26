@@ -16,6 +16,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { renderHook, waitFor } from "@testing-library/react"
 import type { ReactNode } from "react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
+import { DERIVED_FROM } from "@/services/api/live"
 
 const get = vi.fn(() => Promise.resolve([]))
 vi.mock("@/services/api/client", () => ({ apiClient: { get: (...a: unknown[]) => get(...(a as [])) } }))
@@ -26,7 +27,7 @@ const {
   usePersonInteractions,
   usePersonAffiliations,
   useOrganizationAffiliations,
-  useGoalProjects,
+  useOutcomeEvaluation,
 } = await import("@/services/api/hooks")
 
 const ID = "11111111-1111-1111-1111-111111111111"
@@ -79,8 +80,22 @@ describe("nested reads are reachable by the SSE invalidation that concerns them"
     await refetchesWhenChanges(() => useOrganizationAffiliations(ID), "affiliations")
   })
 
-  it("a goal-project link refreshes the goal's projects", async () => {
-    await refetchesWhenChanges(() => useGoalProjects(ID), "goal-projects")
+  it("editing the claim refreshes its verdict", async () => {
+    await refetchesWhenChanges(() => useOutcomeEvaluation(ID), "outcomes")
+  })
+
+  // The cross-table case `DERIVED_FROM` exists for: a reading changes the
+  // verdict without touching the `outcomes` row, so the resource the SSE event
+  // names is not the one the query key starts with.
+  it("a new reading refreshes the outcome's verdict", async () => {
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    renderHook(() => useOutcomeEvaluation(ID), { wrapper: wrapper(qc) })
+    await waitFor(() => expect(get).toHaveBeenCalledTimes(1))
+    // What live.ts does for a metric-entries change, dependants included.
+    for (const r of ["metric-entries", ...(DERIVED_FROM["metric-entries"] ?? [])]) {
+      await qc.invalidateQueries({ queryKey: [r] })
+    }
+    await waitFor(() => expect(get.mock.calls.length).toBeGreaterThan(1))
   })
 })
 

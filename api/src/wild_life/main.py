@@ -28,7 +28,6 @@ from wild_life.routers import (
     calendar,
     calendar_mail,
     core,
-    goals,
     history,
     knowledge,
     locations,
@@ -37,6 +36,7 @@ from wild_life.routers import (
     notes,
     nudges,
     organizations,
+    outcomes,
     people,
     preferences,
     push,
@@ -147,7 +147,7 @@ app.include_router(locations.router)
 app.include_router(merge.router)
 app.include_router(search.router)
 app.include_router(routines.router)
-app.include_router(goals.router)
+app.include_router(outcomes.router)
 app.include_router(metrics.router)
 app.include_router(calendar.router)
 app.include_router(calendar.people_links_router)

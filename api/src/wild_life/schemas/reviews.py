@@ -80,5 +80,5 @@ class ReviewDashboard(BaseModel):
     completed_with_open_tasks: list[DashRow]
     conditions_without_protocol: list[DashRow]
     metrics_overdue: list[DashRow]
-    goals_overdue: list[DashRow]
+    outcomes_overdue: list[DashRow]
     low_adherence: list[DashRow]

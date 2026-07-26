@@ -12,7 +12,7 @@ export const ROUTE_BY_TYPE: Partial<Record<EntityType, string>> = {
   project: "projects",
   task: "tasks",
   routine: "routines",
-  goal: "goals",
+  outcome: "outcomes",
   metric: "metrics",
   delegation: "delegations",
   note: "notes",

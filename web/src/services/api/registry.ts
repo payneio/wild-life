@@ -18,7 +18,7 @@ import { InsurancePlanDetail as InsurancePlanRecord } from "@/entities/insurance
 import { ProtocolDetail as ProtocolRecord } from "@/entities/protocol/Detail"
 import { MetricDetail as MetricRecord } from "@/entities/metric/Detail"
 import { ProjectDetail as ProjectRecord } from "@/entities/project/Detail"
-import { GoalDetail as GoalRecord } from "@/entities/goal/Detail"
+import { OutcomeRecord } from "@/entities/outcome/Detail"
 import { RoutineDetail as RoutineRecord } from "@/entities/routine/Detail"
 import { DelegationDetail as DelegationRecord } from "@/entities/delegation/Detail"
 import { NoteDetail as NoteRecord } from "@/entities/note/Detail"
@@ -33,7 +33,7 @@ import {
   decisions,
   delegations,
   events,
-  goals,
+  outcomes,
   insurancePlans,
   locations,
   medications,
@@ -61,12 +61,21 @@ type Crud<T extends Entity> = ReturnType<typeof createCrud<T>>
  *    context prefilled).
  *  - `soft-backref` — rows of `type` whose polymorphic `entity_type`/`entity_id`
  *    point at this entity.
- * Many-to-many joins (goal↔project, person↔org) stay in bespoke `extra`s that
+ * Many-to-many joins (person↔org) stay in bespoke `extra`s that
  * carry their own link/unlink hooks.
  */
 export type RelationSpec =
   | { mode: "fk-children"; label: string; type: EntityType; fkField: string; inherit?: string[] }
-  | { mode: "soft-backref"; label: string; type: EntityType; hideWhenEmpty?: boolean }
+  | {
+      mode: "soft-backref"
+      label: string
+      type: EntityType
+      hideWhenEmpty?: boolean
+      /** Fields quick-create should prefill beyond the root link — the gesture
+       *  already knows them. An Area's outcome is a standard, a Project's is a
+       *  deliverable; asking would be asking something already answered. */
+      defaults?: Record<string, unknown>
+    }
 
 /** Everything the generic list + detail + edit machinery needs per entity. */
 export interface EntityDef {
@@ -116,7 +125,7 @@ import {
   DECISION_FIELDS,
   DELEGATION_FIELDS,
   EVENT_FIELDS,
-  GOAL_FIELDS,
+  OUTCOME_FIELDS,
   INSURANCE_FIELDS,
   LOCATION_FIELDS,
   MEDICATION_FIELDS,
@@ -138,7 +147,7 @@ export const REGISTRY: Record<string, EntityDef> = {
   area: { key: "area", label: "Area", crud: areas, fields: AREA_FIELDS, title: (e) => e.name, entityType: "area", titleField: "name", quickCreate: true, detail: AreaRecord, relations: [
     { mode: "fk-children", label: "Programs", type: "program", fkField: "area_id" },
     { mode: "fk-children", label: "Projects", type: "project", fkField: "area_id" },
-    { mode: "fk-children", label: "Goals", type: "goal", fkField: "area_id" },
+    { mode: "soft-backref", label: "Outcomes", type: "outcome", defaults: { kind: "standard" } },
     { mode: "fk-children", label: "Routines", type: "routine", fkField: "area_id" },
     { mode: "fk-children", label: "Metrics", type: "metric", fkField: "area_id" },
     { mode: "soft-backref", label: "Events", type: "event", hideWhenEmpty: true },
@@ -149,18 +158,19 @@ export const REGISTRY: Record<string, EntityDef> = {
     { mode: "soft-backref", label: "Notes", type: "note" },
     { mode: "soft-backref", label: "Resources", type: "resource" },
     { mode: "soft-backref", label: "Decisions", type: "decision" },
+    { mode: "soft-backref", label: "Done when", type: "outcome", defaults: { kind: "deliverable" } },
   ] },
-  goal: { key: "goal", label: "Goal", crud: goals, fields: GOAL_FIELDS, title: (e) => e.name, context: (e, r) => (e.area_id && r("area", e.area_id)) || undefined, entityType: "goal", titleField: "name", quickCreate: true, detail: GoalRecord, relations: [
+  outcome: { key: "outcome", label: "Outcome", crud: outcomes, fields: OUTCOME_FIELDS, title: (e) => e.statement, context: (e, r) => (e.entity_type && e.entity_id && r(e.entity_type, e.entity_id)) || undefined, entityType: "outcome", titleField: "statement", quickCreate: true, detail: OutcomeRecord, relations: [
     { mode: "soft-backref", label: "Notes", type: "note" },
   ] },
   metric: { key: "metric", label: "Metric", crud: metrics, fields: METRIC_FIELDS, title: (e) => e.name, context: (e, r) => (e.area_id && r("area", e.area_id)) || undefined, entityType: "metric", titleField: "name", quickCreate: true, detail: MetricRecord, relations: [
-    { mode: "fk-children", label: "Goals measured by this", type: "goal", fkField: "metric_id" },
+    { mode: "fk-children", label: "Outcomes measured by this", type: "outcome", fkField: "metric_id" },
   ] },
   routine: { key: "routine", label: "Routine", crud: routines, fields: ROUTINE_FIELDS, title: (e) => e.activity ?? e.name ?? "Routine", context: (e, r) => (e.protocol_id && r("protocol", e.protocol_id)) || (e.area_id && r("area", e.area_id)) || undefined, entityType: "routine", titleField: "activity", quickCreate: true, detail: RoutineRecord },
   program: { key: "program", label: "Program", crud: programs, fields: PROGRAM_FIELDS, title: (e) => e.name, context: (e, r) => (e.area_id && r("area", e.area_id)) || undefined, entityType: "program", titleField: "name", quickCreate: true, detail: ProgramRecord, relations: [
     { mode: "fk-children", label: "Projects", type: "project", fkField: "program_id", inherit: ["area_id"] },
     { mode: "fk-children", label: "Metrics", type: "metric", fkField: "program_id", inherit: ["area_id"] },
-    { mode: "fk-children", label: "Goals", type: "goal", fkField: "program_id", inherit: ["area_id"] },
+    { mode: "soft-backref", label: "Outcomes", type: "outcome", defaults: { kind: "target" } },
     { mode: "soft-backref", label: "Events", type: "event", hideWhenEmpty: true },
     { mode: "soft-backref", label: "Notes", type: "note" },
   ] },
@@ -197,7 +207,7 @@ export const REGISTRY: Record<string, EntityDef> = {
     { mode: "fk-children", label: "Medications", type: "medication", fkField: "condition_id" },
     { mode: "fk-children", label: "Protocols", type: "protocol", fkField: "condition_id" },
     { mode: "fk-children", label: "Metrics (labs)", type: "metric", fkField: "condition_id" },
-    { mode: "fk-children", label: "Goals", type: "goal", fkField: "condition_id" },
+    { mode: "soft-backref", label: "Outcomes", type: "outcome", defaults: { kind: "standard" } },
     { mode: "soft-backref", label: "Events", type: "event", hideWhenEmpty: true },
   ] },
   medication: { key: "medication", label: "Medication", crud: medications, fields: MEDICATION_FIELDS, title: (e) => e.name, context: (e, r) => e.brand ?? ((e.condition_id && r("condition", e.condition_id)) || undefined), entityType: "medication", titleField: "name", quickCreate: true, detail: MedicationRecord },

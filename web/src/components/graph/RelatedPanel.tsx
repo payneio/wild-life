@@ -62,7 +62,7 @@ export function RelatedPanel({
               .filter(([, v]) => v != null),
           ),
         }
-      : { entity_type: parentType, entity_id: parent.id }
+      : { entity_type: parentType, entity_id: parent.id, ...(spec.defaults ?? {}) }
 
   return (
     <Section

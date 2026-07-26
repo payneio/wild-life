@@ -24,10 +24,11 @@ export function MetricDetail({ entity, onClose }: { entity: Entity; onClose: () 
         />
       </RecordSection>
 
-      <RecordSection title="Target">
-        <F.Number field="target_value" label="Target" />
-        <F.Number field="target_min" label="Min" />
-        <F.Number field="target_max" label="Max" />
+      {/* The externally defined normal band — a lab range, a guideline. What
+          *I* am aiming for is a claim, and claims live on an Outcome. */}
+      <RecordSection title="Normal range">
+        <F.Number field="reference_min" label="Normal from" />
+        <F.Number field="reference_max" label="Normal to" />
       </RecordSection>
 
       {/* Entries + trend — the reason you open a metric at all. */}

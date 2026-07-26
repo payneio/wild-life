@@ -4,7 +4,7 @@ import { MemoryRouter } from "react-router-dom"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { setCoverageListener } from "@/components/record/context"
 import { REGISTRY } from "@/services/api/registry"
-import { FIXTURES } from "@/test/fixtures"
+import { FIXTURES, VARIANTS } from "@/test/fixtures"
 import type { Entity } from "@/services/api/types"
 
 vi.mock("@/notes/floatingNoteContext", () => ({
@@ -48,13 +48,20 @@ describe("record layout coverage", () => {
     const fixture = FIXTURES[key]
     expect(fixture, `no fixture for converted entity "${key}" — add one to test/fixtures.ts`).toBeDefined()
 
-    const seen: Record<string, string[]> = {}
-    setCoverageListener((k, missing) => (seen[k] = missing))
-
+    // A layout may render different fields for different shapes of the same
+    // object, so a field counts as covered if *some* shape renders it — the
+    // failure this guards against is one no shape renders at all.
+    const shapes = VARIANTS[key] ?? [fixture]
+    const perShape: string[][] = []
     const Detail = def.detail!
-    mount(<Detail entity={fixture as Entity} onClose={() => {}} />)
-
-    expect(seen[key], `"${key}" reported no coverage — is it wrapped in <Record>?`).toBeDefined()
-    expect(seen[key]).toEqual([])
+    for (const shape of shapes) {
+      const seen: Record<string, string[]> = {}
+      setCoverageListener((k, missing) => (seen[k] = missing))
+      mount(<Detail entity={shape as Entity} onClose={() => {}} />)
+      expect(seen[key], `"${key}" reported no coverage — is it wrapped in <Record>?`).toBeDefined()
+      perShape.push(seen[key])
+    }
+    const neverRendered = perShape[0].filter((f) => perShape.every((m) => m.includes(f)))
+    expect(neverRendered).toEqual([])
   })
 })

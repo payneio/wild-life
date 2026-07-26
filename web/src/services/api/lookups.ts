@@ -2,7 +2,7 @@ import { useMemo } from "react"
 import {
   areas,
   conditions,
-  goals,
+  outcomes,
   medications,
   metrics,
   organizations,
@@ -24,7 +24,7 @@ export type LookupKey =
   | "project"
   | "task"
   | "people"
-  | "goal"
+  | "outcome"
   | "metric"
   | "organization"
   | "condition"
@@ -56,7 +56,7 @@ export const useProgramLookup = () => useLookup(programs.useList, "name")
 export const useProjectLookup = () => useLookup(projects.useList, "name")
 export const useTaskLookup = () => useLookup(tasks.useList, "title")
 export const usePeopleLookup = () => useLookup(people.useList, "name")
-export const useGoalLookup = () => useLookup(goals.useList, "name")
+export const useOutcomeLookup = () => useLookup(outcomes.useList, "statement")
 export const useMetricLookup = () => useLookup(metrics.useList, "name")
 export const useOrganizationLookup = () => useLookup(organizations.useList, "name")
 export const useConditionLookup = () => useLookup(conditions.useList, "name")

@@ -1,25 +1,20 @@
-import { useRef, useState } from "react"
-import { Check, Plus, X } from "lucide-react"
+import { useState } from "react"
+import { Check } from "lucide-react"
 import { Button, EmptyState, Input } from "@/components/ui/primitives"
-import { StatusBadge } from "@/components/cells"
-import { EntityPicker } from "@/components/graph/EntityPicker"
-import { EntityRef } from "@/components/graph/EntityRef"
 import { TaskRow } from "@/pages/TasksPage"
 import { cn } from "@/lib/utils"
 import {
   projects,
   tasks,
   useCompleteRoutine,
-  useGoalProgress,
-  useGoalProjects,
-  useLinkGoalProject,
   useMetricEntries,
+  useOutcomeEvaluation,
   useRoutineInstances,
-  useUnlinkGoalProject,
 } from "@/services/api/hooks"
+import { useMetricLookup } from "@/services/api/lookups"
 import type {
   Entity,
-  Goal,
+  Outcome,
   Program,
   Project,
   Routine,
@@ -34,7 +29,7 @@ import {
   Timeline,
 } from "@/components/detail/kit"
 import { daysFromToday } from "@/components/detail/dates"
-import { localDay, todayISO, ymd } from "@/lib/format"
+import { formatBand, formatInstant, localDay, todayISO, ymd } from "@/lib/format"
 
 // Task's detail surface moved to `entities/task/Detail.tsx` — it composes the
 // `Record` primitives directly instead of inserting a fragment below the generic
@@ -194,105 +189,89 @@ export function ProgramDetail({ entity }: { entity: Entity }) {
   )
 }
 
-// --- Goal: progress ring + linked projects ----------------------------------
-export function GoalDetail({ entity }: { entity: Entity }) {
-  const goal = entity as Goal
-  const linked = useGoalProjects(goal.id).data ?? []
-  const progress = useGoalProgress(goal.id).data
-  const entries = useMetricEntries(goal.metric_id).data ?? []
-  const link = useLinkGoalProject()
-  const unlink = useUnlinkGoalProject()
-  const [pickOpen, setPickOpen] = useState(false)
-  const addRef = useRef<HTMLButtonElement>(null)
-  // Match the list: honor manual → metric → projects (the endpoint's `overall`).
-  const pct = progress?.overall ?? goal.progress ?? 0
-  const targetD = daysFromToday(goal.target_date)
+// --- Outcome: the verdict, and the reading it rests on ----------------------
+/** State first, number second.
+
+ *  The old ring showed a single percentage blended from three sources, which
+ *  read as precision it didn't have — a goal with no readings still drew a
+ *  confident 0%. Progress only exists for a target travelling from a baseline;
+ *  a standard is in its band or it isn't, and an unmeasured claim says so. */
+const STATE_LABEL: Record<string, string> = {
+  met: "In band",
+  breached: "Breached",
+  achieved: "Achieved",
+  on_pace: "On pace",
+  behind: "Behind",
+  overdue: "Overdue",
+  in_progress: "In progress",
+  satisfied: "Satisfied",
+  outstanding: "Outstanding",
+  unmeasured: "Unmeasured",
+  no_readings: "Never read",
+}
+
+const STATE_TONE: Record<string, "default" | "danger" | "good" | "muted"> = {
+  met: "good",
+  achieved: "good",
+  on_pace: "good",
+  satisfied: "good",
+  breached: "danger",
+  behind: "danger",
+  overdue: "danger",
+  unmeasured: "muted",
+  no_readings: "muted",
+}
+
+export function OutcomeDetail({ entity }: { entity: Entity }) {
+  const outcome = entity as Outcome
+  const evaluation = useOutcomeEvaluation(outcome.id).data
+  const entries = useMetricEntries(outcome.metric_id).data ?? []
+  const metric = useMetricLookup().nameOf(outcome.metric_id)
+
+  if (!evaluation) return null
+  const state = evaluation.state
+  const band = formatBand(evaluation.target_min, evaluation.target_max)
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center gap-4">
-        <ProgressRing value={pct} size={84}>
-          <span className="text-lg font-semibold text-slate-900">{Math.round(pct)}%</span>
-        </ProgressRing>
-        <div className="grid flex-1 grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <StatTile
+          value={STATE_LABEL[state] ?? state}
+          label={evaluation.is_stale ? "state · reading is stale" : "state"}
+          tone={STATE_TONE[state] ?? "default"}
+        />
+        {evaluation.latest_value !== null && (
           <StatTile
-            value={`${progress?.completed_projects ?? 0}/${progress?.linked_projects ?? linked.length}`}
-            label="Projects done"
+            value={evaluation.latest_value}
+            label={evaluation.latest_at ? `read ${formatInstant(evaluation.latest_at)}` : "latest"}
+            tone={evaluation.is_stale ? "muted" : "default"}
           />
-          {goal.target_date ? (
-            <StatTile
-              value={Math.abs(targetD ?? 0)}
-              label={targetD !== null && targetD < 0 ? "days over" : "days to target"}
-              tone={targetD !== null && targetD < 0 ? "danger" : "default"}
-            />
-          ) : goal.target_value != null ? (
-            <StatTile value={goal.target_value} label="Target" />
-          ) : null}
-        </div>
+        )}
+        {evaluation.progress !== null && (
+          <StatTile value={`${Math.round(evaluation.progress)}%`} label="of the way" />
+        )}
+        {outcome.by_when && evaluation.days_remaining !== null && (
+          <StatTile
+            value={Math.abs(evaluation.days_remaining)}
+            label={evaluation.days_remaining < 0 ? "days over" : "days left"}
+            tone={evaluation.days_remaining < 0 ? "danger" : "default"}
+          />
+        )}
+        {band && <StatTile value={band} label="target" tone="muted" />}
       </div>
 
-      {goal.metric_id && entries.length >= 2 && (
-        <Section title="Metric trend">
+      {state === "unmeasured" && (
+        <p className="text-sm text-slate-500">
+          No metric bound — this states what should be true but nothing reads it.
+          That&rsquo;s a fine place to start; attach a metric below when there is one.
+        </p>
+      )}
+
+      {outcome.metric_id && entries.length >= 2 && (
+        <Section title={`Trend · ${metric ?? "metric"}`}>
           <Sparkline entries={entries} />
         </Section>
       )}
-
-      <Section
-        title={`Linked projects · ${linked.length}`}
-        action={
-          <button
-            ref={addRef}
-            type="button"
-            onClick={() => setPickOpen(true)}
-            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
-          >
-            <Plus size={13} /> Link
-          </button>
-        }
-      >
-        {linked.length === 0 ? (
-          <p className="text-sm text-slate-400">None linked.</p>
-        ) : (
-          <ul className="max-h-80 space-y-1 overflow-y-auto pr-1">
-            {linked.map((p) => (
-              <li
-                key={p.id}
-                className="flex items-center gap-2 rounded-lg border border-slate-100 bg-surface px-3 py-2 text-sm"
-              >
-                <EntityRef
-                  type="project"
-                  id={p.id}
-                  className="min-w-0 flex-1 break-words text-slate-700"
-                >
-                  {p.name}
-                </EntityRef>
-                <StatusBadge status={p.status} />
-                <button
-                  type="button"
-                  title="Unlink"
-                  className="shrink-0 rounded p-0.5 text-slate-300 hover:text-red-600"
-                  onClick={() => unlink.mutate({ goalId: goal.id, projectId: p.id })}
-                >
-                  <X size={14} />
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-        {pickOpen && (
-          <EntityPicker
-            getAnchor={() => addRef.current}
-            type="project"
-            intent="assign"
-            placeholder="Link a project…"
-            onClose={() => setPickOpen(false)}
-            onSelect={(sel) => {
-              link.mutate({ goalId: goal.id, projectId: sel.id })
-              setPickOpen(false)
-            }}
-          />
-        )}
-      </Section>
     </div>
   )
 }

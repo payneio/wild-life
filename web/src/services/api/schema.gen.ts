@@ -549,98 +549,6 @@ export interface paths {
         patch: operations["events_update"];
         trace?: never;
     };
-    "/goals": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List All */
-        get: operations["goals_list"];
-        put?: never;
-        /** Create */
-        post: operations["goals_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/goals/{goal_id}/computed-progress": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Goal Computed Progress
-         * @description Progress from manual entry, linked-project completion, and latest metric.
-         */
-        get: operations["goal_computed_progress_goals__goal_id__computed_progress_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/goals/{goal_id}/projects": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Goal Projects */
-        get: operations["list_goal_projects_goals__goal_id__projects_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/goals/{goal_id}/projects/{project_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Link Goal Project */
-        post: operations["link_goal_project_goals__goal_id__projects__project_id__post"];
-        /** Unlink Goal Project */
-        delete: operations["unlink_goal_project_goals__goal_id__projects__project_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/goals/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["goals_get"];
-        put?: never;
-        post?: never;
-        /** Delete */
-        delete: operations["goals_delete"];
-        options?: never;
-        head?: never;
-        /** Update */
-        patch: operations["goals_update"];
-        trace?: never;
-    };
     "/health": {
         parameters: {
             query?: never;
@@ -1193,6 +1101,68 @@ export interface paths {
          * @description The people affiliated with an organization.
          */
         get: operations["list_organization_affiliations_organizations__organization_id__affiliations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/outcomes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List All */
+        get: operations["outcomes_list"];
+        put?: never;
+        /** Create */
+        post: operations["outcomes_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/outcomes/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get One */
+        get: operations["outcomes_get"];
+        put?: never;
+        post?: never;
+        /** Delete */
+        delete: operations["outcomes_delete"];
+        options?: never;
+        head?: never;
+        /** Update */
+        patch: operations["outcomes_update"];
+        trace?: never;
+    };
+    "/outcomes/{outcome_id}/evaluation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Evaluate Outcome
+         * @description Where an outcome stands right now, computed — never stored.
+         *
+         *     One rule per kind: a standard is in its band or breached, a target is a
+         *     fraction of the way from baseline to the edge (and on pace or behind), a
+         *     deliverable is accepted or outstanding. An outcome with no metric is
+         *     `unmeasured`, which is a legitimate state and not a failure.
+         */
+        get: operations["evaluate_outcome_outcomes__outcome_id__evaluation_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2284,8 +2254,8 @@ export interface components {
             accountable_owner_id?: string | null;
             /** Description */
             description?: string | null;
-            /** Desired Standard */
-            desired_standard?: string | null;
+            /** Intended Outcome */
+            intended_outcome?: string | null;
             /** Name */
             name: string;
             /** Responsible Lead Id */
@@ -2312,13 +2282,13 @@ export interface components {
             created_at: Instant;
             /** Description */
             description: string | null;
-            /** Desired Standard */
-            desired_standard: string | null;
             /**
              * Id
              * Format: uuid
              */
             id: string;
+            /** Intended Outcome */
+            intended_outcome: string | null;
             /** Name */
             name: string;
             /** Responsible Lead Id */
@@ -2344,8 +2314,8 @@ export interface components {
             archived_at?: Instant | null;
             /** Description */
             description?: string | null;
-            /** Desired Standard */
-            desired_standard?: string | null;
+            /** Intended Outcome */
+            intended_outcome?: string | null;
             /** Name */
             name?: string | null;
             /** Responsible Lead Id */
@@ -2408,7 +2378,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Evidence */
             evidence?: string | null;
             /** Owner Id */
@@ -2442,7 +2412,7 @@ export interface components {
             /** Entity Id */
             entity_id: string | null;
             /** Entity Type */
-            entity_type: ("area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Evidence */
             evidence: string | null;
             /**
@@ -2480,7 +2450,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Evidence */
             evidence?: string | null;
             /** Owner Id */
@@ -2489,37 +2459,6 @@ export interface components {
             responsible_id?: string | null;
             /** Status */
             status?: ("open" | "in_progress" | "waiting" | "fulfilled" | "broken" | "cancelled") | null;
-        };
-        /**
-         * ComputedProgress
-         * @description Progress from three independent sources, plus the headline number.
-         *
-         *     `overall` is the first of manual → metric → projects that is set; the rest are
-         *     returned so the client can show *why* the headline reads what it does.
-         */
-        ComputedProgress: {
-            /** Completed Projects */
-            completed_projects: number;
-            /** From Metric */
-            from_metric: number | null;
-            /** From Projects */
-            from_projects: number | null;
-            /** Latest Metric Value */
-            latest_metric_value: number | null;
-            /** Linked Projects */
-            linked_projects: number;
-            /** Manual */
-            manual: number | null;
-            /** Metric Baseline */
-            metric_baseline: number | null;
-            /** Metric Direction */
-            metric_direction: ("up" | "down") | null;
-            /** Metric Met */
-            metric_met: boolean | null;
-            /** Metric Target */
-            metric_target: number | null;
-            /** Overall */
-            overall: number | null;
         };
         /** ConditionCreate */
         ConditionCreate: {
@@ -2653,7 +2592,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Options Considered */
             options_considered?: string | null;
             /** Owner Id */
@@ -2681,7 +2620,7 @@ export interface components {
             /** Entity Id */
             entity_id: string | null;
             /** Entity Type */
-            entity_type: ("area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /**
              * Id
              * Format: uuid
@@ -2714,7 +2653,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Options Considered */
             options_considered?: string | null;
             /** Owner Id */
@@ -2748,7 +2687,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /**
              * Escalation Level
              * @default 0
@@ -2805,7 +2744,7 @@ export interface components {
             /** Entity Id */
             entity_id: string | null;
             /** Entity Type */
-            entity_type: ("area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Escalation Level */
             escalation_level: number;
             /** Expected Completion Date */
@@ -2862,7 +2801,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Escalation Level */
             escalation_level?: number | null;
             /** Expected Completion Date */
@@ -2926,7 +2865,7 @@ export interface components {
              * Target Type
              * @enum {string}
              */
-            target_type: "area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
+            target_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
         };
         /** EntityTagCreate */
         EntityTagCreate: {
@@ -2939,7 +2878,7 @@ export interface components {
              * Entity Type
              * @enum {string}
              */
-            entity_type: "area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
+            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
         };
         /** EntityTagRead */
         EntityTagRead: {
@@ -2952,12 +2891,50 @@ export interface components {
              * Entity Type
              * @enum {string}
              */
-            entity_type: "area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
+            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
             /**
              * Tag Id
              * Format: uuid
              */
             tag_id: string;
+        };
+        /**
+         * Evaluation
+         * @description Where an outcome actually stands, and the parts that say why.
+         *
+         *     `state` is the headline; everything else is returned so a surface can show its
+         *     reasoning rather than an unexplained percentage. Nothing here is stored — an
+         *     outcome's `status` says whether the claim is live, never whether it is met.
+         */
+        Evaluation: {
+            /** Advanced By */
+            advanced_by: number;
+            /** Baseline */
+            baseline: number | null;
+            /** Days Remaining */
+            days_remaining: number | null;
+            /** Is Stale */
+            is_stale: boolean;
+            /** Latest At */
+            latest_at: Instant | null;
+            /** Latest Value */
+            latest_value: number | null;
+            /** Pace Actual */
+            pace_actual: number | null;
+            /** Pace Required */
+            pace_required: number | null;
+            /** Progress */
+            progress: number | null;
+            /** Reference Max */
+            reference_max: number | null;
+            /** Reference Min */
+            reference_min: number | null;
+            /** State */
+            state: string;
+            /** Target Max */
+            target_max: number | null;
+            /** Target Min */
+            target_min: number | null;
         };
         /** EventCreate */
         EventCreate: {
@@ -2978,7 +2955,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Event Type */
             event_type?: string | null;
             /** External Ref */
@@ -3032,7 +3009,7 @@ export interface components {
             /** Entity Id */
             entity_id: string | null;
             /** Entity Type */
-            entity_type: ("area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Event Type */
             event_type: string | null;
             /** External Ref */
@@ -3094,7 +3071,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Event Type */
             event_type?: string | null;
             /** External Ref */
@@ -3121,115 +3098,6 @@ export interface components {
             start_at?: Instant | null;
             /** Title */
             title?: string | null;
-        };
-        /** GoalCreate */
-        GoalCreate: {
-            /** Area Id */
-            area_id?: string | null;
-            /** Baseline */
-            baseline?: number | null;
-            /** Condition Id */
-            condition_id?: string | null;
-            /** Description */
-            description?: string | null;
-            /** Measurement Method */
-            measurement_method?: string | null;
-            /** Metric Id */
-            metric_id?: string | null;
-            /** Name */
-            name: string;
-            /** Program Id */
-            program_id?: string | null;
-            /** Progress */
-            progress?: number | null;
-            /**
-             * Status
-             * @default active
-             * @enum {string}
-             */
-            status: "active" | "achieved" | "paused" | "dropped";
-            /** Target Date */
-            target_date?: CalendarDay | null;
-            /** Target State */
-            target_state?: string | null;
-            /** Target Value */
-            target_value?: number | null;
-        };
-        /** GoalRead */
-        GoalRead: {
-            /** Area Id */
-            area_id: string | null;
-            /** Baseline */
-            baseline: number | null;
-            /** Condition Id */
-            condition_id: string | null;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: Instant;
-            /** Description */
-            description: string | null;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Measurement Method */
-            measurement_method: string | null;
-            /** Metric Id */
-            metric_id: string | null;
-            /** Name */
-            name: string;
-            /** Program Id */
-            program_id: string | null;
-            /** Progress */
-            progress: number | null;
-            /**
-             * Status
-             * @enum {string}
-             */
-            status: "active" | "achieved" | "paused" | "dropped";
-            /** Target Date */
-            target_date: CalendarDay | null;
-            /** Target State */
-            target_state: string | null;
-            /** Target Value */
-            target_value: number | null;
-            /**
-             * Updated At
-             * Format: date-time
-             */
-            updated_at: Instant;
-        };
-        /** GoalUpdate */
-        GoalUpdate: {
-            /** Area Id */
-            area_id?: string | null;
-            /** Baseline */
-            baseline?: number | null;
-            /** Condition Id */
-            condition_id?: string | null;
-            /** Description */
-            description?: string | null;
-            /** Measurement Method */
-            measurement_method?: string | null;
-            /** Metric Id */
-            metric_id?: string | null;
-            /** Name */
-            name?: string | null;
-            /** Program Id */
-            program_id?: string | null;
-            /** Progress */
-            progress?: number | null;
-            /** Status */
-            status?: ("active" | "achieved" | "paused" | "dropped") | null;
-            /** Target Date */
-            target_date?: CalendarDay | null;
-            /** Target State */
-            target_state?: string | null;
-            /** Target Value */
-            target_value?: number | null;
         };
         /**
          * GuestStatus
@@ -3648,7 +3516,7 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
+            type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
         };
         /** MetricCreate */
         MetricCreate: {
@@ -3666,12 +3534,10 @@ export interface components {
             notes?: string | null;
             /** Program Id */
             program_id?: string | null;
-            /** Target Max */
-            target_max?: number | null;
-            /** Target Min */
-            target_min?: number | null;
-            /** Target Value */
-            target_value?: number | null;
+            /** Reference Max */
+            reference_max?: number | null;
+            /** Reference Min */
+            reference_min?: number | null;
             /** Unit */
             unit?: string | null;
         };
@@ -3759,12 +3625,10 @@ export interface components {
             notes: string | null;
             /** Program Id */
             program_id: string | null;
-            /** Target Max */
-            target_max: number | null;
-            /** Target Min */
-            target_min: number | null;
-            /** Target Value */
-            target_value: number | null;
+            /** Reference Max */
+            reference_max: number | null;
+            /** Reference Min */
+            reference_min: number | null;
             /** Unit */
             unit: string | null;
             /**
@@ -3789,12 +3653,10 @@ export interface components {
             notes?: string | null;
             /** Program Id */
             program_id?: string | null;
-            /** Target Max */
-            target_max?: number | null;
-            /** Target Min */
-            target_min?: number | null;
-            /** Target Value */
-            target_value?: number | null;
+            /** Reference Max */
+            reference_max?: number | null;
+            /** Reference Min */
+            reference_min?: number | null;
             /** Unit */
             unit?: string | null;
         };
@@ -3808,7 +3670,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Entry Date */
             entry_date?: CalendarDay | null;
             /**
@@ -3872,7 +3734,7 @@ export interface components {
             /** Entity Id */
             entity_id: string | null;
             /** Entity Type */
-            entity_type: ("area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Entry Date */
             entry_date: CalendarDay | null;
             /**
@@ -3906,7 +3768,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Entry Date */
             entry_date?: CalendarDay | null;
             /** Links */
@@ -4025,6 +3887,127 @@ export interface components {
             status?: ("active" | "inactive" | "archived") | null;
             /** Website */
             website?: string | null;
+        };
+        /** OutcomeCreate */
+        OutcomeCreate: {
+            /** Baseline */
+            baseline?: number | null;
+            /** By When */
+            by_when?: CalendarDay | null;
+            /** Description */
+            description?: string | null;
+            /**
+             * Entity Id
+             * Format: uuid
+             */
+            entity_id: string;
+            /**
+             * Entity Type
+             * @enum {string}
+             */
+            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "standard" | "target" | "deliverable";
+            /** Metric Id */
+            metric_id?: string | null;
+            /** Satisfied At */
+            satisfied_at?: Instant | null;
+            /** Statement */
+            statement: string;
+            /**
+             * Status
+             * @default active
+             * @enum {string}
+             */
+            status: "active" | "achieved" | "paused" | "dropped";
+            /** Target Max */
+            target_max?: number | null;
+            /** Target Min */
+            target_min?: number | null;
+        };
+        /** OutcomeRead */
+        OutcomeRead: {
+            /** Baseline */
+            baseline: number | null;
+            /** By When */
+            by_when: CalendarDay | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: Instant;
+            /** Description */
+            description: string | null;
+            /**
+             * Entity Id
+             * Format: uuid
+             */
+            entity_id: string;
+            /**
+             * Entity Type
+             * @enum {string}
+             */
+            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "standard" | "target" | "deliverable";
+            /** Metric Id */
+            metric_id: string | null;
+            /** Satisfied At */
+            satisfied_at: Instant | null;
+            /** Statement */
+            statement: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "achieved" | "paused" | "dropped";
+            /** Target Max */
+            target_max: number | null;
+            /** Target Min */
+            target_min: number | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: Instant;
+        };
+        /** OutcomeUpdate */
+        OutcomeUpdate: {
+            /** Baseline */
+            baseline?: number | null;
+            /** By When */
+            by_when?: CalendarDay | null;
+            /** Description */
+            description?: string | null;
+            /** Entity Id */
+            entity_id?: string | null;
+            /** Entity Type */
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            /** Kind */
+            kind?: ("standard" | "target" | "deliverable") | null;
+            /** Metric Id */
+            metric_id?: string | null;
+            /** Satisfied At */
+            satisfied_at?: Instant | null;
+            /** Statement */
+            statement?: string | null;
+            /** Status */
+            status?: ("active" | "achieved" | "paused" | "dropped") | null;
+            /** Target Max */
+            target_max?: number | null;
+            /** Target Min */
+            target_min?: number | null;
         };
         /** PersonCreate */
         PersonCreate: {
@@ -4196,8 +4179,6 @@ export interface components {
              * @enum {string}
              */
             status: "proposed" | "active" | "paused" | "completed" | "cancelled";
-            /** Success Criteria */
-            success_criteria?: string | null;
             /** Target Date */
             target_date?: CalendarDay | null;
         };
@@ -4236,8 +4217,6 @@ export interface components {
              * @enum {string}
              */
             status: "proposed" | "active" | "paused" | "completed" | "cancelled";
-            /** Success Criteria */
-            success_criteria: string | null;
             /** Target Date */
             target_date: CalendarDay | null;
             /**
@@ -4268,8 +4247,6 @@ export interface components {
             start_date?: CalendarDay | null;
             /** Status */
             status?: ("proposed" | "active" | "paused" | "completed" | "cancelled") | null;
-            /** Success Criteria */
-            success_criteria?: string | null;
             /** Target Date */
             target_date?: CalendarDay | null;
         };
@@ -4279,8 +4256,6 @@ export interface components {
             accountable_owner_id?: string | null;
             /** Area Id */
             area_id?: string | null;
-            /** Completion Criteria */
-            completion_criteria?: string | null;
             /** Description */
             description?: string | null;
             /** Intended Outcome */
@@ -4318,8 +4293,6 @@ export interface components {
             accountable_owner_id: string | null;
             /** Area Id */
             area_id: string | null;
-            /** Completion Criteria */
-            completion_criteria: string | null;
             /**
              * Created At
              * Format: date-time
@@ -4370,8 +4343,6 @@ export interface components {
             accountable_owner_id?: string | null;
             /** Area Id */
             area_id?: string | null;
-            /** Completion Criteria */
-            completion_criteria?: string | null;
             /** Description */
             description?: string | null;
             /** Intended Outcome */
@@ -4564,7 +4535,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** External Label */
             external_label?: string | null;
             /** Follow Up Date */
@@ -4608,7 +4579,7 @@ export interface components {
             /** Entity Id */
             entity_id: string | null;
             /** Entity Type */
-            entity_type: ("area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** External Label */
             external_label: string | null;
             /** Follow Up Date */
@@ -4662,7 +4633,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** External Label */
             external_label?: string | null;
             /** Follow Up Date */
@@ -4691,7 +4662,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Resource Type */
             resource_type?: string | null;
             /**
@@ -4716,7 +4687,7 @@ export interface components {
             /** Entity Id */
             entity_id: string | null;
             /** Entity Type */
-            entity_type: ("area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /**
              * Id
              * Format: uuid
@@ -4743,7 +4714,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Resource Type */
             resource_type?: string | null;
             /** Tags */
@@ -4800,8 +4771,6 @@ export interface components {
              * Format: date
              */
             generated_for: CalendarDay;
-            /** Goals Overdue */
-            goals_overdue: components["schemas"]["DashRow"][];
             /** Inactive Programs */
             inactive_programs: components["schemas"]["DashRow"][];
             /** Low Adherence */
@@ -4814,6 +4783,8 @@ export interface components {
             neglected_areas: components["schemas"]["DashRow"][];
             /** Open Requests */
             open_requests: components["schemas"]["DashRow"][];
+            /** Outcomes Overdue */
+            outcomes_overdue: components["schemas"]["DashRow"][];
             /** Overdue Delegations */
             overdue_delegations: components["schemas"]["DashRow"][];
             /** Overdue Tasks */
@@ -6623,7 +6594,7 @@ export interface operations {
     tags_for_entity_entity_tags_get: {
         parameters: {
             query: {
-                entity_type: "area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
+                entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
                 entity_id: string;
             };
             header?: never;
@@ -7050,276 +7021,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EventRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    goals_list: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GoalRead"][];
-                };
-            };
-        };
-    };
-    goals_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["GoalCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GoalRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    goal_computed_progress_goals__goal_id__computed_progress_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                goal_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ComputedProgress"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_goal_projects_goals__goal_id__projects_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                goal_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProjectRead"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    link_goal_project_goals__goal_id__projects__project_id__post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                goal_id: string;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    unlink_goal_project_goals__goal_id__projects__project_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                goal_id: string;
-                project_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    goals_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GoalRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    goals_delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    goals_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["GoalUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GoalRead"];
                 };
             };
             /** @description Validation Error */
@@ -8073,7 +7774,7 @@ export interface operations {
     merge_duplicates: {
         parameters: {
             query?: {
-                type?: ("area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+                type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             };
             header?: never;
             path?: never;
@@ -8528,10 +8229,10 @@ export interface operations {
     notes_list: {
         parameters: {
             query?: {
-                entity_type?: ("area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+                entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
                 entity_id?: string | null;
                 note_type?: string | null;
-                linked_type?: ("area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+                linked_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
                 linked_id?: string | null;
                 year?: number | null;
                 tag?: string | null;
@@ -8979,6 +8680,185 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AffiliationRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    outcomes_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutcomeRead"][];
+                };
+            };
+        };
+    };
+    outcomes_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OutcomeCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutcomeRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    outcomes_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutcomeRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    outcomes_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    outcomes_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OutcomeUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutcomeRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    evaluate_outcome_outcomes__outcome_id__evaluation_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                outcome_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Evaluation"];
                 };
             };
             /** @description Validation Error */
@@ -11173,7 +11053,7 @@ export interface operations {
     detach_tag_tags__tag_id__attach_delete: {
         parameters: {
             query: {
-                entity_type: "area" | "program" | "project" | "task" | "routine" | "goal" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
+                entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "condition" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
                 entity_id: string;
             };
             header?: never;
