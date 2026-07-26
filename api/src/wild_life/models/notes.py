@@ -17,6 +17,23 @@ from wild_life.models.mixins import TimestampMixin, UUIDPrimaryKey
 
 class Note(UUIDPrimaryKey, TimestampMixin, Base):
     __tablename__ = "notes"
+    # GIN trigram indexes for the journal's ILIKE '%x%' search (added in
+    # d4e5f6a7b8c9). Declared here, not just in the migration, so autogenerate
+    # stops proposing to drop the two indexes it couldn't see.
+    __table_args__ = (
+        Index(
+            "ix_notes_body_trgm",
+            "body",
+            postgresql_using="gin",
+            postgresql_ops={"body": "gin_trgm_ops"},
+        ),
+        Index(
+            "ix_notes_title_trgm",
+            "title",
+            postgresql_using="gin",
+            postgresql_ops={"title": "gin_trgm_ops"},
+        ),
+    )
 
     title: Mapped[str | None] = mapped_column(Text)
     body: Mapped[str] = mapped_column(Text, nullable=False, server_default="")
