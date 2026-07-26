@@ -102,3 +102,16 @@ class Entity(ORMModel):
     id: uuid.UUID
     created_at: datetime
     updated_at: datetime
+
+
+class IdentityRead(BaseModel):
+    """Who the calling token acts as.
+
+    `person_id` is the Person this token *is* — the owner's comes from
+    `WILD_LIFE_SELF_PERSON_ID`, a worker token's from its own row. The web app
+    uses it to put you at the top of assignee/responsible pickers, so it is
+    resolved per token rather than read from a global default.
+    """
+
+    role: TokenRole
+    person_id: uuid.UUID | None

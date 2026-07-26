@@ -4994,6 +4994,37 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "IdentityRead": {
+        "description": "Who the calling token acts as.\n\n`person_id` is the Person this token *is* \u2014 the owner's comes from\n`WILD_LIFE_SELF_PERSON_ID`, a worker token's from its own row. The web app\nuses it to put you at the top of assignee/responsible pickers, so it is\nresolved per token rather than read from a global default.",
+        "properties": {
+          "person_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Person Id"
+          },
+          "role": {
+            "enum": [
+              "full",
+              "worker"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "person_id"
+        ],
+        "title": "IdentityRead",
+        "type": "object"
+      },
       "ImportantDate": {
         "properties": {
           "date": {
@@ -16826,6 +16857,27 @@
         "summary": "Update",
         "tags": [
           "locations"
+        ]
+      }
+    },
+    "/me": {
+      "get": {
+        "operationId": "identity_me",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentityRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Me",
+        "tags": [
+          "identity"
         ]
       }
     },

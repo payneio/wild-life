@@ -23,6 +23,7 @@ from wild_life.db.session import AsyncSessionLocal
 from wild_life.identity import registry
 from wild_life.mail import scheduler as mail_scheduler
 from wild_life.routers import (
+    me,
     admin,
     calendar,
     calendar_mail,
@@ -135,6 +136,7 @@ async def health() -> dict[str, str]:
 
 
 app.include_router(admin.router)
+app.include_router(me.router)
 app.include_router(core.router)
 app.include_router(tasks.router)
 app.include_router(people.router)

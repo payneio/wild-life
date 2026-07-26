@@ -17,6 +17,7 @@ from wild_life.authz import (
 )
 from wild_life.db.session import get_session
 from wild_life.identity import Identity, current_identity
+from wild_life.lifecycle import closed_statuses
 from wild_life.models.tasks import Task
 from wild_life.query import apply_query
 from wild_life.schemas.common import Priority, TaskStatus
@@ -27,7 +28,8 @@ router = APIRouter(prefix="/tasks", tags=["tasks"])
 _PRIORITY_ORDER = {"urgent": 0, "high": 1, "medium": 2, "low": 3}
 # Statuses that represent delegated (not personal-execution) work.
 _DELEGATED_STATUSES = {"delegated", "delivered"}
-_CLOSED_STATUSES = {"completed", "cancelled"}
+# Derived, never restated: `lifecycle.LIFECYCLE` is the one authority on closed.
+_CLOSED_STATUSES = closed_statuses("task")
 # A claim goes stale after this, so a crashed run doesn't wedge a task forever.
 _CLAIM_TTL = timedelta(minutes=15)
 
