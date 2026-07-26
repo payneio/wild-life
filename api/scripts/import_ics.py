@@ -38,6 +38,8 @@ from zoneinfo import ZoneInfo
 import httpx
 from icalendar import Calendar
 
+from wild_life.richtext import normalize_description
+
 DEFAULT_BASE_URL = "http://localhost:9005"
 
 
@@ -125,7 +127,8 @@ def vevent_to_payload(vevent: Any, default_tz: ZoneInfo) -> dict[str, Any] | Non
 
     return {
         "title": s("SUMMARY") or "(untitled)",
-        "description": s("DESCRIPTION"),
+        # Exports carry HTML bodies; store the one plain form (see richtext).
+        "description": normalize_description(s("DESCRIPTION")),
         "location": s("LOCATION"),
         "start_at": start_at.isoformat(),
         "end_at": end_at.isoformat() if end_at else None,

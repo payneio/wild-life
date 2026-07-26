@@ -18,6 +18,8 @@ from typing import Any
 
 from icalendar import Calendar, Event, vCalAddress, vText
 
+from wild_life.richtext import normalize_description
+
 PRODID = "-//wild-life//calendar//EN"
 
 
@@ -239,7 +241,11 @@ def _vevent_payload(vevent: Any) -> dict[str, Any] | None:
 
     return {
         "title": s("SUMMARY") or "(untitled invite)",
-        "description": s("DESCRIPTION"),
+        # Senders put HTML in DESCRIPTION (Google) or leave it empty and carry the
+        # body in X-ALT-DESC (Outlook); both become plain text here so the stored
+        # column has one form. See wild_life.richtext.
+        "description": normalize_description(s("DESCRIPTION"))
+        or _alt_description(vevent),
         "location": s("LOCATION"),
         "start_at": start.isoformat(),
         "end_at": end.isoformat() if end else None,
@@ -249,6 +255,22 @@ def _vevent_payload(vevent: Any) -> dict[str, Any] | None:
         "sequence": int(seq.to_ical()) if seq is not None else None,
         "rsvp_status": "needs-action",
     }
+
+
+def _alt_description(vevent: Any) -> str | None:
+    """Outlook's HTML alternate body — only consulted when DESCRIPTION is empty.
+
+    Never preferred over a populated DESCRIPTION: when a sender emits both, that
+    one is the plain-text twin and this is the markup. Guarded twice — the
+    FMTTYPE must say HTML, and the content itself must look like it.
+    """
+    raw = vevent.get("X-ALT-DESC")
+    if raw is None:
+        return None
+    fmt = str((getattr(raw, "params", {}) or {}).get("FMTTYPE") or "").lower()
+    if fmt and "html" not in fmt:
+        return None
+    return normalize_description(str(raw)) or None
 
 
 def _attendees(vevent: Any) -> list[ParsedAttendee]:

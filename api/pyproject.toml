@@ -21,6 +21,9 @@ dependencies = [
     # <7: icalendar 7.x has a parameter-parsing regression that crashes on some
     # real Proton invite exports (same pin the calendar-mail sidecar uses).
     "icalendar<7",
+    # HTML calendar DESCRIPTIONs -> markdown at ingest (see wild_life/richtext.py).
+    # Pure-python, no transitive deps.
+    "html2text>=2024.2.26",
     "phonenumbers>=9.0.34",
 ]
 

@@ -152,3 +152,102 @@ def test_parse_reply_extracts_partstat() -> None:
     assert parsed[0].method == "REPLY"
     assert parsed[0].attendees[0].email == "guest@x.com"
     assert parsed[0].attendees[0].partstat == "declined"
+
+
+# --------------------------------------------------------------------------- #
+# DESCRIPTION — normalized on the way in, echoed verbatim on the way out
+# --------------------------------------------------------------------------- #
+
+
+def _vcalendar(*lines: str) -> bytes:
+    """A minimal REQUEST VCALENDAR, for properties the builders can't emit."""
+    return "\r\n".join(
+        [
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "PRODID:-//test//EN",
+            "METHOD:REQUEST",
+            "BEGIN:VEVENT",
+            "UID:alt-desc@corp.com",
+            "DTSTART:20260801T150000Z",
+            "SUMMARY:Sync",
+            *lines,
+            "END:VEVENT",
+            "END:VCALENDAR",
+            "",
+        ]
+    ).encode()
+
+
+def test_build_request_emits_description() -> None:
+    out = _unfold(
+        ics.build_request(
+            uid="evt-1@wild-life",
+            sequence=0,
+            organizer="paul@payne.io",
+            attendees=[("alice@x.com", None)],
+            summary="Sync",
+            start=START,
+            description="agenda",
+            now=NOW,
+        )
+    )
+    assert "DESCRIPTION:agenda" in out
+
+
+def test_parse_request_converts_html_description() -> None:
+    raw = ics.build_request(
+        uid="evt-1@wild-life",
+        sequence=0,
+        organizer="paul@payne.io",
+        attendees=[("alice@x.com", None)],
+        summary="Sync",
+        start=START,
+        description=(
+            "Join with Google Meet: "
+            '<a href="https://meet.google.com/abc-defg-hij">abc-defg-hij</a>'
+            "<br>Dial-in: +1 555-0100"
+        ),
+        now=NOW,
+    )
+    desc = ics.parse_calendar(raw)[0].payload["description"]
+    assert "<a " not in desc and "<br>" not in desc
+    assert "https://meet.google.com/abc-defg-hij" in desc
+    assert "Dial-in: +1 555-0100" in desc
+
+
+def test_parse_request_preserves_plaintext_angle_url() -> None:
+    """An HTML parser would eat `<https://…>`; a plain body must survive intact."""
+    body = (
+        "Microsoft Teams meeting\n"
+        "Join: https://teams.microsoft.com/meet/2744040958\n"
+        "Need help?<https://aka.ms/JoinTeamsMeeting>"
+    )
+    raw = ics.build_request(
+        uid="evt-1@wild-life",
+        sequence=0,
+        organizer="paul@payne.io",
+        attendees=[("alice@x.com", None)],
+        summary="Sync",
+        start=START,
+        description=body,
+        now=NOW,
+    )
+    assert ics.parse_calendar(raw)[0].payload["description"] == body
+
+
+def test_x_alt_desc_used_only_when_description_is_empty() -> None:
+    alt = "X-ALT-DESC;FMTTYPE=text/html:<html><body><p>Agenda</p></body></html>"
+
+    empty = ics.parse_calendar(_vcalendar("DESCRIPTION:", alt))
+    assert empty[0].payload["description"] == "Agenda"
+
+    both = ics.parse_calendar(_vcalendar("DESCRIPTION:the plain twin", alt))
+    assert both[0].payload["description"] == "the plain twin"
+
+
+def test_x_alt_desc_ignored_when_fmttype_is_not_html() -> None:
+    parsed = ics.parse_calendar(
+        _vcalendar("DESCRIPTION:", "X-ALT-DESC;FMTTYPE=text/plain:not markup")
+    )
+    assert not parsed[0].payload["description"]

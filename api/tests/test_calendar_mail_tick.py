@@ -315,3 +315,58 @@ def test_inbound_request_and_cancel(
         got = client.get("/events", headers=h, params={"external_ref__eq": uid}).json()
         for e in got:
             client.delete(f"/events/{e['id']}", headers=h)
+
+
+def test_inbound_html_description_is_stored_as_plain_text(
+    client: TestClient, auth_headers: dict, require_db: None, fake_mail: FakeTransport
+) -> None:
+    """HTML from the sender must not reach the column the UI edits."""
+    h = auth_headers
+    uid = f"{MARK}-html-desc@corp.com"
+    try:
+        req = ics.build_request(
+            uid=uid,
+            sequence=0,
+            organizer="mailto:host@corp.com",
+            attendees=[("paul@payne.io", None)],
+            summary=f"{MARK} html body",
+            start=START_DT,
+            end=END_DT,
+            description=(
+                "Join with Google Meet: "
+                '<a href="https://meet.google.com/abc-defg-hij">abc-defg-hij</a>'
+                "<br>Learn more&nbsp;about Meet"
+            ),
+        )
+        fake_mail._inbound.append(make_ics_email("host@corp.com", req, "REQUEST"))
+        assert _tick(client, h)["invites_ingested"] == 1
+
+        got = client.get("/events", headers=h, params={"external_ref__eq": uid}).json()
+        desc = got[0]["description"]
+        for markup in ("<a ", "<br>", "&nbsp;"):
+            assert markup not in desc
+        assert "https://meet.google.com/abc-defg-hij" in desc
+
+        # RSVPing back to the organizer is unaffected: a REPLY carries no
+        # DESCRIPTION at all, and nothing re-sends the invite.
+        fake_mail.sent.clear()
+        assert (
+            client.post(
+                f"/events/{got[0]['id']}/rsvp", headers=h, json={"status": "accepted"}
+            ).status_code
+            == 200
+        )
+        assert fake_mail.sent_methods() == ["REPLY"]
+        reply = "".join(
+            str(part.get_content())
+            for part in fake_mail.sent[0].walk()
+            if part.get_content_type() == "text/calendar"
+        )
+        assert "DESCRIPTION" not in reply
+        assert "meet.google.com" not in reply
+        assert _tick(client, h)["requests_sent"] == 0
+    finally:
+        for e in client.get(
+            "/events", headers=h, params={"external_ref__eq": uid}
+        ).json():
+            client.delete(f"/events/{e['id']}", headers=h)
