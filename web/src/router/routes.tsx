@@ -7,6 +7,7 @@ import { TodayPage } from "@/pages/TodayPage"
 import { InboxPage } from "@/pages/InboxPage"
 import { CalendarPage } from "@/pages/CalendarPage"
 import { AreasPage } from "@/pages/AreasPage"
+import { ProgramsPage } from "@/pages/ProgramsPage"
 import { ProjectsPage } from "@/pages/ProjectsPage"
 import { TasksPage } from "@/pages/TasksPage"
 import { GoalsPage } from "@/pages/GoalsPage"
@@ -24,7 +25,6 @@ import { SettingsPage } from "@/pages/SettingsPage"
 import {
   CommitmentsPage,
   DecisionsPage,
-  ProgramsPage,
   ResourcesPage,
   TagsPage,
   RequestsPage,

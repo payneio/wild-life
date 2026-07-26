@@ -43,14 +43,9 @@ export function SimpleEntityPage<T extends Entity>({
   fields,
   columns,
   newLabel = "New",
-  createPlaceholder,
-  listParams,
   emptyText = "Nothing here yet.",
-  rowActions,
-  storageKey,
   extraFilters,
   detail = "pane",
-  titleField,
   entityType,
 }: {
   title: string
@@ -62,14 +57,7 @@ export function SimpleEntityPage<T extends Entity>({
 
   columns: Column<T>[]
   newLabel?: string
-  /** Placeholder for the capture line; defaults to `${newLabel}…`. */
-  createPlaceholder?: string
-  /** The column quick-create writes; defaults to the first column's key. */
-  titleField?: string
-  listParams?: Record<string, string | undefined>
   emptyText?: string
-  rowActions?: (row: T) => ReactNode
-  storageKey?: string
   /** Extra filters (e.g. reference filters like Area) prepended to the derived
    *  select filters. Receives current filter values so options can depend on
    *  another filter (e.g. narrow Program to the selected Area). */
@@ -83,12 +71,11 @@ export function SimpleEntityPage<T extends Entity>({
   // Falls back to the registry, so every generic list gets the hide-closed
   // default without 23 pages each restating what they already are.
   const lifecycleType = entityType ?? entityTypeForResource(crud.resource)
-  const { data, isLoading } = crud.useList(listParams)
+  const { data, isLoading } = crud.useList()
   const create = crud.useCreate()
   const rows = useMemo(() => data ?? [], [data])
 
   const primaryKey = columns[0]?.key ?? "name"
-  const nameField = titleField ?? primaryKey
   const { filtered, toolbarProps, closedCount } = useListFilter(
     rows as unknown as Record<string, unknown>[],
     (values) => {
@@ -96,7 +83,7 @@ export function SimpleEntityPage<T extends Entity>({
       if (!extraFilters) return base
       return { ...base, filters: [...extraFilters(values), ...base.filters] }
     },
-    `list:${storageKey ?? slug(title)}`,
+    `list:${slug(title)}`,
     lifecycleType,
   )
   const list = filtered as unknown as T[]
@@ -113,8 +100,8 @@ export function SimpleEntityPage<T extends Entity>({
       {/* Capture, not form-filling: the name is all that's required, and every
           other field lives in the detail this row opens. */}
       <QuickCreate
-        placeholder={createPlaceholder ?? `${newLabel}…`}
-        onCreate={(title) => create.mutate({ [nameField]: title } as Body)}
+        placeholder={`${newLabel}…`}
+        onCreate={(title) => create.mutate({ [primaryKey]: title } as Body)}
       />
 
       <ListToolbar {...toolbarProps} />
@@ -158,11 +145,6 @@ export function SimpleEntityPage<T extends Entity>({
                       </div>
                     )}
                   </div>
-                  {rowActions && (
-                    <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
-                      {rowActions(row)}
-                    </div>
-                  )}
                 </div>
               </li>
             ))}

@@ -3,52 +3,13 @@ import { SimpleEntityPage, type Column } from "@/components/SimpleEntityPage"
 import {
   COMMITMENT_FIELDS,
   DECISION_FIELDS,
-  PROGRAM_FIELDS,
   REQUEST_FIELDS,
   RESOURCE_FIELDS,
   TAG_FIELDS,
 } from "@/services/api/fields"
 import { Badge } from "@/components/ui/primitives"
-import { refFilter } from "@/lib/listFilter"
-import {
-  areas,
-  commitments,
-  decisions,
-  programs,
-  requests,
-  resources,
-  tags,
-} from "@/services/api/hooks"
-import type {
-  Commitment,
-  Decision,
-  Program,
-  Request,
-  Resource,
-  Tag,
-} from "@/services/api/types"
-
-export function ProgramsPage() {
-  const fields = PROGRAM_FIELDS
-  const { data: areaList } = areas.useList()
-  const columns: Column<Program>[] = [
-    { key: "name", label: "Name", render: (r) => <span className="font-medium">{r.name}</span> },
-    { key: "area_id", label: "Area", render: (r) => <RefName kind="area" id={r.area_id} /> },
-    { key: "status", label: "Status", render: (r) => <StatusBadge status={r.status} /> },
-    { key: "target_date", label: "Target", render: (r) => <DateText value={r.target_date} /> },
-  ]
-  return (
-    <SimpleEntityPage
-      title="Programs"
-      subtitle="Long-running efforts to improve an area"
-      crud={programs}
-      fields={fields}
-      columns={columns}
-      detail="page"
-      extraFilters={() => [refFilter("area_id", "Area", areaList ?? [])]}
-    />
-  )
-}
+import { commitments, decisions, requests, resources, tags } from "@/services/api/hooks"
+import type { Commitment, Decision, Request, Resource, Tag } from "@/services/api/types"
 
 export function CommitmentsPage() {
   const fields = COMMITMENT_FIELDS
