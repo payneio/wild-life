@@ -27,7 +27,7 @@ export function MetricDetail({ entity, onClose }: { entity: Entity; onClose: () 
       <RecordSection title="Context">
         <F.Ref field="area_id" label="Area" lookup="area" />
         <F.Ref field="program_id" label="Program" lookup="program" />
-        <F.Ref field="condition_id" label="Condition" lookup="condition" />
+        <F.Ref field="condition_id" label="Condition" lookup="condition" intent="reference" />
         <F.Text field="data_source" label="Data source" />
         <F.Textarea field="notes" label="Notes" />
       </RecordSection>

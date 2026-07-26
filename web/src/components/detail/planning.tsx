@@ -306,6 +306,7 @@ export function GoalDetail({ entity }: { entity: Entity }) {
           <EntityPicker
             getAnchor={() => addRef.current}
             type="project"
+            intent="assign"
             placeholder="Link a project…"
             onClose={() => setPickOpen(false)}
             onSelect={(sel) => {

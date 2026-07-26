@@ -7,6 +7,7 @@ import { useField, useFields } from "@/components/record/context"
 import { instantToLocalInput, localInputToInstant } from "@/lib/date"
 import { cn } from "@/lib/utils"
 import type { LookupKey } from "@/services/api/lookups"
+import type { PickerIntent } from "@/services/api/mentions"
 
 /**
  * The record field vocabulary.
@@ -327,11 +328,13 @@ export function RecordRef({
   label,
   lookup,
   required,
+  intent,
 }: {
   field: string
   label?: string
   lookup: LookupKey
   required?: boolean
+  intent?: PickerIntent
 }) {
   const { value, save } = useField(field)
   return (
@@ -341,6 +344,7 @@ export function RecordRef({
         value={value ? String(value) : null}
         onChange={(id) => save(id ?? null)}
         required={required}
+        intent={intent}
       />
     </Wrap>
   )

@@ -3,7 +3,6 @@ import {
   areas,
   conditions,
   goals,
-  locations,
   medications,
   metrics,
   organizations,
@@ -28,7 +27,6 @@ export type LookupKey =
   | "goal"
   | "metric"
   | "organization"
-  | "location"
   | "condition"
   | "medication"
   | "protocol"
@@ -61,7 +59,6 @@ export const usePeopleLookup = () => useLookup(people.useList, "name")
 export const useGoalLookup = () => useLookup(goals.useList, "name")
 export const useMetricLookup = () => useLookup(metrics.useList, "name")
 export const useOrganizationLookup = () => useLookup(organizations.useList, "name")
-export const useLocationLookup = () => useLookup(locations.useList, "name")
 export const useConditionLookup = () => useLookup(conditions.useList, "name")
 export const useMedicationLookup = () => useLookup(medications.useList, "name")
 export const useProtocolLookup = () => useLookup(protocols.useList, "name")

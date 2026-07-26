@@ -3,7 +3,7 @@ import { ChevronDown, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { EntityPicker } from "@/components/graph/EntityPicker"
 import { LOOKUP_TO_TYPE } from "@/components/graph/lookupType"
-import { useEntityResolver } from "@/services/api/mentions"
+import { useEntityResolver, type PickerIntent } from "@/services/api/mentions"
 import type { LookupKey } from "@/services/api/lookups"
 
 /**
@@ -17,12 +17,21 @@ export function EntityRefField({
   value,
   onChange,
   required,
+  intent = "assign",
 }: {
   lookup: LookupKey
   value: string | null
   onChange: (id: string | null) => void
   /** Non-nullable column: offer no clear, since the API would reject null. */
   required?: boolean
+  /**
+   * Setting a scalar FK is normally assignment, so that's the default and the
+   * ~45 `F.Ref` fields say nothing. The exception is the health domain, where
+   * "resolved" means the episode ended, not that the record is void — you still
+   * record the medication you took *for* a resolved condition. Those fields pass
+   * `reference` explicitly.
+   */
+  intent?: PickerIntent
 }) {
   const type = LOOKUP_TO_TYPE[lookup]
   const resolve = useEntityResolver()
@@ -65,6 +74,7 @@ export function EntityRefField({
         <EntityPicker
           getAnchor={() => btnRef.current}
           type={type}
+          intent={intent}
           onClose={() => setOpen(false)}
           onSelect={(r) => {
             onChange(r.id)

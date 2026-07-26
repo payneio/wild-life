@@ -213,7 +213,13 @@ export function NoteComposer({
         )}
         {mentionAt != null && (
           <div className="absolute left-2 top-full z-20 mt-1">
-            <EntityCombobox onSelect={insertMention} onClose={() => setMentionAt(null)} />
+            {/* A mention names something; a journal entry about a finished
+                project is the normal case. */}
+            <EntityCombobox
+              intent="reference"
+              onSelect={insertMention}
+              onClose={() => setMentionAt(null)}
+            />
           </div>
         )}
       </div>
@@ -233,6 +239,7 @@ export function NoteComposer({
           ))}
           {chipPicker && (
             <EntityCombobox
+              intent="reference"
               onSelect={(r) => {
                 setManual((m) => (m.some((x) => x.type === r.type && x.id === r.id) ? m : [...m, r]))
                 setChipPicker(false)

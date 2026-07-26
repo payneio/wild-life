@@ -819,6 +819,23 @@ export interface paths {
         patch: operations["locations_update"];
         trace?: never;
     };
+    "/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Me */
+        get: operations["identity_me"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/medications": {
         parameters: {
             query?: never;
@@ -3235,6 +3252,24 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * IdentityRead
+         * @description Who the calling token acts as.
+         *
+         *     `person_id` is the Person this token *is* — the owner's comes from
+         *     `WILD_LIFE_SELF_PERSON_ID`, a worker token's from its own row. The web app
+         *     uses it to put you at the top of assignee/responsible pickers, so it is
+         *     resolved per token rather than read from a global default.
+         */
+        IdentityRead: {
+            /** Person Id */
+            person_id: string | null;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "full" | "worker";
         };
         /** ImportantDate */
         ImportantDate: {
@@ -7828,6 +7863,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    identity_me: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdentityRead"];
                 };
             };
         };

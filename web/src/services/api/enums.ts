@@ -21,6 +21,8 @@ import type {
   DelegationStatus,
   GoalStatus,
   MedType,
+  OrgStatus,
+  PlanStatus,
   PlanType,
   Priority,
   ProgramStatus,
@@ -182,8 +184,15 @@ export const ALLERGY_STATUS = [
   "resolved",
 ] as const satisfies readonly AllergyStatus[]
 
+export const ORG_STATUS = [
+  "active",
+  "inactive",
+  "archived",
+] as const satisfies readonly OrgStatus[]
+
+export const PLAN_STATUS = ["active", "inactive"] as const satisfies readonly PlanStatus[]
+
 // --- lists the API types as plain strings (no Literal on the backend) --------
-export const ORG_STATUS = ["active", "inactive", "archived"] as const
 export const ORG_TYPE = [
   "employer",
   "client",
@@ -221,4 +230,3 @@ export const EVENT_TYPE = [
   "note",
   "other",
 ] as const
-export const PLAN_STATUS = ["active", "inactive"] as const

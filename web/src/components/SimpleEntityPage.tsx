@@ -8,7 +8,8 @@ import { deriveListConfig, useListFilter, type FilterDef } from "@/lib/listFilte
 import { cn } from "@/lib/utils"
 import type { createCrud } from "@/services/api/crud"
 import type { Body } from "@/services/api/crud"
-import type { Entity } from "@/services/api/types"
+import type { Entity, EntityType } from "@/services/api/types"
+import { entityTypeForResource } from "@/services/api/registry"
 
 type Crud<T extends Entity> = ReturnType<typeof createCrud<T>>
 
@@ -50,11 +51,15 @@ export function SimpleEntityPage<T extends Entity>({
   extraFilters,
   detail = "pane",
   titleField,
+  entityType,
 }: {
   title: string
   subtitle?: string
   crud: Crud<T>
   fields: FieldSpec[]
+  /** Enables the hide-closed default. Omit for types with no lifecycle status. */
+  entityType?: EntityType
+
   columns: Column<T>[]
   newLabel?: string
   /** Placeholder for the capture line; defaults to `${newLabel}…`. */
@@ -75,13 +80,16 @@ export function SimpleEntityPage<T extends Entity>({
 }) {
   const navigate = useNavigate()
   const { id: selectedId } = useParams()
+  // Falls back to the registry, so every generic list gets the hide-closed
+  // default without 23 pages each restating what they already are.
+  const lifecycleType = entityType ?? entityTypeForResource(crud.resource)
   const { data, isLoading } = crud.useList(listParams)
   const create = crud.useCreate()
   const rows = useMemo(() => data ?? [], [data])
 
   const primaryKey = columns[0]?.key ?? "name"
   const nameField = titleField ?? primaryKey
-  const { filtered, toolbarProps } = useListFilter(
+  const { filtered, toolbarProps, closedCount } = useListFilter(
     rows as unknown as Record<string, unknown>[],
     (values) => {
       const base = deriveListConfig(fields, primaryKey)
@@ -89,6 +97,7 @@ export function SimpleEntityPage<T extends Entity>({
       return { ...base, filters: [...extraFilters(values), ...base.filters] }
     },
     `list:${storageKey ?? slug(title)}`,
+    lifecycleType,
   )
   const list = filtered as unknown as T[]
 
@@ -115,7 +124,11 @@ export function SimpleEntityPage<T extends Entity>({
       ) : rows.length === 0 ? (
         <EmptyState>{emptyText}</EmptyState>
       ) : list.length === 0 ? (
-        <EmptyState>No matches.</EmptyState>
+        <EmptyState>
+          {closedCount > 0
+            ? `No matches — ${closedCount} closed hidden.`
+            : "No matches."}
+        </EmptyState>
       ) : (
         <Card className="max-h-[75vh] overflow-y-auto">
           <ul>

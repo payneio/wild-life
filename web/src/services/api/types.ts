@@ -62,6 +62,9 @@ export type RegimenEntry = S["RegimenEntry"]
 /** A note's outbound mention (soft-polymorphic target). */
 export type NoteLink = S["EntityRef"]
 
+/** Who the current token acts as — see `useSelfPersonId`. */
+export type Identity = S["IdentityRead"]
+
 // --- computed responses -----------------------------------------------------
 export type ComputedProgress = S["ComputedProgress"]
 export type DashRow = S["DashRow"]
@@ -80,6 +83,7 @@ export type CommitmentStatus = Commitment["status"]
 export type RequestKind = Request["kind"]
 export type RequestStatus = Request["status"]
 export type DelegationStatus = Delegation["status"]
+export type OrgStatus = Organization["status"]
 export type ReviewType = Review["review_type"]
 export type EntityType = NonNullable<Note["entity_type"]>
 
@@ -88,6 +92,7 @@ export type ConditionCategory = NonNullable<Condition["category"]>
 export type ConditionStatus = Condition["status"]
 export type MedType = Medication["med_type"]
 export type PlanType = NonNullable<InsurancePlan["plan_type"]>
+export type PlanStatus = InsurancePlan["status"]
 export type AllergyType = NonNullable<Allergy["allergy_type"]>
 export type AllergySeverity = NonNullable<Allergy["severity"]>
 export type AllergyStatus = Allergy["status"]

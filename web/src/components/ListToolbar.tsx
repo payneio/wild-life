@@ -11,6 +11,8 @@ export interface ToolbarProps {
   onFilter: (field: string, v: string) => void
   sortKey: string
   onSort: (v: string) => void
+  /** Present when this list has finished rows to account for. */
+  closed?: { count: number; showing: boolean; onToggle: () => void }
 }
 
 /** Consistent list toolbar: search + filter dropdowns + sort. */
@@ -22,6 +24,7 @@ export function ListToolbar({
   onFilter,
   sortKey,
   onSort,
+  closed,
 }: ToolbarProps) {
   return (
     <div className="space-y-2">
@@ -68,6 +71,15 @@ export function ListToolbar({
             </Select>
           )}
         </div>
+      )}
+      {closed && (
+        <button
+          type="button"
+          onClick={closed.onToggle}
+          className="text-xs text-slate-500 underline-offset-2 hover:text-slate-800 hover:underline"
+        >
+          {closed.showing ? `Hide ${closed.count} closed` : `Show ${closed.count} closed`}
+        </button>
       )}
     </div>
   )

@@ -17,6 +17,7 @@ import {
   RecordTitle,
 } from "@/components/record/fields"
 import type { LookupKey } from "@/services/api/lookups"
+import type { PickerIntent } from "@/services/api/mentions"
 
 /**
  * Field set bound to one entity type: `const F = recordFields<Task>()` makes
@@ -61,6 +62,7 @@ export function recordFields<T>() {
         field: K2
         label?: string
         lookup: LookupKey
+        intent?: PickerIntent
       } & (null extends T[K2] ? { required?: false } : { required: true }),
     ) => ReactNode,
     Recurrence: RecordRecurrence as (p: { field: K; label?: string }) => ReactNode,

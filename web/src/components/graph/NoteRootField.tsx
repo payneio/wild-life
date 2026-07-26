@@ -107,6 +107,9 @@ export function NoteRootField({
             <EntityPicker
               getAnchor={() => btnRef.current}
               type={type}
+              // Rooting a note to the finished project it's about is the
+              // ordinary case, not an error.
+              intent="reference"
               allowCreate={false}
               onClose={() => setOpen(false)}
               onSelect={(r) => {

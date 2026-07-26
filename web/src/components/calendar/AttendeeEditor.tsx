@@ -124,6 +124,7 @@ export function AttendeeEditor({
         <EntityPicker
           getAnchor={() => btnRef.current}
           type="person"
+          intent="assign"
           placeholder="Search people…"
           onClose={() => setOpen(false)}
           onSelect={(r) => {

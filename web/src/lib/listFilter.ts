@@ -2,6 +2,8 @@ import { useMemo } from "react"
 import type { FieldSpec } from "@/services/api/fieldSpec"
 import type { ToolbarProps } from "@/components/ListToolbar"
 import { usePersistentState } from "@/lib/persistentState"
+import { isTerminal } from "@/services/api/lifecycle"
+import type { EntityType } from "@/services/api/types"
 
 export interface FilterDef {
   field: string
@@ -67,7 +69,9 @@ export function useListFilter<T extends Record<string, unknown>>(
   rows: T[],
   config: ListConfig | ((values: Record<string, string>) => ListConfig),
   storageKey?: string,
-): { filtered: T[]; toolbarProps: ToolbarProps } {
+  /** Enables the hide-closed default; omit for types with no lifecycle. */
+  entityType?: EntityType,
+): { filtered: T[]; toolbarProps: ToolbarProps; closedCount: number } {
   const [search, setSearch] = usePersistentState(storageKey ? `${storageKey}:q` : null, "")
   const [values, setValues] = usePersistentState<Record<string, string>>(
     storageKey ? `${storageKey}:f` : null,
@@ -80,10 +84,26 @@ export function useListFilter<T extends Record<string, unknown>>(
     storageKey ? `${storageKey}:s` : null,
     cfg.sorts[0]?.key ?? "",
   )
+  // Finished records are hidden by default and their count is always shown, so
+  // the list never quietly under-reports itself. Persisted, so revealing sticks.
+  const [showClosed, setShowClosed] = usePersistentState(
+    storageKey ? `${storageKey}:closed` : null,
+    false,
+  )
+  // An explicit status choice outranks the default — otherwise picking
+  // "archived" from the dropdown would return an empty list, which is the same
+  // lie in a different place.
+  const statusPicked = !!values.status
+  const hideClosed = !!entityType && !showClosed && !statusPicked
+  const closedCount = useMemo(
+    () => (entityType ? rows.filter((r) => isTerminal(entityType, r.status)).length : 0),
+    [rows, entityType],
+  )
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
     const out = rows.filter((r) => {
+      if (hideClosed && entityType && isTerminal(entityType, r.status)) return false
       for (const f of cfg.filters) {
         const v = values[f.field]
         if (v && String(r[f.field] ?? "") !== v) return false
@@ -103,7 +123,7 @@ export function useListFilter<T extends Record<string, unknown>>(
       })
     }
     return out
-  }, [rows, search, values, sortKey, cfg])
+  }, [rows, search, values, sortKey, cfg, hideClosed, entityType])
 
   const toolbarProps: ToolbarProps = {
     config: cfg,
@@ -113,6 +133,10 @@ export function useListFilter<T extends Record<string, unknown>>(
     onFilter: (field, v) => setValues((p) => ({ ...p, [field]: v })),
     sortKey,
     onSort: setSortKey,
+    closed:
+      closedCount > 0 && !statusPicked
+        ? { count: closedCount, showing: showClosed, onToggle: () => setShowClosed((v) => !v) }
+        : undefined,
   }
-  return { filtered, toolbarProps }
+  return { filtered, toolbarProps, closedCount: hideClosed ? closedCount : 0 }
 }

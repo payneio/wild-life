@@ -63,6 +63,10 @@ function HomePicker({ label = "Set home…", onPick }: { label?: string; onPick:
         <EntityPicker
           getAnchor={() => ref.current}
           allowCreate={false}
+          // Triage is historical: filing a 2024 meeting into the project that
+          // shipped is the job. Same poly-link write as NoteRootField, so it
+          // must have the same policy — classify by the write, not the label.
+          intent="reference"
           placeholder="File in… (search any area, project, person…)"
           onClose={() => setOpen(false)}
           onSelect={(r) => {

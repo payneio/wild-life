@@ -108,10 +108,7 @@ export function Field({
 const CONTROL =
   "w-full rounded-lg border border-slate-300 bg-surface px-3 py-1.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
 
-export function Input({
-  className,
-  ...props
-}: React.InputHTMLAttributes<HTMLInputElement>) {
+export function Input({ className, ...props }: React.ComponentProps<"input">) {
   return <input className={cn(CONTROL, className)} {...props} />
 }
 

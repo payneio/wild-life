@@ -126,6 +126,7 @@ export function RelatedPanel({
         <EntityPicker
           getAnchor={() => addRef.current}
           type={spec.type}
+          intent="assign"
           createDefaults={createDefaults}
           placeholder={`Add ${targetDef.label.toLowerCase()}…`}
           onClose={() => setOpen(false)}

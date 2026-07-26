@@ -95,6 +95,17 @@ export interface EntityDef {
    *  entity_type/entity_id soft-poly pair) under this label — e.g. "Rooted to"
    *  for notes, "About" for events. */
   contextLabel?: string
+  /**
+   * The muted subtitle a type-scoped picker shows beside each row.
+   *
+   * In a picker restricted to one type the right-hand slot printed the type name
+   * on every row — the same word 22 times, saying nothing. What actually
+   * disambiguates differs by object: a parent for hierarchical ones, a date for
+   * temporal ones, an affiliation for people. `resolve` is the shared entity
+   * index (`useEntityResolver`), because a row carries `area_id`, not "Health".
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  context?: (e: any, resolve: (type: EntityType, id: string) => string | undefined) => string | undefined
 }
 
 import {
@@ -133,27 +144,27 @@ export const REGISTRY: Record<string, EntityDef> = {
     { mode: "soft-backref", label: "Events", type: "event", hideWhenEmpty: true },
     { mode: "soft-backref", label: "Notes", type: "note" },
   ] },
-  project: { key: "project", label: "Project", crud: projects, fields: PROJECT_FIELDS, title: (e) => e.name, entityType: "project", titleField: "name", quickCreate: true, detail: ProjectRecord, relations: [
+  project: { key: "project", label: "Project", crud: projects, fields: PROJECT_FIELDS, title: (e) => e.name, context: (e, r) => (e.program_id && r("program", e.program_id)) || (e.area_id && r("area", e.area_id)) || undefined, entityType: "project", titleField: "name", quickCreate: true, detail: ProjectRecord, relations: [
     { mode: "soft-backref", label: "Events", type: "event", hideWhenEmpty: true },
     { mode: "soft-backref", label: "Notes", type: "note" },
     { mode: "soft-backref", label: "Resources", type: "resource" },
     { mode: "soft-backref", label: "Decisions", type: "decision" },
   ] },
-  goal: { key: "goal", label: "Goal", crud: goals, fields: GOAL_FIELDS, title: (e) => e.name, entityType: "goal", titleField: "name", quickCreate: true, detail: GoalRecord, relations: [
+  goal: { key: "goal", label: "Goal", crud: goals, fields: GOAL_FIELDS, title: (e) => e.name, context: (e, r) => (e.area_id && r("area", e.area_id)) || undefined, entityType: "goal", titleField: "name", quickCreate: true, detail: GoalRecord, relations: [
     { mode: "soft-backref", label: "Notes", type: "note" },
   ] },
-  metric: { key: "metric", label: "Metric", crud: metrics, fields: METRIC_FIELDS, title: (e) => e.name, entityType: "metric", titleField: "name", quickCreate: true, detail: MetricRecord, relations: [
+  metric: { key: "metric", label: "Metric", crud: metrics, fields: METRIC_FIELDS, title: (e) => e.name, context: (e, r) => (e.area_id && r("area", e.area_id)) || undefined, entityType: "metric", titleField: "name", quickCreate: true, detail: MetricRecord, relations: [
     { mode: "fk-children", label: "Goals measured by this", type: "goal", fkField: "metric_id" },
   ] },
-  routine: { key: "routine", label: "Routine", crud: routines, fields: ROUTINE_FIELDS, title: (e) => e.activity ?? e.name ?? "Routine", entityType: "routine", titleField: "activity", quickCreate: true, detail: RoutineRecord },
-  program: { key: "program", label: "Program", crud: programs, fields: PROGRAM_FIELDS, title: (e) => e.name, entityType: "program", titleField: "name", quickCreate: true, detail: ProgramRecord, relations: [
+  routine: { key: "routine", label: "Routine", crud: routines, fields: ROUTINE_FIELDS, title: (e) => e.activity ?? e.name ?? "Routine", context: (e, r) => (e.protocol_id && r("protocol", e.protocol_id)) || (e.area_id && r("area", e.area_id)) || undefined, entityType: "routine", titleField: "activity", quickCreate: true, detail: RoutineRecord },
+  program: { key: "program", label: "Program", crud: programs, fields: PROGRAM_FIELDS, title: (e) => e.name, context: (e, r) => (e.area_id && r("area", e.area_id)) || undefined, entityType: "program", titleField: "name", quickCreate: true, detail: ProgramRecord, relations: [
     { mode: "fk-children", label: "Projects", type: "project", fkField: "program_id", inherit: ["area_id"] },
     { mode: "fk-children", label: "Metrics", type: "metric", fkField: "program_id", inherit: ["area_id"] },
     { mode: "fk-children", label: "Goals", type: "goal", fkField: "program_id", inherit: ["area_id"] },
     { mode: "soft-backref", label: "Events", type: "event", hideWhenEmpty: true },
     { mode: "soft-backref", label: "Notes", type: "note" },
   ] },
-  task: { key: "task", label: "Task", crud: tasks, fields: TASK_FIELDS, title: (e) => e.title, entityType: "task", titleField: "title", quickCreate: true, detail: TaskRecord, relations: [
+  task: { key: "task", label: "Task", crud: tasks, fields: TASK_FIELDS, title: (e) => e.title, context: (e, r) => (e.project_id && r("project", e.project_id)) || (e.area_id && r("area", e.area_id)) || undefined, entityType: "task", titleField: "title", quickCreate: true, detail: TaskRecord, relations: [
     { mode: "soft-backref", label: "Notes", type: "note", hideWhenEmpty: true },
   ] },
   delegation: { key: "delegation", label: "Delegation", crud: delegations, fields: DELEGATION_FIELDS, title: (e) => e.requested_outcome, entityType: "delegation", titleField: "requested_outcome", quickCreate: true, detail: DelegationRecord, relations: [
@@ -162,10 +173,10 @@ export const REGISTRY: Record<string, EntityDef> = {
   review: { key: "review", label: "Review", crud: reviews, fields: REVIEW_FIELDS, title: (e) => `${e.review_type} review`, entityType: "review", titleField: "review_type", detail: ReviewRecord, relations: [
     { mode: "soft-backref", label: "Notes", type: "note", hideWhenEmpty: true },
   ] },
-  organization: { key: "organization", label: "Organization", crud: organizations, fields: ORGANIZATION_FIELDS, title: (e) => e.name, entityType: "organization", titleField: "name", quickCreate: true, detail: OrganizationRecord, relations: [
+  organization: { key: "organization", label: "Organization", crud: organizations, fields: ORGANIZATION_FIELDS, title: (e) => e.name, context: (e) => e.org_type ?? undefined, entityType: "organization", titleField: "name", quickCreate: true, detail: OrganizationRecord, relations: [
     { mode: "fk-children", label: "Insurance plans", type: "insurance_plan", fkField: "organization_id" },
   ] },
-  location: { key: "location", label: "Location", crud: locations, fields: LOCATION_FIELDS, title: (e) => e.name, entityType: "location", titleField: "name", quickCreate: true, detail: LocationRecord },
+  location: { key: "location", label: "Location", crud: locations, fields: LOCATION_FIELDS, title: (e) => e.name, context: (e) => e.city ?? undefined, entityType: "location", titleField: "name", quickCreate: true, detail: LocationRecord },
   protocol: { key: "protocol", label: "Protocol", crud: protocols, fields: PROTOCOL_FIELDS, title: (e) => e.name, entityType: "protocol", titleField: "name", quickCreate: true, detail: ProtocolRecord },
   note: { key: "note", label: "Note", crud: notes, fields: NOTE_FIELDS, title: (e) => e.title || "(untitled)", entityType: "note", titleField: "title", detail: NoteRecord },
   event: { key: "event", label: "Event", crud: events, fields: EVENT_FIELDS, title: (e) => e.title, entityType: "event", titleField: "title", detail: EventRecord, relations: [
@@ -180,16 +191,16 @@ export const REGISTRY: Record<string, EntityDef> = {
   decision: { key: "decision", label: "Decision", crud: decisions, fields: DECISION_FIELDS, title: (e) => e.question, entityType: "decision", titleField: "question", quickCreate: true, detail: DecisionRecord, relations: [
     { mode: "soft-backref", label: "Notes", type: "note", hideWhenEmpty: true },
   ] },
-  resource: { key: "resource", label: "Resource", crud: resources, fields: RESOURCE_FIELDS, title: (e) => e.title, entityType: "resource", titleField: "title", quickCreate: true, detail: ResourceRecord },
+  resource: { key: "resource", label: "Resource", crud: resources, fields: RESOURCE_FIELDS, title: (e) => e.title, context: (e) => e.resource_type ?? undefined, entityType: "resource", titleField: "title", quickCreate: true, detail: ResourceRecord },
   tag: { key: "tag", label: "Tag", crud: tags, fields: TAG_FIELDS, title: (e) => e.name, titleField: "name", quickCreate: true, detail: TagRecord },
-  condition: { key: "condition", label: "Condition", crud: conditions, fields: CONDITION_FIELDS, title: (e) => e.name, entityType: "condition", titleField: "name", quickCreate: true, detail: ConditionRecord, relations: [
+  condition: { key: "condition", label: "Condition", crud: conditions, fields: CONDITION_FIELDS, title: (e) => e.name, context: (e) => e.category ?? undefined, entityType: "condition", titleField: "name", quickCreate: true, detail: ConditionRecord, relations: [
     { mode: "fk-children", label: "Medications", type: "medication", fkField: "condition_id" },
     { mode: "fk-children", label: "Protocols", type: "protocol", fkField: "condition_id" },
     { mode: "fk-children", label: "Metrics (labs)", type: "metric", fkField: "condition_id" },
     { mode: "fk-children", label: "Goals", type: "goal", fkField: "condition_id" },
     { mode: "soft-backref", label: "Events", type: "event", hideWhenEmpty: true },
   ] },
-  medication: { key: "medication", label: "Medication", crud: medications, fields: MEDICATION_FIELDS, title: (e) => e.name, entityType: "medication", titleField: "name", quickCreate: true, detail: MedicationRecord },
+  medication: { key: "medication", label: "Medication", crud: medications, fields: MEDICATION_FIELDS, title: (e) => e.name, context: (e, r) => e.brand ?? ((e.condition_id && r("condition", e.condition_id)) || undefined), entityType: "medication", titleField: "name", quickCreate: true, detail: MedicationRecord },
   insurancePlan: { key: "insurancePlan", label: "Insurance plan", crud: insurancePlans, fields: INSURANCE_FIELDS, title: (e) => e.name, entityType: "insurance_plan", titleField: "name", quickCreate: true, detail: InsurancePlanRecord },
   allergy: { key: "allergy", label: "Allergy", crud: allergies, fields: ALLERGY_FIELDS, title: (e) => e.substance, entityType: "allergy", titleField: "substance", quickCreate: true, detail: AllergyRecord },
 }
@@ -201,3 +212,18 @@ export const REGISTRY_BY_TYPE: Partial<Record<EntityType, EntityDef>> = Object.f
     .filter((d) => d.entityType)
     .map((d) => [d.entityType, d]),
 )
+
+/** `crud.resource` → `EntityType`, so a generic list page can find its own
+ *  lifecycle without every caller restating it. Built lazily (never at
+ *  module-eval time) for the same import-cycle reason as `mentionSources`. */
+let _typeByResource: Record<string, EntityType> | null = null
+export function entityTypeForResource(resource: string): EntityType | undefined {
+  if (!_typeByResource) {
+    _typeByResource = Object.fromEntries(
+      Object.values(REGISTRY)
+        .filter((d) => d.entityType)
+        .map((d) => [d.crud.resource, d.entityType as EntityType]),
+    )
+  }
+  return _typeByResource[resource]
+}

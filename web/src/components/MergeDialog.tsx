@@ -85,7 +85,8 @@ export function MergeDialog({
         {!survivor && (
           <div>
             <div className="mb-1 text-sm text-slate-500">Pick the entity to keep:</div>
-            <EntityCombobox type={type} onSelect={(r) => setSurvivor(r)} placeholder="Search…" />
+            <EntityCombobox type={type} onSelect={(r) => setSurvivor(r)} placeholder="Search…"
+            intent="reference" />
           </div>
         )}
         {survivor && !loser && (
@@ -96,6 +97,7 @@ export function MergeDialog({
               excludeId={survivor.id}
               onSelect={(r) => setLoser(r)}
               placeholder="Search duplicates…"
+            intent="reference"
             />
           </div>
         )}
