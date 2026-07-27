@@ -21,6 +21,12 @@ class Metric(UUIDPrimaryKey, TimestampMixin, Base):
     # up filed against a program while methane was filed against a condition.
     entity_type: Mapped[str] = mapped_column(Text, nullable=False)
     entity_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    # A manual metric is read from the world and typed in; a derived one is
+    # computed on read from data already here, and has no entries of its own.
+    source: Mapped[str] = mapped_column(
+        Text, server_default="manual", nullable=False
+    )  # MetricSource
+    derivation: Mapped[str | None] = mapped_column(Text)  # DerivationKey
     unit: Mapped[str | None] = mapped_column(Text)
     # The *externally defined* normal band — a lab's reference range, a clinical
     # guideline. Context to draw behind the trend, never a target: what I'm aiming

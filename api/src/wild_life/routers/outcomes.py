@@ -8,6 +8,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wild_life.db.session import get_session
+from wild_life.derivations import series_for
 from wild_life.models.links import EntityLink
 from wild_life.models.metrics import Metric, MetricEntry
 from wild_life.models.outcomes import Outcome
@@ -127,14 +128,20 @@ async def evaluate_outcome(
         result["reference_min"] = metric.reference_min
         result["reference_max"] = metric.reference_max
 
-    latest = (
-        await session.execute(
-            select(MetricEntry.value, MetricEntry.recorded_at)
-            .where(MetricEntry.metric_id == outcome.metric_id)
-            .order_by(MetricEntry.recorded_at.desc())
-            .limit(1)
-        )
-    ).first()
+    # A derived metric has no entries — its latest reading is the tail of the
+    # computed series. Everything below this line is indifferent to which it was.
+    if metric is not None and metric.source == "derived":
+        points = await series_for(session, metric)
+        latest = (points[-1].value, points[-1].recorded_at) if points else None
+    else:
+        latest = (
+            await session.execute(
+                select(MetricEntry.value, MetricEntry.recorded_at)
+                .where(MetricEntry.metric_id == outcome.metric_id)
+                .order_by(MetricEntry.recorded_at.desc())
+                .limit(1)
+            )
+        ).first()
     if latest is None:
         # Bound to an instrument that has never been read — distinct from having
         # no instrument at all, and the review dashboard treats them differently.

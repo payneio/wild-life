@@ -15,7 +15,12 @@ import {
   localInputToInstant,
   nowInstant,
 } from "@/lib/date"
-import { metricEntries, routines, useMetricEntries } from "@/services/api/hooks"
+import {
+  metricEntries,
+  routines,
+  useMetricEntries,
+  useMetricSeries,
+} from "@/services/api/hooks"
 import type {
   Entity,
   Metric,
@@ -42,7 +47,9 @@ function ExtraSection({ title, children }: { title: string; children: ReactNode 
 
 export function MetricExtra({ entity }: { entity: Entity }) {
   const metric = entity as Metric
+  const derived = metric.source === "derived"
   const { data } = useMetricEntries(metric.id)
+  const series = useMetricSeries(metric.id).data ?? []
   const create = metricEntries.useCreate()
   const [value, setValue] = useState("")
   // Capture already knows *when* — you're recording a reading you just took — so
@@ -66,8 +73,23 @@ export function MetricExtra({ entity }: { entity: Entity }) {
   return (
     <div className="space-y-3">
       <ExtraSection title="Trend">
-        {list.length < 2 ? <p className="text-sm text-slate-400">Need ≥2 entries.</p> : <Sparkline entries={list} />}
+        {series.length < 2 ? (
+          <p className="text-sm text-slate-400">
+            {derived ? "Not enough history to plot yet." : "Need ≥2 entries."}
+          </p>
+        ) : (
+          <Sparkline entries={series} />
+        )}
       </ExtraSection>
+
+      {/* A derived metric has nothing to log — it reads itself. Showing a
+          disabled entry box would suggest otherwise. */}
+      {derived ? (
+        <p className="text-sm text-slate-500">
+          Computed from your own data, on every read. Nothing to enter.
+        </p>
+      ) : (
+        <>
       <div className="flex gap-2">
         <Input
           type="datetime-local"
@@ -110,6 +132,8 @@ export function MetricExtra({ entity }: { entity: Entity }) {
           </ul>
         )}
       </ExtraSection>
+        </>
+      )}
     </div>
   )
 }

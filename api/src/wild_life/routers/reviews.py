@@ -352,7 +352,12 @@ async def review_dashboard(
     # Metrics overdue for a reading (measurement_frequency vs latest entry).
     metrics_overdue = []
     for m in await _rows(
-        session, select(Metric).where(Metric.measurement_frequency.isnot(None))
+        session,
+        select(Metric).where(
+            Metric.measurement_frequency.isnot(None),
+            # A derived metric reads itself; there is nobody to nag.
+            Metric.source == "manual",
+        ),
     ):
         interval = FREQUENCY_DAYS.get(m.measurement_frequency or "")
         if interval is None:

@@ -2865,6 +2865,38 @@
         "title": "DelegationUpdate",
         "type": "object"
       },
+      "DerivationInfo": {
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "key": {
+            "enum": [
+              "task_throughput",
+              "routine_adherence"
+            ],
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "unit",
+          "description"
+        ],
+        "title": "DerivationInfo",
+        "type": "object"
+      },
       "DoseLogCreate": {
         "description": "Log an ad-hoc intake (extra / PRN / backdated / un-prescribed) \u2014 always inserts.\n\n``medication_id`` is required (what was taken). ``routine_id`` is optional: when\ngiven, the routine's amount/unit/medication pre-fill any omitted field.",
         "properties": {
@@ -5421,6 +5453,21 @@
             ],
             "title": "Data Source"
           },
+          "derivation": {
+            "anyOf": [
+              {
+                "enum": [
+                  "task_throughput",
+                  "routine_adherence"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Derivation"
+          },
           "entity_id": {
             "format": "uuid",
             "title": "Entity Id",
@@ -5509,6 +5556,15 @@
               }
             ],
             "title": "Reference Min"
+          },
+          "source": {
+            "default": "manual",
+            "enum": [
+              "manual",
+              "derived"
+            ],
+            "title": "Source",
+            "type": "string"
           },
           "unit": {
             "anyOf": [
@@ -5679,6 +5735,21 @@
             ],
             "title": "Data Source"
           },
+          "derivation": {
+            "anyOf": [
+              {
+                "enum": [
+                  "task_throughput",
+                  "routine_adherence"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Derivation"
+          },
           "entity_id": {
             "format": "uuid",
             "title": "Entity Id",
@@ -5773,6 +5844,14 @@
             ],
             "title": "Reference Min"
           },
+          "source": {
+            "enum": [
+              "manual",
+              "derived"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
           "unit": {
             "anyOf": [
               {
@@ -5797,6 +5876,8 @@
           "name",
           "entity_type",
           "entity_id",
+          "source",
+          "derivation",
           "unit",
           "reference_min",
           "reference_max",
@@ -5819,6 +5900,21 @@
               }
             ],
             "title": "Data Source"
+          },
+          "derivation": {
+            "anyOf": [
+              {
+                "enum": [
+                  "task_throughput",
+                  "routine_adherence"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Derivation"
           },
           "entity_id": {
             "anyOf": [
@@ -5929,6 +6025,21 @@
               }
             ],
             "title": "Reference Min"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "enum": [
+                  "manual",
+                  "derived"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
           },
           "unit": {
             "anyOf": [
@@ -12198,6 +12309,26 @@
         "title": "SendInvitesResult",
         "type": "object"
       },
+      "SeriesPoint": {
+        "description": "One reading, typed in or computed \u2014 the shape a chart actually needs.",
+        "properties": {
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "recorded_at",
+          "value"
+        ],
+        "title": "SeriesPoint",
+        "type": "object"
+      },
       "TagCreate": {
         "properties": {
           "color": {
@@ -14409,6 +14540,32 @@
         "summary": "Update",
         "tags": [
           "delegations"
+        ]
+      }
+    },
+    "/derivations": {
+      "get": {
+        "description": "The computations a derived metric can name, for a picker to offer.",
+        "operationId": "list_derivations_derivations_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DerivationInfo"
+                  },
+                  "title": "Response List Derivations Derivations Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Derivations",
+        "tags": [
+          "metrics"
         ]
       }
     },
@@ -16640,6 +16797,54 @@
           }
         },
         "summary": "List Metric Entries",
+        "tags": [
+          "metrics"
+        ]
+      }
+    },
+    "/metrics/{metric_id}/series": {
+      "get": {
+        "description": "The readings, however they arise.\n\nOne endpoint for both kinds, because nothing downstream \u2014 a sparkline, an\noutcome's verdict \u2014 should care whether a number was typed in or computed.\nThat's the point of deriving: the reading is a reading.",
+        "operationId": "metric_series_metrics__metric_id__series_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "metric_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Metric Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SeriesPoint"
+                  },
+                  "title": "Response Metric Series Metrics  Metric Id  Series Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Metric Series",
         "tags": [
           "metrics"
         ]

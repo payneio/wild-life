@@ -7,6 +7,7 @@ import type {
   Allergy,
   Area,
   Commitment,
+  DerivationInfo,
   Evaluation,
   Decision,
   Delegation,
@@ -32,6 +33,7 @@ import type {
   ReviewDashboard,
   Routine,
   RoutineInstance,
+  SeriesPoint,
   Tag,
   Task,
   Request,
@@ -427,6 +429,25 @@ export function useLogDose() {
 // Keyed under "outcomes" so an edit to the claim refreshes it; a *reading*
 // changes the verdict without touching that row, which `DERIVED_FROM` in
 // live.ts handles.
+/** The readings, however they arise — typed in, or computed on read.
+ *  Keyed under "metric-entries" so logging one refreshes the chart; a derived
+ *  series has no entries to change, and recomputes when its inputs do. */
+export function useMetricSeries(metricId: string | null) {
+  return useQuery({
+    queryKey: ["metric-entries", "series", metricId],
+    queryFn: () => apiClient.get<SeriesPoint[]>(`/metrics/${metricId}/series`),
+    enabled: !!metricId,
+  })
+}
+
+export function useDerivations() {
+  return useQuery({
+    queryKey: ["derivations"],
+    queryFn: () => apiClient.get<DerivationInfo[]>("/derivations"),
+    staleTime: Infinity,
+  })
+}
+
 export function useOutcomeEvaluation(outcomeId: string | null) {
   return useQuery({
     queryKey: ["outcomes", outcomeId, "evaluation"],

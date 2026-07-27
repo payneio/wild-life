@@ -66,6 +66,10 @@ export type Identity = S["IdentityRead"]
 
 // --- computed responses -----------------------------------------------------
 export type Evaluation = S["Evaluation"]
+export type SeriesPoint = S["SeriesPoint"]
+export type DerivationInfo = S["DerivationInfo"]
+export type MetricSource = Metric["source"]
+export type DerivationKey = NonNullable<Metric["derivation"]>
 export type DashRow = S["DashRow"]
 export type ReviewDashboard = S["ReviewDashboard"]
 

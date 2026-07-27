@@ -300,6 +300,26 @@ export interface paths {
         patch: operations["delegations_update"];
         trace?: never;
     };
+    "/derivations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Derivations
+         * @description The computations a derived metric can name, for a picker to offer.
+         */
+        get: operations["list_derivations_derivations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/entity-tags": {
         parameters: {
             query?: never;
@@ -867,6 +887,30 @@ export interface paths {
         };
         /** List Metric Entries */
         get: operations["list_metric_entries_metrics__metric_id__entries_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/metrics/{metric_id}/series": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Metric Series
+         * @description The readings, however they arise.
+         *
+         *     One endpoint for both kinds, because nothing downstream — a sparkline, an
+         *     outcome's verdict — should care whether a number was typed in or computed.
+         *     That's the point of deriving: the reading is a reading.
+         */
+        get: operations["metric_series_metrics__metric_id__series_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2669,6 +2713,20 @@ export interface components {
             /** Status */
             status?: ("draft" | "requested" | "accepted" | "in_progress" | "waiting_for_update" | "blocked" | "delivered" | "revision_requested" | "accepted_as_complete" | "declined" | "reassigned" | "cancelled") | null;
         };
+        /** DerivationInfo */
+        DerivationInfo: {
+            /** Description */
+            description: string;
+            /**
+             * Key
+             * @enum {string}
+             */
+            key: "task_throughput" | "routine_adherence";
+            /** Label */
+            label: string;
+            /** Unit */
+            unit: string;
+        };
         /**
          * DoseLogCreate
          * @description Log an ad-hoc intake (extra / PRN / backdated / un-prescribed) — always inserts.
@@ -3368,6 +3426,8 @@ export interface components {
         MetricCreate: {
             /** Data Source */
             data_source?: string | null;
+            /** Derivation */
+            derivation?: ("task_throughput" | "routine_adherence") | null;
             /**
              * Entity Id
              * Format: uuid
@@ -3388,6 +3448,12 @@ export interface components {
             reference_max?: number | null;
             /** Reference Min */
             reference_min?: number | null;
+            /**
+             * Source
+             * @default manual
+             * @enum {string}
+             */
+            source: "manual" | "derived";
             /** Unit */
             unit?: string | null;
         };
@@ -3458,6 +3524,8 @@ export interface components {
             created_at: Instant;
             /** Data Source */
             data_source: string | null;
+            /** Derivation */
+            derivation: ("task_throughput" | "routine_adherence") | null;
             /**
              * Entity Id
              * Format: uuid
@@ -3483,6 +3551,11 @@ export interface components {
             reference_max: number | null;
             /** Reference Min */
             reference_min: number | null;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "manual" | "derived";
             /** Unit */
             unit: string | null;
             /**
@@ -3495,6 +3568,8 @@ export interface components {
         MetricUpdate: {
             /** Data Source */
             data_source?: string | null;
+            /** Derivation */
+            derivation?: ("task_throughput" | "routine_adherence") | null;
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
@@ -3509,6 +3584,8 @@ export interface components {
             reference_max?: number | null;
             /** Reference Min */
             reference_min?: number | null;
+            /** Source */
+            source?: ("manual" | "derived") | null;
             /** Unit */
             unit?: string | null;
         };
@@ -5031,6 +5108,19 @@ export interface components {
              */
             requests_sent: number;
         };
+        /**
+         * SeriesPoint
+         * @description One reading, typed in or computed — the shape a chart actually needs.
+         */
+        SeriesPoint: {
+            /**
+             * Recorded At
+             * Format: date-time
+             */
+            recorded_at: Instant;
+            /** Value */
+            value: number;
+        };
         /** TagCreate */
         TagCreate: {
             /** Color */
@@ -6263,6 +6353,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_derivations_derivations_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DerivationInfo"][];
                 };
             };
         };
@@ -7829,6 +7939,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MetricEntryRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    metric_series_metrics__metric_id__series_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                metric_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeriesPoint"][];
                 };
             };
             /** @description Validation Error */

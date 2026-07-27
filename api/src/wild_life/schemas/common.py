@@ -46,6 +46,13 @@ RoutineStatus = Literal["active", "paused", "archived"]
 # How often a metric is expected to be read. Its one effect: the review dashboard
 # flags a metric whose latest entry is older than this (see routers/reviews.py).
 MeasurementFrequency = Literal["daily", "weekly", "monthly", "quarterly", "yearly"]
+# Where a metric's readings come from. Hand-logged measurement does not happen
+# here — 19 readings against 404 completed tasks over the same period — so a
+# metric that the app can compute for itself should compute itself.
+MetricSource = Literal["manual", "derived"]
+# The computations a derived metric can name. Each reads data the app already
+# holds and needs no entry UI at all.
+DerivationKey = Literal["task_throughput", "routine_adherence"]
 RoutineInstanceStatus = Literal["pending", "done", "skipped"]
 OutcomeStatus = Literal["active", "achieved", "paused", "dropped"]
 # What kind of claim an outcome makes. A standard must hold continuously, a target

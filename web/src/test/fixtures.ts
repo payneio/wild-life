@@ -254,6 +254,8 @@ export const PROTOCOL: Protocol = {
 export const METRIC: Metric = {
   ...BASE,
   name: "Resting heart rate",
+  source: "manual",
+  derivation: null,
   entity_type: "area",
   entity_id: "00000000-0000-4000-8000-000000000002",
   unit: "bpm",
@@ -390,6 +392,19 @@ export const EVENT: EventItem = {
  *  deadline to miss and a deliverable has no band to sit in — so no single row
  *  can exercise the whole layout. */
 export const VARIANTS: Record<string, Entity[]> = {
+  // A derived metric has no entry box and no cadence to be nagged about, so its
+  // layout differs from a hand-logged one.
+  metric: [
+    METRIC,
+    {
+      ...METRIC,
+      name: "Tasks shipped per week",
+      source: "derived",
+      derivation: "task_throughput",
+      unit: "tasks/week",
+      measurement_frequency: null,
+    } satisfies Metric,
+  ],
   // A condition is a program, so a program has a clinical shape too — the
   // Clinical section only renders once the program says it is one.
   program: [
