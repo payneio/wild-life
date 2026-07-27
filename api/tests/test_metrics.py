@@ -39,7 +39,9 @@ def test_two_readings_the_same_day_stay_distinct(
     metrics: list[str] = []
     areas: list[str] = []
     try:
-        m = _rooted_metric(client, owner, areas, name=f"{MARK} blood pressure", unit="mmHg")
+        m = _rooted_metric(
+            client, owner, areas, name=f"{MARK} blood pressure", unit="mmHg"
+        )
         metrics.append(m["id"])
 
         morning = "2026-03-04T15:12:00Z"  # 07:12 local
@@ -106,6 +108,8 @@ def test_measurement_frequency_is_a_closed_enum(
     finally:
         for mid in metrics:
             client.delete(f"/metrics/{mid}", headers=owner)
+        for aid in areas:
+            client.delete(f"/areas/{aid}", headers=owner)
 
 
 def test_review_dashboard_flags_metrics_overdue_for_a_reading(
@@ -166,6 +170,8 @@ def test_review_dashboard_flags_metrics_overdue_for_a_reading(
     finally:
         for mid in metrics:
             client.delete(f"/metrics/{mid}", headers=owner)
+        for aid in areas:
+            client.delete(f"/areas/{aid}", headers=owner)
 
 
 def test_a_metric_with_no_cadence_is_never_nagged_about(
@@ -185,3 +191,5 @@ def test_a_metric_with_no_cadence_is_never_nagged_about(
     finally:
         for mid in metrics:
             client.delete(f"/metrics/{mid}", headers=owner)
+        for aid in areas:
+            client.delete(f"/areas/{aid}", headers=owner)
