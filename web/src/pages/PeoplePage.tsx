@@ -1,3 +1,4 @@
+import { formatAddress } from "@/lib/address"
 import { useMemo, useRef, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
@@ -576,9 +577,14 @@ function PersonDetail({
                   rows={person.emails}
                   href={(v) => `mailto:${v}`}
                 />
+                {/* Addresses no longer share the one-value ContactMethod shape,
+                    so they flatten for display rather than being one already. */}
                 <MethodList
                   icon={<MapPin size={14} />}
-                  rows={person.addresses}
+                  rows={person.addresses.map((a) => ({
+                    value: formatAddress(a),
+                    label: a.label ?? null,
+                  }))}
                   href={(v) => `https://maps.google.com/?q=${encodeURIComponent(v)}`}
                 />
                 <MethodList

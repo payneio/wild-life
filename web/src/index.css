@@ -352,3 +352,14 @@ body * {
   padding: 0 3px;
   font-weight: 500;
 }
+
+/* Leaflet paints its internals on a private z-index scale that runs to 1000
+   (panes to 700, controls to 1000), and `.leaflet-container` sets no z-index of
+   its own — so those descendants join the root stacking context and scroll
+   straight over the fixed bottom nav (z-40) on mobile. Isolating the container
+   confines that scale to the map's own box, which is where it was always meant
+   to apply. Fixes it for every map rather than for the two that exist today. */
+.leaflet-container {
+  isolation: isolate;
+  z-index: 0;
+}

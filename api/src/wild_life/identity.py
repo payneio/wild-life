@@ -5,10 +5,13 @@ in-memory :class:`TokenRegistry` (loaded once at startup, refreshed when tokens 
 minted/revoked). The auth middleware attaches the resolved identity to the ASGI
 ``scope["state"]`` so downstream handlers can read it via :func:`current_identity`.
 
-Two roles:
+Three roles:
 - ``full``   — the owner credential; unrestricted (maps to the "self" Person).
 - ``worker`` — a delegated assistant; may read everything but only write through a
   small allow-list of endpoints (enforced coarsely here, finely in the routers).
+- ``ingest`` — a device posting observations. Never comes from the token registry:
+  the middleware mints it only for an HTTP Basic credential on ``/ingest/*``, so it
+  cannot appear on any other path. Reads nothing, owns nothing.
 """
 
 import hashlib
@@ -32,13 +35,18 @@ def hash_token(raw: str) -> str:
 class Identity:
     """Who a request is acting as."""
 
-    role: str  # "full" | "worker"
+    role: str  # "full" | "worker" | "ingest"
     person_id: uuid.UUID | None
     token_hash: str | None = None
 
     @property
     def is_worker(self) -> bool:
         return self.role == "worker"
+
+
+# A device posting observations. Minted by the auth middleware for a valid Basic
+# credential on /ingest/*, never stored and never in the token registry.
+INGEST_IDENTITY = Identity("ingest", None)
 
 
 class TokenRegistry:

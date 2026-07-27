@@ -2,7 +2,7 @@
 
 import uuid
 from datetime import datetime
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, BeforeValidator, ConfigDict
 
@@ -127,6 +127,64 @@ EntityType = Literal[
 # in a route means every writer gets it — the web app, the OpenAPI-derived MCP
 # tools, and any import script.
 PhoneNumber = Annotated[str | None, BeforeValidator(normalize_phone)]
+
+
+# --- postal addresses -------------------------------------------------------
+# One address vocabulary for the whole app. The components are the intersection
+# of vCard's ``ADR`` (RFC 6350) and schema.org's ``PostalAddress``, which agree
+# on everything that matters:
+#
+#   street    ADR street          / streetAddress
+#   unit      ADR extended        / (folded into streetAddress)
+#   city      ADR locality        / addressLocality
+#   region    ADR region          / addressRegion
+#   postcode  ADR postal code     / postalCode
+#   country   ADR country         / addressCountry
+#
+# ``region`` is the standard's own name, and it is deliberately vague: it is a
+# state in the US, a province in Canada, a county in the UK. Naming it after any
+# one of those would be wrong everywhere else.
+#
+# Where a record has exactly one address (Location, Organization) these are real
+# columns, so they can be searched, sorted and filtered. Where it has several
+# (Person: home, work, …) they are the fields of a JSON object in a list. Same
+# vocabulary, two carriers — the shape follows cardinality, not fashion.
+ADDRESS_FIELDS = ("street", "unit", "city", "region", "postcode", "country")
+
+
+class PostalAddress(BaseModel):
+    """One address, in the shared vocabulary."""
+
+    street: str | None = None
+    # Apartment, suite, floor, building — vCard's "extended address". Its absence
+    # is why an address with a unit number used to have nowhere to go.
+    unit: str | None = None
+    city: str | None = None
+    region: str | None = None
+    postcode: str | None = None
+    country: str | None = None
+
+
+class LabelledAddress(PostalAddress):
+    """An address in a list, so it needs to say which one it is."""
+
+    label: str | None = None  # home / work / …
+
+
+def format_address(address: Any, *, sep: str = ", ") -> str:
+    """Flatten an address for somewhere that only takes a string.
+
+    Used for the iCalendar ``LOCATION`` line and map links. Reads either a model
+    or a mapping, so it works for both carriers.
+    """
+    get = (
+        address.get
+        if isinstance(address, dict)
+        else lambda k: getattr(address, k, None)
+    )
+    street = " ".join(p for p in (get("street"), get("unit")) if p)
+    parts = [street, get("city"), get("region"), get("postcode"), get("country")]
+    return sep.join(p for p in parts if p)
 
 
 # --- base models ------------------------------------------------------------

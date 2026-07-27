@@ -552,6 +552,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/ingest/owntracks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ingest Owntracks
+         * @description Store one OwnTracks message. Always succeeds, by design.
+         *
+         *     The reply is the empty array OwnTracks expects; we never push friends,
+         *     commands or cards back down.
+         */
+        post: operations["ingest_owntracks"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/insurance-plans": {
         parameters: {
             query?: never;
@@ -653,6 +676,74 @@ export interface paths {
         patch: operations["interactions_update"];
         trace?: never;
     };
+    "/location-pings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Location Track
+         * @description Raw positions over a window, for drawing a track.
+         *
+         *     Hand-rolled rather than a `crud_router`, because the factory applies no limit
+         *     when the caller passes none — on a table that grows by hundreds of rows a day
+         *     that is a request to serialise the year. Defaults to the last 24 hours.
+         */
+        get: operations["location_track"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/location-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Location Status
+         * @description Is the tracker still reporting?
+         *
+         *     The whole feature fails silently: the tracker is a separate app on a separate
+         *     device, and if it stops, the map just stops growing — indistinguishable from
+         *     staying home. This is what makes that visible.
+         */
+        get: operations["location_status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/location-visits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Visits
+         * @description Derived visits, newest first. Supports the usual `field__op=` filters.
+         */
+        get: operations["location_visits_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/locations": {
         parameters: {
             query?: never;
@@ -665,6 +756,36 @@ export interface paths {
         put?: never;
         /** Create */
         post: operations["locations_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/locations/tick": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Tick
+         * @description Periodic upkeep: absorb backfill, and re-derive any fence that moved.
+         *
+         *     Run from a wildpc job every 15 minutes. The rolling replay is what lets the
+         *     live path stay simple — an offline phone flushing a day of queued fixes, or a
+         *     fix that arrived out of order, is corrected here rather than special-cased
+         *     during ingest.
+         *
+         *     ``full=true`` additionally reclusters place candidates. That runs nightly
+         *     rather than quarter-hourly because it reads months of history to answer a
+         *     question — "where do you keep going?" — whose answer cannot change in
+         *     fifteen minutes.
+         */
+        post: operations["locations_tick"];
         delete?: never;
         options?: never;
         head?: never;
@@ -688,6 +809,72 @@ export interface paths {
         head?: never;
         /** Update */
         patch: operations["locations_update"];
+        trace?: never;
+    };
+    "/locations/{location_id}/lookup-address": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Lookup Address
+         * @description Fill in the address from the pin.
+         *
+         *     The coordinate is the authoritative thing now — it is what readings are
+         *     matched against — so the address is a label for it, and typing one out by
+         *     hand is work a geocoder can do. One cached lookup, on demand only.
+         *
+         *     By default this only fills blanks, so pressing it cannot quietly overwrite a
+         *     correction you made. ``overwrite=true`` asks for the geocoder's version.
+         */
+        post: operations["location_lookup_address"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/locations/{location_id}/rebuild-visits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rebuild For Location
+         * @description Re-derive this location's whole visit history from the ping log.
+         *
+         *     What makes a fence drawn today explain where you were last month.
+         */
+        post: operations["location_rebuild_visits"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/locations/{location_id}/visits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Visits For Location */
+        get: operations["location_visits_for_location"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/me": {
@@ -1272,6 +1459,69 @@ export interface paths {
          * @description Remove a person's contact photo.
          */
         delete: operations["delete_person_photo_people__person_id__photo_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/place-candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Candidates
+         * @description The review queue: undecided proposals, most dwelt-in first.
+         *
+         *     Thresholded so a place you stopped at once does not demand a decision — it
+         *     stays in the table and surfaces if it becomes a habit.
+         */
+        get: operations["place_candidates_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/place-candidates/{candidate_id}/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Dismiss
+         * @description Not a place. The recompute honours this rather than re-proposing it.
+         */
+        post: operations["place_candidate_dismiss"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/place-candidates/{candidate_id}/promote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Promote
+         * @description Turn a proposal into a Location, and backfill everything it explains.
+         */
+        post: operations["place_candidate_promote"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -2007,6 +2257,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/where-was-i": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Where Was I
+         * @description Every place containing you at one instant, most specific first.
+         *
+         *     This is why notes, events and interactions need no ``location_id`` of their own:
+         *     they already carry a timestamp, and a timestamp is enough. It also means a note
+         *     written somewhere you had not yet named gets its answer retroactively, the
+         *     moment you promote that place — which a stored foreign key could never do.
+         */
+        get: operations["where_was_i"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2449,7 +2724,11 @@ export interface components {
         };
         /**
          * ContactMethod
-         * @description A phone/email/address with an optional type label (mobile/home/work…).
+         * @description A phone or email with an optional type label (mobile/home/work…).
+         *
+         *     Addresses used to share this shape, which is why an address was a single
+         *     opaque string. They now carry the shared postal vocabulary instead — see
+         *     `LabelledAddress` in schemas/common.
          */
         ContactMethod: {
             /** Label */
@@ -2866,6 +3145,8 @@ export interface components {
             external_ref?: string | null;
             /** Location */
             location?: string | null;
+            /** Location Id */
+            location_id?: string | null;
             /** Organizer */
             organizer?: string | null;
             /** Recurrence */
@@ -2927,6 +3208,8 @@ export interface components {
             invites_enabled: boolean;
             /** Location */
             location: string | null;
+            /** Location Id */
+            location_id: string | null;
             /** Organizer */
             organizer: string | null;
             /**
@@ -2982,6 +3265,8 @@ export interface components {
             external_ref?: string | null;
             /** Location */
             location?: string | null;
+            /** Location Id */
+            location_id?: string | null;
             /** Organizer */
             organizer?: string | null;
             /** Recurrence */
@@ -3049,6 +3334,29 @@ export interface components {
             date: string;
             /** Label */
             label?: string | null;
+        };
+        /**
+         * IngestStatus
+         * @description Whether readings are still arriving.
+         *
+         *     This exists because the failure mode of the whole feature is silence. The
+         *     tracker is a separate app on a separate device; if it stops running, nothing
+         *     breaks and no error appears — the map simply stops growing, which looks
+         *     identical to staying home. Surfacing the last reading makes that visible.
+         */
+        IngestStatus: {
+            /** Delivery Lag Seconds */
+            delivery_lag_seconds: number | null;
+            /** Device Id */
+            device_id: string | null;
+            /** Last Received At */
+            last_received_at: Instant | null;
+            /** Last Recorded At */
+            last_recorded_at: Instant | null;
+            /** Readings 24H */
+            readings_24h: number;
+            /** Total Readings */
+            total_readings: number;
         };
         /** InsurancePlanCreate */
         InsurancePlanCreate: {
@@ -3213,45 +3521,94 @@ export interface components {
             /** Summary */
             summary?: string | null;
         };
+        /**
+         * LabelledAddress
+         * @description An address in a list, so it needs to say which one it is.
+         */
+        LabelledAddress: {
+            /** City */
+            city?: string | null;
+            /** Country */
+            country?: string | null;
+            /** Label */
+            label?: string | null;
+            /** Postcode */
+            postcode?: string | null;
+            /** Region */
+            region?: string | null;
+            /** Street */
+            street?: string | null;
+            /** Unit */
+            unit?: string | null;
+        };
         /** LocationCreate */
         LocationCreate: {
-            /** Address */
-            address?: string | null;
             /** Category */
             category?: ("home" | "work" | "venue" | "city" | "other") | null;
             /** City */
             city?: string | null;
+            /** Country */
+            country?: string | null;
+            /** Latitude */
+            latitude?: number | null;
+            /** Longitude */
+            longitude?: number | null;
             /** Name */
             name: string;
             /** Notes */
             notes?: string | null;
+            /** Postcode */
+            postcode?: string | null;
+            /**
+             * Radius M
+             * @default 150
+             */
+            radius_m: number;
             /** Region */
             region?: string | null;
+            /** Street */
+            street?: string | null;
+            /** Unit */
+            unit?: string | null;
         };
         /** LocationRead */
         LocationRead: {
-            /** Address */
-            address: string | null;
             /** Category */
             category: ("home" | "work" | "venue" | "city" | "other") | null;
             /** City */
             city: string | null;
+            /** Country */
+            country: string | null;
             /**
              * Created At
              * Format: date-time
              */
             created_at: Instant;
+            /** Geo Dirty At */
+            geo_dirty_at: Instant | null;
             /**
              * Id
              * Format: uuid
              */
             id: string;
+            /** Latitude */
+            latitude: number | null;
+            /** Longitude */
+            longitude: number | null;
             /** Name */
             name: string;
             /** Notes */
             notes: string | null;
+            /** Postcode */
+            postcode: string | null;
+            /** Radius M */
+            radius_m: number;
             /** Region */
             region: string | null;
+            /** Street */
+            street: string | null;
+            /** Unit */
+            unit: string | null;
             /**
              * Updated At
              * Format: date-time
@@ -3260,18 +3617,71 @@ export interface components {
         };
         /** LocationUpdate */
         LocationUpdate: {
-            /** Address */
-            address?: string | null;
             /** Category */
             category?: ("home" | "work" | "venue" | "city" | "other") | null;
             /** City */
             city?: string | null;
+            /** Country */
+            country?: string | null;
+            /** Latitude */
+            latitude?: number | null;
+            /** Longitude */
+            longitude?: number | null;
             /** Name */
             name?: string | null;
             /** Notes */
             notes?: string | null;
+            /** Postcode */
+            postcode?: string | null;
+            /** Radius M */
+            radius_m?: number | null;
             /** Region */
             region?: string | null;
+            /** Street */
+            street?: string | null;
+            /** Unit */
+            unit?: string | null;
+        };
+        /** LocationVisitRead */
+        LocationVisitRead: {
+            /** Close Reason */
+            close_reason: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: Instant;
+            /**
+             * Entered At
+             * Format: date-time
+             */
+            entered_at: Instant;
+            /** Exited At */
+            exited_at: Instant | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Last Seen Inside At
+             * Format: date-time
+             */
+            last_seen_inside_at: Instant;
+            /**
+             * Location Id
+             * Format: uuid
+             */
+            location_id: string;
+            /** Ping Count */
+            ping_count: number;
+            /** Source */
+            source: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: Instant;
         };
         /**
          * MailTickResult
@@ -3728,8 +4138,10 @@ export interface components {
         };
         /** OrganizationCreate */
         OrganizationCreate: {
-            /** Address */
-            address?: string | null;
+            /** City */
+            city?: string | null;
+            /** Country */
+            country?: string | null;
             /** Description */
             description?: string | null;
             /** Email */
@@ -3744,19 +4156,29 @@ export interface components {
             org_type?: ("employer" | "client" | "vendor" | "partner" | "nonprofit" | "school" | "government" | "community" | "other") | null;
             /** Phone */
             phone?: string | null;
+            /** Postcode */
+            postcode?: string | null;
+            /** Region */
+            region?: string | null;
             /**
              * Status
              * @default active
              * @enum {string}
              */
             status: "active" | "inactive" | "archived";
+            /** Street */
+            street?: string | null;
+            /** Unit */
+            unit?: string | null;
             /** Website */
             website?: string | null;
         };
         /** OrganizationRead */
         OrganizationRead: {
-            /** Address */
-            address: string | null;
+            /** City */
+            city: string | null;
+            /** Country */
+            country: string | null;
             /**
              * Created At
              * Format: date-time
@@ -3781,11 +4203,19 @@ export interface components {
             org_type: ("employer" | "client" | "vendor" | "partner" | "nonprofit" | "school" | "government" | "community" | "other") | null;
             /** Phone */
             phone: string | null;
+            /** Postcode */
+            postcode: string | null;
+            /** Region */
+            region: string | null;
             /**
              * Status
              * @enum {string}
              */
             status: "active" | "inactive" | "archived";
+            /** Street */
+            street: string | null;
+            /** Unit */
+            unit: string | null;
             /**
              * Updated At
              * Format: date-time
@@ -3796,8 +4226,10 @@ export interface components {
         };
         /** OrganizationUpdate */
         OrganizationUpdate: {
-            /** Address */
-            address?: string | null;
+            /** City */
+            city?: string | null;
+            /** Country */
+            country?: string | null;
             /** Description */
             description?: string | null;
             /** Email */
@@ -3812,8 +4244,16 @@ export interface components {
             org_type?: ("employer" | "client" | "vendor" | "partner" | "nonprofit" | "school" | "government" | "community" | "other") | null;
             /** Phone */
             phone?: string | null;
+            /** Postcode */
+            postcode?: string | null;
+            /** Region */
+            region?: string | null;
             /** Status */
             status?: ("active" | "inactive" | "archived") | null;
+            /** Street */
+            street?: string | null;
+            /** Unit */
+            unit?: string | null;
             /** Website */
             website?: string | null;
         };
@@ -3944,7 +4384,7 @@ export interface components {
              * Addresses
              * @default []
              */
-            addresses: components["schemas"]["ContactMethod"][];
+            addresses: components["schemas"]["LabelledAddress"][];
             /** Birthday */
             birthday?: CalendarDay | null;
             /**
@@ -3991,7 +4431,7 @@ export interface components {
         /** PersonRead */
         PersonRead: {
             /** Addresses */
-            addresses: components["schemas"]["ContactMethod"][];
+            addresses: components["schemas"]["LabelledAddress"][];
             /** Birthday */
             birthday: CalendarDay | null;
             /**
@@ -4041,7 +4481,7 @@ export interface components {
         /** PersonUpdate */
         PersonUpdate: {
             /** Addresses */
-            addresses?: components["schemas"]["ContactMethod"][] | null;
+            addresses?: components["schemas"]["LabelledAddress"][] | null;
             /** Birthday */
             birthday?: CalendarDay | null;
             /** Emails */
@@ -4073,6 +4513,50 @@ export interface components {
             /** Websites */
             websites?: string[] | null;
         };
+        /** PlaceCandidateRead */
+        PlaceCandidateRead: {
+            /** Centroid Lat */
+            centroid_lat: number;
+            /** Centroid Lon */
+            centroid_lon: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: Instant;
+            /** Dismissed At */
+            dismissed_at: Instant | null;
+            /**
+             * First Seen At
+             * Format: date-time
+             */
+            first_seen_at: Instant;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Label Hint */
+            label_hint: string | null;
+            /**
+             * Last Seen At
+             * Format: date-time
+             */
+            last_seen_at: Instant;
+            /** Promoted Location Id */
+            promoted_location_id: string | null;
+            /** Radius M */
+            radius_m: number;
+            /** Stop Count */
+            stop_count: number;
+            /** Total Seconds */
+            total_seconds: number;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: Instant;
+        };
         /** PreferenceRead */
         PreferenceRead: {
             /** Key */
@@ -4081,6 +4565,24 @@ export interface components {
             value: {
                 [key: string]: unknown;
             };
+        };
+        /**
+         * Presence
+         * @description Everywhere you were at one instant, innermost first.
+         *
+         *     A list rather than a single place, because fences nest: at 14:03 you were in
+         *     Washington *and* Seattle *and* Capitol Hill *and* the office. ``places[0]`` is
+         *     the most specific answer and the tail is the breadcrumb; collapsing that to one
+         *     value would throw away the part that makes the model worth having.
+         */
+        Presence: {
+            /**
+             * At
+             * Format: date-time
+             */
+            at: Instant;
+            /** Places */
+            places: components["schemas"]["VisitWithLocation"][];
         };
         /** ProgramCreate */
         ProgramCreate: {
@@ -4309,6 +4811,27 @@ export interface components {
             status?: ("proposed" | "active" | "waiting" | "paused" | "completed" | "cancelled" | "archived") | null;
             /** Target Date */
             target_date?: CalendarDay | null;
+        };
+        /**
+         * PromoteRequest
+         * @description Overrides for the promoted Location. Everything is optional — the point is
+         *     that the reverse-geocode fills these in and you correct what it got wrong.
+         */
+        PromoteRequest: {
+            /** Category */
+            category?: ("home" | "work" | "venue" | "city" | "other") | null;
+            /** Name */
+            name?: string | null;
+            /** Radius M */
+            radius_m?: number | null;
+        };
+        /** PromoteResult */
+        PromoteResult: {
+            /** Geocoded */
+            geocoded: boolean;
+            location: components["schemas"]["LocationRead"];
+            /** Visits */
+            visits: number;
         };
         /** ProtocolCreate */
         ProtocolCreate: {
@@ -5320,6 +5843,25 @@ export interface components {
             /** Waiting On */
             waiting_on?: string | null;
         };
+        /**
+         * TrackPoint
+         * @description One position, stripped to what a polyline needs.
+         */
+        TrackPoint: {
+            /** Accuracy M */
+            accuracy_m: number | null;
+            /** Id */
+            id: number;
+            /** Latitude */
+            latitude: number;
+            /** Longitude */
+            longitude: number;
+            /**
+             * Recorded At
+             * Format: date-time
+             */
+            recorded_at: Instant;
+        };
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -5337,6 +5879,35 @@ export interface components {
         VapidPublicKey: {
             /** Key */
             key: string;
+        };
+        /**
+         * VisitWithLocation
+         * @description A visit plus the fence that produced it, for "where was I" answers.
+         */
+        VisitWithLocation: {
+            /** Category */
+            category: string | null;
+            /**
+             * Entered At
+             * Format: date-time
+             */
+            entered_at: Instant;
+            /** Exited At */
+            exited_at: Instant | null;
+            /**
+             * Location Id
+             * Format: uuid
+             */
+            location_id: string;
+            /** Name */
+            name: string;
+            /** Radius M */
+            radius_m: number;
+            /**
+             * Visit Id
+             * Format: uuid
+             */
+            visit_id: string;
         };
     };
     responses: never;
@@ -6877,6 +7448,28 @@ export interface operations {
             };
         };
     };
+    ingest_owntracks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
+            };
+        };
+    };
     insurance_plans_list: {
         parameters: {
             query?: never;
@@ -7206,6 +7799,90 @@ export interface operations {
             };
         };
     };
+    location_track: {
+        parameters: {
+            query?: {
+                from?: Instant | null;
+                to?: Instant | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrackPoint"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    location_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IngestStatus"];
+                };
+            };
+        };
+    };
+    location_visits_list: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocationVisitRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     locations_list: {
         parameters: {
             query?: never;
@@ -7246,6 +7923,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LocationRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    locations_tick: {
+        parameters: {
+            query?: {
+                full?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: number;
+                    };
                 };
             };
             /** @description Validation Error */
@@ -7341,6 +8051,105 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LocationRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    location_lookup_address: {
+        parameters: {
+            query?: {
+                overwrite?: boolean;
+            };
+            header?: never;
+            path: {
+                location_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocationRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    location_rebuild_visits: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                location_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: number | string;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    location_visits_for_location: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                location_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocationVisitRead"][];
                 };
             };
             /** @description Validation Error */
@@ -9013,6 +9822,104 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    place_candidates_list: {
+        parameters: {
+            query?: {
+                include_decided?: boolean;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaceCandidateRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    place_candidate_dismiss: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                candidate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaceCandidateRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    place_candidate_promote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                candidate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PromoteRequest"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromoteResult"];
+                };
             };
             /** @description Validation Error */
             422: {
@@ -11175,6 +12082,37 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    where_was_i: {
+        parameters: {
+            query?: {
+                at?: Instant | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Presence"];
+                };
             };
             /** @description Validation Error */
             422: {

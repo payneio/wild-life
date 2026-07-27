@@ -13,6 +13,9 @@ from wild_life.config import DB_SCHEMA, settings
 # Registers the before_flush audit listener (import for side effect).
 import wild_life.db.audit  # noqa: E402,F401
 
+# Registers the before_flush listener that flags locations whose fence moved.
+import wild_life.db.geo_dirty  # noqa: E402,F401
+
 engine = create_async_engine(
     settings.database_url,
     pool_pre_ping=True,

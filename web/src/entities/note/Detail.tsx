@@ -1,4 +1,5 @@
 import { Record, RecordSection } from "@/components/record/Record"
+import { WhereWasI } from "@/components/record/WhereWasI"
 import { useFields } from "@/components/record/context"
 import { recordFields } from "@/components/record/typed"
 import { REGISTRY } from "@/services/api/registry"
@@ -43,6 +44,10 @@ export function NoteDetail({ entity, onClose }: { entity: Entity; onClose: () =>
         <F.Date field="entry_date" label="Entry date" />
         <F.Text field="mood" label="Mood" />
         <F.Tags field="tags" label="Tags" />
+        {/* Where you were when you wrote it. No column backs this — it is a
+            query against the visit intervals, which is why it also fills in
+            retroactively once you name a place you had not named yet. */}
+        <WhereWasI field="created_at" />
       </RecordSection>
     </Record>
   )

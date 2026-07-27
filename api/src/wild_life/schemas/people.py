@@ -8,17 +8,22 @@ from typing import Annotated
 from pydantic import BaseModel, BeforeValidator
 
 from wild_life.phone import normalize_methods
-from wild_life.schemas.common import Entity
+from wild_life.schemas.common import Entity, LabelledAddress
 
 
 class ContactMethod(BaseModel):
-    """A phone/email/address with an optional type label (mobile/home/work…)."""
+    """A phone or email with an optional type label (mobile/home/work…).
+
+    Addresses used to share this shape, which is why an address was a single
+    opaque string. They now carry the shared postal vocabulary instead — see
+    `LabelledAddress` in schemas/common.
+    """
 
     value: str
     label: str | None = None
 
 
-# `ContactMethod` is shared by phones, emails and addresses, so canonicalisation
+# `ContactMethod` is shared by phones and emails, so canonicalisation
 # binds to the phone *fields* rather than the model.
 PhoneMethods = Annotated[list[ContactMethod], BeforeValidator(normalize_methods)]
 OptionalPhoneMethods = Annotated[
@@ -42,7 +47,7 @@ class PersonCreate(BaseModel):
     portal_url: str | None = None
     phones: PhoneMethods = []
     emails: list[ContactMethod] = []
-    addresses: list[ContactMethod] = []
+    addresses: list[LabelledAddress] = []
     websites: list[str] = []
     preferred_contact: str | None = None
     birthday: date | None = None
@@ -61,7 +66,7 @@ class PersonUpdate(BaseModel):
     portal_url: str | None = None
     phones: OptionalPhoneMethods = None
     emails: list[ContactMethod] | None = None
-    addresses: list[ContactMethod] | None = None
+    addresses: list[LabelledAddress] | None = None
     websites: list[str] | None = None
     preferred_contact: str | None = None
     birthday: date | None = None
@@ -80,7 +85,7 @@ class PersonRead(Entity):
     portal_url: str | None
     phones: list[ContactMethod]
     emails: list[ContactMethod]
-    addresses: list[ContactMethod]
+    addresses: list[LabelledAddress]
     websites: list[str]
     preferred_contact: str | None
     birthday: date | None

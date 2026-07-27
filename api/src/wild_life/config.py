@@ -26,6 +26,74 @@ class Settings(BaseSettings):
     # Comma-separated list of allowed browser origins for CORS.
     cors_origins: str = "http://localhost:5173"
 
+    # Device ingest (/ingest/*). A credential of its own rather than the owner
+    # token: a phone is lost more easily than a laptop, and this one can do nothing
+    # but post observations. Trackers like OwnTracks can only send HTTP Basic, so
+    # it travels as the password. Empty (the default) disables ingest entirely.
+    ingest_token: str = ""
+    ingest_user: str = "phone"
+
+    # Geofencing. A fix worse than this asserts nothing and is stored without being
+    # evaluated; cell-tower-only fixes routinely run to several hundred metres.
+    geofence_max_accuracy_m: float = 200
+    # How far outside a fence a fix may sit and still be credited to it: at most
+    # this many standard deviations of its own error, and never more than the
+    # absolute cap. Both apply — see geo.fit_score for why one without the other
+    # fails. 2σ ≈ 95% of the error distribution.
+    snap_max_slack_sigma: float = 2.0
+    snap_max_slack_m: float = 100
+    # No consumer GPS is honestly good to a metre; this keeps an optimistic
+    # accuracy report from making the fit curve absurdly sharp.
+    snap_sigma_floor_m: float = 10
+    # How much better a rival place must score to suppress another. Only applies
+    # between fences that genuinely compete — one that encloses the other is
+    # nesting, not rivalry, and never suppresses it.
+    snap_margin: float = 2.0
+    # Leaving requires holding "not here" for this many fixes — unless the fix is
+    # past the hard factor, which is unambiguous enough to act on at once. Without
+    # this, sitting near a boundary produces dozens of visits in an afternoon.
+    geofence_hard_exit_factor: float = 3.0
+    geofence_exit_consecutive: int = 2
+    # A visit shorter than this was a passing-through, not a being-somewhere. It
+    # is dropped when it closes; with a single fix there is nothing to tell a
+    # five-minute stop from a drive past, so we do not pretend otherwise.
+    min_visit_seconds: int = 120
+    # A visit with no confirming fix for this long is closed as `stale` rather than
+    # left open forever by a phone that died.
+    visit_stale_seconds: int = 6 * 60 * 60
+    # How long the in-process fence list may be reused. Moving a fence takes effect
+    # within this window; history is corrected by re-derivation regardless.
+    fence_cache_seconds: float = 60.0
+    # Fixes older than this behind the newest known one are backfill: stored, but
+    # left to the tick's replay rather than run through the live state machine.
+    backfill_grace_seconds: float = 120.0
+    # How far back each tick re-derives. Covers an offline phone flushing its queue.
+    visit_replay_hours: int = 48
+
+    # Stop detection. Candidates are clustered from *stops*, not from readings:
+    # cluster raw readings and every traffic light becomes a place.
+    stop_radius_m: float = 80
+    stop_min_dwell_seconds: int = 900
+    # A gap longer than this ends a stop even if the position barely moved —
+    # otherwise an overnight silence merges two days into one visit.
+    stop_max_gap_seconds: int = 3600
+    # How much history the nightly recompute considers.
+    candidate_window_days: int = 90
+    # Below this a candidate exists but stays out of the review queue, so a place
+    # you passed once does not demand a decision.
+    candidate_min_stops: int = 3
+    candidate_min_seconds: int = 4 * 60 * 60
+
+    # Reverse geocoding, used only when you promote a candidate — never in the
+    # ingest path and never as a background enrichment pass. This is the one
+    # place a coordinate leaves the box; set false to keep even that local.
+    geocode_enabled: bool = True
+    geocode_url: str = "https://nominatim.openstreetmap.org/reverse"
+    # The OSM usage policy *requires* an identifying User-Agent with contact
+    # details. A generic one gets the IP blocked.
+    geocode_user_agent: str = "wild-life/0.1 (paul@payne.io)"
+    geocode_timeout_seconds: float = 5.0
+
     # Web Push (VAPID). Private key is a PKCS8 PEM (env WILD_LIFE_VAPID_PRIVATE_KEY,
     # mapped from the castle secret VAPID_PRIVATE_KEY); the public application-server
     # key is derived from it at runtime. Empty = push disabled.

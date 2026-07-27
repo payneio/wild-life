@@ -12,16 +12,53 @@ in-memory :data:`~wild_life.identity.registry`; the identity is attached to
 a coarse default-deny on writes here — fine-grained scoping lives in the routers.
 """
 
+import base64
+import hmac
+
 from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-from wild_life.identity import TokenRegistry, worker_write_allowed
+from wild_life.config import settings
+from wild_life.identity import (
+    INGEST_IDENTITY,
+    Identity,
+    TokenRegistry,
+    worker_write_allowed,
+)
 
 OPEN_PATHS = {"/health", "/docs", "/redoc", "/openapi.json"}
+# Device ingest. The only place HTTP Basic is honoured — see _ingest_identity.
+INGEST_PREFIX = "/ingest/"
+
+
+def _ingest_identity(b64: bytes) -> Identity | None:
+    """Resolve an HTTP Basic credential on ``/ingest/*`` to the ingest identity.
+
+    Trackers such as OwnTracks post to a URL of the form
+    ``https://user:pass@host/path`` and cannot set an arbitrary header, so the
+    device credential has to travel as the Basic password. The username is
+    ignored — it is a label, not a second factor. An empty ``ingest_token`` (the
+    default) leaves ingest closed.
+    """
+    secret = settings.ingest_token
+    if not secret:
+        return None
+    try:
+        decoded = base64.b64decode(b64, validate=True).decode("utf-8")
+    except (ValueError, UnicodeDecodeError):
+        return None
+    _, sep, password = decoded.partition(":")
+    if not sep or not hmac.compare_digest(password, secret):
+        return None
+    return INGEST_IDENTITY
 
 
 class BearerAuthMiddleware:
-    """Resolve ``Authorization: Bearer <token>`` to an identity, or reject."""
+    """Resolve ``Authorization: Bearer <token>`` to an identity, or reject.
+
+    ``/ingest/*`` additionally accepts HTTP Basic, because the device trackers that
+    post there cannot set a custom header. Basic is honoured nowhere else.
+    """
 
     def __init__(self, app: ASGIApp, registry: TokenRegistry) -> None:
         self.app = app
@@ -40,6 +77,8 @@ class BearerAuthMiddleware:
         identity = None
         if auth.startswith(b"Bearer "):
             identity = self.registry.lookup(auth[7:].decode("latin-1"))
+        elif auth.startswith(b"Basic ") and scope["path"].startswith(INGEST_PREFIX):
+            identity = _ingest_identity(auth[6:])
         if identity is None:
             await self._deny(scope, receive, send, 401, "Invalid or missing token")
             return

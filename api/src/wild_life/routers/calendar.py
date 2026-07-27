@@ -197,6 +197,7 @@ async def edit_occurrence(
         title=master.title,
         description=master.description,
         location=master.location,
+        location_id=master.location_id,
         start_at=split_start,
         end_at=(split_start + dur) if dur else None,
         all_day=master.all_day,

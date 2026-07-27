@@ -16,6 +16,7 @@ import { ReviewsPage } from "@/pages/ReviewsPage"
 import { PeoplePage } from "@/pages/PeoplePage"
 import { OrganizationsPage } from "@/pages/OrganizationsPage"
 import { LocationsPage } from "@/pages/LocationsPage"
+import { PlacesPage } from "@/pages/PlacesPage"
 import { MetricsPage } from "@/pages/MetricsPage"
 import { HistoryPage } from "@/pages/HistoryPage"
 import { NotesPage } from "@/pages/NotesPage"
@@ -80,7 +81,9 @@ export const router = createBrowserRouter([
       // navigate); the empty child only makes /people/:id match + expose the param.
       { path: "people", element: <PeoplePage />, children: [{ path: ":id", element: <></> }] },
       withDetail("organizations", <OrganizationsPage />, "organization"),
-      withDetail("locations", <LocationsPage />, "location"),
+      { path: "locations", element: <LocationsPage /> },
+      { path: "places", element: <PlacesPage /> },
+      { path: "locations/:id", element: <RecordPage entityKey="location" backTo="/locations" backLabel="Locations" /> },
       withDetail("metrics", <MetricsPage />, "metric"),
       withDetail("medications", <MedicationsPage />, "medication"),
       withDetail("protocols", <ProtocolsPage />, "protocol"),

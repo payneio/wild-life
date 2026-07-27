@@ -1586,7 +1586,7 @@
         "type": "object"
       },
       "ContactMethod": {
-        "description": "A phone/email/address with an optional type label (mobile/home/work\u2026).",
+        "description": "A phone or email with an optional type label (mobile/home/work\u2026).\n\nAddresses used to share this shape, which is why an address was a single\nopaque string. They now carry the shared postal vocabulary instead \u2014 see\n`LabelledAddress` in schemas/common.",
         "properties": {
           "label": {
             "anyOf": [
@@ -3405,6 +3405,18 @@
             ],
             "title": "Location"
           },
+          "location_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location Id"
+          },
           "organizer": {
             "anyOf": [
               {
@@ -3652,6 +3664,18 @@
             ],
             "title": "Location"
           },
+          "location_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location Id"
+          },
           "organizer": {
             "anyOf": [
               {
@@ -3767,6 +3791,7 @@
           "event_type",
           "description",
           "location",
+          "location_id",
           "start_at",
           "end_at",
           "all_day",
@@ -3919,6 +3944,18 @@
               }
             ],
             "title": "Location"
+          },
+          "location_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location Id"
           },
           "organizer": {
             "anyOf": [
@@ -4147,6 +4184,75 @@
           "date"
         ],
         "title": "ImportantDate",
+        "type": "object"
+      },
+      "IngestStatus": {
+        "description": "Whether readings are still arriving.\n\nThis exists because the failure mode of the whole feature is silence. The\ntracker is a separate app on a separate device; if it stops running, nothing\nbreaks and no error appears \u2014 the map simply stops growing, which looks\nidentical to staying home. Surfacing the last reading makes that visible.",
+        "properties": {
+          "delivery_lag_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivery Lag Seconds"
+          },
+          "device_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Id"
+          },
+          "last_received_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Received At"
+          },
+          "last_recorded_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Recorded At"
+          },
+          "readings_24h": {
+            "title": "Readings 24H",
+            "type": "integer"
+          },
+          "total_readings": {
+            "title": "Total Readings",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "last_recorded_at",
+          "last_received_at",
+          "device_id",
+          "delivery_lag_seconds",
+          "readings_24h",
+          "total_readings"
+        ],
+        "title": "IngestStatus",
         "type": "object"
       },
       "InsurancePlanCreate": {
@@ -4747,9 +4853,10 @@
         "title": "InteractionUpdate",
         "type": "object"
       },
-      "LocationCreate": {
+      "LabelledAddress": {
+        "description": "An address in a list, so it needs to say which one it is.",
         "properties": {
-          "address": {
+          "city": {
             "anyOf": [
               {
                 "type": "string"
@@ -4758,8 +4865,80 @@
                 "type": "null"
               }
             ],
-            "title": "Address"
+            "title": "City"
           },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "postcode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Postcode"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "street": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Street"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          }
+        },
+        "title": "LabelledAddress",
+        "type": "object"
+      },
+      "LocationCreate": {
+        "properties": {
           "category": {
             "anyOf": [
               {
@@ -4789,6 +4968,43 @@
             ],
             "title": "City"
           },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "maximum": 90.0,
+                "minimum": -90.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "maximum": 180.0,
+                "minimum": -180.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          },
           "name": {
             "title": "Name",
             "type": "string"
@@ -4804,6 +5020,24 @@
             ],
             "title": "Notes"
           },
+          "postcode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Postcode"
+          },
+          "radius_m": {
+            "default": 150,
+            "maximum": 200000.0,
+            "minimum": 10.0,
+            "title": "Radius M",
+            "type": "number"
+          },
           "region": {
             "anyOf": [
               {
@@ -4814,6 +5048,28 @@
               }
             ],
             "title": "Region"
+          },
+          "street": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Street"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
           }
         },
         "required": [
@@ -4824,17 +5080,6 @@
       },
       "LocationRead": {
         "properties": {
-          "address": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Address"
-          },
           "category": {
             "anyOf": [
               {
@@ -4864,15 +5109,60 @@
             ],
             "title": "City"
           },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
             "type": "string"
           },
+          "geo_dirty_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Geo Dirty At"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
             "type": "string"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
           },
           "name": {
             "title": "Name",
@@ -4889,6 +5179,21 @@
             ],
             "title": "Notes"
           },
+          "postcode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Postcode"
+          },
+          "radius_m": {
+            "title": "Radius M",
+            "type": "number"
+          },
           "region": {
             "anyOf": [
               {
@@ -4899,6 +5204,28 @@
               }
             ],
             "title": "Region"
+          },
+          "street": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Street"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
           },
           "updated_at": {
             "format": "date-time",
@@ -4912,27 +5239,23 @@
           "updated_at",
           "name",
           "category",
-          "address",
+          "street",
+          "unit",
           "city",
           "region",
-          "notes"
+          "postcode",
+          "country",
+          "notes",
+          "latitude",
+          "longitude",
+          "radius_m",
+          "geo_dirty_at"
         ],
         "title": "LocationRead",
         "type": "object"
       },
       "LocationUpdate": {
         "properties": {
-          "address": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Address"
-          },
           "category": {
             "anyOf": [
               {
@@ -4961,6 +5284,43 @@
               }
             ],
             "title": "City"
+          },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "maximum": 90.0,
+                "minimum": -90.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "maximum": 180.0,
+                "minimum": -180.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
           },
           "name": {
             "anyOf": [
@@ -4984,6 +5344,30 @@
             ],
             "title": "Notes"
           },
+          "postcode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Postcode"
+          },
+          "radius_m": {
+            "anyOf": [
+              {
+                "maximum": 200000.0,
+                "minimum": 10.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Radius M"
+          },
           "region": {
             "anyOf": [
               {
@@ -4994,9 +5378,110 @@
               }
             ],
             "title": "Region"
+          },
+          "street": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Street"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
           }
         },
         "title": "LocationUpdate",
+        "type": "object"
+      },
+      "LocationVisitRead": {
+        "properties": {
+          "close_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Close Reason"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "entered_at": {
+            "format": "date-time",
+            "title": "Entered At",
+            "type": "string"
+          },
+          "exited_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exited At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_seen_inside_at": {
+            "format": "date-time",
+            "title": "Last Seen Inside At",
+            "type": "string"
+          },
+          "location_id": {
+            "format": "uuid",
+            "title": "Location Id",
+            "type": "string"
+          },
+          "ping_count": {
+            "title": "Ping Count",
+            "type": "integer"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "created_at",
+          "updated_at",
+          "location_id",
+          "entered_at",
+          "exited_at",
+          "last_seen_inside_at",
+          "ping_count",
+          "close_reason",
+          "source"
+        ],
+        "title": "LocationVisitRead",
         "type": "object"
       },
       "MailTickResult": {
@@ -6538,7 +7023,7 @@
       },
       "OrganizationCreate": {
         "properties": {
-          "address": {
+          "city": {
             "anyOf": [
               {
                 "type": "string"
@@ -6547,7 +7032,18 @@
                 "type": "null"
               }
             ],
-            "title": "Address"
+            "title": "City"
+          },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country"
           },
           "description": {
             "anyOf": [
@@ -6630,6 +7126,28 @@
             ],
             "title": "Phone"
           },
+          "postcode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Postcode"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
           "status": {
             "default": "active",
             "enum": [
@@ -6639,6 +7157,28 @@
             ],
             "title": "Status",
             "type": "string"
+          },
+          "street": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Street"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
           },
           "website": {
             "anyOf": [
@@ -6660,7 +7200,7 @@
       },
       "OrganizationRead": {
         "properties": {
-          "address": {
+          "city": {
             "anyOf": [
               {
                 "type": "string"
@@ -6669,7 +7209,18 @@
                 "type": "null"
               }
             ],
-            "title": "Address"
+            "title": "City"
+          },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country"
           },
           "created_at": {
             "format": "date-time",
@@ -6762,6 +7313,28 @@
             ],
             "title": "Phone"
           },
+          "postcode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Postcode"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
           "status": {
             "enum": [
               "active",
@@ -6770,6 +7343,28 @@
             ],
             "title": "Status",
             "type": "string"
+          },
+          "street": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Street"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
           },
           "updated_at": {
             "format": "date-time",
@@ -6798,7 +7393,12 @@
           "website",
           "email",
           "phone",
-          "address",
+          "street",
+          "unit",
+          "city",
+          "region",
+          "postcode",
+          "country",
           "description",
           "status",
           "notes"
@@ -6808,7 +7408,7 @@
       },
       "OrganizationUpdate": {
         "properties": {
-          "address": {
+          "city": {
             "anyOf": [
               {
                 "type": "string"
@@ -6817,7 +7417,18 @@
                 "type": "null"
               }
             ],
-            "title": "Address"
+            "title": "City"
+          },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country"
           },
           "description": {
             "anyOf": [
@@ -6907,6 +7518,28 @@
             ],
             "title": "Phone"
           },
+          "postcode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Postcode"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
           "status": {
             "anyOf": [
               {
@@ -6922,6 +7555,28 @@
               }
             ],
             "title": "Status"
+          },
+          "street": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Street"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
           },
           "website": {
             "anyOf": [
@@ -7446,7 +8101,7 @@
           "addresses": {
             "default": [],
             "items": {
-              "$ref": "#/components/schemas/ContactMethod"
+              "$ref": "#/components/schemas/LabelledAddress"
             },
             "title": "Addresses",
             "type": "array"
@@ -7609,7 +8264,7 @@
         "properties": {
           "addresses": {
             "items": {
-              "$ref": "#/components/schemas/ContactMethod"
+              "$ref": "#/components/schemas/LabelledAddress"
             },
             "title": "Addresses",
             "type": "array"
@@ -7803,7 +8458,7 @@
             "anyOf": [
               {
                 "items": {
-                  "$ref": "#/components/schemas/ContactMethod"
+                  "$ref": "#/components/schemas/LabelledAddress"
                 },
                 "type": "array"
               },
@@ -7995,6 +8650,107 @@
         "title": "PersonUpdate",
         "type": "object"
       },
+      "PlaceCandidateRead": {
+        "properties": {
+          "centroid_lat": {
+            "title": "Centroid Lat",
+            "type": "number"
+          },
+          "centroid_lon": {
+            "title": "Centroid Lon",
+            "type": "number"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "dismissed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dismissed At"
+          },
+          "first_seen_at": {
+            "format": "date-time",
+            "title": "First Seen At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "label_hint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label Hint"
+          },
+          "last_seen_at": {
+            "format": "date-time",
+            "title": "Last Seen At",
+            "type": "string"
+          },
+          "promoted_location_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Promoted Location Id"
+          },
+          "radius_m": {
+            "title": "Radius M",
+            "type": "number"
+          },
+          "stop_count": {
+            "title": "Stop Count",
+            "type": "integer"
+          },
+          "total_seconds": {
+            "title": "Total Seconds",
+            "type": "integer"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "created_at",
+          "updated_at",
+          "centroid_lat",
+          "centroid_lon",
+          "radius_m",
+          "stop_count",
+          "total_seconds",
+          "first_seen_at",
+          "last_seen_at",
+          "dismissed_at",
+          "promoted_location_id",
+          "label_hint"
+        ],
+        "title": "PlaceCandidateRead",
+        "type": "object"
+      },
       "PreferenceRead": {
         "properties": {
           "key": {
@@ -8012,6 +8768,29 @@
           "value"
         ],
         "title": "PreferenceRead",
+        "type": "object"
+      },
+      "Presence": {
+        "description": "Everywhere you were at one instant, innermost first.\n\nA list rather than a single place, because fences nest: at 14:03 you were in\nWashington *and* Seattle *and* Capitol Hill *and* the office. ``places[0]`` is\nthe most specific answer and the tail is the breadcrumb; collapsing that to one\nvalue would throw away the part that makes the model worth having.",
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "places": {
+            "items": {
+              "$ref": "#/components/schemas/VisitWithLocation"
+            },
+            "title": "Places",
+            "type": "array"
+          }
+        },
+        "required": [
+          "at",
+          "places"
+        ],
+        "title": "Presence",
         "type": "object"
       },
       "ProgramCreate": {
@@ -9117,6 +9896,77 @@
           }
         },
         "title": "ProjectUpdate",
+        "type": "object"
+      },
+      "PromoteRequest": {
+        "description": "Overrides for the promoted Location. Everything is optional \u2014 the point is\nthat the reverse-geocode fills these in and you correct what it got wrong.",
+        "properties": {
+          "category": {
+            "anyOf": [
+              {
+                "enum": [
+                  "home",
+                  "work",
+                  "venue",
+                  "city",
+                  "other"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "radius_m": {
+            "anyOf": [
+              {
+                "maximum": 200000.0,
+                "minimum": 10.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Radius M"
+          }
+        },
+        "title": "PromoteRequest",
+        "type": "object"
+      },
+      "PromoteResult": {
+        "properties": {
+          "geocoded": {
+            "title": "Geocoded",
+            "type": "boolean"
+          },
+          "location": {
+            "$ref": "#/components/schemas/LocationRead"
+          },
+          "visits": {
+            "title": "Visits",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "location",
+          "visits",
+          "geocoded"
+        ],
+        "title": "PromoteResult",
         "type": "object"
       },
       "ProtocolCreate": {
@@ -13185,6 +14035,48 @@
         "title": "TaskUpdate",
         "type": "object"
       },
+      "TrackPoint": {
+        "description": "One position, stripped to what a polyline needs.",
+        "properties": {
+          "accuracy_m": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accuracy M"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "recorded_at",
+          "latitude",
+          "longitude",
+          "accuracy_m"
+        ],
+        "title": "TrackPoint",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -13236,6 +14128,68 @@
           "key"
         ],
         "title": "VapidPublicKey",
+        "type": "object"
+      },
+      "VisitWithLocation": {
+        "description": "A visit plus the fence that produced it, for \"where was I\" answers.",
+        "properties": {
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "entered_at": {
+            "format": "date-time",
+            "title": "Entered At",
+            "type": "string"
+          },
+          "exited_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exited At"
+          },
+          "location_id": {
+            "format": "uuid",
+            "title": "Location Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "radius_m": {
+            "title": "Radius M",
+            "type": "number"
+          },
+          "visit_id": {
+            "format": "uuid",
+            "title": "Visit Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "location_id",
+          "name",
+          "category",
+          "radius_m",
+          "entered_at",
+          "exited_at",
+          "visit_id"
+        ],
+        "title": "VisitWithLocation",
         "type": "object"
       }
     }
@@ -15372,6 +16326,33 @@
         ]
       }
     },
+    "/ingest/owntracks": {
+      "post": {
+        "description": "Store one OwnTracks message. Always succeeds, by design.\n\nThe reply is the empty array OwnTracks expects; we never push friends,\ncommands or cards back down.",
+        "operationId": "ingest_owntracks",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "title": "Response Ingest Owntracks",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Ingest Owntracks",
+        "tags": [
+          "ingest"
+        ]
+      }
+    },
     "/insurance-plans": {
       "get": {
         "operationId": "insurance_plans_list",
@@ -15798,6 +16779,162 @@
         ]
       }
     },
+    "/location-pings": {
+      "get": {
+        "description": "Raw positions over a window, for drawing a track.\n\nHand-rolled rather than a `crud_router`, because the factory applies no limit\nwhen the caller passes none \u2014 on a table that grows by hundreds of rows a day\nthat is a request to serialise the year. Defaults to the last 24 hours.",
+        "operationId": "location_track",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 5000,
+              "maximum": 5000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TrackPoint"
+                  },
+                  "title": "Response Location Track",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Location Track",
+        "tags": [
+          "locations"
+        ]
+      }
+    },
+    "/location-status": {
+      "get": {
+        "description": "Is the tracker still reporting?\n\nThe whole feature fails silently: the tracker is a separate app on a separate\ndevice, and if it stops, the map just stops growing \u2014 indistinguishable from\nstaying home. This is what makes that visible.",
+        "operationId": "location_status",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngestStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Location Status",
+        "tags": [
+          "locations"
+        ]
+      }
+    },
+    "/location-visits": {
+      "get": {
+        "description": "Derived visits, newest first. Supports the usual `field__op=` filters.",
+        "operationId": "location_visits_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 200,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LocationVisitRead"
+                  },
+                  "title": "Response Location Visits List",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Visits",
+        "tags": [
+          "locations"
+        ]
+      }
+    },
     "/locations": {
       "get": {
         "operationId": "locations_list",
@@ -15857,6 +16994,54 @@
           }
         },
         "summary": "Create",
+        "tags": [
+          "locations"
+        ]
+      }
+    },
+    "/locations/tick": {
+      "post": {
+        "description": "Periodic upkeep: absorb backfill, and re-derive any fence that moved.\n\nRun from a wildpc job every 15 minutes. The rolling replay is what lets the\nlive path stay simple \u2014 an offline phone flushing a day of queued fixes, or a\nfix that arrived out of order, is corrected here rather than special-cased\nduring ingest.\n\n``full=true`` additionally reclusters place candidates. That runs nightly\nrather than quarter-hourly because it reads months of history to answer a\nquestion \u2014 \"where do you keep going?\" \u2014 whose answer cannot change in\nfifteen minutes.",
+        "operationId": "locations_tick",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "full",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Full",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "integer"
+                  },
+                  "title": "Response Locations Tick",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Tick",
         "tags": [
           "locations"
         ]
@@ -15985,6 +17170,174 @@
           }
         },
         "summary": "Update",
+        "tags": [
+          "locations"
+        ]
+      }
+    },
+    "/locations/{location_id}/lookup-address": {
+      "post": {
+        "description": "Fill in the address from the pin.\n\nThe coordinate is the authoritative thing now \u2014 it is what readings are\nmatched against \u2014 so the address is a label for it, and typing one out by\nhand is work a geocoder can do. One cached lookup, on demand only.\n\nBy default this only fills blanks, so pressing it cannot quietly overwrite a\ncorrection you made. ``overwrite=true`` asks for the geocoder's version.",
+        "operationId": "location_lookup_address",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "location_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Location Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "overwrite",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Overwrite",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Lookup Address",
+        "tags": [
+          "locations"
+        ]
+      }
+    },
+    "/locations/{location_id}/rebuild-visits": {
+      "post": {
+        "description": "Re-derive this location's whole visit history from the ping log.\n\nWhat makes a fence drawn today explain where you were last month.",
+        "operationId": "location_rebuild_visits",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "location_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Location Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "title": "Response Location Rebuild Visits",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Rebuild For Location",
+        "tags": [
+          "locations"
+        ]
+      }
+    },
+    "/locations/{location_id}/visits": {
+      "get": {
+        "operationId": "location_visits_for_location",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "location_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Location Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 200,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LocationVisitRead"
+                  },
+                  "title": "Response Location Visits For Location",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Visits For Location",
         "tags": [
           "locations"
         ]
@@ -18446,6 +19799,171 @@
         "summary": "Upload Person Photo",
         "tags": [
           "people"
+        ]
+      }
+    },
+    "/place-candidates": {
+      "get": {
+        "description": "The review queue: undecided proposals, most dwelt-in first.\n\nThresholded so a place you stopped at once does not demand a decision \u2014 it\nstays in the table and surfaces if it becomes a habit.",
+        "operationId": "place_candidates_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "include_decided",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Include Decided",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PlaceCandidateRead"
+                  },
+                  "title": "Response Place Candidates List",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Candidates",
+        "tags": [
+          "locations"
+        ]
+      }
+    },
+    "/place-candidates/{candidate_id}/dismiss": {
+      "post": {
+        "description": "Not a place. The recompute honours this rather than re-proposing it.",
+        "operationId": "place_candidate_dismiss",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "candidate_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Candidate Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaceCandidateRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Dismiss",
+        "tags": [
+          "locations"
+        ]
+      }
+    },
+    "/place-candidates/{candidate_id}/promote": {
+      "post": {
+        "description": "Turn a proposal into a Location, and backfill everything it explains.",
+        "operationId": "place_candidate_promote",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "candidate_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Candidate Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/PromoteRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromoteResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Promote",
+        "tags": [
+          "locations"
         ]
       }
     },
@@ -21597,6 +23115,57 @@
         "summary": "Release Task",
         "tags": [
           "tasks"
+        ]
+      }
+    },
+    "/where-was-i": {
+      "get": {
+        "description": "Every place containing you at one instant, most specific first.\n\nThis is why notes, events and interactions need no ``location_id`` of their own:\nthey already carry a timestamp, and a timestamp is enough. It also means a note\nwritten somewhere you had not yet named gets its answer retroactively, the\nmoment you promote that place \u2014 which a stored foreign key could never do.",
+        "operationId": "where_was_i",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "at",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "At"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Presence"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Where Was I",
+        "tags": [
+          "locations"
         ]
       }
     }

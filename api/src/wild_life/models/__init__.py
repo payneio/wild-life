@@ -13,7 +13,13 @@ from wild_life.models.history import ChangeLog
 from wild_life.models.knowledge import Decision, Resource
 from wild_life.models.links import EntityLink
 from wild_life.models.metrics import Metric, MetricEntry
-from wild_life.models.locations import Location
+from wild_life.models.locations import (
+    GeocodeCache,
+    Location,
+    LocationPing,
+    LocationVisit,
+    PlaceCandidate,
+)
 from wild_life.models.notes import Note, NoteMention
 from wild_life.models.outcomes import Outcome
 from wild_life.models.organizations import Affiliation, Organization
@@ -56,6 +62,10 @@ __all__ = [
     "SentReminder",
     "SentNudge",
     "Location",
+    "LocationPing",
+    "LocationVisit",
+    "PlaceCandidate",
+    "GeocodeCache",
     "Commitment",
     "Request",
     "Delegation",

@@ -14,6 +14,7 @@ class EventCreate(BaseModel):
     event_type: str | None = None
     description: str | None = None
     location: str | None = None
+    location_id: uuid.UUID | None = None
     start_at: datetime
     end_at: datetime | None = None
     all_day: bool = False
@@ -36,6 +37,7 @@ class EventUpdate(BaseModel):
     event_type: str | None = None
     description: str | None = None
     location: str | None = None
+    location_id: uuid.UUID | None = None
     start_at: datetime | None = None
     end_at: datetime | None = None
     all_day: bool | None = None
@@ -58,6 +60,7 @@ class EventRead(Entity):
     event_type: str | None
     description: str | None
     location: str | None
+    location_id: uuid.UUID | None
     start_at: datetime
     end_at: datetime | None
     all_day: bool

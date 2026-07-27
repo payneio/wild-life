@@ -18,6 +18,12 @@ import type {
   InsurancePlan,
   Interaction,
   Location,
+  LocationVisit,
+  Presence,
+  TrackPoint,
+  IngestStatus,
+  PlaceCandidate,
+  PromoteResult,
   Medication,
   Metric,
   MetricEntry,
@@ -358,6 +364,89 @@ export function useDeleteAffiliation() {
   return useMutation({
     mutationFn: (id: string) => apiClient.delete<void>(`/affiliations/${id}`),
     onSuccess: () => invalidate("affiliations", "people", "organizations"),
+  })
+}
+
+/** Visits derived inside one location, newest first.
+ *
+ *  Keyed under "location-visits" — the table whose changes make it stale — so
+ *  arriving or leaving refreshes it over the SSE path. Read-only: visits are
+ *  derived from readings, and the tick owns them. */
+export function useLocationVisits(locationId: string | null) {
+  return useQuery({
+    queryKey: ["location-visits", "by-location", locationId],
+    queryFn: () => apiClient.get<LocationVisit[]>(`/locations/${locationId}/visits`),
+    enabled: !!locationId,
+  })
+}
+
+/** Everywhere you were at one instant, innermost first.
+ *
+ *  A list, not a place: fences nest, so at any moment you are inside several.
+ *  `places[0]` is the most specific answer and the tail is the breadcrumb. */
+export function usePresence(at?: string) {
+  return useQuery({
+    queryKey: ["location-visits", "where-was-i", at ?? "now"],
+    queryFn: () =>
+      apiClient.get<Presence>(`/where-was-i${at ? `?at=${encodeURIComponent(at)}` : ""}`),
+  })
+}
+
+/** Visits overlapping a window, for the day timeline. */
+export function useVisitsBetween(fromIso: string, toIso: string) {
+  return useQuery({
+    queryKey: ["location-visits", "between", fromIso, toIso],
+    queryFn: () =>
+      apiClient.get<LocationVisit[]>(
+        `/location-visits?entered_at__lte=${encodeURIComponent(toIso)}&limit=500`,
+      ),
+    // The API filters on entry; a visit that began earlier and is still running
+    // overlaps this window too, so the tail is trimmed client-side.
+    select: (rows) =>
+      rows.filter((v) => v.exited_at === null || v.exited_at >= fromIso),
+  })
+}
+
+/** Raw positions for a day's track. Keyed on "location-pings" so a new reading
+ *  refreshes the line — the table name the SSE stream reports. */
+export function useTrack(fromIso: string, toIso: string) {
+  return useQuery({
+    queryKey: ["location-pings", "track", fromIso, toIso],
+    queryFn: () =>
+      apiClient.get<TrackPoint[]>(
+        `/location-pings?from=${encodeURIComponent(fromIso)}&to=${encodeURIComponent(toIso)}`,
+      ),
+  })
+}
+
+/** The review queue of proposed places. Keyed on the table name so a nightly
+ *  recompute, a promote, or a dismissal all refresh it over the SSE path. */
+export function usePlaceCandidates() {
+  return useQuery({
+    queryKey: ["place-candidates"],
+    queryFn: () => apiClient.get<PlaceCandidate[]>("/place-candidates"),
+  })
+}
+
+export function usePromoteCandidate() {
+  return useMutation({
+    mutationFn: ({ id, ...body }: { id: string; name?: string; radius_m?: number }) =>
+      apiClient.post<PromoteResult>(`/place-candidates/${id}/promote`, body),
+  })
+}
+
+export function useDismissCandidate() {
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiClient.post<PlaceCandidate>(`/place-candidates/${id}/dismiss`, {}),
+  })
+}
+
+/** Whether readings are still arriving at all — see IngestStatus on the API. */
+export function useIngestStatus() {
+  return useQuery({
+    queryKey: ["location-pings", "status"],
+    queryFn: () => apiClient.get<IngestStatus>("/location-status"),
   })
 }
 

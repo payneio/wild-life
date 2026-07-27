@@ -1,3 +1,5 @@
+import { AddressRows } from "@/components/AddressRows"
+import { isAddressEmpty, type LabelledAddress } from "@/lib/address"
 import { asDay } from "@/lib/date"
 import { useState } from "react"
 import { Plus, Trash2 } from "lucide-react"
@@ -205,7 +207,7 @@ export function PersonForm({
     () => initial?.phones?.map((p) => ({ ...p, value: formatPhone(p.value) })) ?? [],
   )
   const [emails, setEmails] = useState<ContactMethod[]>(initial?.emails ?? [])
-  const [addresses, setAddresses] = useState<ContactMethod[]>(initial?.addresses ?? [])
+  const [addresses, setAddresses] = useState<LabelledAddress[]>(initial?.addresses ?? [])
   const [websites, setWebsites] = useState<string[]>(initial?.websites ?? [])
   const [dates, setDates] = useState<ImportantDate[]>(initial?.important_dates ?? [])
 
@@ -223,7 +225,7 @@ export function PersonForm({
       birthday: birthday || null,
       phones: phones.filter((p) => p.value.trim()),
       emails: emails.filter((e) => e.value.trim()),
-      addresses: addresses.filter((a) => a.value.trim()),
+      addresses: addresses.filter((a) => !isAddressEmpty(a)),
       websites: websites.filter((w) => w.trim()),
       important_dates: dates.filter((d) => d.date),
     })
@@ -296,12 +298,7 @@ export function PersonForm({
         onChange={setEmails}
         placeholder="name@example.com"
       />
-      <MethodRows
-        title="Addresses"
-        rows={addresses}
-        onChange={setAddresses}
-        placeholder="street, city…"
-      />
+      <AddressRows rows={addresses} onChange={setAddresses} />
       <StringRows
         title="Websites"
         rows={websites}

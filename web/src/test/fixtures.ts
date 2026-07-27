@@ -87,10 +87,17 @@ export const LOCATION: Location = {
   ...BASE,
   name: "Seattle passport agency",
   category: "venue",
-  address: "915 2nd Ave",
+  street: "915 2nd Ave",
+  unit: null,
   city: "Seattle",
   region: "WA",
+  postcode: "98104",
+  country: "United States",
   notes: "Appointment only",
+  latitude: 47.6042,
+  longitude: -122.3327,
+  radius_m: 120,
+  geo_dirty_at: null,
 }
 
 export const DECISION: Decision = {
@@ -193,7 +200,12 @@ export const ORGANIZATION: Organization = {
   website: "https://example.com",
   email: null,
   phone: "206-555-0101",
-  address: "100 Pine St",
+  street: "100 Pine St",
+  unit: "Floor 3",
+  city: "Seattle",
+  region: "WA",
+  postcode: "98101",
+  country: "United States",
   notes: null,
 }
 
@@ -367,6 +379,7 @@ export const EVENT: EventItem = {
   event_type: "appointment",
   description: null,
   location: "Home",
+  location_id: null,
   start_at: "2026-08-10T16:00:00Z" as Instant,
   end_at: "2026-08-10T19:00:00Z" as Instant,
   all_day: false,

@@ -5,6 +5,13 @@ insert/update/delete of a domain entity into ``change_log``. Because it hooks th
 unit of work rather than individual endpoints, it captures changes no matter which
 router (or bulk operation) produced them.
 
+A model opts out with ``__audit__ = False`` (see :func:`_audited`). That is for
+tables whose rows are observations rather than entities — high-volume, append-only,
+and of no interest to the history view or the live stream. Note the escape is at the
+*unit of work*: a Core ``insert()``/``update()`` statement never reaches this
+listener at all, which is how an audited table can still take silent high-frequency
+writes to a few bookkeeping columns.
+
 Importing this module registers the listener; ``db.session`` does so once.
 """
 
@@ -92,13 +99,26 @@ def _log_for(obj: Any, action: str, changes: dict[str, Any]) -> ChangeLog:
     )
 
 
+def _audited(obj: Any) -> bool:
+    """Whether a flushed object should produce a ``change_log`` row.
+
+    Opt out with ``__audit__ = False`` on the model. The one current user is
+    ``LocationPing``: raw, high-volume, append-only observation data whose per-row
+    snapshot would cost more storage than the pings themselves, and which would
+    ``pg_notify`` every open SSE stream at device ping rate.
+    """
+    return not isinstance(obj, ChangeLog) and getattr(obj, "__audit__", True)
+
+
 @event.listens_for(Session, "before_flush")
 def _record_changes(session: Session, flush_context: Any, instances: Any) -> None:
     """Stage a ChangeLog row for each pending create/update/delete."""
     pending: list[ChangeLog] = []
 
     for obj in session.new:
-        if isinstance(obj, ChangeLog):
+        # Must precede the id assignment below: an exempt model is free to use a
+        # non-UUID primary key, and stamping a uuid4 into it would corrupt it.
+        if not _audited(obj):
             continue
         # PKs are server-generated (gen_random_uuid); assign now so the audit
         # row can reference the id without waiting for the INSERT to return it.
@@ -107,7 +127,7 @@ def _record_changes(session: Session, flush_context: Any, instances: Any) -> Non
         pending.append(_log_for(obj, "insert", _snapshot(obj)))
 
     for obj in session.dirty:
-        if isinstance(obj, ChangeLog):
+        if not _audited(obj):
             continue
         changes = _diff(obj)
         if not changes:  # dirtied but no real column change
@@ -115,7 +135,7 @@ def _record_changes(session: Session, flush_context: Any, instances: Any) -> Non
         pending.append(_log_for(obj, "update", changes))
 
     for obj in session.deleted:
-        if isinstance(obj, ChangeLog):
+        if not _audited(obj):
             continue
         pending.append(_log_for(obj, "delete", _snapshot(obj)))
 

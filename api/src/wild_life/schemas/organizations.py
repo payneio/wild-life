@@ -29,7 +29,12 @@ class OrganizationCreate(BaseModel):
     website: str | None = None
     email: str | None = None
     phone: PhoneNumber = None
-    address: str | None = None
+    street: str | None = None
+    unit: str | None = None
+    city: str | None = None
+    region: str | None = None
+    postcode: str | None = None
+    country: str | None = None
     description: str | None = None
     status: OrgStatus = "active"
     notes: str | None = None
@@ -42,7 +47,12 @@ class OrganizationUpdate(BaseModel):
     website: str | None = None
     email: str | None = None
     phone: PhoneNumber = None
-    address: str | None = None
+    street: str | None = None
+    unit: str | None = None
+    city: str | None = None
+    region: str | None = None
+    postcode: str | None = None
+    country: str | None = None
     description: str | None = None
     status: OrgStatus | None = None
     notes: str | None = None
@@ -55,7 +65,12 @@ class OrganizationRead(Entity):
     website: str | None
     email: str | None
     phone: str | None
-    address: str | None
+    street: str | None
+    unit: str | None
+    city: str | None
+    region: str | None
+    postcode: str | None
+    country: str | None
     description: str | None
     status: OrgStatus
     notes: str | None

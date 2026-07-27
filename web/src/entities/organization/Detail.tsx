@@ -1,3 +1,4 @@
+import { AddressFields } from "@/components/record/AddressFields"
 import { Record, RecordSection } from "@/components/record/Record"
 import { OrganizationExtra } from "@/components/detailExtras"
 import { recordFields } from "@/components/record/typed"
@@ -29,7 +30,7 @@ export function OrganizationDetail({
         <F.Text field="website" label="Website" placeholder="https://…" />
         <F.Text field="email" label="Email" />
         <F.Phone field="phone" label="Phone" />
-        <F.Text field="address" label="Address" full />
+        <AddressFields />
       </RecordSection>
 
       {/* The people-affiliation graph is an earned relationship view. */}

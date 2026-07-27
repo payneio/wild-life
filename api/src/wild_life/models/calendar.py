@@ -26,7 +26,16 @@ class Event(UUIDPrimaryKey, TimestampMixin, Base):
     # calendar color). Clinical events (folded-in HealthEvents) use the clinical types.
     event_type: Mapped[str | None] = mapped_column(Text)
     description: Mapped[str | None] = mapped_column(Text)
+    # Two location fields, deliberately. `location` is the free text iCalendar
+    # carries and is the wire format both directions — inbound invites bring
+    # strings we cannot always resolve, and outbound ones must send something.
+    # `location_id` is the internal reference, and it is *planned* rather than
+    # observed: where the event is meant to happen, which is why it cannot be
+    # derived from readings the way a note's place can.
     location: Mapped[str | None] = mapped_column(Text)
+    location_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("locations.id", ondelete="SET NULL"), index=True
+    )
     start_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     end_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     all_day: Mapped[bool] = mapped_column(

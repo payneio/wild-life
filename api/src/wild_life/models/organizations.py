@@ -24,7 +24,16 @@ class Organization(UUIDPrimaryKey, TimestampMixin, Base):
     website: Mapped[str | None] = mapped_column(Text)
     email: Mapped[str | None] = mapped_column(Text)
     phone: Mapped[str | None] = mapped_column(Text)
-    address: Mapped[str | None] = mapped_column(Text)
+    # Shared postal-address vocabulary — see schemas/common.PostalAddress. This
+    # was a single free-text blob; the migration moves whatever was in it into
+    # `street` verbatim rather than guessing at its components.
+    street: Mapped[str | None] = mapped_column(Text)
+    unit: Mapped[str | None] = mapped_column(Text)
+    city: Mapped[str | None] = mapped_column(Text)
+    region: Mapped[str | None] = mapped_column(Text)
+    postcode: Mapped[str | None] = mapped_column(Text)
+    country: Mapped[str | None] = mapped_column(Text)
+
     description: Mapped[str | None] = mapped_column(Text)
     status: Mapped[str] = mapped_column(
         Text, server_default="active", nullable=False

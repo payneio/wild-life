@@ -1,4 +1,5 @@
 import { Record, RecordSection } from "@/components/record/Record"
+import { WhereWasI } from "@/components/record/WhereWasI"
 import { EventDetail as EventWhenWho } from "@/components/detail/reference"
 import { recordFields } from "@/components/record/typed"
 import { EVENT_TYPE } from "@/services/api/enums"
@@ -68,7 +69,17 @@ export function EventDetail({
 
       <RecordSection title="What & where">
         <F.Select field="event_type" label="Type" options={EVENT_TYPE} />
-        <F.Text field="location" label="Location" />
+        {/* A reference and a string, on purpose. `location_id` is the place as
+            you mean it; `location` is what iCalendar carries, and inbound invites
+            arrive with text we cannot always resolve — so neither replaces the
+            other. Nothing auto-matches text to a place: a wrong link is worse
+            than no link. */}
+        <F.Ref field="location_id" label="Place" lookup="location" />
+        <F.Text field="location" label="Location (as written)" />
+        {/* And where you actually *were*, derived from readings — as against the
+            two above, which say where it was planned. They differ, and the
+            difference is often the interesting part. */}
+        <WhereWasI field="start_at" />
         {/* Invite bodies arrive formatted — links, schedules — and the API
             stores them as markdown (see api/.../richtext.py). */}
         <F.Markdown field="description" label="Description" minRows={2} />

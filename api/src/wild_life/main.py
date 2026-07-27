@@ -29,6 +29,7 @@ from wild_life.routers import (
     calendar_mail,
     core,
     history,
+    ingest,
     knowledge,
     locations,
     merge,
@@ -38,6 +39,7 @@ from wild_life.routers import (
     organizations,
     outcomes,
     people,
+    place_candidates,
     preferences,
     protocols,
     push,
@@ -145,6 +147,8 @@ app.include_router(tasks.router)
 app.include_router(people.router)
 app.include_router(organizations.router)
 app.include_router(locations.router)
+app.include_router(ingest.router)
+app.include_router(place_candidates.router)
 app.include_router(merge.router)
 app.include_router(search.router)
 app.include_router(routines.router)
@@ -187,6 +191,8 @@ _MCP_EXCLUDE = [
     RouteMap(pattern=r"^/calendar/reminders/tick$", mcp_type=MCPType.EXCLUDE),
     RouteMap(pattern=r"^/calendar/mail/tick$", mcp_type=MCPType.EXCLUDE),
     RouteMap(pattern=r"^/nudges/digest$", mcp_type=MCPType.EXCLUDE),
+    # Device ingest: a wire endpoint for a tracker, not a tool anyone should call.
+    RouteMap(pattern=r"^/ingest/.*", mcp_type=MCPType.EXCLUDE),
 ]
 
 # from_fastapi calls the app in-process (httpx + ASGITransport), so its calls

@@ -10,6 +10,7 @@ import {
   useOutcomeLookup,
   useMedicationLookup,
   useMetricLookup,
+  useLocationLookup,
   useOrganizationLookup,
   usePeopleLookup,
   useProgramLookup,
@@ -54,6 +55,7 @@ const LOOKUP_HOOKS = {
   outcome: useOutcomeLookup,
   metric: useMetricLookup,
   organization: useOrganizationLookup,
+  location: useLocationLookup,
   medication: useMedicationLookup,
   protocol: useProtocolLookup,
 } as const

@@ -92,7 +92,10 @@ SEARCH_FIELDS: dict[str, tuple[str, list[str]]] = {
         ["name", "nickname", "relationship", "role", "job_title", "specialty"],
     ),
     "organization": ("name", ["name", "org_type", "industry", "description", "notes"]),
-    "location": ("name", ["name", "address", "city", "region", "notes"]),
+    "location": (
+        "name",
+        ["name", "street", "unit", "city", "region", "postcode", "country", "notes"],
+    ),
     "area": ("name", ["name", "description", "desired_standard"]),
     "program": (
         "name",

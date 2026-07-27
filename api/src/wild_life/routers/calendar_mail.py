@@ -37,10 +37,12 @@ from wild_life.mail.deps import get_transport
 from wild_life.mail.service import Attachment
 from wild_life.mail.transport import MailTransport
 from wild_life.models.calendar import AttendeeResponse, Event, SentInvite
+from wild_life.models.locations import Location
 from wild_life.routers.calendar import reconcile_event_attendees
 from wild_life.routers.preferences import load_calendar_prefs
 from wild_life.routers.stream import publish_event
 from wild_life.schemas.calendar import EventRead
+from wild_life.schemas.common import format_address
 from wild_life.schemas.calendar_mail import (
     GuestStatus,
     MailTickResult,
@@ -154,6 +156,23 @@ def _event_attachment(kind: str, ics_bytes: bytes) -> Attachment:
     )
 
 
+async def _ics_location(session: AsyncSession, event: Event) -> str | None:
+    """What to put in the ICS ``LOCATION`` line.
+
+    iCalendar carries a string, so the reference has to be flattened for the
+    wire. When one is set it wins — it is the more considered answer, and it
+    stays correct if the place is later renamed — falling back to the free text
+    an inbound invite gave us.
+    """
+    if event.location_id is None:
+        return event.location
+    place = await session.get(Location, event.location_id)
+    if place is None:
+        return event.location
+    written = format_address(place)
+    return ", ".join(p for p in (place.name, written) if p) or event.location
+
+
 async def _send_request(
     session: AsyncSession,
     transport: MailTransport,
@@ -174,7 +193,7 @@ async def _send_request(
         end=event.end_at,
         all_day=event.all_day,
         description=event.description,
-        location=event.location,
+        location=await _ics_location(session, event),
         recurrence=event.recurrence,
         recurrence_id=event.recurrence_id,
         request_rsvp=prefs.request_rsvp,
