@@ -86,22 +86,32 @@ async def _task_throughput(session: AsyncSession, metric: Metric) -> list[Point]
         return []
 
     weeks = _week_starts()
-    rows = (
-        await session.execute(
-            select(
-                func.date_trunc("week", Task.completed_at).label("wk"),
-                func.count(Task.id),
+    stamps = (
+        (
+            await session.execute(
+                select(Task.completed_at).where(
+                    column == metric.entity_id,
+                    Task.status == "completed",
+                    Task.completed_at.isnot(None),
+                    Task.completed_at
+                    >= datetime.combine(weeks[0], time.min, tzinfo=timezone.utc),
+                )
             )
-            .where(
-                column == metric.entity_id,
-                Task.status == "completed",
-                Task.completed_at.isnot(None),
-                Task.completed_at >= datetime.combine(weeks[0], time.min, tzinfo=timezone.utc),
-            )
-            .group_by("wk")
         )
-    ).all()
-    counts = {r[0].date(): int(r[1]) for r in rows if r[0] is not None}
+        .scalars()
+        .all()
+    )
+    # Bucketed here rather than by `date_trunc('week', …)` in SQL, deliberately.
+    # The session runs in UTC and `_week_starts` builds *local* Mondays, so the
+    # database would file seven hours of every week into the neighbouring one —
+    # a Sunday evening's work landing in the week after. Same mismatch 1f4b330
+    # fixed for staleness: compare like for like, and do it in one place.
+    counts: dict[date, int] = {}
+    for stamp in stamps:
+        day = stamp.astimezone().date()
+        counts[day - timedelta(days=day.weekday())] = (
+            counts.get(day - timedelta(days=day.weekday()), 0) + 1
+        )
     # Every week in the window, including the zeroes — a gap in the series is
     # information ("nothing shipped"), not a missing reading.
     return [Point(_stamp(w), float(counts.get(w, 0))) for w in weeks]

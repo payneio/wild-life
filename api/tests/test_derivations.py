@@ -85,6 +85,10 @@ def test_task_throughput_counts_completed_work_per_week(
         assert len(series) == 26
         assert {p["value"] for p in series} == {0.0}
 
+        # Completed *yesterday*, which lands in last week's bucket one day in
+        # seven — so assert on the window's total and on which bucket moved,
+        # rather than on "the last one". A test that only passes six days a week
+        # is worse than no test.
         now = datetime.now(UTC)
         for i in range(3):
             t = _post(
@@ -99,7 +103,9 @@ def test_task_throughput_counts_completed_work_per_week(
             tasks.append(t["id"])
 
         series = client.get(f"/metrics/{m['id']}/series", headers=owner).json()
-        assert series[-1]["value"] == 3.0, series[-3:]
+        assert sum(p["value"] for p in series) == 3.0, series[-3:]
+        # Yesterday is in this week or the one before it, never further back.
+        assert {p["value"] for p in series[-2:]} != {0.0}, series[-3:]
 
         # Nothing was written to metric_entries — the number is computed, and the
         # entries list stays empty because a derived metric has none.
@@ -156,7 +162,9 @@ def test_an_outcome_reads_a_derived_metric_like_any_other(
         assert got["state"] == "breached"
         assert got["latest_value"] == 0.0
 
-        now = datetime.now(UTC)
+        # Stamped now, so the reading is in the current week whatever day it is —
+        # the verdict reads the *latest* bucket, so this one can't drift across a
+        # week boundary the way a back-dated completion would.
         for i in range(2):
             t = _post(
                 client,
@@ -165,7 +173,7 @@ def test_an_outcome_reads_a_derived_metric_like_any_other(
                 title=f"{MARK} done {i}",
                 area_id=area["id"],
                 status="completed",
-                completed_at=(now - timedelta(hours=2)).isoformat(),
+                completed_at=datetime.now(UTC).isoformat(),
             )
             tasks.append(t["id"])
 
