@@ -2237,6 +2237,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tasks/{item_id}/move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Move Task
+         * @description Re-rank a task, and restatus it if the same drag crossed a section.
+         */
+        post: operations["tasks_move"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tasks/{item_id}/release": {
         parameters: {
             query?: never;
@@ -5705,6 +5725,8 @@ export interface components {
             due_date?: CalendarDay | null;
             /** Estimated Minutes */
             estimated_minutes?: number | null;
+            /** Position */
+            position?: number | null;
             /**
              * Priority
              * @default medium
@@ -5733,6 +5755,26 @@ export interface components {
             title: string;
             /** Waiting On */
             waiting_on?: string | null;
+        };
+        /**
+         * TaskMove
+         * @description Drop a task between two of its siblings, and optionally restatus it.
+         *
+         *     Anchors rather than a number: the client knows what it dropped the row
+         *     between, not what float that implies, and computing the float here keeps two
+         *     writers from picking the same one. Both absent means "put it last".
+         *
+         *     `status` rides along because dragging a row from To do into In progress is
+         *     one gesture and should be one write — two requests would render an
+         *     intermediate state that the user never asked for.
+         */
+        TaskMove: {
+            /** After Id */
+            after_id?: string | null;
+            /** Before Id */
+            before_id?: string | null;
+            /** Status */
+            status?: ("inbox" | "planned" | "in_progress" | "waiting" | "delegated" | "delivered" | "completed" | "cancelled") | null;
         };
         /** TaskRead */
         TaskRead: {
@@ -5770,6 +5812,8 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Position */
+            position: number;
             /**
              * Priority
              * @enum {string}
@@ -5822,6 +5866,8 @@ export interface components {
             due_date?: CalendarDay | null;
             /** Estimated Minutes */
             estimated_minutes?: number | null;
+            /** Position */
+            position?: number | null;
             /** Priority */
             priority?: ("low" | "medium" | "high" | "urgent") | null;
             /** Program Id */
@@ -12044,6 +12090,41 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    tasks_move: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskMove"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

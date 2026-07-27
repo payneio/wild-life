@@ -46,6 +46,8 @@ export const TASK: Task = {
   description: "Photos, form DS-82, cheque",
   status: "planned",
   priority: "high",
+  // Rank among siblings — set by the API, never left unset.
+  position: 1024,
   area_id: null,
   program_id: null,
   project_id: null,

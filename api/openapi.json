@@ -13336,6 +13336,17 @@
             ],
             "title": "Estimated Minutes"
           },
+          "position": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position"
+          },
           "priority": {
             "default": "medium",
             "enum": [
@@ -13453,6 +13464,58 @@
           "title"
         ],
         "title": "TaskCreate",
+        "type": "object"
+      },
+      "TaskMove": {
+        "description": "Drop a task between two of its siblings, and optionally restatus it.\n\nAnchors rather than a number: the client knows what it dropped the row\nbetween, not what float that implies, and computing the float here keeps two\nwriters from picking the same one. Both absent means \"put it last\".\n\n`status` rides along because dragging a row from To do into In progress is\none gesture and should be one write \u2014 two requests would render an\nintermediate state that the user never asked for.",
+        "properties": {
+          "after_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "After Id"
+          },
+          "before_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Before Id"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "inbox",
+                  "planned",
+                  "in_progress",
+                  "waiting",
+                  "delegated",
+                  "delivered",
+                  "completed",
+                  "cancelled"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "title": "TaskMove",
         "type": "object"
       },
       "TaskRead": {
@@ -13600,6 +13663,10 @@
             "title": "Id",
             "type": "string"
           },
+          "position": {
+            "title": "Position",
+            "type": "number"
+          },
           "priority": {
             "enum": [
               "low",
@@ -13739,6 +13806,7 @@
           "blocked_by_task_id",
           "waiting_on",
           "acceptance_required",
+          "position",
           "completed_at"
         ],
         "title": "TaskRead",
@@ -13849,6 +13917,17 @@
               }
             ],
             "title": "Estimated Minutes"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position"
           },
           "priority": {
             "anyOf": [
@@ -23026,6 +23105,60 @@
           }
         },
         "summary": "Claim Task",
+        "tags": [
+          "tasks"
+        ]
+      }
+    },
+    "/tasks/{item_id}/move": {
+      "post": {
+        "description": "Re-rank a task, and restatus it if the same drag crossed a section.",
+        "operationId": "tasks_move",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskMove"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Move Task",
         "tags": [
           "tasks"
         ]

@@ -81,6 +81,10 @@ export function TaskDetail({ entity, onClose }: { entity: Entity; onClose: () =>
         // Set by the worker-token claim flow, never edited by hand.
         "claimed_by_id",
         "claimed_at",
+        // Rank among siblings. It has no meaning on its own — a number you
+        // could type here would say nothing without the list beside it — so it
+        // is expressed by dragging on the board and nowhere else.
+        "position",
       ]}
     >
       <div className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">

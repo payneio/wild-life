@@ -1,8 +1,6 @@
 import { useState } from "react"
 import { Check } from "lucide-react"
-import { Button, EmptyState, Input } from "@/components/ui/primitives"
-import { TaskRow } from "@/pages/TasksPage"
-import { cn } from "@/lib/utils"
+import { Button, Input } from "@/components/ui/primitives"
 import {
   projects,
   tasks,
@@ -18,7 +16,6 @@ import type {
   Program,
   Project,
   Routine,
-  Task,
 } from "@/services/api/types"
 import {
   Heatmap,
@@ -28,6 +25,7 @@ import {
   StatTile,
   Timeline,
 } from "@/components/detail/kit"
+import { TaskBoard } from "@/components/detail/TaskBoard"
 import { daysFromToday } from "@/components/detail/dates"
 import { formatBand, formatInstant, localDay, todayISO, ymd } from "@/lib/format"
 
@@ -36,50 +34,15 @@ import { formatBand, formatInstant, localDay, todayISO, ymd } from "@/lib/format
 // field grid.
 
 // --- Project: progress + task board -----------------------------------------
-function TaskGroup({
-  title,
-  list,
-  capped,
-}: {
-  title: string
-  list: Task[]
-  capped?: boolean
-}) {
-  if (list.length === 0) return null
-  return (
-    <div className="space-y-1">
-      <div className="text-xs font-medium text-slate-500">
-        {title} · {list.length}
-      </div>
-      {/* `capped` bounds low-priority groups (e.g. Done) so a long history
-          scrolls in place instead of pushing the page down. */}
-      <div
-        className={cn(
-          "rounded-lg border border-slate-100",
-          capped ? "max-h-64 overflow-y-auto" : "overflow-hidden",
-        )}
-      >
-        {list.map((t) => (
-          <TaskRow key={t.id} task={t} />
-        ))}
-      </div>
-    </div>
-  )
-}
-
 export function ProjectDetail({ entity }: { entity: Entity }) {
   const project = entity as Project
   const { data } = tasks.useList({ project_id: project.id, include_closed: "true" })
-  const update = projects.useUpdate()
   const createTask = tasks.useCreate()
-  const [next, setNext] = useState(project.next_action ?? "")
   const [newTask, setNewTask] = useState("")
   const list = data ?? []
   const done = list.filter((t) => t.status === "completed")
   const cancelled = list.filter((t) => t.status === "cancelled")
   const open = list.filter((t) => t.status !== "completed" && t.status !== "cancelled")
-  const inProgress = open.filter((t) => t.status === "in_progress")
-  const todo = open.filter((t) => t.status !== "in_progress")
   const pct = list.length ? Math.round((done.length / (list.length - cancelled.length || 1)) * 100) : 0
   const targetD = daysFromToday(project.target_date)
 
@@ -104,21 +67,10 @@ export function ProjectDetail({ entity }: { entity: Entity }) {
         </div>
       </div>
 
-      <Section title="Next action">
-        <div className="flex gap-2">
-          <Input
-            value={next}
-            onChange={(e) => setNext(e.target.value)}
-            placeholder="What's the very next step?"
-          />
-          <Button
-            variant="secondary"
-            onClick={() => update.mutate({ id: project.id, body: { next_action: next || null } })}
-          >
-            Save
-          </Button>
-        </div>
-      </Section>
+      {/* `next_action` is rendered once, by the layout in `entities/project`.
+          The board used to carry a second input for the same column with its own
+          Save button — the last explicit save in the app — which is the exact
+          two-renderers-one-field arrangement `Record` exists to prevent. */}
 
       <Section title="Tasks">
         <Input
@@ -129,6 +81,7 @@ export function ProjectDetail({ entity }: { entity: Entity }) {
             if (e.key === "Enter" && newTask.trim()) {
               // The project and nothing else. Copying an area down beside it is
               // exactly what let the two drift apart; the area is a join away.
+              // Rank is left off too — the API puts a new capture last.
               createTask.mutate({
                 title: newTask.trim(),
                 project_id: project.id,
@@ -138,15 +91,7 @@ export function ProjectDetail({ entity }: { entity: Entity }) {
             }
           }}
         />
-        {list.length === 0 ? (
-          <EmptyState>No tasks yet.</EmptyState>
-        ) : (
-          <div className="space-y-3">
-            <TaskGroup title="In progress" list={inProgress} />
-            <TaskGroup title="To do" list={todo} />
-            <TaskGroup title="Done" list={done} capped />
-          </div>
-        )}
+        <TaskBoard tasks={list} />
       </Section>
     </div>
   )

@@ -21,8 +21,9 @@ from wild_life.identity import Identity, current_identity
 from wild_life.lifecycle import closed_statuses
 from wild_life.models.tasks import Task
 from wild_life.query import apply_query
+from wild_life.ranking import end_position, position_between
 from wild_life.schemas.common import Priority, TaskStatus
-from wild_life.schemas.tasks import TaskCreate, TaskRead, TaskUpdate
+from wild_life.schemas.tasks import TaskCreate, TaskMove, TaskRead, TaskUpdate
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
@@ -148,6 +149,9 @@ async def create_task(
     )
     task = Task(**values)
     _sync_completion(task)
+    # Ranked last among its siblings unless the caller placed it deliberately.
+    if values.get("position") is None:
+        task.position = await end_position(session, task)
     session.add(task)
     await session.flush()
     await session.refresh(task)
@@ -252,6 +256,30 @@ async def my_tasks(
     stmt = stmt.order_by(Task.due_date.asc().nulls_last())
     result = await session.execute(stmt)
     return list(result.scalars().all())
+
+
+@router.post("/{item_id}/move", response_model=TaskRead, operation_id="tasks_move")
+async def move_task(
+    item_id: UUID,
+    payload: TaskMove,
+    session: AsyncSession = Depends(get_session),
+    identity: Identity = Depends(current_identity),
+) -> Task:
+    """Re-rank a task, and restatus it if the same drag crossed a section."""
+    task = await session.get(Task, item_id)
+    if task is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not found")
+    await assert_can_write_task(session, task, identity)
+    if payload.status is not None:
+        assert_worker_task_fields({"status": payload.status}, identity)
+        task.status = payload.status
+        _sync_completion(task)
+    task.position = await position_between(
+        session, task, payload.after_id, payload.before_id
+    )
+    await session.flush()
+    await session.refresh(task)
+    return task
 
 
 @router.get("/{item_id}", response_model=TaskRead, operation_id="tasks_get")

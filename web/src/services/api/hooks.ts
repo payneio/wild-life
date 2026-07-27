@@ -474,6 +474,30 @@ function completeUrl(id: string, on?: string, slot?: string): string {
   return `/routines/${id}/complete${s ? `?${s}` : ""}`
 }
 
+/**
+ * Drop a task between two of its siblings, optionally restatusing it.
+ *
+ * Anchors, not a number — the board knows what the row landed between, and the
+ * server turns that into a position it alone can guarantee is unique. Carrying
+ * `status` means a drag across a section boundary is one write, so the row
+ * doesn't visibly land and then change again.
+ */
+export function useMoveTask() {
+  const invalidate = useInvalidator()
+  return useMutation({
+    mutationFn: ({
+      id,
+      ...body
+    }: {
+      id: string
+      after_id?: string | null
+      before_id?: string | null
+      status?: Task["status"] | null
+    }) => apiClient.post<Task>(`/tasks/${id}/move`, body),
+    onSuccess: () => invalidate("tasks"),
+  })
+}
+
 /** Check a routine done for a day (+slot). Idempotent. */
 export function useCompleteRoutine() {
   const invalidate = useInvalidator()

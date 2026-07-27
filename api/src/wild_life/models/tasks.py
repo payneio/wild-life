@@ -8,6 +8,7 @@ from sqlalchemy import (
     CheckConstraint,
     Date,
     DateTime,
+    Float,
     ForeignKey,
     Integer,
     Text,
@@ -55,6 +56,19 @@ class Task(UUIDPrimaryKey, TimestampMixin, Base):
     priority: Mapped[str] = mapped_column(
         Text, server_default="medium", nullable=False
     )  # low/medium/high/urgent
+    # Where this sits among its siblings — the tasks under the same parent.
+    #
+    # An ordinal judgment, and the only one the app asks for. Inside a project
+    # nothing is urgent (urgency arrives from outside, as a due date), so the
+    # order you drag things into *is* your importance ranking, expressed without
+    # having to name an axis or keep two attributes current.
+    #
+    # A float rather than a contiguous integer so a reorder writes one row: the
+    # new position is the midpoint of its neighbours. `_rebalance` respaces a
+    # sibling set when the midpoints get too close to split.
+    position: Mapped[float] = mapped_column(
+        Float, server_default="0", nullable=False, index=True
+    )
     accountable_owner_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("people.id", ondelete="SET NULL")
     )

@@ -31,10 +31,14 @@ export function TaskRow({
   task,
   onEdit,
   selected,
+  hideProject,
 }: {
   task: Task
   onEdit?: (t: Task) => void
   selected?: boolean
+  /** Suppress the project chip where the surface already names the project —
+   *  on its own board it repeats the heading once per row. */
+  hideProject?: boolean
 }) {
   const update = tasks.useUpdate()
   const navigate = useNavigate()
@@ -83,7 +87,7 @@ export function TaskRow({
           <span className="shrink-0 text-xs text-slate-400">{task.context}</span>
         )}
       </span>
-      {task.project_id && (
+      {task.project_id && !hideProject && (
         <span className="hidden max-w-[9rem] shrink-0 truncate text-xs text-slate-400 sm:block">
           <RefName kind="project" id={task.project_id} />
         </span>
@@ -91,9 +95,13 @@ export function TaskRow({
       {(task.status === "delegated" || task.status === "delivered") && (
         <span className="shrink-0 text-xs font-medium text-amber-600">delegated</span>
       )}
-      <span className="shrink-0">
-        <PriorityBadge priority={task.priority} />
-      </span>
+      {/* The default carries no information — a badge on every row is a word
+          repeated, not a signal. Priority shows when someone chose it. */}
+      {task.priority !== "medium" && (
+        <span className="shrink-0">
+          <PriorityBadge priority={task.priority} />
+        </span>
+      )}
       {task.due_date && (
         <span className="shrink-0">
           <DateText value={task.due_date} overdue />
