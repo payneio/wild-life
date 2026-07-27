@@ -16,6 +16,7 @@ from fastmcp import FastMCP
 from fastmcp.server.dependencies import get_http_headers
 from fastmcp.server.providers.openapi import MCPType, RouteMap
 from fastmcp.utilities.lifespan import combine_lifespans
+from sqlalchemy.exc import IntegrityError
 
 from wild_life.auth import BearerAuthMiddleware
 from wild_life.config import settings
@@ -125,6 +126,27 @@ async def _log_validation_error(
     return JSONResponse(
         status_code=422, content={"detail": jsonable_encoder(exc.errors())}
     )
+
+
+@app.exception_handler(IntegrityError)
+async def _integrity_error(request: Request, exc: IntegrityError) -> JSONResponse:
+    """A constraint the caller violated is a 409, not a 500.
+
+    Two of them are reachable by ordinary use: deleting a program that still
+    holds projects (the FK is RESTRICT, since a non-null parent has nothing to
+    be set to), and giving a task more than one parent. Both are the caller
+    asking for something the model forbids, so they read back as conflicts with
+    the database's own message rather than as a server fault.
+    """
+    # asyncpg renders as "<class '…ForeignKeyViolationError'>: <message>"; the
+    # class name is noise to a caller, and the message after it is the useful
+    # half ("still referenced from table \"projects\"").
+    detail = str(getattr(exc, "orig", exc))
+    if detail.startswith("<class "):
+        detail = detail.split(">: ", 1)[-1]
+    detail = detail.split("\nDETAIL:", 1)[0].strip()
+    logger.warning("409 %s %s — %s", request.method, request.url.path, detail)
+    return JSONResponse(status_code=409, content={"detail": detail})
 
 
 @app.exception_handler(Exception)

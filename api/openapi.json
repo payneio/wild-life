@@ -9403,18 +9403,6 @@
             ],
             "title": "Accountable Owner Id"
           },
-          "area_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Area Id"
-          },
           "description": {
             "anyOf": [
               {
@@ -9476,16 +9464,9 @@
             "type": "string"
           },
           "program_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Program Id"
+            "format": "uuid",
+            "title": "Program Id",
+            "type": "string"
           },
           "responsible_lead_id": {
             "anyOf": [
@@ -9539,7 +9520,8 @@
           }
         },
         "required": [
-          "name"
+          "name",
+          "program_id"
         ],
         "title": "ProjectCreate",
         "type": "object"
@@ -9557,18 +9539,6 @@
               }
             ],
             "title": "Accountable Owner Id"
-          },
-          "area_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Area Id"
           },
           "created_at": {
             "format": "date-time",
@@ -9640,16 +9610,9 @@
             "type": "string"
           },
           "program_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Program Id"
+            "format": "uuid",
+            "title": "Program Id",
+            "type": "string"
           },
           "responsible_lead_id": {
             "anyOf": [
@@ -9712,7 +9675,6 @@
           "updated_at",
           "name",
           "description",
-          "area_id",
           "program_id",
           "intended_outcome",
           "status",
@@ -9740,18 +9702,6 @@
               }
             ],
             "title": "Accountable Owner Id"
-          },
-          "area_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Area Id"
           },
           "description": {
             "anyOf": [

@@ -99,11 +99,14 @@ class ProgramRead(Entity):
 
 
 # --- Project ----------------------------------------------------------------
+# A project serves a program, and only a program — see `models.core.Project`.
+# `program_id` is required on create rather than defaulted, so a project cannot
+# be brought into being unparented and then quietly float; the capture surfaces
+# ask for it (ui-architecture §2b.4).
 class ProjectCreate(BaseModel):
     name: str
     description: str | None = None
-    area_id: uuid.UUID | None = None
-    program_id: uuid.UUID | None = None
+    program_id: uuid.UUID
     intended_outcome: str | None = None
     status: ProjectStatus = "proposed"
     priority: Priority = "medium"
@@ -118,7 +121,9 @@ class ProjectCreate(BaseModel):
 class ProjectUpdate(BaseModel):
     name: str | None = None
     description: str | None = None
-    area_id: uuid.UUID | None = None
+    # Re-filing is allowed; unparenting is not. `None` here means "not supplied"
+    # — the router patches with `exclude_unset`, so an explicit null is rejected
+    # by the column rather than silently orphaning the project.
     program_id: uuid.UUID | None = None
     intended_outcome: str | None = None
     status: ProjectStatus | None = None
@@ -134,8 +139,7 @@ class ProjectUpdate(BaseModel):
 class ProjectRead(Entity):
     name: str
     description: str | None
-    area_id: uuid.UUID | None
-    program_id: uuid.UUID | None
+    program_id: uuid.UUID
     intended_outcome: str | None
     status: ProjectStatus
     priority: Priority

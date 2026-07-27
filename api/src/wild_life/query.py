@@ -243,16 +243,28 @@ def q_clause(model: type[Any], q: str) -> Any | None:
 
 
 def apply_query(
-    stmt: Select, model: type[Any], params: Mapping[str, str]
+    stmt: Select,
+    model: type[Any],
+    params: Mapping[str, str],
+    handled: frozenset[str] = frozenset(),
 ) -> tuple[Select, int | None, int | None]:
     """Apply field filters / q / tag / sort. Returns (stmt, limit, offset);
-    limit/offset are parsed but NOT applied so the caller can also count."""
+    limit/offset are parsed but NOT applied so the caller can also count.
+
+    ``handled`` names params the caller has already turned into a clause of its
+    own. Without it a route that widens a filter — ``?area_id=`` on tasks, which
+    reaches through the area's programs and projects — would have its clause
+    ANDed with the plain column match this applies, and the two together answer
+    with only the rows filed at that exact level.
+    """
     cols = model.__table__.columns
     clauses: list[Any] = []
     sort = None
     limit = offset = None
 
     for key, raw in params.items():
+        if key in handled:
+            continue
         if key == "sort":
             sort = raw
             continue

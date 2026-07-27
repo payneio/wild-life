@@ -45,8 +45,9 @@ export function ProjectDetail({ entity, onClose }: { entity: Entity; onClose: ()
       </RecordSection>
 
       <RecordSection title="Context & ownership">
-        <F.Ref field="area_id" label="Area" lookup="area" />
-        <F.Ref field="program_id" label="Program" lookup="program" />
+        {/* The program is the whole of the project's placement — its area is the
+            program's, not a second field that could disagree. */}
+        <F.Ref field="program_id" label="Program" lookup="program" required />
         <F.Ref field="accountable_owner_id" label="Accountable" lookup="people" />
         <F.Ref field="responsible_lead_id" label="Responsible lead" lookup="people" />
       </RecordSection>

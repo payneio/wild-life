@@ -12,8 +12,8 @@ root says what to compute over — throughput for a program means that program's
 completed tasks.
 
 Only computations with data behind them today are registered. `project_cycle_time`
-is absent on purpose: 37 projects carry an area but only 2 have ever completed, so
-it would draw a chart out of two points and look broken rather than empty.
+is absent on purpose: of 36 projects only 2 have ever completed, so it would draw a
+chart out of two points and look broken rather than empty.
 `time_allocation` — where the week actually went — is the most valuable of the lot
 and is blocked on event rooting (50 of 1,329), not on this module.
 """
@@ -26,6 +26,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wild_life import regimen
+from wild_life.hierarchy import tasks_rooted_at
 from wild_life.models.metrics import Metric
 from wild_life.models.protocols import Protocol
 from wild_life.models.routines import Routine, RoutineInstance
@@ -72,17 +73,14 @@ def _stamp(day: date) -> datetime:
 async def _task_throughput(session: AsyncSession, metric: Metric) -> list[Point]:
     """Tasks completed per week, in whatever the metric is rooted to.
 
-    Matched on the task's own FK for the root's level. Tasks carry area, program
-    and project ids (429, 402 and 437 of 447 rows), so the direct match is the
-    honest one — inferring a program's tasks through its projects would silently
-    double-count the ones that carry both.
+    Rolled up through the hierarchy rather than matched on the task's own FK for
+    the root's level. That used to be the honest reading, because tasks carried
+    area, program and project ids at once and a roll-up would have double-counted
+    the ones carrying several. They carry one now — the extra copies were what
+    rotted — so the roll-up is both necessary and exact.
     """
-    column = {
-        "area": Task.area_id,
-        "program": Task.program_id,
-        "project": Task.project_id,
-    }.get(metric.entity_type)
-    if column is None:
+    rooted = tasks_rooted_at(metric.entity_type, metric.entity_id)
+    if rooted is None:
         return []
 
     weeks = _week_starts()
@@ -90,7 +88,7 @@ async def _task_throughput(session: AsyncSession, metric: Metric) -> list[Point]
         (
             await session.execute(
                 select(Task.completed_at).where(
-                    column == metric.entity_id,
+                    rooted,
                     Task.status == "completed",
                     Task.completed_at.isnot(None),
                     Task.completed_at

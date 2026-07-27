@@ -4700,8 +4700,6 @@ export interface components {
         ProjectCreate: {
             /** Accountable Owner Id */
             accountable_owner_id?: string | null;
-            /** Area Id */
-            area_id?: string | null;
             /** Description */
             description?: string | null;
             /** Intended Outcome */
@@ -4718,8 +4716,11 @@ export interface components {
              * @enum {string}
              */
             priority: "low" | "medium" | "high" | "urgent";
-            /** Program Id */
-            program_id?: string | null;
+            /**
+             * Program Id
+             * Format: uuid
+             */
+            program_id: string;
             /** Responsible Lead Id */
             responsible_lead_id?: string | null;
             /** Start Date */
@@ -4737,8 +4738,6 @@ export interface components {
         ProjectRead: {
             /** Accountable Owner Id */
             accountable_owner_id: string | null;
-            /** Area Id */
-            area_id: string | null;
             /**
              * Created At
              * Format: date-time
@@ -4764,8 +4763,11 @@ export interface components {
              * @enum {string}
              */
             priority: "low" | "medium" | "high" | "urgent";
-            /** Program Id */
-            program_id: string | null;
+            /**
+             * Program Id
+             * Format: uuid
+             */
+            program_id: string;
             /** Responsible Lead Id */
             responsible_lead_id: string | null;
             /** Start Date */
@@ -4787,8 +4789,6 @@ export interface components {
         ProjectUpdate: {
             /** Accountable Owner Id */
             accountable_owner_id?: string | null;
-            /** Area Id */
-            area_id?: string | null;
             /** Description */
             description?: string | null;
             /** Intended Outcome */

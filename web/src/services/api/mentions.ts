@@ -24,6 +24,7 @@ interface Source {
   label: string
   useList: (params?: any, options?: { staleTime?: number }) => { data?: any[] }
   title: (e: any) => string
+  parent?: (e: any) => { type: EntityType; id: string } | undefined
   context?: (e: any, resolve: (type: EntityType, id: string) => string | undefined) => string | undefined
 }
 
@@ -59,6 +60,7 @@ function mentionSources(): Source[] {
       label: d.label,
       useList: d.crud.useList,
       title: d.title,
+      parent: d.parent,
       context: d.context,
     }))
   _sources = [PERSON_SOURCE, ...registrySources]
@@ -189,9 +191,14 @@ export function useEntitySearch(
   const withContext = (r: PickerRow): PickerRow => {
     const src = byType.get(r.type)
     const row = src?.rows.get(r.id)
-    return src?.s.context && row
-      ? { ...r, context: src.s.context(row, (ty, id) => index.get(`${ty}:${id}`)) }
-      : r
+    if (!row || !src) return r
+    // A declared `context` wins — it was chosen over the parent deliberately.
+    // Otherwise the parent's name is the thing that tells namesakes apart, and
+    // it costs the object nothing to say, having already declared its ancestry.
+    const own = src.s.context?.(row, (ty, id) => index.get(`${ty}:${id}`))
+    const up = src.s.parent?.(row)
+    const context = own ?? (up ? index.get(`${up.type}:${up.id}`) : undefined)
+    return context ? { ...r, context } : r
   }
 
   return {
@@ -214,6 +221,24 @@ function buildIndex(lists: SourceList[]): Map<string, string> {
 /** Resolve any (type,id) → current display label from the loaded lists.
  * Called once per rendered note; cheap because memoized JournalEntry rows that
  * don't change skip rendering (and this hook) entirely. */
+/**
+ * The whole row behind a (type, id), from the same pinned lists the resolver
+ * uses — so nothing refetches just because something asked.
+ *
+ * A label is enough to *print* a reference; walking a chain needs the row, since
+ * the next link up is a field on it. `useAncestry` is the only caller.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function useEntityRow(): (type: EntityType, id: string) => any | undefined {
+  const lists = mentionSources().map((s) => ({ s, data: s.useList(undefined, RESOLVER_OPTS).data ?? [] }))
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const map = new Map<string, any>()
+  for (const { s, data } of lists) {
+    for (const e of data) map.set(`${s.type}:${e.id}`, e)
+  }
+  return (type: EntityType, id: string) => map.get(`${type}:${id}`)
+}
+
 export function useEntityResolver(): (type: EntityType, id: string) => string | undefined {
   const lists = mentionSources().map((s) => ({ s, data: s.useList(undefined, RESOLVER_OPTS).data ?? [] }))
   // Indexes every row, terminal ones included — a chip pointing at an archived

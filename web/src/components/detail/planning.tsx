@@ -127,10 +127,11 @@ export function ProjectDetail({ entity }: { entity: Entity }) {
           onChange={(e) => setNewTask(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && newTask.trim()) {
+              // The project and nothing else. Copying an area down beside it is
+              // exactly what let the two drift apart; the area is a join away.
               createTask.mutate({
                 title: newTask.trim(),
                 project_id: project.id,
-                area_id: project.area_id,
                 status: "planned",
               })
               setNewTask("")

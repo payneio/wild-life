@@ -95,17 +95,17 @@ async def owned_scopes(session: AsyncSession, person_id: uuid.UUID) -> OwnedScop
             ).scalars()
         )
     project_ids = set(direct.project_ids)
-    if area_ids or program_ids:  # projects inside an owned area/program
-        clause = []
-        if area_ids:
-            clause.append(Project.area_id.in_(area_ids))
-        if program_ids:
-            clause.append(Project.program_id.in_(program_ids))
-        cond = clause[0]
-        for extra in clause[1:]:
-            cond = cond | extra
+    # Projects inside an owned program. An owned *area* reaches them too, but
+    # transitively: its programs were just folded into `program_ids` above, so
+    # matching on the program alone already covers both. A project has no area
+    # of its own to match against any more.
+    if program_ids:
         project_ids |= set(
-            (await session.execute(select(Project.id).where(cond))).scalars()
+            (
+                await session.execute(
+                    select(Project.id).where(Project.program_id.in_(program_ids))
+                )
+            ).scalars()
         )
     return OwnedScopes(area_ids, program_ids, project_ids)
 

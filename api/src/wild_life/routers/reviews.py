@@ -186,26 +186,33 @@ async def review_dashboard(
 
     # Areas with no active projects and no open tasks.
     areas = await _rows(session, select(Area).where(Area.status == "active"))
+    # A project's area is its program's; it no longer keeps a copy of its own.
     areas_with_projects = {
-        pid
-        for (pid,) in (
-            await session.execute(
-                select(Project.area_id).where(
-                    Project.status == "active", Project.area_id.isnot(None)
-                )
-            )
-        ).all()
-    }
-    areas_with_tasks = {
         aid
         for (aid,) in (
             await session.execute(
-                select(Task.area_id).where(
-                    Task.status.notin_(_TASK_OPEN), Task.area_id.isnot(None)
-                )
+                select(Program.area_id)
+                .join(Project, Project.program_id == Program.id)
+                .where(Project.status == "active", Program.area_id.isnot(None))
             )
         ).all()
     }
+    # A task hangs off exactly one rung of the hierarchy, so finding its area
+    # means following whichever rung it uses. Reading `Task.area_id` alone would
+    # now see only the unfiled ones and report every worked area as neglected.
+    open_tasks = Task.status.notin_(_TASK_OPEN)
+    areas_with_tasks: set[Any] = set()
+    for stmt in (
+        select(Task.area_id).where(open_tasks, Task.area_id.isnot(None)),
+        select(Program.area_id)
+        .join(Task, Task.program_id == Program.id)
+        .where(open_tasks, Program.area_id.isnot(None)),
+        select(Program.area_id)
+        .join(Project, Project.program_id == Program.id)
+        .join(Task, Task.project_id == Project.id)
+        .where(open_tasks, Program.area_id.isnot(None)),
+    ):
+        areas_with_tasks |= {aid for (aid,) in (await session.execute(stmt)).all()}
     neglected_areas = [
         {"id": str(a.id), "name": a.name, "review_frequency": a.review_frequency}
         for a in areas

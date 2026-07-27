@@ -52,6 +52,11 @@ export function RelatedPanel({
   const offered = !spec.hideWhenEmpty || involves.includes(spec.type)
   if (items.length === 0 && !offered) return null
 
+  // A panel that lists rows it doesn't own the link to shows them and stops —
+  // no Add, no unlink. An empty one would be a control with nothing behind it.
+  const readOnly = spec.mode === "fk-children" && spec.readOnly === true
+  if (readOnly && items.length === 0) return null
+
   const linkBody: Body =
     spec.mode === "fk-children"
       ? { [spec.fkField]: parent.id }
@@ -88,17 +93,26 @@ export function RelatedPanel({
               <NotebookPen size={13} /> New note
             </button>
           )}
-          <button
-            ref={addRef}
-            type="button"
-            onClick={() => setOpen(true)}
-            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
-          >
-            <Plus size={13} /> {isNotes ? "Link" : "Add"}
-          </button>
+          {!readOnly && (
+            <button
+              ref={addRef}
+              type="button"
+              onClick={() => setOpen(true)}
+              className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+            >
+              <Plus size={13} /> {isNotes ? "Link" : "Add"}
+            </button>
+          )}
         </div>
       }
     >
+      {/* Some objects can't be made from a title alone — an event needs a when.
+          Those bring their own capture surface; the picker above still links an
+          existing one. */}
+      {targetDef.capture && spec.mode === "soft-backref" && (
+        <targetDef.capture root={{ type: parentType, id: parent.id }} />
+      )}
+
       {items.length === 0 ? (
         <p className="text-sm text-slate-400">None yet.</p>
       ) : (
@@ -119,14 +133,16 @@ export function RelatedPanel({
                   {String(targetDef.title(row))}
                 </EntityRef>
                 {status && <StatusBadge status={status} />}
-                <button
-                  type="button"
-                  title="Unlink"
-                  onClick={() => update.mutate({ id: row.id, body: unlinkBody })}
-                  className="shrink-0 rounded p-0.5 text-slate-300 transition hover:text-red-600"
-                >
-                  <X size={14} />
-                </button>
+                {!readOnly && (
+                  <button
+                    type="button"
+                    title="Unlink"
+                    onClick={() => update.mutate({ id: row.id, body: unlinkBody })}
+                    className="shrink-0 rounded p-0.5 text-slate-300 transition hover:text-red-600"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
               </li>
             )
           })}

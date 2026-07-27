@@ -70,6 +70,11 @@ export type RelationSpec =
       fkField: string
       inherit?: string[]
       hideWhenEmpty?: boolean
+      /** List but don't link. For a collection reached *through* something else
+       *  — an Area's projects, which belong to its programs — where the rows are
+       *  worth seeing in one place but "Add" would have to invent a parent the
+       *  panel doesn't own. Filing happens on the rung that owns the link. */
+      readOnly?: boolean
     }
   | {
       mode: "soft-backref"
@@ -81,6 +86,27 @@ export type RelationSpec =
        *  deliverable; asking would be asking something already answered. */
       defaults?: Record<string, unknown>
     }
+
+/**
+ * First of `[field, type]` the row actually carries, as a parent ref.
+ *
+ * Written as pairs rather than a chain of `&&` so the declaration reads as the
+ * order of preference it is — tightest rung first — and so a field that stops
+ * existing shows up as a `parent` reading `undefined` rather than as a subtitle
+ * that silently prints nothing. `registry.test.ts` checks each named field
+ * against the fixtures for exactly that reason.
+ */
+export function refOf(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  row: any,
+  ...candidates: [field: string, type: EntityType][]
+): { type: EntityType; id: string } | undefined {
+  for (const [field, type] of candidates) {
+    const id = row?.[field]
+    if (typeof id === "string" && id) return { type, id }
+  }
+  return undefined
+}
 
 /** Panels an object can opt into via `involves`, rather than always showing.
  *  Empty ⇒ nothing to offer, so no control appears. */
@@ -111,10 +137,30 @@ export interface EntityDef {
   detail: ComponentType<{ entity: Entity; onClose: () => void; onDelete?: () => void }>
   /** Related collections rendered as generic add/link/create panels. */
   relations?: RelationSpec[]
+  /** An object's own capture surface, for when a title alone can't make one.
+   *  A component like `detail`, not a config flag: an event needs a *when*, and
+   *  what control that takes is the object's business. Rendered by a related
+   *  panel above the list; absent means the generic title-only quick-create in
+   *  the picker is enough. */
+  capture?: ComponentType<{ root: { type: EntityType; id: string } }>
   /** If set, the detail shows a polymorphic "primary context" picker (writes the
    *  entity_type/entity_id soft-poly pair) under this label — e.g. "Rooted to"
    *  for notes, "About" for events. */
   contextLabel?: string
+  /**
+   * The one object this is filed under — ancestry, declared once.
+   *
+   * Where the object lives is a fact about the object, not a fact about any
+   * particular surface, so it belongs here rather than in each place that wants
+   * to show it. Two things read it: the breadcrumb (`useAncestry` walks it
+   * upward — a project reaches its area by asking its program, never by keeping
+   * a copy) and the picker subtitle below.
+   *
+   * Return the *link*, not a label. A `{type, id}` can be resolved to a name, a
+   * route, or another parent; a string can only be printed.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  parent?: (e: any) => { type: EntityType; id: string } | undefined
   /**
    * The muted subtitle a type-scoped picker shows beside each row.
    *
@@ -123,6 +169,11 @@ export interface EntityDef {
    * disambiguates differs by object: a parent for hierarchical ones, a date for
    * temporal ones, an affiliation for people. `resolve` is the shared entity
    * index (`useEntityResolver`), because a row carries `area_id`, not "Health".
+   *
+   * Optional where `parent` says it already: an object with a parent falls back
+   * to that parent's name, so only objects whose subtitle *isn't* their parent
+   * (a medication's brand, an organization's type) declare one — and one that
+   * does declare it wins, since it was chosen over the parent on purpose.
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   context?: (e: any, resolve: (type: EntityType, id: string) => string | undefined) => string | undefined
@@ -156,29 +207,34 @@ import {
 export const REGISTRY: Record<string, EntityDef> = {
   area: { key: "area", label: "Area", crud: areas, fields: AREA_FIELDS, title: (e) => e.name, entityType: "area", titleField: "name", quickCreate: true, detail: AreaRecord, relations: [
     { mode: "fk-children", label: "Programs", type: "program", fkField: "area_id" },
-    { mode: "fk-children", label: "Projects", type: "project", fkField: "area_id" },
+    // Reached through the programs — `?area_id=` on /projects resolves the join
+    // server-side. Read-only because a project is filed into a program, not an
+    // area; the Add lives on the Program panel below it.
+    { mode: "fk-children", label: "Projects", type: "project", fkField: "area_id", readOnly: true },
     { mode: "soft-backref", label: "Outcomes", type: "outcome", defaults: { kind: "standard" } },
     { mode: "fk-children", label: "Routines", type: "routine", fkField: "area_id" },
     { mode: "soft-backref", label: "Metrics", type: "metric" },
     { mode: "soft-backref", label: "Events", type: "event", hideWhenEmpty: true },
     { mode: "soft-backref", label: "Notes", type: "note" },
   ] },
-  project: { key: "project", label: "Project", crud: projects, fields: PROJECT_FIELDS, title: (e) => e.name, context: (e, r) => (e.program_id && r("program", e.program_id)) || (e.area_id && r("area", e.area_id)) || undefined, entityType: "project", titleField: "name", quickCreate: true, detail: ProjectRecord, relations: [
+  project: { key: "project", label: "Project", crud: projects, fields: PROJECT_FIELDS, title: (e) => e.name, parent: (e) => ({ type: "program", id: e.program_id }), entityType: "project", titleField: "name", quickCreate: true, detail: ProjectRecord, relations: [
     { mode: "soft-backref", label: "Events", type: "event", hideWhenEmpty: true },
     { mode: "soft-backref", label: "Notes", type: "note" },
     { mode: "soft-backref", label: "Resources", type: "resource" },
     { mode: "soft-backref", label: "Decisions", type: "decision" },
     { mode: "soft-backref", label: "Done when", type: "outcome", defaults: { kind: "deliverable" } },
   ] },
-  outcome: { key: "outcome", label: "Outcome", crud: outcomes, fields: OUTCOME_FIELDS, title: (e) => e.statement, context: (e, r) => (e.entity_type && e.entity_id && r(e.entity_type, e.entity_id)) || undefined, entityType: "outcome", titleField: "statement", quickCreate: true, detail: OutcomeRecord, relations: [
+  outcome: { key: "outcome", label: "Outcome", crud: outcomes, fields: OUTCOME_FIELDS, title: (e) => e.statement, parent: (e) => (e.entity_type && e.entity_id ? { type: e.entity_type, id: e.entity_id } : undefined), entityType: "outcome", titleField: "statement", quickCreate: true, detail: OutcomeRecord, relations: [
     { mode: "soft-backref", label: "Notes", type: "note" },
   ] },
-  metric: { key: "metric", label: "Metric", crud: metrics, fields: METRIC_FIELDS, title: (e) => e.name, context: (e, r) => (e.area_id && r("area", e.area_id)) || undefined, entityType: "metric", titleField: "name", quickCreate: true, detail: MetricRecord, relations: [
+  // Rooted soft-polymorphically, not on an `area_id` — the subtitle used to read
+  // one, years after the column moved, and printed nothing on every row.
+  metric: { key: "metric", label: "Metric", crud: metrics, fields: METRIC_FIELDS, title: (e) => e.name, parent: (e) => (e.entity_type && e.entity_id ? { type: e.entity_type, id: e.entity_id } : undefined), entityType: "metric", titleField: "name", quickCreate: true, detail: MetricRecord, relations: [
     { mode: "fk-children", label: "Outcomes measured by this", type: "outcome", fkField: "metric_id" },
   ] },
-  routine: { key: "routine", label: "Routine", crud: routines, fields: ROUTINE_FIELDS, title: (e) => e.activity ?? e.name ?? "Routine", context: (e, r) => (e.protocol_id && r("protocol", e.protocol_id)) || (e.area_id && r("area", e.area_id)) || undefined, entityType: "routine", titleField: "activity", quickCreate: true, detail: RoutineRecord },
-  program: { key: "program", label: "Program", crud: programs, fields: PROGRAM_FIELDS, title: (e) => e.name, context: (e, r) => (e.area_id && r("area", e.area_id)) || undefined, entityType: "program", titleField: "name", quickCreate: true, detail: ProgramRecord, relations: [
-    { mode: "fk-children", label: "Projects", type: "project", fkField: "program_id", inherit: ["area_id"] },
+  routine: { key: "routine", label: "Routine", crud: routines, fields: ROUTINE_FIELDS, title: (e) => e.activity ?? e.name ?? "Routine", parent: (e) => refOf(e, ["protocol_id", "protocol"], ["program_id", "program"], ["area_id", "area"]), entityType: "routine", titleField: "activity", quickCreate: true, detail: RoutineRecord },
+  program: { key: "program", label: "Program", crud: programs, fields: PROGRAM_FIELDS, title: (e) => e.name, parent: (e) => refOf(e, ["area_id", "area"]), entityType: "program", titleField: "name", quickCreate: true, detail: ProgramRecord, relations: [
+    { mode: "fk-children", label: "Projects", type: "project", fkField: "program_id" },
     { mode: "soft-backref", label: "Metrics", type: "metric" },
     { mode: "soft-backref", label: "Outcomes", type: "outcome", defaults: { kind: "target" } },
     // A condition is a program, so the clinical panels live here. They stay out
@@ -189,7 +245,8 @@ export const REGISTRY: Record<string, EntityDef> = {
     { mode: "soft-backref", label: "Events", type: "event", hideWhenEmpty: true },
     { mode: "soft-backref", label: "Notes", type: "note" },
   ] },
-  task: { key: "task", label: "Task", crud: tasks, fields: TASK_FIELDS, title: (e) => e.title, context: (e, r) => (e.project_id && r("project", e.project_id)) || (e.area_id && r("area", e.area_id)) || undefined, entityType: "task", titleField: "title", quickCreate: true, detail: TaskRecord, relations: [
+  // Tightest first, though the API now guarantees only one is ever set.
+  task: { key: "task", label: "Task", crud: tasks, fields: TASK_FIELDS, title: (e) => e.title, parent: (e) => refOf(e, ["project_id", "project"], ["program_id", "program"], ["area_id", "area"]), entityType: "task", titleField: "title", quickCreate: true, detail: TaskRecord, relations: [
     { mode: "soft-backref", label: "Notes", type: "note", hideWhenEmpty: true },
   ] },
   delegation: { key: "delegation", label: "Delegation", crud: delegations, fields: DELEGATION_FIELDS, title: (e) => e.requested_outcome, entityType: "delegation", titleField: "requested_outcome", quickCreate: true, detail: DelegationRecord, relations: [
@@ -202,7 +259,7 @@ export const REGISTRY: Record<string, EntityDef> = {
     { mode: "fk-children", label: "Insurance plans", type: "insurance_plan", fkField: "organization_id" },
   ] },
   location: { key: "location", label: "Location", crud: locations, fields: LOCATION_FIELDS, title: (e) => e.name, context: (e) => e.city ?? undefined, entityType: "location", titleField: "name", quickCreate: true, detail: LocationRecord },
-  protocol: { key: "protocol", label: "Protocol", crud: protocols, fields: PROTOCOL_FIELDS, title: (e) => e.name, entityType: "protocol", titleField: "name", quickCreate: true, detail: ProtocolRecord },
+  protocol: { key: "protocol", label: "Protocol", crud: protocols, fields: PROTOCOL_FIELDS, title: (e) => e.name, parent: (e) => refOf(e, ["program_id", "program"]), entityType: "protocol", titleField: "name", quickCreate: true, detail: ProtocolRecord },
   note: { key: "note", label: "Note", crud: notes, fields: NOTE_FIELDS, title: (e) => e.title || "(untitled)", entityType: "note", titleField: "title", detail: NoteRecord },
   event: { key: "event", label: "Event", crud: events, fields: EVENT_FIELDS, title: (e) => e.title, entityType: "event", titleField: "title", detail: EventRecord, relations: [
     { mode: "soft-backref", label: "Notes", type: "note" },
@@ -218,8 +275,10 @@ export const REGISTRY: Record<string, EntityDef> = {
   ] },
   resource: { key: "resource", label: "Resource", crud: resources, fields: RESOURCE_FIELDS, title: (e) => e.title, context: (e) => e.resource_type ?? undefined, entityType: "resource", titleField: "title", quickCreate: true, detail: ResourceRecord },
   tag: { key: "tag", label: "Tag", crud: tags, fields: TAG_FIELDS, title: (e) => e.name, titleField: "name", quickCreate: true, detail: TagRecord },
-  medication: { key: "medication", label: "Medication", crud: medications, fields: MEDICATION_FIELDS, title: (e) => e.name, context: (e, r) => e.brand ?? ((e.program_id && r("program", e.program_id)) || undefined), entityType: "medication", titleField: "name", quickCreate: true, detail: MedicationRecord },
-  insurancePlan: { key: "insurancePlan", label: "Insurance plan", crud: insurancePlans, fields: INSURANCE_FIELDS, title: (e) => e.name, entityType: "insurance_plan", titleField: "name", quickCreate: true, detail: InsurancePlanRecord },
+  // Brand beats program in the picker — two rows named "ibuprofen" are told
+  // apart by the box they came in — so it keeps a `context` of its own.
+  medication: { key: "medication", label: "Medication", crud: medications, fields: MEDICATION_FIELDS, title: (e) => e.name, context: (e) => e.brand ?? undefined, parent: (e) => refOf(e, ["program_id", "program"]), entityType: "medication", titleField: "name", quickCreate: true, detail: MedicationRecord },
+  insurancePlan: { key: "insurancePlan", label: "Insurance plan", crud: insurancePlans, fields: INSURANCE_FIELDS, title: (e) => e.name, parent: (e) => refOf(e, ["organization_id", "organization"]), entityType: "insurance_plan", titleField: "name", quickCreate: true, detail: InsurancePlanRecord },
   allergy: { key: "allergy", label: "Allergy", crud: allergies, fields: ALLERGY_FIELDS, title: (e) => e.substance, entityType: "allergy", titleField: "substance", quickCreate: true, detail: AllergyRecord },
 }
 

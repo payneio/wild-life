@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { Check, GitMerge, NotebookPen, RotateCcw, Trash2 } from "lucide-react"
 import { Backlinks } from "@/components/Backlinks"
 import { MergeDialog } from "@/components/MergeDialog"
+import { Ancestry } from "@/components/record/Ancestry"
 import { InvolvesControl } from "@/components/record/InvolvesControl"
 import { NoteRootField } from "@/components/graph/NoteRootField"
 import { RelatedPanel } from "@/components/graph/RelatedPanel"
@@ -89,8 +90,13 @@ export function Record({
 
   return (
     <div className="space-y-5">
-      {/* Action bar */}
-      <div className="flex items-center gap-1">
+      {/* Where this sits, above everything it could act on — and tucked close to
+          the action bar, since together they're one band of chrome. */}
+      <div className="space-y-1.5">
+        <Ancestry type={def.entityType} id={entity.id} />
+
+        {/* Action bar */}
+        <div className="flex items-center gap-1">
         {isTask && (
           <Button
             variant={taskDone ? "secondary" : "primary"}
@@ -140,6 +146,7 @@ export function Record({
         >
           <Trash2 size={14} /> Delete
         </Button>
+        </div>
       </div>
 
       {/* The entity's own layout */}

@@ -33,16 +33,27 @@ def _cleanup_tokens(token_ids: list[str]) -> None:
 
 def test_worker_scope(client: TestClient, auth_headers: dict, require_db: None) -> None:
     owner = auth_headers
-    made: dict[str, list[str]] = {"tasks": [], "projects": [], "people": [], "tok": []}
+    made: dict[str, list[str]] = {
+        "tasks": [],
+        "projects": [],
+        "programs": [],
+        "people": [],
+        "tok": [],
+    }
     try:
         person = _post(client, owner, "/people", name=f"{MARK} assistant")
         made["people"].append(person["id"])
 
+        # A project needs a program; nothing owns the program, so the only route
+        # into the project's scope is the project itself.
+        program = _post(client, owner, "/programs", name=f"{MARK} program")
+        made["programs"].append(program["id"])
         project = _post(
             client,
             owner,
             "/projects",
             name=f"{MARK} project",
+            program_id=program["id"],
             responsible_lead_id=person["id"],
         )
         made["projects"].append(project["id"])
@@ -102,7 +113,11 @@ def test_worker_scope(client: TestClient, auth_headers: dict, require_db: None) 
         # coarse denials
         assert client.delete(f"/tasks/{t_in['id']}", headers=wh).status_code == 403
         assert (
-            client.post("/projects", headers=wh, json={"name": "nope"}).status_code
+            client.post(
+                "/projects",
+                headers=wh,
+                json={"name": "nope", "program_id": program["id"]},
+            ).status_code
             == 403
         )
     finally:
@@ -110,6 +125,8 @@ def test_worker_scope(client: TestClient, auth_headers: dict, require_db: None) 
             client.delete(f"/tasks/{tid}", headers=owner)
         for pid in made["projects"]:
             client.delete(f"/projects/{pid}", headers=owner)
+        for pid in made["programs"]:
+            client.delete(f"/programs/{pid}", headers=owner)
         for pid in made["people"]:
             client.delete(f"/people/{pid}", headers=owner)
         _cleanup_tokens(made["tok"])
@@ -131,6 +148,7 @@ def test_actionable_queue(
     m: dict[str, list[str]] = {
         "tasks": [],
         "projects": [],
+        "programs": [],
         "areas": [],
         "people": [],
         "tok": [],
@@ -141,6 +159,8 @@ def test_actionable_queue(
         m["people"] += [planner["id"], coder["id"]]
 
         # Planner owns the AREA; Coder owns the PROJECT inside it (tightest owner).
+        # The program between them is owned by nobody, so it also checks that the
+        # area's authority still cascades through an unowned rung.
         area = _post(
             client,
             owner,
@@ -149,12 +169,16 @@ def test_actionable_queue(
             accountable_owner_id=planner["id"],
         )
         m["areas"].append(area["id"])
+        program = _post(
+            client, owner, "/programs", name=f"{MARK} program", area_id=area["id"]
+        )
+        m["programs"].append(program["id"])
         proj = _post(
             client,
             owner,
             "/projects",
             name=f"{MARK} proj",
-            area_id=area["id"],
+            program_id=program["id"],
             accountable_owner_id=coder["id"],
             responsible_lead_id=coder["id"],
         )
@@ -245,6 +269,9 @@ def test_actionable_queue(
             client.delete(f"/tasks/{tid}", headers=owner)
         for pid in m["projects"]:
             client.delete(f"/projects/{pid}", headers=owner)
+        # Programs before areas, and after projects: the project FK is RESTRICT.
+        for pid in m["programs"]:
+            client.delete(f"/programs/{pid}", headers=owner)
         for aid in m["areas"]:
             client.delete(f"/areas/{aid}", headers=owner)
         for pid in m["people"]:

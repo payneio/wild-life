@@ -73,11 +73,22 @@ class Project(UUIDPrimaryKey, TimestampMixin, Base):
 
     name: Mapped[str] = mapped_column(Text, nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
-    area_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("areas.id", ondelete="SET NULL"), index=True
-    )
-    program_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("programs.id", ondelete="SET NULL"), index=True
+    # The program it serves — the project's one and only parent, the way a
+    # protocol's is. There is no `area_id` beside it: every project that had a
+    # program agreed with that program's area in all 25 rows, and the 11 that
+    # had none were one area's pre-reorg residue (ten of them archived). So the
+    # column only ever restated what the program already says, from a copy taken
+    # at creation that nothing refreshed — the same arrangement one level down,
+    # on Task, had already drifted.
+    #
+    # RESTRICT, not SET NULL: with the column non-null there is nothing to set
+    # it to, and a program holding projects should refuse to vanish rather than
+    # take them with it. `main.py` turns the violation into a 409.
+    program_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("programs.id", ondelete="RESTRICT"),
+        index=True,
+        nullable=False,
     )
     intended_outcome: Mapped[str | None] = mapped_column(Text)
     status: Mapped[str] = mapped_column(

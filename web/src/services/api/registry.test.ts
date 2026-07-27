@@ -11,11 +11,18 @@ import { FIXTURES } from "@/test/fixtures"
  * `area_id` after Metric moved to a soft-poly root.
  *
  * Silence is the problem, so this makes it loud at build time.
+ *
+ * `readOnly` panels are exempt, and only they: their param is answered by a join
+ * the API performs rather than a column on the row (an Area's Projects reach it
+ * through the programs). The exemption is safe because the same silence cannot
+ * happen there — an unrecognised param on those endpoints is an explicit 422,
+ * not an ignored filter — and it is narrow because a read-only panel has no Add
+ * to write the field back with.
  */
 describe("every fk-children panel filters on a field the target actually has", () => {
   const specs = Object.values(REGISTRY).flatMap((def) =>
     (def.relations ?? [])
-      .filter((r) => r.mode === "fk-children")
+      .filter((r) => r.mode === "fk-children" && !r.readOnly)
       .map((r) => ({ parent: def.key, ...(r as { label: string; type: string; fkField: string }) })),
   )
 

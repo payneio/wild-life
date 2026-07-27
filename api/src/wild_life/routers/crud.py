@@ -5,6 +5,7 @@ standard endpoints (create/list/get/patch/delete). Feature routers compose one
 of these per resource and add anything extra on top.
 """
 
+from collections.abc import Callable, Mapping
 from typing import Any
 from uuid import UUID
 
@@ -25,8 +26,15 @@ def crud_router(
     read_schema: type[Any],
     update_schema: type[Any],
     order_by: Any | None = None,
+    list_filter: Callable[[Any, Mapping[str, str]], Any] | None = None,
 ) -> APIRouter:
-    """Build a router exposing standard CRUD for ``model``."""
+    """Build a router exposing standard CRUD for ``model``.
+
+    ``list_filter`` narrows the list query by params ``apply_query`` cannot reach
+    on its own — a filter that has to join rather than compare a column. It is a
+    hook rather than a bespoke router because the alternative, a second ``GET ""``
+    shadowing this one, hides the generic behaviour behind a copy of it.
+    """
     router = APIRouter(prefix=prefix, tags=[tag])
 
     # Stable, readable operation ids (e.g. ``/health-events`` -> ``health_events``)
@@ -59,6 +67,8 @@ def crud_router(
         stmt = select(model)
         if order_by is not None:
             stmt = stmt.order_by(order_by)
+        if list_filter is not None:
+            stmt = list_filter(stmt, request.query_params)
         stmt, limit, offset = apply_query(stmt, model, request.query_params)
         if limit is not None or offset is not None:
             total = await session.scalar(
@@ -110,5 +120,11 @@ def crud_router(
         if obj is None:
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not found")
         await session.delete(obj)
+        # Flushed here, not left to the session's commit-on-success. A delete a
+        # foreign key refuses — a program still holding projects — otherwise
+        # fails *after* the route has returned, and the caller is told 204 for a
+        # row that is still there. Inside the route it reaches the handler and
+        # comes back a 409.
+        await session.flush()
 
     return router

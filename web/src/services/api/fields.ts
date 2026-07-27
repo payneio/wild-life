@@ -245,7 +245,6 @@ export const PROJECT_FIELDS: FieldSpec[] = [
   { name: "description", label: "Description", type: "textarea", full: true },
   { name: "status", label: "Status", type: "select", options: ["proposed", "active", "waiting", "paused", "completed", "cancelled", "archived"] },
   { name: "priority", label: "Priority", type: "select", options: PRIORITIES },
-  { name: "area_id", label: "Area", type: "entity", lookup: "area" },
   { name: "program_id", label: "Program", type: "entity", lookup: "program" },
   { name: "intended_outcome", label: "Intended outcome", type: "textarea", full: true },
   { name: "completion_criteria", label: "Completion criteria", type: "textarea", full: true },

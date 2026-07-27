@@ -286,6 +286,10 @@ PEOPLE: list[dict[str, Any]] = [
 ORG_NAME = "Microsoft"
 AREA_NAME = "MADE: Exploration"
 PROGRAM_NAME = "Amplifier Platform"
+# A project's only parent is a program, so the retired engagements need one too
+# rather than hanging off the area. Matches the holding program a4b5c6d7e8f9
+# created for exactly these rows.
+ARCHIVE_PROGRAM_NAME = "Exploration"
 WORK_TAG = "work:microsoft"
 
 # --------------------------------------------------------------------------- #
@@ -759,14 +763,25 @@ def main() -> int:
     lex.add(PROGRAM_NAME, "program", program["id"], PROGRAM_NAME)
     lex.add("Amplifier Platform", "program", program["id"], "Amplifier Platform")
 
+    archive = c.ensure(
+        "/programs",
+        {
+            "name": ARCHIVE_PROGRAM_NAME,
+            "area_id": area["id"],
+            "status": "resolved",
+            "description": "Holds projects that predate this area's programs.",
+        },
+        key_fields=["name"],
+        update_fields=["status", "area_id"],
+    )
+
     # -- 4. engagement projects ----------------------------------------- #
     project_ids: dict[str, str] = {}  # folder/name -> id
     for eng in ENGAGEMENTS:
         payload = {
             "name": eng["name"],
             "status": eng["status"],
-            "area_id": area["id"],
-            "program_id": program["id"] if eng["active"] else None,
+            "program_id": program["id"] if eng["active"] else archive["id"],
             "intended_outcome": eng["outcome"],
             "priority": "high" if eng["active"] else "low",
         }
@@ -778,7 +793,6 @@ def main() -> int:
             key_fields=["name"],
             update_fields=[
                 "status",
-                "area_id",
                 "program_id",
                 "intended_outcome",
                 "next_action",
@@ -800,7 +814,6 @@ def main() -> int:
             {
                 "name": rm["name"],
                 "status": rm["status"],
-                "area_id": area["id"],
                 "program_id": program["id"],
                 "intended_outcome": rm["outcome"],
                 "priority": "medium",

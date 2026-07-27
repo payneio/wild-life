@@ -282,8 +282,8 @@ export const PROJECT: Project = {
   ...BASE,
   name: "Kitchen remodel",
   description: "Cabinets, counters, lighting",
-  area_id: null,
-  program_id: null,
+  // Non-null in the schema — a project without a program cannot exist.
+  program_id: "22222222-2222-2222-2222-222222222222",
   intended_outcome: "A kitchen we want to cook in",
   status: "active",
   priority: "high",

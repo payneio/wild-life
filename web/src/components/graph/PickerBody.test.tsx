@@ -12,12 +12,12 @@ import { PROJECT } from "@/test/fixtures"
 const live = ["Aurora", "Bedrock", "Cascade", "Delta", "Everest", "Foxglove", "Granite", "Harbor"]
 const finished = ["Old Migration", "Legacy Port", "Retired Site", "Sunset Plan"]
 const PROJECTS = [
-  ...live.map((name, i) => ({ ...PROJECT, id: `live-${i}`, name, status: "active", area_id: "area-1", program_id: null })),
+  ...live.map((name, i) => ({ ...PROJECT, id: `live-${i}`, name, status: "active", program_id: "program-1" })),
   ...finished.map((name, i) => ({ ...PROJECT, id: `done-${i}`, name, status: "completed" })),
   { ...PROJECT, id: "atlas", name: "Atlas", status: "archived" },
 ]
 
-const AREAS = [{ ...PROJECT, id: "area-1", name: "Health" }]
+const PROGRAMS = [{ ...PROJECT, id: "program-1", name: "Sleep" }]
 const SELF = "person-me"
 const PEOPLE = [
   { ...PROJECT, id: "person-a", name: "Aaron Diaz" },
@@ -39,9 +39,9 @@ vi.mock("@/services/api/hooks", async (importOriginal) => ({
     useUpdate: () => ({ mutate: vi.fn() }),
     useRemove: () => ({ mutate: vi.fn() }),
   },
-  areas: {
-    resource: "areas",
-    useList: () => ({ data: AREAS }),
+  programs: {
+    resource: "programs",
+    useList: () => ({ data: PROGRAMS }),
     useGet: () => ({ data: undefined }),
     useCreate: () => ({ mutateAsync: vi.fn() }),
     useUpdate: () => ({ mutate: vi.fn() }),
@@ -143,9 +143,9 @@ describe("PickerBody", () => {
 
   it("spends the row's right-hand slot on what tells rows apart", () => {
     // Scoped to one type, printing "Project" on all 13 rows says nothing; the
-    // parent does. Requires the resolver, since a row carries area_id.
+    // parent does. Requires the resolver, since a row carries program_id.
     mount(<PickerBody type="project" intent="assign" onSelect={vi.fn()} />)
-    expect(rowNamed("Aurora")[0]).toContain("Health")
+    expect(rowNamed("Aurora")[0]).toContain("Sleep")
     expect(rowNamed("Aurora")[0]).not.toContain("Project")
   })
 

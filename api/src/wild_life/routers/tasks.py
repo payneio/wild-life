@@ -16,6 +16,7 @@ from wild_life.authz import (
     scope_task_create,
 )
 from wild_life.db.session import get_session
+from wild_life.hierarchy import tasks_rooted_at
 from wild_life.identity import Identity, current_identity
 from wild_life.lifecycle import closed_statuses
 from wild_life.models.tasks import Task
@@ -104,6 +105,33 @@ def _spawn_next_occurrence(task: Task) -> Task | None:
     )
 
 
+# Tightest first — the rung a caller means when they supply more than one.
+_PARENT_FIELDS = ("project_id", "program_id", "area_id")
+_ROOT_PARAMS = frozenset(_PARENT_FIELDS)
+
+
+def _file_under_one_parent(values: dict) -> dict:
+    """Keep the tightest parent supplied and clear the rest.
+
+    Filing a task somewhere *moves* it; it does not add a second home. Callers
+    that still send a project alongside a copied-down area — which is how the
+    two drifted apart in the first place — get the project and a cleared area
+    rather than a `ck_tasks_single_parent` violation.
+
+    Only fires when a parent is actually being set. A patch that sends nothing
+    leaves the filing alone, and one that nulls a rung just unfiles the task.
+    """
+    tightest = next(
+        (f for f in _PARENT_FIELDS if values.get(f) is not None),
+        None,
+    )
+    if tightest is not None:
+        for field in _PARENT_FIELDS:
+            if field != tightest:
+                values[field] = None
+    return values
+
+
 @router.post(
     "",
     response_model=TaskRead,
@@ -115,7 +143,9 @@ async def create_task(
     session: AsyncSession = Depends(get_session),
     identity: Identity = Depends(current_identity),
 ) -> Task:
-    values = await scope_task_create(session, payload.model_dump(), identity)
+    values = await scope_task_create(
+        session, _file_under_one_parent(payload.model_dump()), identity
+    )
     task = Task(**values)
     _sync_completion(task)
     session.add(task)
@@ -142,10 +172,13 @@ async def list_tasks(
         stmt = stmt.where(Task.status == status_filter)
     if priority is not None:
         stmt = stmt.where(Task.priority == priority)
+    # Rooted, not exact: a task hangs off one rung, so "tasks in this area" has
+    # to reach through the area's programs and their projects. Matching the
+    # column alone would answer with the handful filed directly at that level.
     if area_id is not None:
-        stmt = stmt.where(Task.area_id == area_id)
+        stmt = stmt.where(tasks_rooted_at("area", area_id))
     if program_id is not None:
-        stmt = stmt.where(Task.program_id == program_id)
+        stmt = stmt.where(tasks_rooted_at("program", program_id))
     if project_id is not None:
         stmt = stmt.where(Task.project_id == project_id)
     if context is not None:
@@ -158,7 +191,8 @@ async def list_tasks(
     if not include_closed and queue != "delegated":
         stmt = stmt.where(Task.status.notin_(_CLOSED_STATUSES))
 
-    stmt, limit, offset = apply_query(stmt, Task, request.query_params)
+    # The three rung params are answered above, rooted rather than exact.
+    stmt, limit, offset = apply_query(stmt, Task, request.query_params, _ROOT_PARAMS)
     if offset is not None:
         stmt = stmt.offset(offset)
     if limit is not None:
@@ -196,21 +230,16 @@ async def my_tasks(
     direct = await directly_owned_scopes(session, pid)
     # Unassigned tasks match the direct owner of their TIGHTEST populated scope
     # (project > program > area), so a broader owner never shadows a specific one.
+    # The tightest-scope rule needs no guards any more: a task carries exactly
+    # one of the three ids, so matching on `program_id` already implies it has
+    # no project, and a broader owner cannot shadow a specific one by accident.
     triage = []
     if direct.project_ids:
         triage.append(Task.project_id.in_(direct.project_ids))
     if direct.program_ids:
-        triage.append(
-            and_(Task.project_id.is_(None), Task.program_id.in_(direct.program_ids))
-        )
+        triage.append(Task.program_id.in_(direct.program_ids))
     if direct.area_ids:
-        triage.append(
-            and_(
-                Task.project_id.is_(None),
-                Task.program_id.is_(None),
-                Task.area_id.in_(direct.area_ids),
-            )
-        )
+        triage.append(Task.area_id.in_(direct.area_ids))
     actionable = [Task.assignee_id == pid]
     if triage:
         actionable.append(and_(Task.assignee_id.is_(None), or_(*triage)))
@@ -244,7 +273,7 @@ async def update_task(
     if task is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not found")
     await assert_can_write_task(session, task, identity)
-    changes = payload.model_dump(exclude_unset=True)
+    changes = _file_under_one_parent(payload.model_dump(exclude_unset=True))
     assert_worker_task_fields(changes, identity)
     was_completed = task.status == "completed"
     for field, value in changes.items():
