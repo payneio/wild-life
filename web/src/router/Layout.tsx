@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react"
 import { NavLink, Outlet } from "react-router-dom"
 import {
-  Activity,
   Bell,
   BellOff,
   Bookmark,
@@ -76,9 +75,6 @@ const PLAN: Item[] = [
 ]
 
 const HEALTH: Item[] = [
-  // A condition is a program in the Health area; the word survives as a
-  // label because a label is not a schema.
-  { to: "/programs", label: "Conditions", icon: Activity },
   { to: "/medications", label: "Medications", icon: Pill },
   { to: "/insurance", label: "Insurance", icon: ShieldPlus },
   { to: "/allergies", label: "Allergies", icon: TriangleAlert },

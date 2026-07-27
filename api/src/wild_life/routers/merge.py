@@ -112,6 +112,8 @@ SOFT_POLY = [
     # An outcome's root is soft-poly like the rest, so a merge has to carry it —
     # otherwise combining two rows silently drops what they claimed must be true.
     (Outcome.__table__, "entity_type", "entity_id"),
+    # Same for what a metric measures, since it stopped being an FK triple.
+    (Metric.__table__, "entity_type", "entity_id"),
     (
         Base.metadata.tables["wild_life.entity_links"],
         "target_type",
