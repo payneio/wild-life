@@ -76,7 +76,9 @@ const PLAN: Item[] = [
 ]
 
 const HEALTH: Item[] = [
-  { to: "/conditions", label: "Conditions", icon: Activity },
+  // A condition is a program in the Health area; the word survives as a
+  // label because a label is not a schema.
+  { to: "/programs", label: "Conditions", icon: Activity },
   { to: "/medications", label: "Medications", icon: Pill },
   { to: "/insurance", label: "Insurance", icon: ShieldPlus },
   { to: "/allergies", label: "Allergies", icon: TriangleAlert },

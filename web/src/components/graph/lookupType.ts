@@ -13,7 +13,6 @@ export const LOOKUP_TO_TYPE: Record<LookupKey, EntityType> = {
   outcome: "outcome",
   metric: "metric",
   organization: "organization",
-  condition: "condition",
   medication: "medication",
   protocol: "protocol",
 }

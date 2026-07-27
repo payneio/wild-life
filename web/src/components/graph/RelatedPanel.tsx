@@ -39,8 +39,18 @@ export function RelatedPanel({
   const addRef = useRef<HTMLButtonElement>(null)
   const isNotes = spec.type === "note"
 
-  // Work-item tier: keep the panel out of the way until it actually holds notes.
-  if (items.length === 0 && spec.mode === "soft-backref" && spec.hideWhenEmpty) return null
+  // Whether an *empty* panel is offered at all.
+  //
+  // Two things can say yes: the panel is always-on for this type, or the parent
+  // declares it deals with this kind of thing (`involves`). What can never
+  // suppress a panel is having rows — turning Medications off on a program that
+  // has medications must not make them invisible, which is the same guarantee
+  // `entities/coverage.test.tsx` gives fields.
+  const involves = Array.isArray((parent as { involves?: unknown }).involves)
+    ? ((parent as unknown as { involves: string[] }).involves ?? [])
+    : []
+  const offered = !spec.hideWhenEmpty || involves.includes(spec.type)
+  if (items.length === 0 && !offered) return null
 
   const linkBody: Body =
     spec.mode === "fk-children"

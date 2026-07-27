@@ -31,7 +31,6 @@ import {
 } from "@/pages/simple"
 import {
   AllergiesPage,
-  ConditionsPage,
   InsurancePage,
   MedicationsPage,
   ProtocolsPage,
@@ -83,10 +82,6 @@ export const router = createBrowserRouter([
       withDetail("organizations", <OrganizationsPage />, "organization"),
       withDetail("locations", <LocationsPage />, "location"),
       withDetail("metrics", <MetricsPage />, "metric"),
-      // Condition is the health hub (it contains meds/protocols/labs/outcomes) →
-      // full-page workbench with related panels, like Area/Project.
-      { path: "conditions", element: <ConditionsPage /> },
-      { path: "conditions/:id", element: <RecordPage entityKey="condition" backTo="/conditions" backLabel="Conditions" /> },
       withDetail("medications", <MedicationsPage />, "medication"),
       withDetail("protocols", <ProtocolsPage />, "protocol"),
       withDetail("insurance", <InsurancePage />, "insurancePlan"),

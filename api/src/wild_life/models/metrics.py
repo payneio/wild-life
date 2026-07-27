@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, Text
+from sqlalchemy import DateTime, Float, ForeignKey, Index, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -13,17 +13,14 @@ from wild_life.models.mixins import TimestampMixin, UUIDPrimaryKey
 
 class Metric(UUIDPrimaryKey, TimestampMixin, Base):
     __tablename__ = "metrics"
+    __table_args__ = (Index("ix_metrics_root", "entity_type", "entity_id"),)
 
     name: Mapped[str] = mapped_column(Text, nullable=False)
-    area_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("areas.id", ondelete="SET NULL"), index=True
-    )
-    program_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("programs.id", ondelete="SET NULL"), index=True
-    )
-    condition_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("conditions.id", ondelete="SET NULL"), index=True
-    )  # a lab/vital belongs to a health condition
+    # What this measures — one root, soft-poly like notes, events and outcomes.
+    # It replaced an area/program/condition triple, which is how cholesterol ended
+    # up filed against a program while methane was filed against a condition.
+    entity_type: Mapped[str] = mapped_column(Text, nullable=False)
+    entity_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     unit: Mapped[str | None] = mapped_column(Text)
     # The *externally defined* normal band — a lab's reference range, a clinical
     # guideline. Context to draw behind the trend, never a target: what I'm aiming

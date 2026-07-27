@@ -17,6 +17,16 @@ def _post(client: TestClient, headers: dict, path: str, **body: object) -> dict:
     return r.json()
 
 
+def _rooted_metric(client: TestClient, headers: dict, areas: list[str], **body) -> dict:
+    """A metric measures something, so it needs a root. These tests don't care
+    which — they're about readings and cadence — so each gets a scratch area."""
+    area = _post(client, headers, "/areas", name=f"{MARK} root {len(areas)}")
+    areas.append(area["id"])
+    return _post(
+        client, headers, "/metrics", entity_type="area", entity_id=area["id"], **body
+    )
+
+
 def test_two_readings_the_same_day_stay_distinct(
     client: TestClient, auth_headers: dict, require_db: None
 ) -> None:
@@ -27,8 +37,9 @@ def test_two_readings_the_same_day_stay_distinct(
     """
     owner = auth_headers
     metrics: list[str] = []
+    areas: list[str] = []
     try:
-        m = _post(client, owner, "/metrics", name=f"{MARK} blood pressure", unit="mmHg")
+        m = _rooted_metric(client, owner, areas, name=f"{MARK} blood pressure", unit="mmHg")
         metrics.append(m["id"])
 
         morning = "2026-03-04T15:12:00Z"  # 07:12 local
@@ -62,6 +73,8 @@ def test_two_readings_the_same_day_stay_distinct(
     finally:
         for mid in metrics:
             client.delete(f"/metrics/{mid}", headers=owner)  # cascades to entries
+        for aid in areas:
+            client.delete(f"/areas/{aid}", headers=owner)
 
 
 def test_measurement_frequency_is_a_closed_enum(
@@ -71,8 +84,9 @@ def test_measurement_frequency_is_a_closed_enum(
     meant weekly and "every other day" meant daily. Now the API says no."""
     owner = auth_headers
     metrics: list[str] = []
+    areas: list[str] = []
     try:
-        m = _post(client, owner, "/metrics", name=f"{MARK} enum")
+        m = _rooted_metric(client, owner, areas, name=f"{MARK} enum")
         metrics.append(m["id"])
 
         bad = client.patch(
@@ -101,25 +115,26 @@ def test_review_dashboard_flags_metrics_overdue_for_a_reading(
     never read, read long ago, read just now."""
     owner = auth_headers
     metrics: list[str] = []
+    areas: list[str] = []
     try:
-        never = _post(
+        never = _rooted_metric(
             client,
             owner,
-            "/metrics",
+            areas,
             name=f"{MARK} never",
             measurement_frequency="weekly",
         )
-        stale = _post(
+        stale = _rooted_metric(
             client,
             owner,
-            "/metrics",
+            areas,
             name=f"{MARK} stale",
             measurement_frequency="weekly",
         )
-        fresh = _post(
+        fresh = _rooted_metric(
             client,
             owner,
-            "/metrics",
+            areas,
             name=f"{MARK} fresh",
             measurement_frequency="weekly",
         )
@@ -159,8 +174,9 @@ def test_a_metric_with_no_cadence_is_never_nagged_about(
     """Blank cadence is the "don't remind me" option, and most metrics use it."""
     owner = auth_headers
     metrics: list[str] = []
+    areas: list[str] = []
     try:
-        m = _post(client, owner, "/metrics", name=f"{MARK} quiet")
+        m = _rooted_metric(client, owner, areas, name=f"{MARK} quiet")
         metrics.append(m["id"])
         assert m["measurement_frequency"] is None
 

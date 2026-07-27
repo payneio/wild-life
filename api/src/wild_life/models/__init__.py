@@ -5,7 +5,6 @@ from wild_life.models.calendar import AttendeeResponse, Event, SentInvite
 from wild_life.models.core import Area, Program, Project, ProjectContributor
 from wild_life.models.health import (
     Allergy,
-    Condition,
     InsurancePlan,
     Medication,
     Protocol,
@@ -37,7 +36,6 @@ __all__ = [
     "Routine",
     "RoutineInstance",
     "Outcome",
-    "Condition",
     "Medication",
     "Protocol",
     "InsurancePlan",

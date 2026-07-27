@@ -42,8 +42,10 @@ LIFECYCLE: dict[str, dict[str, LifecyclePhase]] = {
     "program": {
         "proposed": "backlog",
         "active": "active",
+        # Watched rather than pushed on — a condition you carry is still live.
+        "monitoring": "active",
         "paused": "blocked",
-        "completed": "done",
+        "resolved": "done",
         "cancelled": "cancelled",
     },
     "outcome": {
@@ -89,15 +91,6 @@ LIFECYCLE: dict[str, dict[str, LifecyclePhase]] = {
         "active": "active",
         "paused": "blocked",
         "archived": "done",
-    },
-    "condition": {
-        # A chronic or monitored condition is very much live.
-        "active": "active",
-        "monitoring": "active",
-        "chronic": "active",
-        "resolved": "done",
-        # Never was a condition, as opposed to one that ended.
-        "ruled_out": "cancelled",
     },
     "allergy": {
         "active": "active",

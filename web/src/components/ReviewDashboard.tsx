@@ -31,7 +31,7 @@ const CATS: Cat[] = [
   { key: "waiting_without_blocker", title: "Waiting, no blocker", type: "task", label: (r) => String(r.title ?? "") },
   { key: "delegated_without_owner", title: "Delegated, no owner", type: "task", label: (r) => String(r.title ?? "") },
   { key: "completed_with_open_tasks", title: "Done, but tasks open", type: "project", label: (r) => String(r.name ?? "") },
-  { key: "conditions_without_protocol", title: "Conditions, no protocol", type: "condition", label: (r) => String(r.name ?? "") },
+  { key: "conditions_without_protocol", title: "Conditions, no protocol", type: "program", label: (r) => String(r.name ?? "") },
   { key: "metrics_overdue", title: "Metrics due for a reading", type: "metric", label: (r) => String(r.name ?? ""), sub: (r) => (r.latest_entry ? `last ${formatDate(asDay(String(r.latest_entry)))}` : "never measured") },
   { key: "outcomes_overdue", title: "Targets past due", type: "outcome", label: (r) => String(r.name ?? "") },
   { key: "low_adherence", title: "Low med adherence", type: "routine", label: (r) => String(r.label ?? ""), sub: (r) => `${r.done ?? 0}/${r.expected ?? 0} days` },

@@ -36,7 +36,6 @@ from wild_life.models import (
     Allergy,
     Area,
     Commitment,
-    Condition,
     Decision,
     Delegation,
     Event,
@@ -78,7 +77,6 @@ TYPE_TO_MODEL: dict[str, type[Any]] = {
     "review": Review,
     "resource": Resource,
     "decision": Decision,
-    "condition": Condition,
     "medication": Medication,
     "protocol": Protocol,
     "insurance_plan": InsurancePlan,
@@ -116,7 +114,6 @@ SEARCH_FIELDS: dict[str, tuple[str, list[str]]] = {
     "metric": ("name", ["name", "unit", "data_source", "notes"]),
     "event": ("title", ["title", "description", "location"]),
     "note": ("title", ["title", "body", "mood"]),
-    "condition": ("name", ["name", "category", "severity", "description", "notes"]),
     "medication": (
         "name",
         ["name", "brand", "reason", "instructions", "notes"],

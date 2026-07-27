@@ -69,7 +69,9 @@ export function EventDetail({
       <RecordSection title="What & where">
         <F.Select field="event_type" label="Type" options={EVENT_TYPE} />
         <F.Text field="location" label="Location" />
-        <F.Textarea field="description" label="Description" minRows={2} />
+        {/* Invite bodies arrive formatted — links, schedules — and the API
+            stores them as markdown (see api/.../richtext.py). */}
+        <F.Markdown field="description" label="Description" minRows={2} />
       </RecordSection>
 
       <RecordSection title="Guests">

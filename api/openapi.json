@@ -1167,7 +1167,6 @@
                   "review",
                   "resource",
                   "decision",
-                  "condition",
                   "medication",
                   "protocol",
                   "protocol_item",
@@ -1329,7 +1328,6 @@
                   "review",
                   "resource",
                   "decision",
-                  "condition",
                   "medication",
                   "protocol",
                   "protocol_item",
@@ -1515,7 +1513,6 @@
                   "review",
                   "resource",
                   "decision",
-                  "condition",
                   "medication",
                   "protocol",
                   "protocol_item",
@@ -1586,460 +1583,6 @@
           }
         },
         "title": "CommitmentUpdate",
-        "type": "object"
-      },
-      "ConditionCreate": {
-        "properties": {
-          "area_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Area Id"
-          },
-          "category": {
-            "anyOf": [
-              {
-                "enum": [
-                  "gastrointestinal",
-                  "cardiovascular",
-                  "dermatologic",
-                  "musculoskeletal",
-                  "urologic",
-                  "auditory",
-                  "mental_health",
-                  "other"
-                ],
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Category"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "diagnosed_by_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Diagnosed By Id"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
-          },
-          "onset_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Onset Date"
-          },
-          "program_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Program Id"
-          },
-          "resolved_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Resolved Date"
-          },
-          "severity": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Severity"
-          },
-          "status": {
-            "default": "active",
-            "enum": [
-              "active",
-              "monitoring",
-              "chronic",
-              "resolved",
-              "ruled_out"
-            ],
-            "title": "Status",
-            "type": "string"
-          }
-        },
-        "required": [
-          "name"
-        ],
-        "title": "ConditionCreate",
-        "type": "object"
-      },
-      "ConditionRead": {
-        "properties": {
-          "area_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Area Id"
-          },
-          "category": {
-            "anyOf": [
-              {
-                "enum": [
-                  "gastrointestinal",
-                  "cardiovascular",
-                  "dermatologic",
-                  "musculoskeletal",
-                  "urologic",
-                  "auditory",
-                  "mental_health",
-                  "other"
-                ],
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Category"
-          },
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "diagnosed_by_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Diagnosed By Id"
-          },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
-          },
-          "onset_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Onset Date"
-          },
-          "program_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Program Id"
-          },
-          "resolved_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Resolved Date"
-          },
-          "severity": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Severity"
-          },
-          "status": {
-            "enum": [
-              "active",
-              "monitoring",
-              "chronic",
-              "resolved",
-              "ruled_out"
-            ],
-            "title": "Status",
-            "type": "string"
-          },
-          "updated_at": {
-            "format": "date-time",
-            "title": "Updated At",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "created_at",
-          "updated_at",
-          "name",
-          "category",
-          "status",
-          "area_id",
-          "program_id",
-          "severity",
-          "onset_date",
-          "resolved_date",
-          "diagnosed_by_id",
-          "description",
-          "notes"
-        ],
-        "title": "ConditionRead",
-        "type": "object"
-      },
-      "ConditionUpdate": {
-        "properties": {
-          "area_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Area Id"
-          },
-          "category": {
-            "anyOf": [
-              {
-                "enum": [
-                  "gastrointestinal",
-                  "cardiovascular",
-                  "dermatologic",
-                  "musculoskeletal",
-                  "urologic",
-                  "auditory",
-                  "mental_health",
-                  "other"
-                ],
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Category"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "diagnosed_by_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Diagnosed By Id"
-          },
-          "name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Name"
-          },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
-          },
-          "onset_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Onset Date"
-          },
-          "program_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Program Id"
-          },
-          "resolved_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Resolved Date"
-          },
-          "severity": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Severity"
-          },
-          "status": {
-            "anyOf": [
-              {
-                "enum": [
-                  "active",
-                  "monitoring",
-                  "chronic",
-                  "resolved",
-                  "ruled_out"
-                ],
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Status"
-          }
-        },
-        "title": "ConditionUpdate",
         "type": "object"
       },
       "ContactMethod": {
@@ -2152,7 +1695,6 @@
                   "review",
                   "resource",
                   "decision",
-                  "condition",
                   "medication",
                   "protocol",
                   "protocol_item",
@@ -2299,7 +1841,6 @@
                   "review",
                   "resource",
                   "decision",
-                  "condition",
                   "medication",
                   "protocol",
                   "protocol_item",
@@ -2463,7 +2004,6 @@
                   "review",
                   "resource",
                   "decision",
-                  "condition",
                   "medication",
                   "protocol",
                   "protocol_item",
@@ -2651,7 +2191,6 @@
                   "review",
                   "resource",
                   "decision",
-                  "condition",
                   "medication",
                   "protocol",
                   "protocol_item",
@@ -2898,7 +2437,6 @@
                   "review",
                   "resource",
                   "decision",
-                  "condition",
                   "medication",
                   "protocol",
                   "protocol_item",
@@ -3175,7 +2713,6 @@
                   "review",
                   "resource",
                   "decision",
-                  "condition",
                   "medication",
                   "protocol",
                   "protocol_item",
@@ -3449,7 +2986,6 @@
               "review",
               "resource",
               "decision",
-              "condition",
               "medication",
               "protocol",
               "protocol_item",
@@ -3494,7 +3030,6 @@
               "review",
               "resource",
               "decision",
-              "condition",
               "medication",
               "protocol",
               "protocol_item",
@@ -3539,7 +3074,6 @@
               "review",
               "resource",
               "decision",
-              "condition",
               "medication",
               "protocol",
               "protocol_item",
@@ -3792,7 +3326,6 @@
                   "review",
                   "resource",
                   "decision",
-                  "condition",
                   "medication",
                   "protocol",
                   "protocol_item",
@@ -4031,7 +3564,6 @@
                   "review",
                   "resource",
                   "decision",
-                  "condition",
                   "medication",
                   "protocol",
                   "protocol_item",
@@ -4309,7 +3841,6 @@
                   "review",
                   "resource",
                   "decision",
-                  "condition",
                   "medication",
                   "protocol",
                   "protocol_item",
@@ -5491,18 +5022,6 @@
             ],
             "title": "Brand"
           },
-          "condition_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Condition Id"
-          },
           "instructions": {
             "anyOf": [
               {
@@ -5563,6 +5082,18 @@
             ],
             "title": "Prescriber Id"
           },
+          "program_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Program Id"
+          },
           "reason": {
             "anyOf": [
               {
@@ -5593,18 +5124,6 @@
               }
             ],
             "title": "Brand"
-          },
-          "condition_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Condition Id"
           },
           "created_at": {
             "format": "date-time",
@@ -5675,6 +5194,18 @@
             ],
             "title": "Prescriber Id"
           },
+          "program_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Program Id"
+          },
           "reason": {
             "anyOf": [
               {
@@ -5700,7 +5231,7 @@
           "brand",
           "med_type",
           "reason",
-          "condition_id",
+          "program_id",
           "prescriber_id",
           "pharmacy_id",
           "instructions",
@@ -5721,18 +5252,6 @@
               }
             ],
             "title": "Brand"
-          },
-          "condition_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Condition Id"
           },
           "instructions": {
             "anyOf": [
@@ -5807,6 +5326,18 @@
             ],
             "title": "Prescriber Id"
           },
+          "program_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Program Id"
+          },
           "reason": {
             "anyOf": [
               {
@@ -5859,7 +5390,6 @@
               "review",
               "resource",
               "decision",
-              "condition",
               "medication",
               "protocol",
               "protocol_item",
@@ -5880,30 +5410,6 @@
       },
       "MetricCreate": {
         "properties": {
-          "area_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Area Id"
-          },
-          "condition_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Condition Id"
-          },
           "data_source": {
             "anyOf": [
               {
@@ -5914,6 +5420,40 @@
               }
             ],
             "title": "Data Source"
+          },
+          "entity_id": {
+            "format": "uuid",
+            "title": "Entity Id",
+            "type": "string"
+          },
+          "entity_type": {
+            "enum": [
+              "area",
+              "program",
+              "project",
+              "task",
+              "routine",
+              "outcome",
+              "metric",
+              "event",
+              "note",
+              "person",
+              "organization",
+              "location",
+              "commitment",
+              "request",
+              "delegation",
+              "review",
+              "resource",
+              "decision",
+              "medication",
+              "protocol",
+              "protocol_item",
+              "insurance_plan",
+              "allergy"
+            ],
+            "title": "Entity Type",
+            "type": "string"
           },
           "measurement_frequency": {
             "anyOf": [
@@ -5947,18 +5487,6 @@
               }
             ],
             "title": "Notes"
-          },
-          "program_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Program Id"
           },
           "reference_max": {
             "anyOf": [
@@ -5995,7 +5523,9 @@
           }
         },
         "required": [
-          "name"
+          "name",
+          "entity_type",
+          "entity_id"
         ],
         "title": "MetricCreate",
         "type": "object"
@@ -6133,30 +5663,6 @@
       },
       "MetricRead": {
         "properties": {
-          "area_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Area Id"
-          },
-          "condition_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Condition Id"
-          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -6172,6 +5678,40 @@
               }
             ],
             "title": "Data Source"
+          },
+          "entity_id": {
+            "format": "uuid",
+            "title": "Entity Id",
+            "type": "string"
+          },
+          "entity_type": {
+            "enum": [
+              "area",
+              "program",
+              "project",
+              "task",
+              "routine",
+              "outcome",
+              "metric",
+              "event",
+              "note",
+              "person",
+              "organization",
+              "location",
+              "commitment",
+              "request",
+              "delegation",
+              "review",
+              "resource",
+              "decision",
+              "medication",
+              "protocol",
+              "protocol_item",
+              "insurance_plan",
+              "allergy"
+            ],
+            "title": "Entity Type",
+            "type": "string"
           },
           "id": {
             "format": "uuid",
@@ -6210,18 +5750,6 @@
               }
             ],
             "title": "Notes"
-          },
-          "program_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Program Id"
           },
           "reference_max": {
             "anyOf": [
@@ -6267,9 +5795,8 @@
           "created_at",
           "updated_at",
           "name",
-          "area_id",
-          "program_id",
-          "condition_id",
+          "entity_type",
+          "entity_id",
           "unit",
           "reference_min",
           "reference_max",
@@ -6282,30 +5809,6 @@
       },
       "MetricUpdate": {
         "properties": {
-          "area_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Area Id"
-          },
-          "condition_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Condition Id"
-          },
           "data_source": {
             "anyOf": [
               {
@@ -6316,6 +5819,54 @@
               }
             ],
             "title": "Data Source"
+          },
+          "entity_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Id"
+          },
+          "entity_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "area",
+                  "program",
+                  "project",
+                  "task",
+                  "routine",
+                  "outcome",
+                  "metric",
+                  "event",
+                  "note",
+                  "person",
+                  "organization",
+                  "location",
+                  "commitment",
+                  "request",
+                  "delegation",
+                  "review",
+                  "resource",
+                  "decision",
+                  "medication",
+                  "protocol",
+                  "protocol_item",
+                  "insurance_plan",
+                  "allergy"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Type"
           },
           "measurement_frequency": {
             "anyOf": [
@@ -6356,18 +5907,6 @@
               }
             ],
             "title": "Notes"
-          },
-          "program_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Program Id"
           },
           "reference_max": {
             "anyOf": [
@@ -6447,7 +5986,6 @@
                   "review",
                   "resource",
                   "decision",
-                  "condition",
                   "medication",
                   "protocol",
                   "protocol_item",
@@ -6627,7 +6165,6 @@
                   "review",
                   "resource",
                   "decision",
-                  "condition",
                   "medication",
                   "protocol",
                   "protocol_item",
@@ -6769,7 +6306,6 @@
                   "review",
                   "resource",
                   "decision",
-                  "condition",
                   "medication",
                   "protocol",
                   "protocol_item",
@@ -7352,7 +6888,6 @@
               "review",
               "resource",
               "decision",
-              "condition",
               "medication",
               "protocol",
               "protocol_item",
@@ -7508,7 +7043,6 @@
               "review",
               "resource",
               "decision",
-              "condition",
               "medication",
               "protocol",
               "protocol_item",
@@ -7688,7 +7222,6 @@
                   "review",
                   "resource",
                   "decision",
-                  "condition",
                   "medication",
                   "protocol",
                   "protocol_item",
@@ -8396,6 +7929,27 @@
             ],
             "title": "Area Id"
           },
+          "category": {
+            "anyOf": [
+              {
+                "enum": [
+                  "gastrointestinal",
+                  "cardiovascular",
+                  "dermatologic",
+                  "musculoskeletal",
+                  "urologic",
+                  "auditory",
+                  "mental_health",
+                  "other"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
           "description": {
             "anyOf": [
               {
@@ -8407,6 +7961,18 @@
             ],
             "title": "Description"
           },
+          "ended_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended Date"
+          },
           "intended_outcome": {
             "anyOf": [
               {
@@ -8417,6 +7983,39 @@
               }
             ],
             "title": "Intended Outcome"
+          },
+          "involves": {
+            "default": [],
+            "items": {
+              "enum": [
+                "area",
+                "program",
+                "project",
+                "task",
+                "routine",
+                "outcome",
+                "metric",
+                "event",
+                "note",
+                "person",
+                "organization",
+                "location",
+                "commitment",
+                "request",
+                "delegation",
+                "review",
+                "resource",
+                "decision",
+                "medication",
+                "protocol",
+                "protocol_item",
+                "insurance_plan",
+                "allergy"
+              ],
+              "type": "string"
+            },
+            "title": "Involves",
+            "type": "array"
           },
           "name": {
             "title": "Name",
@@ -8473,24 +8072,13 @@
             "enum": [
               "proposed",
               "active",
+              "monitoring",
               "paused",
-              "completed",
+              "resolved",
               "cancelled"
             ],
             "title": "Status",
             "type": "string"
-          },
-          "target_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Target Date"
           }
         },
         "required": [
@@ -8525,6 +8113,27 @@
             ],
             "title": "Area Id"
           },
+          "category": {
+            "anyOf": [
+              {
+                "enum": [
+                  "gastrointestinal",
+                  "cardiovascular",
+                  "dermatologic",
+                  "musculoskeletal",
+                  "urologic",
+                  "auditory",
+                  "mental_health",
+                  "other"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -8541,6 +8150,18 @@
             ],
             "title": "Description"
           },
+          "ended_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended Date"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
@@ -8556,6 +8177,38 @@
               }
             ],
             "title": "Intended Outcome"
+          },
+          "involves": {
+            "items": {
+              "enum": [
+                "area",
+                "program",
+                "project",
+                "task",
+                "routine",
+                "outcome",
+                "metric",
+                "event",
+                "note",
+                "person",
+                "organization",
+                "location",
+                "commitment",
+                "request",
+                "delegation",
+                "review",
+                "resource",
+                "decision",
+                "medication",
+                "protocol",
+                "protocol_item",
+                "insurance_plan",
+                "allergy"
+              ],
+              "type": "string"
+            },
+            "title": "Involves",
+            "type": "array"
           },
           "name": {
             "title": "Name",
@@ -8611,24 +8264,13 @@
             "enum": [
               "proposed",
               "active",
+              "monitoring",
               "paused",
-              "completed",
+              "resolved",
               "cancelled"
             ],
             "title": "Status",
             "type": "string"
-          },
-          "target_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Target Date"
           },
           "updated_at": {
             "format": "date-time",
@@ -8646,11 +8288,13 @@
           "intended_outcome",
           "status",
           "start_date",
-          "target_date",
+          "ended_date",
           "accountable_owner_id",
           "responsible_lead_id",
           "review_frequency",
-          "reporting_cadence"
+          "reporting_cadence",
+          "category",
+          "involves"
         ],
         "title": "ProgramRead",
         "type": "object"
@@ -8681,6 +8325,27 @@
             ],
             "title": "Area Id"
           },
+          "category": {
+            "anyOf": [
+              {
+                "enum": [
+                  "gastrointestinal",
+                  "cardiovascular",
+                  "dermatologic",
+                  "musculoskeletal",
+                  "urologic",
+                  "auditory",
+                  "mental_health",
+                  "other"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
           "description": {
             "anyOf": [
               {
@@ -8692,6 +8357,18 @@
             ],
             "title": "Description"
           },
+          "ended_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended Date"
+          },
           "intended_outcome": {
             "anyOf": [
               {
@@ -8702,6 +8379,45 @@
               }
             ],
             "title": "Intended Outcome"
+          },
+          "involves": {
+            "anyOf": [
+              {
+                "items": {
+                  "enum": [
+                    "area",
+                    "program",
+                    "project",
+                    "task",
+                    "routine",
+                    "outcome",
+                    "metric",
+                    "event",
+                    "note",
+                    "person",
+                    "organization",
+                    "location",
+                    "commitment",
+                    "request",
+                    "delegation",
+                    "review",
+                    "resource",
+                    "decision",
+                    "medication",
+                    "protocol",
+                    "protocol_item",
+                    "insurance_plan",
+                    "allergy"
+                  ],
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Involves"
           },
           "name": {
             "anyOf": [
@@ -8766,8 +8482,9 @@
                 "enum": [
                   "proposed",
                   "active",
+                  "monitoring",
                   "paused",
-                  "completed",
+                  "resolved",
                   "cancelled"
                 ],
                 "type": "string"
@@ -8777,18 +8494,6 @@
               }
             ],
             "title": "Status"
-          },
-          "target_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Target Date"
           }
         },
         "title": "ProgramUpdate",
@@ -9328,18 +9033,6 @@
             ],
             "title": "Category"
           },
-          "condition_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Condition Id"
-          },
           "duration": {
             "anyOf": [
               {
@@ -9462,18 +9155,6 @@
             ],
             "title": "Category"
           },
-          "condition_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Condition Id"
-          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -9592,7 +9273,6 @@
           "start_date",
           "end_date",
           "duration",
-          "condition_id",
           "provider_id",
           "notes"
         ],
@@ -9623,18 +9303,6 @@
               }
             ],
             "title": "Category"
-          },
-          "condition_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Condition Id"
           },
           "duration": {
             "anyOf": [
@@ -9969,7 +9637,6 @@
                   "review",
                   "resource",
                   "decision",
-                  "condition",
                   "medication",
                   "protocol",
                   "protocol_item",
@@ -10160,7 +9827,6 @@
                   "review",
                   "resource",
                   "decision",
-                  "condition",
                   "medication",
                   "protocol",
                   "protocol_item",
@@ -10400,7 +10066,6 @@
                   "review",
                   "resource",
                   "decision",
-                  "condition",
                   "medication",
                   "protocol",
                   "protocol_item",
@@ -10590,7 +10255,6 @@
                   "review",
                   "resource",
                   "decision",
-                  "condition",
                   "medication",
                   "protocol",
                   "protocol_item",
@@ -10698,7 +10362,6 @@
                   "review",
                   "resource",
                   "decision",
-                  "condition",
                   "medication",
                   "protocol",
                   "protocol_item",
@@ -10819,7 +10482,6 @@
                   "review",
                   "resource",
                   "decision",
-                  "condition",
                   "medication",
                   "protocol",
                   "protocol_item",
@@ -14403,246 +14065,6 @@
         ]
       }
     },
-    "/conditions": {
-      "get": {
-        "operationId": "conditions_list",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/ConditionRead"
-                  },
-                  "title": "Response Conditions List",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          }
-        },
-        "summary": "List All",
-        "tags": [
-          "health"
-        ]
-      },
-      "post": {
-        "operationId": "conditions_create",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ConditionCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ConditionRead"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Create",
-        "tags": [
-          "health"
-        ]
-      }
-    },
-    "/conditions/{condition_id}/medications": {
-      "get": {
-        "description": "Medications treating a condition.",
-        "operationId": "list_condition_medications_conditions__condition_id__medications_get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "condition_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Condition Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/MedicationRead"
-                  },
-                  "title": "Response List Condition Medications Conditions  Condition Id  Medications Get",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "List Condition Medications",
-        "tags": [
-          "health"
-        ]
-      }
-    },
-    "/conditions/{item_id}": {
-      "delete": {
-        "operationId": "conditions_delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Delete",
-        "tags": [
-          "health"
-        ]
-      },
-      "get": {
-        "operationId": "conditions_get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ConditionRead"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Get One",
-        "tags": [
-          "health"
-        ]
-      },
-      "patch": {
-        "operationId": "conditions_update",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ConditionUpdate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ConditionRead"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Update",
-        "tags": [
-          "health"
-        ]
-      }
-    },
     "/decisions": {
       "get": {
         "operationId": "decisions_list",
@@ -15055,7 +14477,6 @@
                 "review",
                 "resource",
                 "decision",
-                "condition",
                 "medication",
                 "protocol",
                 "protocol_item",
@@ -16737,7 +16158,6 @@
                     "review",
                     "resource",
                     "decision",
-                    "condition",
                     "medication",
                     "protocol",
                     "protocol_item",
@@ -17368,7 +16788,6 @@
                     "review",
                     "resource",
                     "decision",
-                    "condition",
                     "medication",
                     "protocol",
                     "protocol_item",
@@ -17443,7 +16862,6 @@
                     "review",
                     "resource",
                     "decision",
-                    "condition",
                     "medication",
                     "protocol",
                     "protocol_item",
@@ -21401,7 +20819,6 @@
                 "review",
                 "resource",
                 "decision",
-                "condition",
                 "medication",
                 "protocol",
                 "protocol_item",

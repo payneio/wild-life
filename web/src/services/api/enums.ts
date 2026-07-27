@@ -16,8 +16,7 @@ import type {
   AllergyType,
   AreaStatus,
   CommitmentStatus,
-  ConditionCategory,
-  ConditionStatus,
+  HealthCategory,
   DelegationStatus,
   OutcomeKind,
   OutcomeStatus,
@@ -47,8 +46,10 @@ export const AREA_STATUS = [
 export const PROGRAM_STATUS = [
   "proposed",
   "active",
+  // Watched rather than pushed on — a condition you carry is still a program.
+  "monitoring",
   "paused",
-  "completed",
+  "resolved",
   "cancelled",
 ] as const satisfies readonly ProgramStatus[]
 
@@ -159,7 +160,7 @@ export const REVIEW_TYPE = [
   "delegation",
 ] as const satisfies readonly ReviewType[]
 
-export const CONDITION_CATEGORY = [
+export const HEALTH_CATEGORY = [
   "gastrointestinal",
   "cardiovascular",
   "dermatologic",
@@ -168,15 +169,8 @@ export const CONDITION_CATEGORY = [
   "auditory",
   "mental_health",
   "other",
-] as const satisfies readonly ConditionCategory[]
+] as const satisfies readonly HealthCategory[]
 
-export const CONDITION_STATUS = [
-  "active",
-  "monitoring",
-  "chronic",
-  "resolved",
-  "ruled_out",
-] as const satisfies readonly ConditionStatus[]
 
 export const MED_TYPE = [
   "prescription",

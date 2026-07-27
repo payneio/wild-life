@@ -31,7 +31,8 @@ export function NoteDetail({ entity, onClose }: { entity: Entity; onClose: () =>
       </RecordSection>
 
       <RecordSection columns={false}>
-        <F.Textarea field="body" label="Body" minRows={8} />
+        {/* Renders the same way the journal does — one field, one appearance. */}
+        <F.Markdown field="body" label="Body" minRows={8} />
       </RecordSection>
 
       <Links />

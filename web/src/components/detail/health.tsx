@@ -3,7 +3,7 @@ import { RefName } from "@/components/cells"
 import { events, routineInstances, routines } from "@/services/api/hooks"
 import type {
   Allergy,
-  Condition,
+  Program,
   Entity,
   InsurancePlan,
   Medication,
@@ -14,12 +14,15 @@ import { cn } from "@/lib/utils"
 import { dayLabel, formatInstant, humanize, localDay } from "@/lib/format"
 import { formatPhone } from "@/lib/phone"
 
-// --- Condition: a care timeline -------------------------------------------
-// Medications / Protocols / Metrics / Outcomes / Health-events are now rendered by
-// the generic RelatedPanel (condition.relations); this adds the dated timeline.
-export function ConditionDetail({ entity }: { entity: Entity }) {
-  const c = entity as Condition
-  const evts = events.useList({ entity_type: "condition", entity_id: c.id }).data ?? []
+// --- Care timeline ---------------------------------------------------------
+// A condition is a Program in the Health area, so this hangs off a program.
+// Medications / Protocols / Metrics / Outcomes are rendered by the generic
+// RelatedPanel (program.relations); this adds the dated course of care. It
+// returns null when there is nothing to show, so it costs a program with no
+// clinical history nothing.
+export function CareTimeline({ entity }: { entity: Entity }) {
+  const c = entity as Program
+  const evts = events.useList({ entity_type: "program", entity_id: c.id }).data ?? []
 
   const timeline: TimelineItem[] = []
   for (const e of evts)
@@ -31,9 +34,9 @@ export function ConditionDetail({ entity }: { entity: Entity }) {
       to: `/calendar/${e.id}`,
       tone: "accent",
     })
-  if (c.onset_date) timeline.push({ key: "onset", date: c.onset_date, title: "Onset" })
-  if (c.resolved_date)
-    timeline.push({ key: "resolved", date: c.resolved_date, title: "Resolved", tone: "good" })
+  if (c.start_date) timeline.push({ key: "start", date: c.start_date, title: "Started" })
+  if (c.ended_date)
+    timeline.push({ key: "ended", date: c.ended_date, title: "Ended", tone: "good" })
   timeline.sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""))
 
   if (timeline.length === 0) return null

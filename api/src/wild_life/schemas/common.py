@@ -11,7 +11,24 @@ from wild_life.phone import normalize_phone
 # --- shared enums -----------------------------------------------------------
 Priority = Literal["low", "medium", "high", "urgent"]
 AreaStatus = Literal["active", "inactive", "archived"]
-ProgramStatus = Literal["proposed", "active", "paused", "completed", "cancelled"]
+# A program is anything you have decided to pay attention to — an effort you are
+# mounting or a condition you are carrying. `monitoring` is what keeps the second
+# kind from reading as a neglected program. There is deliberately no `chronic`:
+# it conflated how long a thing lasts with what state it is in.
+ProgramStatus = Literal[
+    "proposed", "active", "monitoring", "paused", "resolved", "cancelled"
+]
+# Health facet of a program, carried by the former conditions.
+HealthCategory = Literal[
+    "gastrointestinal",
+    "cardiovascular",
+    "dermatologic",
+    "musculoskeletal",
+    "urologic",
+    "auditory",
+    "mental_health",
+    "other",
+]
 ProjectStatus = Literal[
     "proposed", "active", "waiting", "paused", "completed", "cancelled", "archived"
 ]
@@ -90,7 +107,6 @@ EntityType = Literal[
     "review",
     "resource",
     "decision",
-    "condition",
     "medication",
     "protocol",
     "protocol_item",

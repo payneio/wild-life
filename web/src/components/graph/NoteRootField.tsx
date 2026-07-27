@@ -28,7 +28,6 @@ const ROOTABLE_TYPES: EntityType[] = [
   "organization",
   "location",
   "metric",
-  "condition",
   "medication",
   "protocol",
   "insurance_plan",

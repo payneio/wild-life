@@ -4,9 +4,9 @@ import { LOOKUP_TO_TYPE } from "@/components/graph/lookupType"
 import { humanize, isOverdue, PRIORITY_CLASS, statusClass } from "@/lib/format"
 import { asDay, type CalendarDay, type Instant } from "@/lib/date"
 import { formatDate } from "@/lib/utils"
+import { useEntityResolver } from "@/services/api/mentions"
 import {
   useAreaLookup,
-  useConditionLookup,
   useOutcomeLookup,
   useMedicationLookup,
   useMetricLookup,
@@ -18,7 +18,24 @@ import {
   useProtocolLookup,
   type LookupKey,
 } from "@/services/api/lookups"
-import type { Priority } from "@/services/api/types"
+import type { EntityType, Priority } from "@/services/api/types"
+
+/** The name of whatever a soft-poly root points at.
+ *
+ *  `RefName` needs a `LookupKey`, and a root can be any `EntityType` — so this
+ *  goes through the same resolver notes and mentions use rather than a per-type
+ *  lookup that would only cover some of them. */
+export function RootName({
+  type,
+  id,
+}: {
+  type: EntityType | null | undefined
+  id: string | null | undefined
+}) {
+  const resolve = useEntityResolver()
+  if (!type || !id) return <span className="text-slate-300">—</span>
+  return <span>{resolve(type, id) ?? "…"}</span>
+}
 
 export function StatusBadge({ status }: { status: string }) {
   return <Badge className={statusClass(status)}>{humanize(status)}</Badge>
@@ -37,7 +54,6 @@ const LOOKUP_HOOKS = {
   outcome: useOutcomeLookup,
   metric: useMetricLookup,
   organization: useOrganizationLookup,
-  condition: useConditionLookup,
   medication: useMedicationLookup,
   protocol: useProtocolLookup,
 } as const

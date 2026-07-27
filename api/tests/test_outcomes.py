@@ -44,6 +44,8 @@ def test_standard_is_in_band_or_breached(
             owner,
             "/metrics",
             name=f"{MARK} systolic",
+            entity_type="area",
+            entity_id=area["id"],
             unit="mmHg",
             reference_min=90,
             reference_max=130,
@@ -107,7 +109,15 @@ def test_one_sided_band_only_constrains_its_side(
     try:
         area = _post(client, owner, "/areas", name=f"{MARK} area2")
         areas.append(area["id"])
-        m = _post(client, owner, "/metrics", name=f"{MARK} ldl", unit="mg/dL")
+        m = _post(
+            client,
+            owner,
+            "/metrics",
+            name=f"{MARK} ldl",
+            entity_type="area",
+            entity_id=area["id"],
+            unit="mg/dL",
+        )
         metrics.append(m["id"])
         o = _post(
             client,
@@ -147,7 +157,15 @@ def test_target_progresses_downward_and_can_be_overdue(
     try:
         area = _post(client, owner, "/areas", name=f"{MARK} area3")
         areas.append(area["id"])
-        m = _post(client, owner, "/metrics", name=f"{MARK} trig", unit="mg/dL")
+        m = _post(
+            client,
+            owner,
+            "/metrics",
+            name=f"{MARK} trig",
+            entity_type="area",
+            entity_id=area["id"],
+            unit="mg/dL",
+        )
         metrics.append(m["id"])
         o = _post(
             client,
@@ -277,6 +295,8 @@ def test_a_reading_past_its_cadence_is_stale(
             owner,
             "/metrics",
             name=f"{MARK} panel",
+            entity_type="area",
+            entity_id=area["id"],
             unit="mg/dL",
             measurement_frequency="quarterly",
         )

@@ -1,7 +1,8 @@
-import { useCallback, useMemo, useRef, useState, type ReactNode } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { Check, GitMerge, NotebookPen, RotateCcw, Trash2 } from "lucide-react"
 import { Backlinks } from "@/components/Backlinks"
 import { MergeDialog } from "@/components/MergeDialog"
+import { InvolvesControl } from "@/components/record/InvolvesControl"
 import { NoteRootField } from "@/components/graph/NoteRootField"
 import { RelatedPanel } from "@/components/graph/RelatedPanel"
 import { RecordContext, useCoverage } from "@/components/record/context"
@@ -9,7 +10,7 @@ import { Button } from "@/components/ui/primitives"
 import { useFloatingNote } from "@/notes/floatingNoteContext"
 import { formatInstant } from "@/lib/date"
 import type { Body } from "@/services/api/crud"
-import { REGISTRY_BY_TYPE, type EntityDef } from "@/services/api/registry"
+import { optionalPanels, REGISTRY_BY_TYPE, type EntityDef } from "@/services/api/registry"
 import type { Entity } from "@/services/api/types"
 
 /**
@@ -75,6 +76,12 @@ export function Record({
     [row, save, saveMany, register],
   )
 
+  // `involves` is bound by the action-bar control rather than a field primitive,
+  // so register it here — it *is* covered, just not by an `<F.…>`. Declared
+  // before `useCoverage` so it lands before coverage is compared.
+  useEffect(() => {
+    if (optionalPanels(def).length > 0) registry.current.add("involves")
+  })
   useCoverage(row, registry, omit, def.key, onCoverage)
 
   const isTask = def.entityType === "task"
@@ -114,6 +121,11 @@ export function Record({
             <GitMerge size={14} /> Merge
           </Button>
         )}
+        <InvolvesControl
+          def={def}
+          entity={entity}
+          onSave={(involves) => update.mutate({ id: entity.id, body: { involves } })}
+        />
         <Button
           variant="ghost"
           size="sm"

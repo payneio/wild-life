@@ -31,7 +31,6 @@ export function ProtocolDetail({ entity, onClose }: { entity: Entity; onClose: (
       <ProtocolExtra entity={entity} />
 
       <RecordSection title="Context">
-        <F.Ref field="condition_id" label="Condition" lookup="condition" intent="reference" />
         <F.Ref field="provider_id" label="Provider" lookup="people" />
         <F.Ref field="area_id" label="Area" lookup="area" />
         <F.Ref field="program_id" label="Program" lookup="program" />

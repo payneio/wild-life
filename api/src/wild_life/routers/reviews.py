@@ -14,7 +14,7 @@ from wild_life.models.calendar import Event
 from wild_life.models.core import Area, Program, Project
 from wild_life.models.outcomes import Outcome
 from wild_life.models.notes import Note
-from wild_life.models.health import Condition, Medication, Protocol
+from wild_life.models.health import Medication, Protocol
 from wild_life.models.metrics import Metric, MetricEntry
 from wild_life.models.requests import Request
 from wild_life.models.routines import Routine, RoutineInstance
@@ -320,14 +320,16 @@ async def review_dashboard(
     ]
 
     # --- health / outcomes / metrics neglect + drift ------------------------
-    # Active conditions with no active protocol running.
-    active_protocol_condition_ids = {
-        cid
-        for (cid,) in (
+    # A live health program with nothing running for it. Conditions are programs
+    # now, so this reads "a diagnosis you are carrying with no protocol in flight" —
+    # the same signal, expressed against the merged object.
+    active_protocol_program_ids = {
+        pid
+        for (pid,) in (
             await session.execute(
-                select(Protocol.condition_id).where(
+                select(Protocol.program_id).where(
                     Protocol.paused.is_(False),
-                    Protocol.condition_id.isnot(None),
+                    Protocol.program_id.isnot(None),
                     or_(Protocol.start_date.is_(None), Protocol.start_date <= today),
                     or_(Protocol.end_date.is_(None), Protocol.end_date >= today),
                 )
@@ -335,14 +337,15 @@ async def review_dashboard(
         ).all()
     }
     conditions_without_protocol = [
-        {"id": str(c.id), "name": c.name, "status": c.status}
-        for c in await _rows(
+        {"id": str(p.id), "name": p.name, "status": p.status}
+        for p in await _rows(
             session,
-            select(Condition).where(
-                Condition.status.in_(("active", "monitoring", "chronic"))
+            select(Program).where(
+                Program.category.isnot(None),
+                Program.status.in_(("active", "monitoring")),
             ),
         )
-        if c.id not in active_protocol_condition_ids
+        if p.id not in active_protocol_program_ids
     ]
 
     # Metrics overdue for a reading (measurement_frequency vs latest entry).

@@ -3,6 +3,7 @@ import {
   RecordCheckbox,
   RecordDate,
   RecordDateTime,
+  RecordMarkdown,
   RecordNumber,
   RecordPhone,
   RecordRecurrence,
@@ -36,6 +37,12 @@ export function recordFields<T>() {
       full?: boolean
     }) => ReactNode,
     Textarea: RecordTextarea as (p: {
+      field: K
+      label?: string
+      placeholder?: string
+      minRows?: number
+    }) => ReactNode,
+    Markdown: RecordMarkdown as (p: {
       field: K
       label?: string
       placeholder?: string

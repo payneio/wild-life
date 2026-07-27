@@ -1,13 +1,12 @@
 import { useMemo } from "react"
 import { useNavigate } from "react-router-dom"
-import { StatusBadge } from "@/components/cells"
+import { RootName, StatusBadge } from "@/components/cells"
 import { ListToolbar } from "@/components/ListToolbar"
 import { Card, EmptyState } from "@/components/ui/primitives"
 import { deriveListConfig, useListFilter } from "@/lib/listFilter"
 import { formatBand, humanize } from "@/lib/format"
 import { OUTCOME_FIELDS } from "@/services/api/fields"
 import { outcomes, useOutcomeEvaluation } from "@/services/api/hooks"
-import { useEntityResolver } from "@/services/api/mentions"
 import type { Outcome } from "@/services/api/types"
 
 const GOOD = new Set(["met", "achieved", "on_pace", "satisfied"])
@@ -57,9 +56,6 @@ function Verdict({ outcome }: { outcome: Outcome }) {
  */
 export function OutcomesPage() {
   const navigate = useNavigate()
-  // Roots are soft-poly, so the name comes from the same resolver notes use
-  // rather than a per-type lookup that would only cover some of them.
-  const resolve = useEntityResolver()
   const { data, isLoading } = outcomes.useList()
   const rows = useMemo(() => data ?? [], [data])
   const { filtered, toolbarProps, closedCount } = useListFilter(
@@ -109,7 +105,7 @@ export function OutcomesPage() {
                     <Verdict outcome={o} />
                     <span>{humanize(o.kind)}</span>
                     <StatusBadge status={o.status} />
-                    <span>{resolve(o.entity_type, o.entity_id) ?? "…"}</span>
+                    <RootName type={o.entity_type} id={o.entity_id} />
                     {formatBand(o.target_min, o.target_max) && (
                       <span>target {formatBand(o.target_min, o.target_max)}</span>
                     )}

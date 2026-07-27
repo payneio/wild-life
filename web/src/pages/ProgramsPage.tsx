@@ -119,7 +119,7 @@ export function ProgramsPage() {
                           </div>
                           <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
                             <StatusBadge status={p.status} />
-                            <DateText value={p.target_date} />
+                            <DateText value={p.ended_date} />
                           </div>
                         </div>
                       </div>

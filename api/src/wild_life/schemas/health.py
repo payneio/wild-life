@@ -9,17 +9,6 @@ from pydantic import BaseModel
 from wild_life.schemas.common import Entity, PhoneNumber
 
 # --- enums ------------------------------------------------------------------
-ConditionCategory = Literal[
-    "gastrointestinal",
-    "cardiovascular",
-    "dermatologic",
-    "musculoskeletal",
-    "urologic",
-    "auditory",
-    "mental_health",
-    "other",
-]
-ConditionStatus = Literal["active", "monitoring", "chronic", "resolved", "ruled_out"]
 MedType = Literal["prescription", "otc", "supplement"]
 Weekday = Literal["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 PlanType = Literal["medical", "dental", "vision", "pharmacy"]
@@ -29,56 +18,13 @@ AllergySeverity = Literal["mild", "moderate", "severe", "unknown"]
 AllergyStatus = Literal["active", "suspected", "resolved"]
 
 
-# --- Condition --------------------------------------------------------------
-class ConditionCreate(BaseModel):
-    name: str
-    category: ConditionCategory | None = None
-    status: ConditionStatus = "active"
-    area_id: uuid.UUID | None = None
-    program_id: uuid.UUID | None = None
-    severity: str | None = None
-    onset_date: date | None = None
-    resolved_date: date | None = None
-    diagnosed_by_id: uuid.UUID | None = None
-    description: str | None = None
-    notes: str | None = None
-
-
-class ConditionUpdate(BaseModel):
-    name: str | None = None
-    category: ConditionCategory | None = None
-    status: ConditionStatus | None = None
-    area_id: uuid.UUID | None = None
-    program_id: uuid.UUID | None = None
-    severity: str | None = None
-    onset_date: date | None = None
-    resolved_date: date | None = None
-    diagnosed_by_id: uuid.UUID | None = None
-    description: str | None = None
-    notes: str | None = None
-
-
-class ConditionRead(Entity):
-    name: str
-    category: ConditionCategory | None
-    status: ConditionStatus
-    area_id: uuid.UUID | None
-    program_id: uuid.UUID | None
-    severity: str | None
-    onset_date: date | None
-    resolved_date: date | None
-    diagnosed_by_id: uuid.UUID | None
-    description: str | None
-    notes: str | None
-
-
 # --- Medication -------------------------------------------------------------
 class MedicationCreate(BaseModel):
     name: str
     brand: str | None = None
     med_type: MedType = "supplement"
     reason: str | None = None
-    condition_id: uuid.UUID | None = None
+    program_id: uuid.UUID | None = None
     prescriber_id: uuid.UUID | None = None
     pharmacy_id: uuid.UUID | None = None
     instructions: str | None = None
@@ -90,7 +36,7 @@ class MedicationUpdate(BaseModel):
     brand: str | None = None
     med_type: MedType | None = None
     reason: str | None = None
-    condition_id: uuid.UUID | None = None
+    program_id: uuid.UUID | None = None
     prescriber_id: uuid.UUID | None = None
     pharmacy_id: uuid.UUID | None = None
     instructions: str | None = None
@@ -102,7 +48,7 @@ class MedicationRead(Entity):
     brand: str | None
     med_type: MedType
     reason: str | None
-    condition_id: uuid.UUID | None
+    program_id: uuid.UUID | None
     prescriber_id: uuid.UUID | None
     pharmacy_id: uuid.UUID | None
     instructions: str | None
@@ -120,7 +66,6 @@ class ProtocolCreate(BaseModel):
     start_date: date | None = None
     end_date: date | None = None
     duration: str | None = None
-    condition_id: uuid.UUID | None = None
     provider_id: uuid.UUID | None = None
     notes: str | None = None
 
@@ -135,7 +80,6 @@ class ProtocolUpdate(BaseModel):
     start_date: date | None = None
     end_date: date | None = None
     duration: str | None = None
-    condition_id: uuid.UUID | None = None
     provider_id: uuid.UUID | None = None
     notes: str | None = None
 
@@ -150,7 +94,6 @@ class ProtocolRead(Entity):
     start_date: date | None
     end_date: date | None
     duration: str | None
-    condition_id: uuid.UUID | None
     provider_id: uuid.UUID | None
     notes: str | None
 

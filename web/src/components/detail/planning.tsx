@@ -162,7 +162,7 @@ export function ProgramDetail({ entity }: { entity: Entity }) {
   )
   const denom = projs.length - cancelled.length || 1
   const pct = projs.length ? Math.round((done.length / denom) * 100) : 0
-  const targetD = daysFromToday(prog.target_date)
+  const targetD = daysFromToday(prog.ended_date)
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-4">
@@ -172,7 +172,7 @@ export function ProgramDetail({ entity }: { entity: Entity }) {
         <div className="grid flex-1 grid-cols-3 gap-2">
           <StatTile value={active.length} label="Active" />
           <StatTile value={done.length} label="Done" />
-          {prog.target_date ? (
+          {prog.ended_date ? (
             <StatTile
               value={Math.abs(targetD ?? 0)}
               label={targetD !== null && targetD < 0 ? "days over" : "days to target"}

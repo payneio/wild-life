@@ -1,7 +1,6 @@
-import { DateText, RefName, StatusBadge } from "@/components/cells"
+import { RefName, StatusBadge } from "@/components/cells"
 import { SimpleEntityPage, type Column } from "@/components/SimpleEntityPage"
 import {
-  CONDITION_FIELDS,
   MEDICATION_FIELDS,
   PROTOCOL_FIELDS,
   INSURANCE_FIELDS,
@@ -12,40 +11,16 @@ import { humanize } from "@/lib/format"
 import { protocolState } from "@/lib/protocol"
 import {
   allergies,
-  conditions,
   insurancePlans,
   medications,
   protocols,
 } from "@/services/api/hooks"
 import type {
   Allergy,
-  Condition,
   InsurancePlan,
   Medication,
   Protocol,
 } from "@/services/api/types"
-
-// --- Conditions -------------------------------------------------------------
-export function ConditionsPage() {
-  const fields = CONDITION_FIELDS
-  const columns: Column<Condition>[] = [
-    { key: "name", label: "Condition", render: (r) => <span className="font-medium">{r.name}</span> },
-    { key: "category", label: "Category", render: (r) => (r.category ? <Badge>{humanize(r.category)}</Badge> : "—") },
-    { key: "status", label: "Status", render: (r) => <StatusBadge status={r.status} /> },
-    { key: "program_id", label: "Program", render: (r) => <RefName kind="program" id={r.program_id} /> },
-    { key: "onset_date", label: "Onset", render: (r) => <DateText value={r.onset_date} /> },
-  ]
-  return (
-    <SimpleEntityPage
-      title="Conditions"
-      subtitle="Diagnoses and ongoing health conditions"
-      crud={conditions}
-      fields={fields}
-      columns={columns}
-      detail="page"
-    />
-  )
-}
 
 // --- Medications ------------------------------------------------------------
 export function MedicationsPage() {
@@ -62,7 +37,7 @@ export function MedicationsPage() {
       ),
     },
     { key: "med_type", label: "Type", render: (r) => <Badge>{humanize(r.med_type)}</Badge> },
-    { key: "condition_id", label: "For", render: (r) => <RefName kind="condition" id={r.condition_id} /> },
+    { key: "program_id", label: "Treats", render: (r) => <RefName kind="program" id={r.program_id} /> },
   ]
   return (
     <SimpleEntityPage
@@ -83,7 +58,7 @@ export function ProtocolsPage() {
     { key: "name", label: "Protocol", render: (r) => <span className="font-medium">{r.name}</span> },
     { key: "state", label: "State", render: (r) => <StatusBadge status={protocolState(r)} /> },
     { key: "program_id", label: "Program", render: (r) => <RefName kind="program" id={r.program_id} /> },
-    { key: "condition_id", label: "For", render: (r) => <RefName kind="condition" id={r.condition_id} /> },
+    { key: "program_id", label: "Treats", render: (r) => <RefName kind="program" id={r.program_id} /> },
   ]
   return (
     <SimpleEntityPage

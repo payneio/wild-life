@@ -7,7 +7,6 @@ import type {
   AllergyStatus,
   AreaStatus,
   CommitmentStatus,
-  ConditionStatus,
   DelegationStatus,
   EntityType,
   OutcomeStatus,
@@ -44,7 +43,6 @@ const _total: {
   commitment: Record<CommitmentStatus, LifecyclePhase>
   area: Record<AreaStatus, LifecyclePhase>
   routine: Record<RoutineStatus, LifecyclePhase>
-  condition: Record<ConditionStatus, LifecyclePhase>
   allergy: Record<AllergyStatus, LifecyclePhase>
   insurance_plan: Record<PlanStatus, LifecyclePhase>
   organization: Record<OrgStatus, LifecyclePhase>

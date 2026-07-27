@@ -25,13 +25,6 @@ export const LIFECYCLE = {
     "open": "active",
     "waiting": "blocked",
   },
-  "condition": {
-    "active": "active",
-    "chronic": "active",
-    "monitoring": "active",
-    "resolved": "done",
-    "ruled_out": "cancelled",
-  },
   "delegation": {
     "accepted": "active",
     "accepted_as_complete": "done",
@@ -64,9 +57,10 @@ export const LIFECYCLE = {
   "program": {
     "active": "active",
     "cancelled": "cancelled",
-    "completed": "done",
+    "monitoring": "active",
     "paused": "blocked",
     "proposed": "backlog",
+    "resolved": "done",
   },
   "project": {
     "active": "active",

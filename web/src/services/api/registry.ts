@@ -11,7 +11,6 @@ import { CommitmentDetail as CommitmentRecord } from "@/entities/commitment/Deta
 import { RequestDetail as RequestRecord } from "@/entities/request/Detail"
 import { ReviewDetail as ReviewRecord } from "@/entities/review/Detail"
 import { OrganizationDetail as OrganizationRecord } from "@/entities/organization/Detail"
-import { ConditionDetail as ConditionRecord } from "@/entities/condition/Detail"
 import { MedicationDetail as MedicationRecord } from "@/entities/medication/Detail"
 import { AllergyDetail as AllergyRecord } from "@/entities/allergy/Detail"
 import { InsurancePlanDetail as InsurancePlanRecord } from "@/entities/insurancePlan/Detail"
@@ -29,7 +28,6 @@ import {
   allergies,
   areas,
   commitments,
-  conditions,
   decisions,
   delegations,
   events,
@@ -65,7 +63,14 @@ type Crud<T extends Entity> = ReturnType<typeof createCrud<T>>
  * carry their own link/unlink hooks.
  */
 export type RelationSpec =
-  | { mode: "fk-children"; label: string; type: EntityType; fkField: string; inherit?: string[] }
+  | {
+      mode: "fk-children"
+      label: string
+      type: EntityType
+      fkField: string
+      inherit?: string[]
+      hideWhenEmpty?: boolean
+    }
   | {
       mode: "soft-backref"
       label: string
@@ -76,6 +81,12 @@ export type RelationSpec =
        *  deliverable; asking would be asking something already answered. */
       defaults?: Record<string, unknown>
     }
+
+/** Panels an object can opt into via `involves`, rather than always showing.
+ *  Empty ⇒ nothing to offer, so no control appears. */
+export function optionalPanels(def: EntityDef): RelationSpec[] {
+  return (def.relations ?? []).filter((r) => "hideWhenEmpty" in r && r.hideWhenEmpty)
+}
 
 /** Everything the generic list + detail + edit machinery needs per entity. */
 export interface EntityDef {
@@ -121,7 +132,6 @@ import {
   ALLERGY_FIELDS,
   AREA_FIELDS,
   COMMITMENT_FIELDS,
-  CONDITION_FIELDS,
   DECISION_FIELDS,
   DELEGATION_FIELDS,
   EVENT_FIELDS,
@@ -169,8 +179,13 @@ export const REGISTRY: Record<string, EntityDef> = {
   routine: { key: "routine", label: "Routine", crud: routines, fields: ROUTINE_FIELDS, title: (e) => e.activity ?? e.name ?? "Routine", context: (e, r) => (e.protocol_id && r("protocol", e.protocol_id)) || (e.area_id && r("area", e.area_id)) || undefined, entityType: "routine", titleField: "activity", quickCreate: true, detail: RoutineRecord },
   program: { key: "program", label: "Program", crud: programs, fields: PROGRAM_FIELDS, title: (e) => e.name, context: (e, r) => (e.area_id && r("area", e.area_id)) || undefined, entityType: "program", titleField: "name", quickCreate: true, detail: ProgramRecord, relations: [
     { mode: "fk-children", label: "Projects", type: "project", fkField: "program_id", inherit: ["area_id"] },
-    { mode: "fk-children", label: "Metrics", type: "metric", fkField: "program_id", inherit: ["area_id"] },
+    { mode: "soft-backref", label: "Metrics", type: "metric" },
     { mode: "soft-backref", label: "Outcomes", type: "outcome", defaults: { kind: "target" } },
+    // A condition is a program, so the clinical panels live here. They stay out
+    // of the way on the programs that have nothing to do with them — see
+    // `involves` on RelatedPanel.
+    { mode: "fk-children", label: "Medications", type: "medication", fkField: "program_id", hideWhenEmpty: true },
+    { mode: "fk-children", label: "Protocols", type: "protocol", fkField: "program_id", hideWhenEmpty: true },
     { mode: "soft-backref", label: "Events", type: "event", hideWhenEmpty: true },
     { mode: "soft-backref", label: "Notes", type: "note" },
   ] },
@@ -203,14 +218,7 @@ export const REGISTRY: Record<string, EntityDef> = {
   ] },
   resource: { key: "resource", label: "Resource", crud: resources, fields: RESOURCE_FIELDS, title: (e) => e.title, context: (e) => e.resource_type ?? undefined, entityType: "resource", titleField: "title", quickCreate: true, detail: ResourceRecord },
   tag: { key: "tag", label: "Tag", crud: tags, fields: TAG_FIELDS, title: (e) => e.name, titleField: "name", quickCreate: true, detail: TagRecord },
-  condition: { key: "condition", label: "Condition", crud: conditions, fields: CONDITION_FIELDS, title: (e) => e.name, context: (e) => e.category ?? undefined, entityType: "condition", titleField: "name", quickCreate: true, detail: ConditionRecord, relations: [
-    { mode: "fk-children", label: "Medications", type: "medication", fkField: "condition_id" },
-    { mode: "fk-children", label: "Protocols", type: "protocol", fkField: "condition_id" },
-    { mode: "fk-children", label: "Metrics (labs)", type: "metric", fkField: "condition_id" },
-    { mode: "soft-backref", label: "Outcomes", type: "outcome", defaults: { kind: "standard" } },
-    { mode: "soft-backref", label: "Events", type: "event", hideWhenEmpty: true },
-  ] },
-  medication: { key: "medication", label: "Medication", crud: medications, fields: MEDICATION_FIELDS, title: (e) => e.name, context: (e, r) => e.brand ?? ((e.condition_id && r("condition", e.condition_id)) || undefined), entityType: "medication", titleField: "name", quickCreate: true, detail: MedicationRecord },
+  medication: { key: "medication", label: "Medication", crud: medications, fields: MEDICATION_FIELDS, title: (e) => e.name, context: (e, r) => e.brand ?? ((e.program_id && r("program", e.program_id)) || undefined), entityType: "medication", titleField: "name", quickCreate: true, detail: MedicationRecord },
   insurancePlan: { key: "insurancePlan", label: "Insurance plan", crud: insurancePlans, fields: INSURANCE_FIELDS, title: (e) => e.name, entityType: "insurance_plan", titleField: "name", quickCreate: true, detail: InsurancePlanRecord },
   allergy: { key: "allergy", label: "Allergy", crud: allergies, fields: ALLERGY_FIELDS, title: (e) => e.substance, entityType: "allergy", titleField: "substance", quickCreate: true, detail: AllergyRecord },
 }

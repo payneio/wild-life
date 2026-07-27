@@ -8,6 +8,8 @@ from pydantic import BaseModel
 from wild_life.schemas.common import (
     AreaStatus,
     Entity,
+    EntityType,
+    HealthCategory,
     Priority,
     ProgramStatus,
     ProjectStatus,
@@ -55,11 +57,13 @@ class ProgramCreate(BaseModel):
     intended_outcome: str | None = None
     status: ProgramStatus = "proposed"
     start_date: date | None = None
-    target_date: date | None = None
+    ended_date: date | None = None
     accountable_owner_id: uuid.UUID | None = None
     responsible_lead_id: uuid.UUID | None = None
     review_frequency: str | None = None
     reporting_cadence: str | None = None
+    category: HealthCategory | None = None
+    involves: list[EntityType] = []
 
 
 class ProgramUpdate(BaseModel):
@@ -69,11 +73,13 @@ class ProgramUpdate(BaseModel):
     intended_outcome: str | None = None
     status: ProgramStatus | None = None
     start_date: date | None = None
-    target_date: date | None = None
+    ended_date: date | None = None
     accountable_owner_id: uuid.UUID | None = None
     responsible_lead_id: uuid.UUID | None = None
     review_frequency: str | None = None
     reporting_cadence: str | None = None
+    category: HealthCategory | None = None
+    involves: list[EntityType] | None = None
 
 
 class ProgramRead(Entity):
@@ -83,11 +89,13 @@ class ProgramRead(Entity):
     intended_outcome: str | None
     status: ProgramStatus
     start_date: date | None
-    target_date: date | None
+    ended_date: date | None
     accountable_owner_id: uuid.UUID | None
     responsible_lead_id: uuid.UUID | None
     review_frequency: str | None
     reporting_cadence: str | None
+    category: HealthCategory | None
+    involves: list[EntityType]
 
 
 # --- Project ----------------------------------------------------------------

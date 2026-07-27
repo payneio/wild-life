@@ -8,7 +8,6 @@ import type {
   Area,
   Commitment,
   Evaluation,
-  Condition,
   Decision,
   Delegation,
   EntityType,
@@ -82,7 +81,6 @@ export const decisions = createCrud<Decision>("decisions")
 export const tags = createCrud<Tag>("tags")
 
 // --- health domain ---
-export const conditions = createCrud<Condition>("conditions")
 export const medications = createCrud<Medication>("medications")
 export const protocols = createCrud<Protocol>("protocols")
 export const insurancePlans = createCrud<InsurancePlan>("insurance-plans")

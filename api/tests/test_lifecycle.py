@@ -23,7 +23,7 @@ from wild_life.schemas.common import (
     RoutineStatus,
     TaskStatus,
 )
-from wild_life.schemas.health import AllergyStatus, ConditionStatus, PlanStatus
+from wild_life.schemas.health import AllergyStatus, PlanStatus
 from wild_life.schemas.organizations import OrgStatus
 
 # Every entity whose status vocabulary the table must classify. Adding a
@@ -39,7 +39,6 @@ STATUS_UNIONS: dict[str, Any] = {
     "commitment": CommitmentStatus,
     "area": AreaStatus,
     "routine": RoutineStatus,
-    "condition": ConditionStatus,
     "allergy": AllergyStatus,
     "insurance_plan": PlanStatus,
     "organization": OrgStatus,

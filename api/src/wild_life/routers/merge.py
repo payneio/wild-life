@@ -24,7 +24,6 @@ from wild_life.models import (
     Allergy,
     Area,
     Commitment,
-    Condition,
     Decision,
     Delegation,
     Event,
@@ -69,7 +68,6 @@ TYPE_TO_MODEL: dict[str, type[Any]] = {
     "review": Review,
     "resource": Resource,
     "decision": Decision,
-    "condition": Condition,
     "medication": Medication,
     "protocol": Protocol,
     "insurance_plan": InsurancePlan,
@@ -90,7 +88,6 @@ NAME_COL: dict[str, str] = {
     "routine": "name",
     "outcome": "statement",
     "metric": "name",
-    "condition": "name",
     "medication": "name",
     "protocol": "name",
     "insurance_plan": "name",
@@ -112,6 +109,9 @@ SOFT_POLY = [
     (Resource.__table__, "entity_type", "entity_id"),
     (Decision.__table__, "entity_type", "entity_id"),
     (Event.__table__, "entity_type", "entity_id"),
+    # An outcome's root is soft-poly like the rest, so a merge has to carry it —
+    # otherwise combining two rows silently drops what they claimed must be true.
+    (Outcome.__table__, "entity_type", "entity_id"),
     (
         Base.metadata.tables["wild_life.entity_links"],
         "target_type",

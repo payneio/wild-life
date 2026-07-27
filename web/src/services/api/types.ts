@@ -48,7 +48,6 @@ export type Review = S["ReviewRead"]
 export type Resource = S["ResourceRead"]
 export type Decision = S["DecisionRead"]
 export type Tag = S["TagRead"]
-export type Condition = S["ConditionRead"]
 export type Medication = S["MedicationRead"]
 export type Protocol = S["ProtocolRead"]
 export type InsurancePlan = S["InsurancePlanRead"]
@@ -74,6 +73,7 @@ export type ReviewDashboard = S["ReviewDashboard"]
 export type Priority = Task["priority"]
 export type AreaStatus = Area["status"]
 export type ProgramStatus = Program["status"]
+export type HealthCategory = NonNullable<Program["category"]>
 export type ProjectStatus = Project["status"]
 export type TaskStatus = Task["status"]
 export type RoutineStatus = Routine["status"]
@@ -90,8 +90,6 @@ export type ReviewType = Review["review_type"]
 export type EntityType = NonNullable<Note["entity_type"]>
 
 // --- health enums -----------------------------------------------------------
-export type ConditionCategory = NonNullable<Condition["category"]>
-export type ConditionStatus = Condition["status"]
 export type MedType = Medication["med_type"]
 export type PlanType = NonNullable<InsurancePlan["plan_type"]>
 export type PlanStatus = InsurancePlan["status"]

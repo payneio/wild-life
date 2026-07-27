@@ -3,7 +3,6 @@ import type {
   Allergy,
   Area,
   Commitment,
-  Condition,
   Decision,
   Delegation,
   Entity,
@@ -128,7 +127,9 @@ export const PROGRAM: Program = {
   intended_outcome: "Nothing lapses",
   status: "active",
   start_date: "2026-01-01" as CalendarDay,
-  target_date: null,
+  ended_date: null,
+  category: null,
+  involves: [],
   accountable_owner_id: null,
   responsible_lead_id: null,
   review_frequency: "monthly",
@@ -196,27 +197,12 @@ export const ORGANIZATION: Organization = {
   notes: null,
 }
 
-export const CONDITION: Condition = {
-  ...BASE,
-  name: "Plantar fasciitis",
-  category: "musculoskeletal",
-  status: "active",
-  severity: "moderate",
-  description: "Left heel, worse in the morning",
-  onset_date: "2026-05-02" as CalendarDay,
-  resolved_date: null,
-  diagnosed_by_id: null,
-  area_id: null,
-  program_id: null,
-  notes: null,
-}
-
 export const MEDICATION: Medication = {
   ...BASE,
   name: "Ibuprofen",
   brand: "Advil",
   med_type: "otc",
-  condition_id: null,
+  program_id: null,
   prescriber_id: null,
   pharmacy_id: null,
   reason: "Inflammation",
@@ -262,7 +248,6 @@ export const PROTOCOL: Protocol = {
   start_date: "2026-06-01" as CalendarDay,
   end_date: null,
   duration: "8 weeks",
-  condition_id: null,
   provider_id: null,
   notes: null,
 }
@@ -270,9 +255,8 @@ export const PROTOCOL: Protocol = {
 export const METRIC: Metric = {
   ...BASE,
   name: "Resting heart rate",
-  area_id: null,
-  program_id: null,
-  condition_id: null,
+  entity_type: "area",
+  entity_id: "00000000-0000-4000-8000-000000000002",
   unit: "bpm",
   reference_min: null,
   reference_max: 65,
@@ -407,6 +391,16 @@ export const EVENT: EventItem = {
  *  deadline to miss and a deliverable has no band to sit in — so no single row
  *  can exercise the whole layout. */
 export const VARIANTS: Record<string, Entity[]> = {
+  // A condition is a program, so a program has a clinical shape too — the
+  // Clinical section only renders once the program says it is one.
+  program: [
+    PROGRAM,
+    {
+      ...PROGRAM,
+      category: "gastrointestinal",
+      involves: ["medication", "protocol"],
+    } satisfies Program,
+  ],
   outcome: ([
     OUTCOME,
     { ...OUTCOME, kind: "standard", baseline: null, by_when: null },
@@ -432,7 +426,6 @@ export const FIXTURES: Record<string, Entity> = {
   delegation: DELEGATION,
   note: NOTE,
   event: EVENT,
-  condition: CONDITION,
   medication: MEDICATION,
   allergy: ALLERGY,
   insurancePlan: INSURANCE_PLAN,

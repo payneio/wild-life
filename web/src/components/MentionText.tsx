@@ -9,6 +9,26 @@ const MENTION_HREF = /^(\w+):([0-9a-fA-F-]{36})$/
 const NOTE_IMAGE = /^note-image:([0-9a-fA-F-]{36})$/
 const IMG_CLS = "my-2 max-h-96 max-w-full rounded-lg border border-slate-200"
 
+const SAFE_SCHEME = /^(https?|mailto|tel):/i
+
+/**
+ * Which hrefs survive to the DOM.
+ *
+ * react-markdown's default transform drops any scheme it doesn't know, which
+ * would take our `person:<uuid>` mentions and `note-image:<uuid>` with it — so
+ * this used to be a passthrough. A passthrough is fine for text you wrote, and
+ * not fine here: event descriptions are authored by whoever emailed you the
+ * invite, and `[Join](javascript:…)` would render as a clickable link. So
+ * allow-list instead: the two internal forms, ordinary web/mail/phone links,
+ * and anything relative. Everything else renders as inert text.
+ */
+function safeUrl(url: string): string {
+  if (MENTION_HREF.test(url) || NOTE_IMAGE.test(url)) return url
+  if (url.startsWith("note-image:pending")) return url
+  if (SAFE_SCHEME.test(url)) return url
+  return /^[a-z][a-z0-9+.-]*:/i.test(url) ? "" : url // bare scheme → drop; relative → keep
+}
+
 // Minimal markdown styling (no @tailwindcss/typography in this app).
 const COMPONENTS: Components = {
   h1: ({ children }) => <h1 className="mt-3 mb-1 text-lg font-semibold text-slate-900">{children}</h1>,
@@ -42,6 +62,22 @@ const COMPONENTS: Components = {
     </pre>
   ),
   hr: () => <hr className="my-3 border-slate-100" />,
+  // Invite bodies carry real schedules (a Derby Days day-by-day, a rental-car
+  // confirmation), so the grid has to survive. Scrolls rather than squeezing —
+  // these arrive with columns sized for an email client, not a side pane.
+  table: ({ children }) => (
+    <div className="my-2 max-w-full overflow-x-auto">
+      <table className="w-full border-collapse text-left text-[0.9em]">{children}</table>
+    </div>
+  ),
+  thead: ({ children }) => <thead className="border-b border-slate-200">{children}</thead>,
+  tr: ({ children }) => <tr className="border-b border-slate-100 last:border-0">{children}</tr>,
+  th: ({ children }) => (
+    <th className="px-2 py-1 font-semibold text-slate-900 [overflow-wrap:anywhere]">{children}</th>
+  ),
+  td: ({ children }) => (
+    <td className="px-2 py-1 align-top text-slate-700 [overflow-wrap:anywhere]">{children}</td>
+  ),
   img: ({ src, alt }) => {
     const s = typeof src === "string" ? src : ""
     const m = s.match(NOTE_IMAGE)
@@ -83,7 +119,7 @@ export const MentionText = memo(function MentionText({ children }: { children: s
       <Markdown
         remarkPlugins={[remarkGfm]}
         components={COMPONENTS}
-        urlTransform={(url) => url}
+        urlTransform={safeUrl}
       >
         {children}
       </Markdown>

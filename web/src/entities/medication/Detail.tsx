@@ -26,7 +26,7 @@ export function MedicationDetail({ entity, onClose }: { entity: Entity; onClose:
       <MedicationRegimen entity={entity} />
 
       <RecordSection title="Care team">
-        <F.Ref field="condition_id" label="Condition" lookup="condition" intent="reference" />
+        <F.Ref field="program_id" label="Treats" lookup="program" intent="reference" />
         <F.Ref field="prescriber_id" label="Prescriber" lookup="people" />
         <F.Ref field="pharmacy_id" label="Pharmacy" lookup="organization" />
       </RecordSection>

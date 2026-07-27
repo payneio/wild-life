@@ -3,6 +3,7 @@ import { EntityRefField } from "@/components/graph/EntityRefField"
 import { RecurrenceEditor } from "@/components/RecurrenceEditor"
 import { NoteRootField } from "@/components/graph/NoteRootField"
 import { AttendeeEditor } from "@/components/calendar/AttendeeEditor"
+import { MentionText } from "@/components/MentionText"
 import { useField, useFields } from "@/components/record/context"
 import { instantToLocalInput, localInputToInstant } from "@/lib/date"
 import { cn } from "@/lib/utils"
@@ -58,6 +59,7 @@ function AutoGrow({
   placeholder,
   className,
   minRows = 3,
+  autoFocus,
 }: {
   value: string
   onChange: (v: string) => void
@@ -67,6 +69,7 @@ function AutoGrow({
   placeholder?: string
   className?: string
   minRows?: number
+  autoFocus?: boolean
 }) {
   const ref = useRef<HTMLTextAreaElement>(null)
   useLayoutEffect(() => {
@@ -79,6 +82,7 @@ function AutoGrow({
     <textarea
       ref={ref}
       rows={minRows}
+      autoFocus={autoFocus}
       value={value}
       placeholder={placeholder}
       className={className}
@@ -233,6 +237,69 @@ export function RecordTextarea({
           save(orNull(draft))
         }}
       />
+    </Wrap>
+  )
+}
+
+/**
+ * Long-form prose: rendered while at rest, raw source while you're in it.
+ *
+ * Not the read-mode/edit-mode toggle the architecture rejects — that one is a
+ * record-level Edit button gating every field. Here the field is still edited
+ * in place and autosaves on blur; clicking the prose puts you straight in the
+ * text. The rendered form is simply what the field looks like when it isn't
+ * focused, the same trade `NoteComposer` already makes.
+ *
+ * Worth it only where the text arrives formatted — an invite body, a journal
+ * entry. Short scratch fields stay `RecordTextarea`, where swapping elements on
+ * focus would be friction for text nobody marks up.
+ */
+export function RecordMarkdown({
+  field,
+  label,
+  placeholder,
+  minRows = 4,
+}: {
+  field: string
+  label?: string
+  placeholder?: string
+  minRows?: number
+}) {
+  const { value, save } = useField(field)
+  const { draft, setDraft, focused, setFocused } = useDraft(value, asText)
+  return (
+    <Wrap label={label} full>
+      {focused ? (
+        <AutoGrow
+          value={draft}
+          minRows={minRows}
+          placeholder={placeholder ?? "—"}
+          className={cn(GHOST, "resize-none overflow-hidden leading-relaxed")}
+          autoFocus
+          onFocus={() => setFocused(true)}
+          onChange={setDraft}
+          onBlur={() => {
+            setFocused(false)
+            save(orNull(draft))
+          }}
+        />
+      ) : (
+        // Focusable in its own right, so the field is still reachable by keyboard
+        // rather than only by pointer.
+        <div
+          role="textbox"
+          tabIndex={0}
+          className={cn(GHOST, "cursor-text leading-relaxed")}
+          onClick={() => setFocused(true)}
+          onFocus={() => setFocused(true)}
+        >
+          {draft.trim() ? (
+            <MentionText>{draft}</MentionText>
+          ) : (
+            <span className="text-slate-400">{placeholder ?? "—"}</span>
+          )}
+        </div>
+      )}
     </Wrap>
   )
 }

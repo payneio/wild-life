@@ -4,7 +4,7 @@ import uuid
 from datetime import date, datetime
 
 from sqlalchemy import Date, DateTime, ForeignKey, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from wild_life.db.base import Base
@@ -47,13 +47,23 @@ class Program(UUIDPrimaryKey, TimestampMixin, Base):
     intended_outcome: Mapped[str | None] = mapped_column(Text)
     status: Mapped[str] = mapped_column(
         Text, server_default="proposed", nullable=False
-    )  # proposed/active/paused/completed/cancelled
+    )  # ProgramStatus
     start_date: Mapped[date | None] = mapped_column(Date)
-    target_date: Mapped[date | None] = mapped_column(Date)
+    # When it stopped being a thing. Replaces `target_date`, which no program ever
+    # carried — a program is something you pay attention to, not a dated effort.
+    ended_date: Mapped[date | None] = mapped_column(Date)
     accountable_owner_id: Mapped[uuid.UUID | None] = _person_fk()
     responsible_lead_id: Mapped[uuid.UUID | None] = _person_fk()
     review_frequency: Mapped[str | None] = mapped_column(Text)
     reporting_cadence: Mapped[str | None] = mapped_column(Text)
+    # Health facet — null for programs that aren't conditions.
+    category: Mapped[str | None] = mapped_column(Text)  # HealthCategory
+    # What kinds of thing this program concerns itself with. A fact about the
+    # program ("IMO involves medications"), which the detail reads to decide
+    # whether to offer an *empty* panel. A panel with rows always shows.
+    involves: Mapped[list[str]] = mapped_column(
+        ARRAY(Text), server_default="{}", nullable=False
+    )
 
 
 class Project(UUIDPrimaryKey, TimestampMixin, Base):

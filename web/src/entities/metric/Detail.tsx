@@ -35,9 +35,9 @@ export function MetricDetail({ entity, onClose }: { entity: Entity; onClose: () 
       <MetricExtra entity={entity} />
 
       <RecordSection title="Context">
-        <F.Ref field="area_id" label="Area" lookup="area" />
-        <F.Ref field="program_id" label="Program" lookup="program" />
-        <F.Ref field="condition_id" label="Condition" lookup="condition" intent="reference" />
+        {/* One root: what this measures. It replaced an area/program/condition
+            triple that let two readings of the same kind be filed differently. */}
+        <F.Root label="Measures" />
         <F.Text field="data_source" label="Data source" />
         <F.Textarea field="notes" label="Notes" />
       </RecordSection>

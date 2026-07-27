@@ -10,8 +10,7 @@ import {
   ALLERGY_STATUS,
   ALLERGY_TYPE,
   COMMIT_STATUS,
-  CONDITION_CATEGORY,
-  CONDITION_STATUS,
+  HEALTH_CATEGORY,
   DELEGATION_STATUS,
   EVENT_TYPE,
   MEASUREMENT_FREQUENCIES,
@@ -35,7 +34,8 @@ export const PROGRAM_FIELDS: FieldSpec[] = [
   { name: "intended_outcome", label: "Intended outcome", type: "textarea" },
   { name: "success_criteria", label: "Success criteria", type: "textarea" },
   { name: "start_date", label: "Start", type: "date" },
-  { name: "target_date", label: "Target", type: "date" },
+  { name: "ended_date", label: "Ended", type: "date" },
+  { name: "category", label: "Health category", type: "select", options: HEALTH_CATEGORY },
   { name: "review_frequency", label: "Review frequency" },
   { name: "reporting_cadence", label: "Reporting cadence" },
 ]
@@ -179,25 +179,10 @@ export const LOCATION_FIELDS: FieldSpec[] = [
   { name: "notes", label: "Notes", type: "textarea", full: true },
 ]
 
-export const CONDITION_FIELDS: FieldSpec[] = [
-  { name: "name", label: "Name" },
-  { name: "category", label: "Category", type: "select", options: CONDITION_CATEGORY },
-  { name: "status", label: "Status", type: "select", options: CONDITION_STATUS },
-  { name: "area_id", label: "Area", type: "entity", lookup: "area" },
-  { name: "program_id", label: "Program", type: "entity", lookup: "program" },
-  { name: "severity", label: "Severity" },
-  { name: "onset_date", label: "Onset", type: "date" },
-  { name: "resolved_date", label: "Resolved", type: "date" },
-  { name: "diagnosed_by_id", label: "Diagnosed by", type: "entity", lookup: "people" },
-  { name: "description", label: "Description", type: "textarea", full: true },
-  { name: "notes", label: "Notes", type: "textarea", full: true },
-]
-
 export const MEDICATION_FIELDS: FieldSpec[] = [
   { name: "name", label: "Name" },
   { name: "brand", label: "Brand" },
   { name: "med_type", label: "Type", type: "select", options: MED_TYPE },
-  { name: "condition_id", label: "For condition", type: "entity", lookup: "condition" },
   { name: "prescriber_id", label: "Prescriber", type: "entity", lookup: "people" },
   { name: "pharmacy_id", label: "Pharmacy", type: "entity", lookup: "organization" },
   { name: "reason", label: "Reason", type: "textarea" },
@@ -214,7 +199,6 @@ export const PROTOCOL_FIELDS: FieldSpec[] = [
   { name: "duration", label: "Duration", placeholder: "4-6 wk" },
   { name: "start_date", label: "Start", type: "date" },
   { name: "end_date", label: "End", type: "date" },
-  { name: "condition_id", label: "For condition", type: "entity", lookup: "condition" },
   { name: "provider_id", label: "Provider", type: "entity", lookup: "people" },
   { name: "intended_outcome", label: "Intended outcome", type: "textarea", full: true },
   { name: "notes", label: "Notes", type: "textarea", full: true },
@@ -289,7 +273,6 @@ export const METRIC_FIELDS: FieldSpec[] = [
   { name: "name", label: "Name" },
   { name: "unit", label: "Unit" },
   { name: "area_id", label: "Area", type: "entity", lookup: "area" },
-  { name: "condition_id", label: "For condition", type: "entity", lookup: "condition" },
   { name: "reference_min", label: "Normal from", type: "number" },
   { name: "reference_max", label: "Normal to", type: "number" },
   { name: "measurement_frequency", label: "Reading cadence", type: "select", options: MEASUREMENT_FREQUENCIES },
