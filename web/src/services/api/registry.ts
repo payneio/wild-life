@@ -159,7 +159,7 @@ export const REGISTRY: Record<string, EntityDef> = {
     { mode: "fk-children", label: "Projects", type: "project", fkField: "area_id" },
     { mode: "soft-backref", label: "Outcomes", type: "outcome", defaults: { kind: "standard" } },
     { mode: "fk-children", label: "Routines", type: "routine", fkField: "area_id" },
-    { mode: "fk-children", label: "Metrics", type: "metric", fkField: "area_id" },
+    { mode: "soft-backref", label: "Metrics", type: "metric" },
     { mode: "soft-backref", label: "Events", type: "event", hideWhenEmpty: true },
     { mode: "soft-backref", label: "Notes", type: "note" },
   ] },
