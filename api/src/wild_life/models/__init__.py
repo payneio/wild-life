@@ -7,8 +7,8 @@ from wild_life.models.health import (
     Allergy,
     InsurancePlan,
     Medication,
-    Protocol,
 )
+from wild_life.models.protocols import Protocol
 from wild_life.models.history import ChangeLog
 from wild_life.models.knowledge import Decision, Resource
 from wild_life.models.links import EntityLink

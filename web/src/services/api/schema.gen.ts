@@ -4235,8 +4235,6 @@ export interface components {
         };
         /** ProtocolCreate */
         ProtocolCreate: {
-            /** Area Id */
-            area_id?: string | null;
             /** Category */
             category?: string | null;
             /** Duration */
@@ -4263,8 +4261,6 @@ export interface components {
         };
         /** ProtocolRead */
         ProtocolRead: {
-            /** Area Id */
-            area_id: string | null;
             /** Category */
             category: string | null;
             /**
@@ -4303,8 +4299,6 @@ export interface components {
         };
         /** ProtocolUpdate */
         ProtocolUpdate: {
-            /** Area Id */
-            area_id?: string | null;
             /** Category */
             category?: string | null;
             /** Duration */

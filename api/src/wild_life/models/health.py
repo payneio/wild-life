@@ -1,17 +1,18 @@
-"""Health domain: medications, protocols, insurance, allergies.
+"""Health domain: medications, insurance, allergies.
 
 Providers are ordinary ``Person`` records (with a ``specialty``) linked to their
 clinic via ``Affiliation``; clinics/pharmacies/insurers are ``Organization``s;
 numeric labs/vitals ride the existing ``Metric``/``MetricEntry``. A *condition* is
 not a table here — it is a ``Program`` in the Health area, because a condition and
 a program are the same thing: something you have decided to pay attention to.
-So what a medication treats is the program it belongs to.
+So what a medication treats is the program it belongs to. Nor is a *protocol*: it
+is grouped routines aimed at an outcome, which any program can have.
 """
 
 import uuid
 from datetime import date
 
-from sqlalchemy import Boolean, Date, ForeignKey, Text
+from sqlalchemy import Date, ForeignKey, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -64,31 +65,6 @@ class Medication(UUIDPrimaryKey, TimestampMixin, Base):
     prescriber_id: Mapped[uuid.UUID | None] = _people_fk()
     pharmacy_id: Mapped[uuid.UUID | None] = _org_fk()
     instructions: Mapped[str | None] = mapped_column(Text)
-    notes: Mapped[str | None] = mapped_column(Text)
-
-
-class Protocol(UUIDPrimaryKey, TimestampMixin, Base):
-    """A named recurring plan (medical or behavioral) bundling steps (Routines).
-
-    Lifecycle derives from the window: ``planned`` (start in the future), ``active``
-    (in-window), ``completed`` (past end). ``paused`` is the one non-derivable state —
-    a deliberate suspension inside the window — and the only stored lifecycle bit.
-    """
-
-    __tablename__ = "protocols"
-
-    name: Mapped[str] = mapped_column(Text, nullable=False)
-    category: Mapped[str | None] = mapped_column(Text)
-    intended_outcome: Mapped[str | None] = mapped_column(Text)
-    paused: Mapped[bool] = mapped_column(
-        Boolean, server_default="false", nullable=False
-    )
-    area_id: Mapped[uuid.UUID | None] = _area_fk()
-    program_id: Mapped[uuid.UUID | None] = _program_fk()
-    start_date: Mapped[date | None] = mapped_column(Date)
-    end_date: Mapped[date | None] = mapped_column(Date)
-    duration: Mapped[str | None] = mapped_column(Text)  # e.g. "4-6 wk"
-    provider_id: Mapped[uuid.UUID | None] = _people_fk()
     notes: Mapped[str | None] = mapped_column(Text)
 
 

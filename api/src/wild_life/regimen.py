@@ -18,7 +18,8 @@ from datetime import date, timedelta
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from wild_life.models.health import Medication, Protocol
+from wild_life.models.health import Medication
+from wild_life.models.protocols import Protocol
 from wild_life.models.routines import Routine
 from wild_life.schemas.health import RegimenEntry
 

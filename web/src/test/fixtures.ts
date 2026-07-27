@@ -243,7 +243,6 @@ export const PROTOCOL: Protocol = {
   category: "physio",
   intended_outcome: "Pain-free walking",
   paused: false,
-  area_id: null,
   program_id: null,
   start_date: "2026-06-01" as CalendarDay,
   end_date: null,

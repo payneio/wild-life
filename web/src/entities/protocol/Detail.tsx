@@ -32,7 +32,6 @@ export function ProtocolDetail({ entity, onClose }: { entity: Entity; onClose: (
 
       <RecordSection title="Context">
         <F.Ref field="provider_id" label="Provider" lookup="people" />
-        <F.Ref field="area_id" label="Area" lookup="area" />
         <F.Ref field="program_id" label="Program" lookup="program" />
         <F.Textarea field="notes" label="Notes" />
       </RecordSection>

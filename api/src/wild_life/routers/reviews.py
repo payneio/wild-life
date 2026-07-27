@@ -14,7 +14,8 @@ from wild_life.models.calendar import Event
 from wild_life.models.core import Area, Program, Project
 from wild_life.models.outcomes import Outcome
 from wild_life.models.notes import Note
-from wild_life.models.health import Medication, Protocol
+from wild_life.models.health import Medication
+from wild_life.models.protocols import Protocol
 from wild_life.models.metrics import Metric, MetricEntry
 from wild_life.models.requests import Request
 from wild_life.models.routines import Routine, RoutineInstance

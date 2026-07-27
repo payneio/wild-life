@@ -1,8 +1,8 @@
-"""Routes for the health domain: medications, protocols (+items), insurance
-plans, allergies.
+"""Routes for the health domain: medications, insurance plans, allergies.
 
 Conditions are not here: a condition is a Program in the Health area, so its
-routes are the ordinary `/programs` ones.
+routes are the ordinary `/programs` ones. Protocols aren't either — grouped
+routines aimed at an outcome belong to any program, not just a clinical one.
 """
 
 from datetime import UTC
@@ -18,7 +18,6 @@ from wild_life.models.health import (
     Allergy,
     InsurancePlan,
     Medication,
-    Protocol,
 )
 from wild_life.routers.crud import crud_router
 from wild_life.schemas.health import (
@@ -31,9 +30,6 @@ from wild_life.schemas.health import (
     MedicationCreate,
     MedicationRead,
     MedicationUpdate,
-    ProtocolCreate,
-    ProtocolRead,
-    ProtocolUpdate,
     RegimenEntry,
 )
 
@@ -53,17 +49,6 @@ router.include_router(
         read_schema=MedicationRead,
         update_schema=MedicationUpdate,
         order_by=Medication.name,
-    )
-)
-router.include_router(
-    crud_router(
-        prefix="/protocols",
-        tag="health",
-        model=Protocol,
-        create_schema=ProtocolCreate,
-        read_schema=ProtocolRead,
-        update_schema=ProtocolUpdate,
-        order_by=Protocol.name,
     )
 )
 router.include_router(

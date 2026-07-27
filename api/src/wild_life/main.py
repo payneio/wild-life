@@ -39,6 +39,7 @@ from wild_life.routers import (
     outcomes,
     people,
     preferences,
+    protocols,
     push,
     reminders,
     requests,
@@ -162,6 +163,7 @@ app.include_router(reviews.router)
 app.include_router(knowledge.router)
 app.include_router(tags.router)
 app.include_router(health_routes.router)
+app.include_router(protocols.router)
 app.include_router(history.router)
 app.include_router(stream.router)
 app.include_router(push.router)

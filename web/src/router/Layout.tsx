@@ -10,7 +10,7 @@ import {
   FolderKanban,
   GitMerge,
   HeartHandshake,
-  HeartPulse,
+  Repeat,
   History,
   Home,
   Hourglass,
@@ -57,34 +57,52 @@ import {
 
 type Item = { to: string; label: string; icon: ComponentType<{ size?: number }> }
 
-const PLAN: Item[] = [
+/** The daily surfaces — where you land and what's in front of you. */
+const DAILY: Item[] = [
   { to: "/today", label: "Today", icon: Home },
   { to: "/inbox", label: "Inbox", icon: Inbox },
   { to: "/calendar", label: "Calendar", icon: CalendarDays },
   { to: "/whiteboard", label: "Whiteboard", icon: StickyNote },
+]
+
+/** The spine, in containment order, then the recurring mode of work. A program's
+ *  effort is either finite (projects → tasks) or repeating (protocols →
+ *  routines); protocols sit after the chain rather than beside projects because
+ *  Area → Program → Project → Task is the sequence you already think in. */
+const WORK: Item[] = [
   { to: "/areas", label: "Areas", icon: Layers },
   { to: "/programs", label: "Programs", icon: Rocket },
   { to: "/projects", label: "Projects", icon: FolderKanban },
   { to: "/tasks", label: "Tasks", icon: ListChecks },
-  { to: "/protocols", label: "Protocols", icon: HeartPulse },
+  { to: "/protocols", label: "Protocols", icon: Repeat },
+]
+
+/** What must be true, how it's read, and the periodic look at both. */
+const MEASURE: Item[] = [
   { to: "/outcomes", label: "Outcomes", icon: Target },
-  { to: "/delegations", label: "Delegations", icon: Send },
-  { to: "/agents", label: "Agents", icon: Bot },
-  { to: "/requests", label: "Requests", icon: Hourglass },
+  { to: "/metrics", label: "Metrics", icon: LineChart },
   { to: "/reviews", label: "Review", icon: ClipboardCheck },
 ]
 
+/** Work that leaves your hands. */
+const OTHERS: Item[] = [
+  { to: "/delegations", label: "Delegations", icon: Send },
+  { to: "/requests", label: "Requests", icon: Hourglass },
+  { to: "/agents", label: "Agents", icon: Bot },
+]
+
+/** What's left once conditions became programs and protocols became generic:
+ *  the genuinely clinical records. */
 const HEALTH: Item[] = [
   { to: "/medications", label: "Medications", icon: Pill },
-  { to: "/insurance", label: "Insurance", icon: ShieldPlus },
   { to: "/allergies", label: "Allergies", icon: TriangleAlert },
+  { to: "/insurance", label: "Insurance", icon: ShieldPlus },
 ]
 
 const REFERENCE: Item[] = [
   { to: "/people", label: "People", icon: Users },
   { to: "/organizations", label: "Organizations", icon: Building2 },
   { to: "/locations", label: "Locations", icon: MapPin },
-  { to: "/metrics", label: "Metrics", icon: LineChart },
   { to: "/notes", label: "Journal", icon: NotebookPen },
   { to: "/commitments", label: "Commitments", icon: HeartHandshake },
   { to: "/decisions", label: "Decisions", icon: Scale },
@@ -245,7 +263,19 @@ function GroupLabel({ children }: { children: React.ReactNode }) {
 function NavSections({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <>
-      {PLAN.map((i) => (
+      {DAILY.map((i) => (
+        <NavItem key={i.to} item={i} onNavigate={onNavigate} />
+      ))}
+      <GroupLabel>Work</GroupLabel>
+      {WORK.map((i) => (
+        <NavItem key={i.to} item={i} onNavigate={onNavigate} />
+      ))}
+      <GroupLabel>Measure</GroupLabel>
+      {MEASURE.map((i) => (
+        <NavItem key={i.to} item={i} onNavigate={onNavigate} />
+      ))}
+      <GroupLabel>With others</GroupLabel>
+      {OTHERS.map((i) => (
         <NavItem key={i.to} item={i} onNavigate={onNavigate} />
       ))}
       <GroupLabel>Health</GroupLabel>
