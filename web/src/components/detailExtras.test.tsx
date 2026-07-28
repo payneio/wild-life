@@ -31,6 +31,8 @@ const steps = [
     amount: 500,
     unit: "mg",
   },
+  // What "Add dose" actually creates: a step that names neither yet.
+  { ...ROUTINE, id: "step-3", activity: null, medication_id: null, amount: null, unit: null },
 ]
 
 // Override only the routines crud; everything else in the module stays real, so
@@ -108,15 +110,56 @@ describe("protocol steps", () => {
     expect(update).toHaveBeenCalledWith({ id: "step-1", body: { activity: null } })
   })
 
+  it("opens a just-added step as a dose, and lets the toggle move", async () => {
+    const user = userEvent.setup()
+    mount(<ProtocolExtra entity={PROTOCOL} />)
+    await user.click(screen.getByText("(step)"))
+
+    // "Add dose" writes no columns — there's nothing to name yet — so the kind
+    // has to come from what you pressed. It used to be read off `medication_id`,
+    // which meant a new dose opened claiming to be an activity and the toggle
+    // sat there refusing every press.
+    expect(screen.getByPlaceholderText("500")).toBeInTheDocument()
+
+    await user.click(screen.getByRole("button", { name: "Activity" }))
+    expect(screen.getByPlaceholderText("e.g. Walk after dinner")).toBeInTheDocument()
+    expect(screen.queryByPlaceholderText("500")).toBeNull()
+
+    await user.click(screen.getByRole("button", { name: "Dose" }))
+    expect(screen.getByPlaceholderText("500")).toBeInTheDocument()
+  })
+
+  it("won't let the toggle hide a column that's filled in", async () => {
+    const user = userEvent.setup()
+    mount(<ProtocolExtra entity={PROTOCOL} />)
+    // The step that names a medication is the second summary line.
+    await user.click(screen.getAllByRole("button", { expanded: false })[1])
+    await user.click(screen.getByRole("button", { name: "Activity" }))
+
+    // The clearing PATCH is out; until it lands the row still holds a
+    // medication, and a step's kind follows its data whenever the data can say.
+    // Rendering activity fields over a live `medication_id` would make it
+    // invisible and uneditable — the failure `coverage.test.tsx` exists for.
+    expect(update).toHaveBeenCalledWith({
+      id: "step-2",
+      body: { medication_id: null, amount: null, unit: null },
+    })
+    expect(screen.getByPlaceholderText("500")).toBeInTheDocument()
+  })
+
   it("adds a step by creating the row, not by staging a form", async () => {
     const user = userEvent.setup()
     mount(<ProtocolExtra entity={PROTOCOL} />)
-    await user.click(screen.getByRole("button", { name: "Add activity" }))
+    await user.click(screen.getByRole("button", { name: "Add step" }))
 
     expect(create).toHaveBeenCalled()
     const [body] = create.mock.calls[0]
     expect(body.protocol_id).toBe(PROTOCOL.id)
-    expect(body.activity).toBe("New step")
+    // The row names nothing: the kind is chosen on the toggle in the row that
+    // opens, and a placeholder written into `activity` would be indistinguishable
+    // from a name the user typed.
+    expect(body.activity).toBeUndefined()
+    expect(body.medication_id).toBeUndefined()
   })
 })
 

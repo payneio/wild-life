@@ -168,14 +168,17 @@ export function ProtocolExtra({ entity }: { entity: Entity }) {
   // Modeless, like everywhere else: adding a step creates the row immediately
   // (RoutineCreate needs only protocol_id) and opens it for editing, instead of
   // collecting a draft in a modal behind a Save button.
-  function add(kind: "medication" | "activity") {
+  //
+  // One button rather than one per kind. The row opens with the Dose/Activity
+  // toggle as its first control, so choosing the kind here would ask the same
+  // question twice, one line apart — and the kind determines nothing at creation
+  // (unlike a review's type, which computes its period). The per-kind buttons
+  // also had to seed a column to record the choice, so "Add activity" wrote the
+  // literal "New step" into `activity`: fabricated content in a real column,
+  // indistinguishable in the list from a name the user typed.
+  function add() {
     create.mutate(
-      {
-        protocol_id: protocol.id,
-        sort_order: list.length,
-        interval_days: 1,
-        ...(kind === "activity" ? { activity: "New step" } : {}),
-      },
+      { protocol_id: protocol.id, sort_order: list.length, interval_days: 1 },
       { onSuccess: (row: Routine) => setOpen(row.id) },
     )
   }
@@ -202,16 +205,34 @@ export function ProtocolExtra({ entity }: { entity: Entity }) {
           </ul>
         )}
         <div className="flex gap-2">
-          <Button variant="secondary" onClick={() => add("medication")}>
-            Add dose
-          </Button>
-          <Button variant="secondary" onClick={() => add("activity")}>
-            Add activity
+          <Button variant="secondary" onClick={add}>
+            Add step
           </Button>
         </div>
       </div>
     </ExtraSection>
   )
+}
+
+type StepKindValue = "dose" | "activity"
+
+/**
+ * What a step *is*: naming a medication makes it a dose, prose makes it an
+ * activity — the model's own rule (`regimen._kind` server-side).
+ *
+ * A step you just added names neither, and that gap is what jammed the Dose /
+ * Activity toggle: kind was read straight off `medication_id`, so choosing
+ * "Dose" — which only clears `activity` — left the answer unchanged and the
+ * toggle sat where it was. Worse, "Add dose" creates a row with nothing set, so
+ * it opened claiming to be an activity and couldn't be told otherwise. Hence the
+ * `intent` tiebreak: the data decides whenever it can (so a filled-in step can
+ * never be rendered as the other kind, which would hide it), and only an empty
+ * step defers to what you last pressed.
+ */
+function stepKind(step: Routine, intent: StepKindValue): StepKindValue {
+  if (step.medication_id != null) return "dose"
+  if (step.activity != null) return "activity"
+  return intent
 }
 
 /** One step: a summary line that expands into inline, autosaving fields. */
@@ -226,6 +247,10 @@ function StepRow({
   onToggle: () => void
   onDelete: () => void
 }) {
+  const [intent, setIntent] = useState<StepKindValue>(() =>
+    step.activity != null ? "activity" : "dose",
+  )
+  const kind = stepKind(step, intent)
   const isDose = step.medication_id != null
   return (
     <li className="border-b border-slate-50 py-1.5">
@@ -264,8 +289,8 @@ function StepRow({
       {open && (
         <SubRecord crud={routines} entity={step}>
           <div className="mt-2 grid grid-cols-1 gap-x-6 gap-y-3 rounded-lg bg-surface-2 p-3 sm:grid-cols-2">
-            <StepKind />
-            {isDose ? (
+            <StepKind value={kind} onChange={setIntent} />
+            {kind === "dose" ? (
               <>
                 <R.Ref field="medication_id" label="Medication" lookup="medication" />
                 <R.Number field="amount" label="Amount" placeholder="500" />
@@ -286,13 +311,22 @@ function StepRow({
 }
 
 /**
- * A step is a dose or an activity, never both. Switching writes both columns at
- * once so the pair can't land half-applied — the invariant the old modal kept by
- * clearing the other field on submit.
+ * A step is a dose or an activity, never both. Switching writes the other kind's
+ * columns away in one call so the pair can't land half-applied — the invariant
+ * the old modal kept by clearing the other field on submit.
+ *
+ * `value` is decided by the row (see `stepKind`); the toggle reports the choice
+ * back up because an empty step has no column to record it in yet. `useFields`
+ * still declares both columns, so this control owns them for coverage.
  */
-function StepKind() {
-  const { row, save } = useFields(["medication_id", "activity"])
-  const isDose = row.medication_id != null
+function StepKind({
+  value,
+  onChange,
+}: {
+  value: StepKindValue
+  onChange: (v: StepKindValue) => void
+}) {
+  const { save } = useFields(["medication_id", "activity"])
   return (
     <div className="sm:col-span-2">
       <Segmented
@@ -300,14 +334,15 @@ function StepKind() {
           { value: "dose", label: "Dose" },
           { value: "activity", label: "Activity" },
         ]}
-        value={isDose ? "dose" : "activity"}
-        onChange={(v) =>
+        value={value}
+        onChange={(v: StepKindValue) => {
+          onChange(v)
           save(
             v === "dose"
               ? { activity: null }
               : { medication_id: null, amount: null, unit: null },
           )
-        }
+        }}
       />
     </div>
   )
