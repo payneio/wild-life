@@ -922,6 +922,20 @@
         "title": "AreaUpdate",
         "type": "object"
       },
+      "Body_upload_moment_image_moments__item_id__images_post": {
+        "properties": {
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_moment_image_moments__item_id__images_post",
+        "type": "object"
+      },
       "Body_upload_note_image_notes__item_id__images_post": {
         "properties": {
           "file": {
@@ -6883,6 +6897,67 @@
           "kind"
         ],
         "title": "MomentCreate",
+        "type": "object"
+      },
+      "MomentImageRead": {
+        "properties": {
+          "content_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content Type"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "filename": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filename"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "moment_id": {
+            "format": "uuid",
+            "title": "Moment Id",
+            "type": "string"
+          },
+          "sort_order": {
+            "title": "Sort Order",
+            "type": "integer"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "created_at",
+          "updated_at",
+          "moment_id",
+          "filename",
+          "content_type",
+          "sort_order"
+        ],
+        "title": "MomentImageRead",
         "type": "object"
       },
       "MomentLinkRef": {
@@ -19062,6 +19137,81 @@
         ]
       }
     },
+    "/moment-images/{image_id}": {
+      "delete": {
+        "operationId": "delete_moment_image_moment_images__image_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "image_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Image Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Moment Image",
+        "tags": [
+          "moments"
+        ]
+      },
+      "get": {
+        "operationId": "get_moment_image_moment_images__image_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "image_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Image Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Moment Image",
+        "tags": [
+          "moments"
+        ]
+      }
+    },
     "/moments": {
       "get": {
         "description": "Moments, newest first.\n\n``linked_type``/``linked_id`` is the timeline of a thing; add ``role`` to ask\na narrower question (\"moments *with* Melissa\" rather than \"moments involving\nher at all\"). ``unfulfilled`` is the derived lapse \u2014 a window that has passed\nwith nothing having happened in it and no decision to drop it \u2014 which is a\nquery rather than a stored state precisely so it can never go stale.",
@@ -19302,6 +19452,194 @@
         ]
       }
     },
+    "/moments/calendar": {
+      "get": {
+        "description": "Per-(year, month) counts for a stream's navigation rail.\n\nScoped exactly the way the list is, so the rail counts the rows the stream\nshows. A rail that disagrees with its stream is worse than no rail.",
+        "operationId": "moments_calendar",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "capture",
+                    "reflection",
+                    "observation",
+                    "occasion",
+                    "exchange",
+                    "visit",
+                    "measurement",
+                    "dose",
+                    "activity",
+                    "work",
+                    "completion",
+                    "withdrawal",
+                    "decision"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          },
+          {
+            "in": "query",
+            "name": "linked_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "area",
+                    "program",
+                    "project",
+                    "task",
+                    "routine",
+                    "outcome",
+                    "metric",
+                    "metric_group",
+                    "event",
+                    "note",
+                    "person",
+                    "organization",
+                    "location",
+                    "commitment",
+                    "request",
+                    "delegation",
+                    "review",
+                    "resource",
+                    "decision",
+                    "medication",
+                    "protocol",
+                    "protocol_item",
+                    "insurance_plan",
+                    "allergy",
+                    "moment"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Linked Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "linked_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Linked Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "title": "Response Moments Calendar",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Moments Calendar",
+        "tags": [
+          "moments"
+        ]
+      }
+    },
+    "/moments/sync": {
+      "post": {
+        "description": "Mirror the tables that still write their own rows into the spine.\n\nDoses, readings and task completions are authored through their own surfaces\nand land in `routine_instances`, `metric_entries` and `tasks`. Until those\nsurfaces move too, a moment for them exists only because this ran \u2014 so a dose\nlogged at noon would otherwise be missing from the timeline until someone\nremembered to backfill.\n\nSame shape as `locations/tick`, and for the same reason its docstring gives:\na rolling replay is what lets the live path stay simple. The window is\ngenerous rather than exact, because re-upserting a handful of rows is free\nand a stored high-water mark is a thing that can be wrong.\n\n`full=true` re-reads everything; that belongs nightly rather than every few\nminutes.",
+        "operationId": "moments_sync",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "full",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Full",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hours",
+            "required": false,
+            "schema": {
+              "default": 2.0,
+              "title": "Hours",
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "integer"
+                  },
+                  "title": "Response Moments Sync",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Sync",
+        "tags": [
+          "moments"
+        ]
+      }
+    },
     "/moments/{item_id}": {
       "delete": {
         "operationId": "moments_delete",
@@ -19425,6 +19763,105 @@
           }
         },
         "summary": "Update Moment",
+        "tags": [
+          "moments"
+        ]
+      }
+    },
+    "/moments/{item_id}/images": {
+      "get": {
+        "operationId": "list_moment_images_moments__item_id__images_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MomentImageRead"
+                  },
+                  "title": "Response List Moment Images Moments  Item Id  Images Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Moment Images",
+        "tags": [
+          "moments"
+        ]
+      },
+      "post": {
+        "description": "Attach an image; reference it in the body as ``![alt](moment-image:<id>)``.",
+        "operationId": "upload_moment_image_moments__item_id__images_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_moment_image_moments__item_id__images_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MomentImageRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upload Moment Image",
         "tags": [
           "moments"
         ]

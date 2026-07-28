@@ -171,6 +171,33 @@ class MomentDose(Base):
     unit: Mapped[str | None] = mapped_column(Text)
 
 
+class MomentImage(UUIDPrimaryKey, TimestampMixin, Base):
+    """An image attached to a moment.
+
+    Bytes live on disk at ``$DATA_DIR/moment_images/<moment_id>/<image_id>``; this
+    row holds the metadata. Referenced inline in the body as the markdown image
+    ``![alt](moment-image:<image_id>)`` and served (bearer-protected) from
+    ``GET /moment-images/<image_id>``.
+
+    The same shape as ``NoteImage``, which it succeeds. Writing prose without
+    being able to attach what you photographed is a smaller app than the one that
+    exists, so the spine inherits this rather than leaving 13 pictures behind on
+    rows nothing renders.
+    """
+
+    __tablename__ = "moment_images"
+    __table_args__ = (Index("ix_moment_images_moment", "moment_id"),)
+
+    moment_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("moments.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    filename: Mapped[str | None] = mapped_column(Text)
+    content_type: Mapped[str | None] = mapped_column(Text)
+    sort_order: Mapped[int] = mapped_column(Integer, server_default="0", nullable=False)
+
+
 class CalendarRecord(Base):
     """A moment's shared projection — the only thing that can leave this system.
 

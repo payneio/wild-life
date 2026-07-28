@@ -7,10 +7,20 @@ rather than eight hand-written projections.
 """
 
 from collections import defaultdict
+from pathlib import Path
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    HTTPException,
+    Request,
+    UploadFile,
+    status,
+)
+from fastapi.responses import Response
 from sqlalchemy import delete, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.concurrency import run_in_threadpool
@@ -18,11 +28,14 @@ from starlette.concurrency import run_in_threadpool
 from wild_life.backfill_moments import run as backfill
 from wild_life.config import settings
 from wild_life.db.session import get_session
-from wild_life.models.moments import Moment, MomentLink
+from wild_life.models.moments import Moment, MomentImage, MomentLink
 from wild_life.query import apply_query
 from wild_life.schemas.common import EntityType, MomentKind, MomentRole
+from wild_life.routers.notes import MAX_IMAGE_BYTES
+from wild_life.routers.notes import _sniff_image as sniff_image
 from wild_life.schemas.moments import (
     MomentCreate,
+    MomentImageRead,
     MomentLinkRef,
     MomentRead,
     MomentUpdate,
@@ -172,6 +185,49 @@ async def list_moments(
     return [_read(m, links[m.id]) for m in moments]
 
 
+# --- the year/month rail -------------------------------------------------- #
+#
+# Declared before `/{item_id}`: FastAPI matches in declaration order, so a literal
+# path that comes after a parameterised one is unreachable — /moments/calendar
+# arrives as item_id="calendar" and fails to parse as a UUID.
+
+
+@router.get("/calendar", operation_id="moments_calendar")
+async def moments_calendar(
+    session: AsyncSession = Depends(get_session),
+    kind: MomentKind | None = None,
+    linked_type: EntityType | None = None,
+    linked_id: UUID | None = None,
+) -> list[dict]:
+    """Per-(year, month) counts for a stream's navigation rail.
+
+    Scoped exactly the way the list is, so the rail counts the rows the stream
+    shows. A rail that disagrees with its stream is worse than no rail.
+    """
+    year = func.extract("year", _WHEN)
+    month = func.extract("month", _WHEN)
+    stmt = select(
+        year.label("year"), month.label("month"), func.count().label("count")
+    ).where(_WHEN.isnot(None))
+    if kind is not None:
+        stmt = stmt.where(Moment.kind == kind)
+    if linked_type is not None and linked_id is not None:
+        stmt = stmt.where(
+            Moment.id.in_(
+                select(MomentLink.moment_id).where(
+                    MomentLink.entity_type == linked_type,
+                    MomentLink.entity_id == linked_id,
+                )
+            )
+        )
+    stmt = stmt.group_by(year, month).order_by(year.desc(), month.desc())
+    rows = (await session.execute(stmt)).all()
+    return [
+        {"year": int(r.year), "month": int(r.month), "count": int(r.count)}
+        for r in rows
+    ]
+
+
 @router.get("/{item_id}", response_model=MomentRead, operation_id="moments_get")
 async def get_moment(
     item_id: UUID, session: AsyncSession = Depends(get_session)
@@ -237,3 +293,97 @@ async def sync(full: bool = False, hours: float = 2.0) -> dict[str, int]:
     # The backfill is synchronous (it is also a CLI), so it runs off the event
     # loop rather than blocking every other request for the length of a scan.
     return await run_in_threadpool(backfill, dry_run=False, since=since)
+
+
+# --- images ---------------------------------------------------------------- #
+#
+# Inherited from notes rather than left behind. Writing prose you cannot attach a
+# photograph to is a smaller app than the one that exists, and 13 pictures on 7
+# entries would otherwise become invisible the moment the surfaces move.
+
+
+def _image_path(moment_id: UUID, image_id: UUID) -> Path:
+    return settings.data_dir / "moment_images" / str(moment_id) / str(image_id)
+
+
+@router.get("/{item_id}/images", response_model=list[MomentImageRead])
+async def list_moment_images(
+    item_id: UUID, session: AsyncSession = Depends(get_session)
+) -> list[MomentImage]:
+    result = await session.execute(
+        select(MomentImage)
+        .where(MomentImage.moment_id == item_id)
+        .order_by(MomentImage.sort_order, MomentImage.created_at)
+    )
+    return list(result.scalars().all())
+
+
+@router.post("/{item_id}/images", response_model=MomentImageRead, status_code=201)
+async def upload_moment_image(
+    item_id: UUID,
+    file: UploadFile = File(...),
+    session: AsyncSession = Depends(get_session),
+) -> MomentImage:
+    """Attach an image; reference it in the body as ``![alt](moment-image:<id>)``."""
+    moment = await session.get(Moment, item_id)
+    if moment is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Moment not found")
+    data = await file.read()
+    if len(data) > MAX_IMAGE_BYTES:
+        raise HTTPException(
+            status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="Too large"
+        )
+    content_type = sniff_image(data)
+    if content_type is None:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            detail="Not a supported image (jpeg/png/gif/webp)",
+        )
+    existing = await session.scalar(
+        select(MomentImage.id).where(MomentImage.moment_id == item_id).limit(1)
+    )
+    img = MomentImage(
+        moment_id=item_id,
+        filename=file.filename,
+        content_type=content_type,
+        sort_order=0 if existing is None else 1,
+    )
+    session.add(img)
+    await session.flush()
+    path = _image_path(item_id, img.id)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(data)
+    await session.refresh(img)
+    return img
+
+
+images_router = APIRouter(prefix="/moment-images", tags=["moments"])
+
+
+@images_router.get("/{image_id}")
+async def get_moment_image(
+    image_id: UUID, session: AsyncSession = Depends(get_session)
+) -> Response:
+    img = await session.get(MomentImage, image_id)
+    if img is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not found")
+    path = _image_path(img.moment_id, img.id)
+    if not path.exists():
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not found")
+    return Response(
+        path.read_bytes(),
+        media_type=img.content_type or "application/octet-stream",
+        headers={"Cache-Control": "private, max-age=31536000, immutable"},
+    )
+
+
+@images_router.delete("/{image_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_moment_image(
+    image_id: UUID, session: AsyncSession = Depends(get_session)
+) -> None:
+    img = await session.get(MomentImage, image_id)
+    if img is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not found")
+    path = _image_path(img.moment_id, img.id)
+    path.unlink(missing_ok=True)
+    await session.delete(img)

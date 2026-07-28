@@ -1183,6 +1183,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/moment-images/{image_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Moment Image */
+        get: operations["get_moment_image_moment_images__image_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Moment Image */
+        delete: operations["delete_moment_image_moment_images__image_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/moments": {
         parameters: {
             query?: never;
@@ -1210,6 +1228,63 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/moments/calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Moments Calendar
+         * @description Per-(year, month) counts for a stream's navigation rail.
+         *
+         *     Scoped exactly the way the list is, so the rail counts the rows the stream
+         *     shows. A rail that disagrees with its stream is worse than no rail.
+         */
+        get: operations["moments_calendar"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/moments/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sync
+         * @description Mirror the tables that still write their own rows into the spine.
+         *
+         *     Doses, readings and task completions are authored through their own surfaces
+         *     and land in `routine_instances`, `metric_entries` and `tasks`. Until those
+         *     surfaces move too, a moment for them exists only because this ran — so a dose
+         *     logged at noon would otherwise be missing from the timeline until someone
+         *     remembered to backfill.
+         *
+         *     Same shape as `locations/tick`, and for the same reason its docstring gives:
+         *     a rolling replay is what lets the live path stay simple. The window is
+         *     generous rather than exact, because re-upserting a handful of rows is free
+         *     and a stored high-water mark is a thing that can be wrong.
+         *
+         *     `full=true` re-reads everything; that belongs nightly rather than every few
+         *     minutes.
+         */
+        post: operations["moments_sync"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/moments/{item_id}": {
         parameters: {
             query?: never;
@@ -1227,6 +1302,27 @@ export interface paths {
         head?: never;
         /** Update Moment */
         patch: operations["moments_update"];
+        trace?: never;
+    };
+    "/moments/{item_id}/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Moment Images */
+        get: operations["list_moment_images_moments__item_id__images_get"];
+        put?: never;
+        /**
+         * Upload Moment Image
+         * @description Attach an image; reference it in the body as ``![alt](moment-image:<id>)``.
+         */
+        post: operations["upload_moment_image_moments__item_id__images_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/note-images/{image_id}": {
@@ -2650,6 +2746,11 @@ export interface components {
             review_frequency?: string | null;
             /** Status */
             status?: ("active" | "inactive" | "archived") | null;
+        };
+        /** Body_upload_moment_image_moments__item_id__images_post */
+        Body_upload_moment_image_moments__item_id__images_post: {
+            /** File */
+            file: string;
         };
         /** Body_upload_note_image_notes__item_id__images_post */
         Body_upload_note_image_notes__item_id__images_post: {
@@ -4204,6 +4305,35 @@ export interface components {
             window_end?: Instant | null;
             /** Window Start */
             window_start?: Instant | null;
+        };
+        /** MomentImageRead */
+        MomentImageRead: {
+            /** Content Type */
+            content_type: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: Instant;
+            /** Filename */
+            filename: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Moment Id
+             * Format: uuid
+             */
+            moment_id: string;
+            /** Sort Order */
+            sort_order: number;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: Instant;
         };
         /**
          * MomentLinkRef
@@ -9297,6 +9427,66 @@ export interface operations {
             };
         };
     };
+    get_moment_image_moment_images__image_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                image_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_moment_image_moment_images__image_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                image_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     moments_list: {
         parameters: {
             query?: {
@@ -9354,6 +9544,75 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MomentRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    moments_calendar: {
+        parameters: {
+            query?: {
+                kind?: ("capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "work" | "completion" | "withdrawal" | "decision") | null;
+                linked_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+                linked_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    moments_sync: {
+        parameters: {
+            query?: {
+                full?: boolean;
+                hours?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: number;
+                    };
                 };
             };
             /** @description Validation Error */
@@ -9449,6 +9708,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MomentRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_moment_images_moments__item_id__images_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentImageRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_moment_image_moments__item_id__images_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_moment_image_moments__item_id__images_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentImageRead"];
                 };
             };
             /** @description Validation Error */

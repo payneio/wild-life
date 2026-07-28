@@ -226,8 +226,71 @@ class Backfill:
                 if not self._is_self(t, i)
             ]
             self.links(mid, edges)
+            self._images(n.id, mid)
             self.count(f"note→{kind}")
             self.count("links", len(edges))
+
+    def _images(self, note_id: uuid.UUID, moment_id: uuid.UUID | None) -> None:
+        """Carry a note's attached pictures over, bytes and all.
+
+        The moment gets a fresh id, so the files move to a directory named for it
+        rather than being reached through a note that is going away. The body's
+        inline `![alt](note-image:<id>)` references are rewritten to
+        `moment-image:` in the same pass — a picture that is attached but no
+        longer referenced is invisible, which is the same silence as not
+        migrating it.
+        """
+        if self.dry_run or moment_id is None:
+            return
+        rows = self.rows(
+            "SELECT id, filename, content_type, sort_order FROM wild_life.note_images "
+            "WHERE note_id = :n ORDER BY sort_order, created_at",
+            n=note_id,
+        )
+        if not rows:
+            return
+        for img in rows:
+            self.conn.execute(
+                text("""
+                    INSERT INTO wild_life.moment_images
+                        (id, moment_id, filename, content_type, sort_order)
+                    VALUES (:id, :m, :f, :c, :s)
+                    ON CONFLICT (id) DO UPDATE SET
+                        moment_id = EXCLUDED.moment_id,
+                        filename = EXCLUDED.filename,
+                        content_type = EXCLUDED.content_type,
+                        sort_order = EXCLUDED.sort_order
+                """),
+                {
+                    "id": img.id,
+                    "m": moment_id,
+                    "f": img.filename,
+                    "c": img.content_type,
+                    "s": img.sort_order,
+                },
+            )
+            src = settings.data_dir / "note_images" / str(note_id) / str(img.id)
+            dst = settings.data_dir / "moment_images" / str(moment_id) / str(img.id)
+            if dst.exists():
+                self.count("images already carried")
+            elif src.exists():
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                dst.write_bytes(src.read_bytes())
+                self.count("images carried")
+            else:
+                # Loud, because the row without its bytes is a picture that
+                # renders as a broken box. The first run of this wrote 13 rows
+                # and copied nothing, because WILD_LIFE_DATA_DIR was not set and
+                # `data_dir` fell back to a relative path that did not exist.
+                self.count(f"IMAGE BYTES MISSING under {settings.data_dir}")
+        self.conn.execute(
+            text(
+                "UPDATE wild_life.moments "
+                "SET body = replace(body, 'note-image:', 'moment-image:') "
+                "WHERE id = :m"
+            ),
+            {"m": moment_id},
+        )
 
     def events(self) -> None:
         """Events become occasions, and their sharing becomes a calendar record.

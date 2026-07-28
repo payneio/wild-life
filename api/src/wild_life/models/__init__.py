@@ -25,6 +25,7 @@ from wild_life.models.moments import (
     CalendarRecord,
     Moment,
     MomentDose,
+    MomentImage,
     MomentLink,
     MomentReading,
 )
@@ -86,6 +87,7 @@ __all__ = [
     "EntityLink",
     "Moment",
     "MomentLink",
+    "MomentImage",
     "MomentReading",
     "MomentDose",
     "CalendarRecord",

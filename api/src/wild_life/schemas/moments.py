@@ -57,6 +57,13 @@ class MomentUpdate(BaseModel):
     links: list[MomentLinkRef] | None = None
 
 
+class MomentImageRead(Entity):
+    moment_id: uuid.UUID
+    filename: str | None
+    content_type: str | None
+    sort_order: int
+
+
 class MomentRead(Entity):
     kind: MomentKind
     started_at: datetime | None
