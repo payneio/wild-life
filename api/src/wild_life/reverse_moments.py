@@ -66,6 +66,7 @@ class Reverse:
         )
 
     def run(self) -> None:
+        self._rules()
         for m in self.conn.execute(
             text("""
                 SELECT id, kind, title, body, started_at, ended_at, all_day,
@@ -84,6 +85,28 @@ class Reverse:
                 # 12 work intentions is the difference between an informed
                 # decision and a surprise.
                 self.count(f"no old-world form: {m.kind}")
+
+    def _rules(self) -> None:
+        """Report the series a revert would not bring back.
+
+        A recurring occasion authored *after* the cut-over is a rule, and a rule
+        has no old-world form: `events` expresses a series as one row carrying an
+        RRULE, and ours may say things RFC 5545 cannot. Rules built *from* events
+        carry a `source_ref` and are fine — their originals are still there, which
+        is exactly the test used for moments.
+
+        Named rather than silently skipped, for the same reason everything else
+        here is: knowing that a revert would hide three weekly meetings is the
+        difference between an informed decision and a surprise on Monday.
+        """
+        orphaned = self.conn.execute(
+            text("""
+                SELECT count(*) FROM wild_life.routines
+                WHERE kind = 'occasion' AND source_ref IS NULL
+            """)
+        ).scalar_one()
+        if orphaned:
+            self.count("no old-world form: occasion rule", int(orphaned))
 
     def _note(self, m: Any) -> None:
         links = self._links(m.id)

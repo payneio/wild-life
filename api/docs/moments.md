@@ -141,28 +141,50 @@ Three things the run corrected in this document:
 | `/moments` — CRUD, timeline-by-any-end, `unfulfilled`, rail, images | live |
 | `POST /moments/sync` + wildpc job | every 5 minutes, 2-hour window |
 | **Prose surfaces** — Journal, Inbox, every record's Log, both composers | **on moments** |
-| **Calendar** — layers, drag, recurrence scope, RSVP | **still on `events`** (see below) |
+| **Rules** — one cadence expression, freed from `protocol_id` | generalised `Routine` + `rule_links` |
+| **Recurrence** — wire ⇄ our cadence, proved against all 74 real rules | 58 translate · 16 materialised |
+| **Calendar** — reads and writes `/occurrences`; scoped edits; server-side expansion | **on moments + rules** |
+| **iMIP** — invitations, RSVP, guests, the ICS importer | **still on `events`** (see below) |
 
 **The sync job is why the mirrored kinds stay current.** Doses, readings,
-completions and occasions are still authored through their own surfaces into
-`routine_instances`, `metric_entries`, `tasks` and `events`; the tick mirrors
+completions and imported occasions are still authored through their own surfaces
+into `routine_instances`, `metric_entries`, `tasks` and `events`; the tick mirrors
 them, so a record's Log shows them within five minutes of the act. It goes away
 one kind at a time as those surfaces move.
 
-### Why the calendar did not move with the rest
+### How the calendar works now
 
-`CalendarRecord` is a model with no schema and no router: nothing serves
-recurrence, `external_ref`, `organizer`, `sequence` or the RSVP pair. The
-calendar reads all five — RRULE expansion, the this/following/all scope dialog,
-invite sending — so pointing it at `/moments` would mean losing them, not
-porting them. It keeps writing `events`, and the tick mirrors each one into an
-`occasion` so the timelines stay whole.
+`GET /occurrences?since&until` answers the whole question, from three sources in
+one shape:
 
-**What that costs, concretely:** an occasion's filing is owned by the event row,
-so the Inbox triages occasions through `/events` and a subject set on the *moment*
-would be reverted by the next tick that re-read its source. Same for editing an
-occasion's title or body — which is why the Log renders non-prose kinds read-only
-and links through to the surface that owns them.
+1. a plain moment — itself;
+2. a moment carrying a wire rule we could not translate — expanded verbatim from
+   its calendar record;
+3. a rule of ours — projected as wall times in its own zone, and **never stored**
+   (decision 10).
+
+A translated series has both a rule *and* the wire form it came from. Only the
+rule expands: the anchor moment names its rule (`rule_id`, `occurrence_at IS
+NULL`) and defers to it. Expanding both put the same therapy appointment on the
+calendar twice a week, which is what the corpus test now forbids.
+
+**`moments.rule_id` + `occurrence_at` replaces the override VEVENT.**
+`RECURRENCE-ID`/`EXDATE` exist because an iCal series cannot record an exception;
+ours can. Untouched occurrences are not rows; a moved one is a moment naming the
+slot it stands for; a cancelled one is that plus `withdrawn_at`. `occurrence_at`
+is always the *original* instant — the identity of the slot, not the new time.
+
+Scoped edits (`PATCH /occurrences`) follow from that and are most of a page
+rather than most of a file: `all` edits the rule, `following` splits it in two
+and re-points later exceptions, `this` writes one moment.
+
+### What is still on `events`, and what moving it needs
+
+The ICS importer, the inbound-invite ingest, the iMIP send path
+(`calendar_mail.py`, 668 lines) and the occasion triage in the Inbox all still
+write `events`. That is deliberate: the send path has an external contract —
+a mistake emails real people — and it is the one part of this migration where
+being wrong is not recoverable by re-running a backfill.
 
 Moving it needs, in order: `CalendarRecordRead`/`Update` schemas, a read path
 that returns the record alongside its moment, and the scoped-edit routes in
