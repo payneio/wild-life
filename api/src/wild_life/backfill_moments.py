@@ -40,14 +40,14 @@ from wild_life.config import settings
 from wild_life.recurrence import translate
 
 
-def _local_slot(instant: datetime, tzid: str | None) -> str:
-    """The wall-clock slot a series recurs at, in its own zone."""
+def _zone_of(tzid: str | None) -> timezone | ZoneInfo:
+    """The zone a series is expressed in; UTC when it never told us."""
     if tzid:
         try:
-            return instant.astimezone(ZoneInfo(tzid)).strftime("%H:%M")
+            return ZoneInfo(tzid)
         except (ZoneInfoNotFoundError, ValueError):
             pass
-    return instant.strftime("%H:%M")
+    return timezone.utc
 
 
 # A day-precision moment needs *some* instant. Noon UTC keeps a date from
@@ -506,7 +506,15 @@ class Backfill:
             FROM wild_life.events
             WHERE recurrence IS NOT NULL {self._changed()}
         """):
-            cadence = translate(e.recurrence, e.start_at)
+            # Everything about a series is expressed in its own zone: the
+            # weekday a BYDAY-less rule recurs on, the day UNTIL admits, and the
+            # day the series starts. Reading any of them off the stored UTC
+            # instant is a day out for an evening series — `Poetry Class` runs
+            # 18:30 Wednesday Pacific, which is 02:30 *Thursday* UTC, so a
+            # UTC-derived start date began the series after its first meeting.
+            zone = _zone_of(e.timezone)
+            local_start = e.start_at.astimezone(zone)
+            cadence = translate(e.recurrence, local_start)
             if cadence is None:
                 self.count("recurring events materialised as given")
                 continue
@@ -523,11 +531,11 @@ class Backfill:
                 # The slot is a wall time in the series' own zone, so it has to
                 # be read there — taking it off a UTC instant would bake in
                 # whichever offset happened to apply on the start date.
-                timing=[_local_slot(e.start_at, e.timezone)],
+                timing=[local_start.strftime("%H:%M")],
                 timezone=e.timezone,
                 days_of_week=cadence.days_of_week,
                 interval_days=cadence.interval_days,
-                start_date=e.start_at.date(),
+                start_date=local_start.date(),
                 end_date=cadence.end_date,
                 expected_minutes=minutes,
                 status="active",

@@ -217,6 +217,9 @@ UPDATE_FIELDS = [
     "attendees",
     "recurrence",
     "recurrence_exdates",
+    # The zone a recurring series is expressed in. Only ever set for a series —
+    # a single event's instant is already exact.
+    "timezone",
 ]
 
 
@@ -230,6 +233,26 @@ def main() -> int:
         "--update",
         action="store_true",
         help="Converge fields of events already imported.",
+    )
+    ap.add_argument(
+        "--no-create",
+        action="store_true",
+        help=(
+            "Converge existing events only. A targeted backfill is not the "
+            "moment to also decide whether events absent from the database "
+            "should come back — some are absent because they were deleted."
+        ),
+    )
+    ap.add_argument(
+        "--only",
+        nargs="+",
+        metavar="FIELD",
+        help=(
+            "Restrict --update to these fields. An export is a snapshot: "
+            "converging everything from a file older than the database silently "
+            "reverts whatever changed in between, so a targeted backfill "
+            "(--only timezone) should not have to risk the rest."
+        ),
     )
     args = ap.parse_args()
 
@@ -264,6 +287,9 @@ def main() -> int:
         ref = p["external_ref"]
         prior = existing.get(ref)
         if prior is None:
+            if args.no_create:
+                skipped += 1
+                continue
             if args.dry_run:
                 print(f"  + CREATE {p['title']!r} ({ref})")
             else:
@@ -276,9 +302,12 @@ def main() -> int:
             continue
 
         if args.update:
-            changed = {
-                f: p[f] for f in UPDATE_FIELDS if f in p and prior.get(f) != p[f]
-            }
+            fields = (
+                [f for f in UPDATE_FIELDS if f in args.only]
+                if args.only
+                else UPDATE_FIELDS
+            )
+            changed = {f: p[f] for f in fields if f in p and prior.get(f) != p[f]}
             if changed:
                 if args.dry_run:
                     print(f"  ~ UPDATE {p['title']!r} ({ref}): {sorted(changed)}")

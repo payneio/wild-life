@@ -21,6 +21,19 @@ import pytest
 from wild_life.recurrence import Cadence, expand, translate
 from wild_life.rules import is_due
 
+
+def _zone(tzid: str | None):  # noqa: ANN202
+    """The zone a series is expressed in; UTC when it never told us."""
+    from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+    if tzid:
+        try:
+            return ZoneInfo(tzid)
+        except (ZoneInfoNotFoundError, ValueError):
+            pass
+    return UTC
+
+
 TUE = datetime(2026, 7, 28, 14, 30, tzinfo=UTC)
 
 
@@ -171,6 +184,13 @@ class TestEveryRuleInTheCorpus:
 
     @staticmethod
     def _corpus() -> list[tuple[str, datetime]]:
+        """Each series' rule, with DTSTART **in the zone it was written in**.
+
+        Expanding from the stored UTC instant instead is a day out for any
+        evening series — 18:30 Wednesday Pacific is 02:30 *Thursday* UTC — and
+        because both sides of the comparison shared that misreading, the parity
+        check passed while the first occurrence of four series was missing.
+        """
         from sqlalchemy import create_engine, text
 
         from wild_life.config import settings
@@ -179,11 +199,11 @@ class TestEveryRuleInTheCorpus:
         try:
             with engine.connect() as conn:
                 return [
-                    (r.recurrence, r.start_at)
+                    (r.recurrence, r.start_at.astimezone(_zone(r.timezone)))
                     for r in conn.execute(
                         text(
-                            "SELECT recurrence, start_at FROM wild_life.events "
-                            "WHERE recurrence IS NOT NULL"
+                            "SELECT recurrence, start_at, timezone "
+                            "FROM wild_life.events WHERE recurrence IS NOT NULL"
                         )
                     )
                 ]
@@ -233,12 +253,12 @@ class TestTheRulesThatWereWritten:
         try:
             with engine.connect() as conn:
                 return [
-                    (r, r.recurrence, r.start_at)
+                    (r, r.recurrence, r.start_at.astimezone(_zone(r.timezone)))
                     for r in conn.execute(
                         text("""
                         SELECT r.days_of_week, r.interval_days, r.start_date,
                                r.end_date, r.timing, r.expected_minutes, r.kind,
-                               e.recurrence, e.start_at
+                               r.timezone, e.recurrence, e.start_at
                         FROM wild_life.routines r
                         JOIN wild_life.events e
                           ON r.source_ref = 'event:' || e.id || '\\:rule'
@@ -264,12 +284,16 @@ class TestTheRulesThatWereWritten:
                 f"\n  only on the wire: {sorted(wire - stored)[:5]}"
             )
 
-    def test_every_one_is_an_occasion_carrying_a_time_of_day(self) -> None:
-        """A rule that generates occasions must say when in the day and for how
-        long, or step 4 has nothing to draw."""
+    def test_every_one_is_an_occasion_carrying_a_local_time_of_day(self) -> None:
+        """The slot is a wall time in the series' own zone, not a UTC clock time.
+
+        `dtstart` here has already been converted, which is the point: a rule
+        saying "18:30" means half past six where the meeting happens.
+        """
         for row, _, dtstart in self._pairs():
             assert row.kind == "occasion"
             assert row.timing == [dtstart.strftime("%H:%M")]
+            assert row.start_date == dtstart.date()
 
     def test_nothing_untranslatable_was_written_as_a_rule(self) -> None:
         """The refusals must have stayed refused all the way into the database."""
