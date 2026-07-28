@@ -28,7 +28,7 @@ import {
   isProse,
   KIND_CLASS,
   KIND_LABEL,
-  sourceRoute,
+  routeForMoment,
   subjectOf,
   whenOf,
 } from "@/lib/moments"
@@ -177,7 +177,7 @@ const ProseEntry = memo(function ProseEntry({
  * second dated sequence on the page to choose between.
  */
 const RecordedRow = memo(function RecordedRow({ moment }: { moment: Moment }) {
-  const to = sourceRoute(moment) ?? `/moments/${moment.id}`
+  const to = routeForMoment(moment)
   const lapsed = isLapsed(moment)
   return (
     <Link

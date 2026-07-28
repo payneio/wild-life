@@ -74,9 +74,16 @@ class Settings(BaseSettings):
     # cluster raw readings and every traffic light becomes a place.
     stop_radius_m: float = 80
     stop_min_dwell_seconds: int = 900
-    # A gap longer than this ends a stop even if the position barely moved —
-    # otherwise an overnight silence merges two days into one visit.
-    stop_max_gap_seconds: int = 3600
+    # A gap longer than this ends a stop even if the position barely moved.
+    #
+    # Must match `visit_stale_seconds`, because the two answer the same question:
+    # how long a silence may we assume presence across? This was an hour while
+    # that was six, which quietly assumed a tracker reporting every few minutes.
+    # A real one reports every few *hours* — Android suspends it, the phone
+    # sleeps — so every run was broken before it could reach the dwell minimum
+    # and nothing was ever proposed. Sitting at home all night has to read as one
+    # stop, not as nine silences.
+    stop_max_gap_seconds: int = 6 * 60 * 60
     # How much history the nightly recompute considers.
     candidate_window_days: int = 90
     # Below this a candidate exists but stays out of the review queue, so a place

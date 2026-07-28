@@ -7,8 +7,7 @@
 // kinds carry prose you wrote, and where a moment sits in time.
 
 import { asDay, dayLabel, type Instant } from "@/lib/date"
-import { ROUTE_BY_TYPE } from "@/services/api/routes"
-import type { EntityType, Moment, MomentKind, MomentLink, MomentRole } from "@/services/api/types"
+import type { Moment, MomentKind, MomentLink, MomentRole } from "@/services/api/types"
 
 /**
  * The kinds whose content *is* writing — the ones a composer can create and an
@@ -91,6 +90,39 @@ export const FAMILY_OF: Record<MomentKind, KindFamily> = {
   decision: "work",
 }
 
+/**
+ * How much room a moment earns.
+ *
+ * A dose and a therapy appointment are not the same size of event in a life, and
+ * rendering them as identical rows was the timeline's central untruth — it made
+ * a day of six supplements look busier than a day with one long conversation in
+ * it. Weight is a property of the *act*, which is why it can be a table:
+ *
+ * - **small** — a thing you did in a moment and would not describe. Dozens a
+ *   day, individually unremarkable, collectively a pattern. Shown as a count you
+ *   can open, never as dozens of rows.
+ * - **medium** — a thing that closed. Worth a line, not a paragraph.
+ * - **large** — a thing with content: time you spent somewhere, or words you
+ *   wrote. The only kinds that carry a body worth reading in place.
+ */
+export type Weight = "small" | "medium" | "large"
+
+export const WEIGHT_OF: Record<MomentKind, Weight> = {
+  dose: "small",
+  measurement: "small",
+  activity: "small",
+  visit: "small",
+  completion: "medium",
+  work: "medium",
+  withdrawal: "medium",
+  exchange: "medium",
+  capture: "medium",
+  decision: "large",
+  occasion: "large",
+  reflection: "large",
+  observation: "large",
+}
+
 export const FAMILIES: { key: KindFamily; label: string; color: string }[] = [
   { key: "writing", label: "writing", color: "var(--family-writing)" },
   { key: "places", label: "places", color: "var(--family-places)" },
@@ -135,21 +167,20 @@ export function subjectOf(m: Moment): MomentLink | undefined {
 }
 
 /**
- * Where a mirrored moment came from, as a route.
+ * Where a moment opens.
  *
- * `source_ref` names the row a backfilled moment was built from — `note:<uuid>`,
- * `event:<uuid>`, `task:<uuid>:completion`. While those surfaces still author
- * their own rows, the moment is a read-only projection of one, and the useful
- * click is through to the thing that owns it. Null once nothing has two homes.
+ * An occasion opens on the calendar, because that is where you operate one —
+ * the grid stays put and the detail floats over it. Everything else opens as
+ * itself.
+ *
+ * This replaced a `sourceRoute` that read `source_ref` and sent occasions to
+ * `/calendar/<event id>`. That was right while `events` was still the surface
+ * that owned them, and became a 404 the moment `/calendar/:id` started loading
+ * moments — every occasion on the timeline led to "not found". A moment's route
+ * is a fact about the moment, not about the row it was once derived from.
  */
-export function sourceRoute(m: Moment): string | undefined {
-  if (!m.source_ref) return undefined
-  const [type, id] = m.source_ref.split(":")
-  if (!id) return undefined
-  // The calendar is where an event is operated, not `/events/:id`.
-  if (type === "event") return `/calendar/${id}`
-  const base = ROUTE_BY_TYPE[type as EntityType]
-  return base ? `/${base}/${id}` : undefined
+export function routeForMoment(m: Moment): string {
+  return m.kind === "occasion" ? `/calendar/${m.id}` : `/moments/${m.id}`
 }
 
 /** Bucket moments into day groups by `whenOf`, preserving the incoming

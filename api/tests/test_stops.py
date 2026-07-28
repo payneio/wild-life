@@ -106,3 +106,24 @@ def test_clustering_is_deterministic() -> None:
     assert [(c.latitude, c.longitude, c.stop_count) for c in first] == [
         (c.latitude, c.longitude, c.stop_count) for c in second
     ]
+
+
+def test_the_stop_gap_matches_the_visit_staleness_horizon() -> None:
+    """Both answer "how long a silence may we assume presence across?".
+
+    They disagreed once — an hour here against six there — which assumed a
+    tracker reporting every few minutes. A real one reports every few hours, so
+    every run was cut before it reached the dwell minimum and no place was ever
+    proposed.
+    """
+    assert settings.stop_max_gap_seconds == settings.visit_stale_seconds
+
+
+def test_a_sparse_tracker_still_finds_the_night_you_stayed_home() -> None:
+    """Readings hours apart at one spot are one stop, not a series of silences."""
+    at_home = [_fix(i * 150, *CAFE) for i in range(4)]  # every 2.5 h, overnight
+
+    stops = detect_stops(at_home)
+
+    assert len(stops) == 1
+    assert stops[0].seconds >= 7 * 3600

@@ -1,5 +1,4 @@
 import { useState } from "react"
-import { Link } from "react-router-dom"
 import { X } from "lucide-react"
 import { Record, RecordSection } from "@/components/record/Record"
 import { HomePicker } from "@/components/graph/HomePicker"
@@ -9,7 +8,7 @@ import { useCalendarRecord, useSetRsvp, useShareMoment } from "@/services/api/ho
 import { MentionChip } from "@/components/MentionChip"
 import { useFields } from "@/components/record/context"
 import { recordFields } from "@/components/record/typed"
-import { KIND_CLASS, KIND_LABEL, sourceRoute } from "@/lib/moments"
+import { KIND_CLASS, KIND_LABEL } from "@/lib/moments"
 import { REGISTRY } from "@/services/api/registry"
 import { useEntityResolver } from "@/services/api/mentions"
 import type { Entity, EntityType, Moment, MomentLink, MomentRole } from "@/services/api/types"
@@ -94,27 +93,19 @@ function Involvement() {
  * which is what left `Event.event_type` null on 1,283 of 1,332 rows, and this
  * one carries the inbox predicate and the Journal. The one kind a reader may
  * legitimately resolve is `capture`, and the Inbox is the surface for it.
- * `source_ref` names the row this is still mirrored from while that surface
- * writes its own table; it is a fact about the migration, not a field.
+ * `source_ref` names the row this was backfilled from. It no longer links
+ * anywhere: the surfaces it pointed at are retired, and a moment's route is a
+ * fact about the moment rather than about the row it was derived from.
  */
 function Provenance() {
   const { row } = useFields(["kind", "source", "source_ref"])
   const moment = row as unknown as Moment
-  const to = sourceRoute(moment)
   return (
     <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
       <span className={`rounded px-1.5 py-0.5 font-medium uppercase tracking-wide ${KIND_CLASS[moment.kind]}`}>
         {KIND_LABEL[moment.kind]}
       </span>
       <span>{moment.source}</span>
-      {to && (
-        <>
-          <span>·</span>
-          <Link to={to} className="text-indigo-600 hover:underline">
-            mirrored from its source
-          </Link>
-        </>
-      )}
     </div>
   )
 }
