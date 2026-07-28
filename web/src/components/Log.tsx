@@ -23,6 +23,7 @@ import { useEntityResolver } from "@/services/api/mentions"
 import { routeFor } from "@/services/api/routes"
 import type { EntityType, Moment, MomentKind } from "@/services/api/types"
 import {
+  describeMoment,
   groupMomentsByDay,
   isLapsed,
   isProse,
@@ -177,6 +178,7 @@ const ProseEntry = memo(function ProseEntry({
  * second dated sequence on the page to choose between.
  */
 const RecordedRow = memo(function RecordedRow({ moment }: { moment: Moment }) {
+  const resolve = useEntityResolver()
   const to = routeForMoment(moment)
   const lapsed = isLapsed(moment)
   return (
@@ -186,7 +188,7 @@ const RecordedRow = memo(function RecordedRow({ moment }: { moment: Moment }) {
     >
       <KindBadge kind={moment.kind} />
       <span className="min-w-0 flex-1 truncate text-slate-700">
-        {moment.title || moment.body?.slice(0, 90) || KIND_LABEL[moment.kind]}
+        {describeMoment(moment, resolve)}
       </span>
       {moment.withdrawn_at ? (
         <span className="shrink-0 text-xs text-slate-400">withdrawn</span>

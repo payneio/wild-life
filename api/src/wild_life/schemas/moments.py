@@ -22,6 +22,27 @@ class MomentLinkRef(BaseModel):
     entity_id: uuid.UUID
 
 
+class MomentLinkRead(MomentLinkRef):
+    """An involvement, plus whatever the pairing produced.
+
+    Payload belongs to the *pairing* of a moment and a thing, not to either
+    alone — a lipid panel is one act with five metrics at five values. So a
+    reading is read here, beside the link it hangs off, rather than from a
+    separate fetch nobody would remember to make.
+
+    Without this a measurement had no content at all: every one of the 325 is
+    untitled, because the number *is* the title, and the surfaces could only
+    fall back to printing the word "Measurement".
+    """
+
+    # Reading payload (a `measurement` of a metric).
+    value: float | None = None
+    context: str | None = None
+    # Dose payload (a `dose` of a medication).
+    amount: float | None = None
+    unit: str | None = None
+
+
 class MomentCreate(BaseModel):
     # No default: the surface that creates a moment knows what act it is, and
     # `capture` — the one honest "I don't know yet" — is a choice a surface makes
@@ -88,7 +109,7 @@ class MomentRead(Entity):
     source_ref: str | None
     rule_id: uuid.UUID | None
     occurrence_at: datetime | None
-    links: list[MomentLinkRef] = []
+    links: list[MomentLinkRead] = []
 
 
 class CalendarRecordRead(BaseModel):

@@ -7224,6 +7224,108 @@
         "title": "MomentImageRead",
         "type": "object"
       },
+      "MomentLinkRead": {
+        "description": "An involvement, plus whatever the pairing produced.\n\nPayload belongs to the *pairing* of a moment and a thing, not to either\nalone \u2014 a lipid panel is one act with five metrics at five values. So a\nreading is read here, beside the link it hangs off, rather than from a\nseparate fetch nobody would remember to make.\n\nWithout this a measurement had no content at all: every one of the 325 is\nuntitled, because the number *is* the title, and the surfaces could only\nfall back to printing the word \"Measurement\".",
+        "properties": {
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount"
+          },
+          "context": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context"
+          },
+          "entity_id": {
+            "format": "uuid",
+            "title": "Entity Id",
+            "type": "string"
+          },
+          "entity_type": {
+            "enum": [
+              "area",
+              "program",
+              "project",
+              "task",
+              "routine",
+              "outcome",
+              "metric",
+              "metric_group",
+              "event",
+              "note",
+              "person",
+              "organization",
+              "location",
+              "commitment",
+              "request",
+              "delegation",
+              "review",
+              "resource",
+              "decision",
+              "medication",
+              "protocol",
+              "protocol_item",
+              "insurance_plan",
+              "allergy",
+              "moment"
+            ],
+            "title": "Entity Type",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "participant",
+              "place",
+              "subject",
+              "mention"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "role",
+          "entity_type",
+          "entity_id"
+        ],
+        "title": "MomentLinkRead",
+        "type": "object"
+      },
       "MomentLinkRef": {
         "description": "One thing a moment involves, and the manner of the involvement.",
         "properties": {
@@ -7347,7 +7449,7 @@
           "links": {
             "default": [],
             "items": {
-              "$ref": "#/components/schemas/MomentLinkRef"
+              "$ref": "#/components/schemas/MomentLinkRead"
             },
             "title": "Links",
             "type": "array"

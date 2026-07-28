@@ -7,7 +7,7 @@
 // kinds carry prose you wrote, and where a moment sits in time.
 
 import { asDay, dayLabel, type Instant } from "@/lib/date"
-import type { Moment, MomentKind, MomentLink, MomentRole } from "@/services/api/types"
+import type { EntityType, Moment, MomentKind, MomentLink, MomentRole } from "@/services/api/types"
 
 /**
  * The kinds whose content *is* writing — the ones a composer can create and an
@@ -181,6 +181,45 @@ export function subjectOf(m: Moment): MomentLink | undefined {
  */
 export function routeForMoment(m: Moment): string {
   return m.kind === "occasion" ? `/calendar/${m.id}` : `/moments/${m.id}`
+}
+
+/**
+ * What a moment says, in one line.
+ *
+ * A title is the obvious answer and most moments have one — but the two kinds
+ * that never do are the two whose content lives elsewhere. **Every dose and
+ * every measurement in the archive is untitled**, because a dose's content is
+ * the medication and the amount, and a measurement's *is the number*. Falling
+ * back to the kind printed a column of the word "Dose", which is the shape of an
+ * act with the act removed.
+ *
+ * So: the title when there is one; otherwise the thing it concerns, and what the
+ * pairing produced. `resolve` is the shared entity index, since a link carries
+ * an id and a reader wants a name.
+ *
+ * Named `describeMoment` rather than `describe`, which every test file already
+ * has from vitest.
+ */
+export function describeMoment(
+  m: Moment,
+  resolve: (type: EntityType, id: string) => string | undefined,
+): string {
+  if (m.title) return m.title
+  const subject = subjectOf(m)
+  const name = subject ? resolve(subject.entity_type, subject.entity_id) : undefined
+  const payload = subject
+    ? subject.amount != null
+      ? `${subject.amount}${subject.unit ? ` ${subject.unit}` : ""}`
+      : subject.value != null
+        ? String(subject.value)
+        : null
+    : null
+  const parts = [name, payload].filter(Boolean)
+  if (parts.length) return parts.join(" · ")
+  // A body is a last resort: prose kinds normally have one, and a first line
+  // beats a category name.
+  const body = (m.body || "").trim().split("\n")[0]
+  return body ? body.slice(0, 80) : KIND_LABEL[m.kind]
 }
 
 /** Bucket moments into day groups by `whenOf`, preserving the incoming

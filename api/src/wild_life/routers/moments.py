@@ -29,7 +29,14 @@ from starlette.concurrency import run_in_threadpool
 from wild_life.backfill_moments import run as backfill
 from wild_life.config import settings
 from wild_life.db.session import get_session
-from wild_life.models.moments import CalendarRecord, Moment, MomentImage, MomentLink
+from wild_life.models.moments import (
+    CalendarRecord,
+    Moment,
+    MomentDose,
+    MomentImage,
+    MomentLink,
+    MomentReading,
+)
 from wild_life.query import apply_query
 from wild_life.schemas.common import EntityType, MomentKind, MomentRole
 from wild_life.routers.notes import MAX_IMAGE_BYTES
@@ -39,6 +46,7 @@ from wild_life.schemas.moments import (
     CalendarRecordUpdate,
     MomentCreate,
     MomentImageRead,
+    MomentLinkRead,
     MomentLinkRef,
     MomentRead,
     MomentUpdate,
@@ -113,19 +121,33 @@ async def _reconcile_links(
 
 async def _links_for(
     session: AsyncSession, moment_ids: list[UUID]
-) -> dict[UUID, list[MomentLinkRef]]:
-    out: dict[UUID, list[MomentLinkRef]] = defaultdict(list)
+) -> dict[UUID, list[MomentLinkRead]]:
+    """Each moment's involvements, carrying what the pairing produced.
+
+    The payload is joined rather than fetched separately because it *is* the
+    content of a small moment: a measurement's number and a dose's amount are
+    what those moments say, and a reader that has the link but not the value has
+    the shape of the act without the act.
+    """
+    out: dict[UUID, list[MomentLinkRead]] = defaultdict(list)
     if not moment_ids:
         return out
     result = await session.execute(
-        select(MomentLink).where(MomentLink.moment_id.in_(moment_ids))
+        select(MomentLink, MomentReading, MomentDose)
+        .outerjoin(MomentReading, MomentReading.link_id == MomentLink.id)
+        .outerjoin(MomentDose, MomentDose.link_id == MomentLink.id)
+        .where(MomentLink.moment_id.in_(moment_ids))
     )
-    for link in result.scalars():
+    for link, reading, dose in result:
         out[link.moment_id].append(
-            MomentLinkRef(
+            MomentLinkRead(
                 role=link.role,
                 entity_type=link.entity_type,
                 entity_id=link.entity_id,
+                value=reading.value if reading else None,
+                context=reading.context if reading else None,
+                amount=dose.amount if dose else None,
+                unit=dose.unit if dose else None,
             )
         )
     return out

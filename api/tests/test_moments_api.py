@@ -57,9 +57,13 @@ class TestCapture:
                 }
             ],
         )
-        assert made["links"] == [
-            {"role": "participant", "entity_type": "person", "entity_id": person["id"]}
-        ]
+        # The involvement, not the whole row: a link also reads back whatever
+        # the pairing produced (a reading's value, a dose's amount), and those
+        # are null for a participant.
+        assert [
+            (link["role"], link["entity_type"], link["entity_id"])
+            for link in made["links"]
+        ] == [("participant", "person", person["id"])]
 
     def test_the_kind_must_be_in_the_vocabulary(
         self, client: TestClient, auth_headers: dict, require_db: None
@@ -438,3 +442,45 @@ class TestBacklinksAreARole:
         }
         assert touching["id"] in mentions
         assert about["id"] not in mentions
+
+
+class TestALinkCarriesWhatThePairingProduced:
+    """Payload belongs to the pairing of a moment and a thing, not to either.
+
+    Every one of the 325 measurements and 39 doses is **untitled**, because a
+    measurement's content is its number and a dose's is the medication and the
+    amount. Reading a link without its payload gave the surfaces nothing to show
+    but the word "Measurement" — the shape of an act with the act removed.
+    """
+
+    def test_a_reading_reads_back_with_its_value(
+        self, client: TestClient, auth_headers: dict, require_db: None
+    ) -> None:
+        r = client.get(
+            "/moments",
+            params={"kind": "measurement", "limit": "5"},
+            headers=auth_headers,
+        )
+        assert r.status_code == 200
+        rows = [m for m in r.json() if m["links"]]
+        assert rows, "no measurements in the corpus"
+        for m in rows:
+            subject = next(link for link in m["links"] if link["role"] == "subject")
+            assert subject["entity_type"] == "metric"
+            assert subject["value"] is not None, (
+                "a measurement whose value is missing has no content at all"
+            )
+
+    def test_a_dose_reads_back_with_its_amount(
+        self, client: TestClient, auth_headers: dict, require_db: None
+    ) -> None:
+        r = client.get(
+            "/moments", params={"kind": "dose", "limit": "5"}, headers=auth_headers
+        )
+        assert r.status_code == 200
+        rows = [m for m in r.json() if m["links"]]
+        assert rows, "no doses in the corpus"
+        for m in rows:
+            subject = next(link for link in m["links"] if link["role"] == "subject")
+            assert subject["entity_type"] == "medication"
+            assert subject["amount"] is not None

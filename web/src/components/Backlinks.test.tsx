@@ -14,6 +14,14 @@ const elsewhere = {
 
 const asked: { type: string | null; id: string | null }[] = []
 
+// `describeMoment` resolves a subject's name for moments carrying no title, so
+// the resolver has to exist even where every fixture has one. Total rather than
+// partial: the real module reaches the registry, which reaches the hooks this
+// file has already replaced.
+vi.mock("@/services/api/mentions", () => ({
+  useEntityResolver: () => () => undefined,
+}))
+
 vi.mock("@/services/api/hooks", () => ({
   useMomentsMentioning: (type: string | null, id: string | null) => {
     asked.push({ type, id })

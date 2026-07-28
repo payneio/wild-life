@@ -4554,6 +4554,44 @@ export interface components {
             updated_at: Instant;
         };
         /**
+         * MomentLinkRead
+         * @description An involvement, plus whatever the pairing produced.
+         *
+         *     Payload belongs to the *pairing* of a moment and a thing, not to either
+         *     alone — a lipid panel is one act with five metrics at five values. So a
+         *     reading is read here, beside the link it hangs off, rather than from a
+         *     separate fetch nobody would remember to make.
+         *
+         *     Without this a measurement had no content at all: every one of the 325 is
+         *     untitled, because the number *is* the title, and the surfaces could only
+         *     fall back to printing the word "Measurement".
+         */
+        MomentLinkRead: {
+            /** Amount */
+            amount?: number | null;
+            /** Context */
+            context?: string | null;
+            /**
+             * Entity Id
+             * Format: uuid
+             */
+            entity_id: string;
+            /**
+             * Entity Type
+             * @enum {string}
+             */
+            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment";
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "participant" | "place" | "subject" | "mention";
+            /** Unit */
+            unit?: string | null;
+            /** Value */
+            value?: number | null;
+        };
+        /**
          * MomentLinkRef
          * @description One thing a moment involves, and the manner of the involvement.
          */
@@ -4603,7 +4641,7 @@ export interface components {
              * Links
              * @default []
              */
-            links: components["schemas"]["MomentLinkRef"][];
+            links: components["schemas"]["MomentLinkRead"][];
             /** Occurrence At */
             occurrence_at: Instant | null;
             /** Rule Id */

@@ -2,7 +2,8 @@ import { Link } from "react-router-dom"
 import { NotebookPen } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 import { useMomentsMentioning } from "@/services/api/hooks"
-import { KIND_LABEL, whenOf } from "@/lib/moments"
+import { describeMoment, whenOf } from "@/lib/moments"
+import { useEntityResolver } from "@/services/api/mentions"
 import type { EntityType } from "@/services/api/types"
 
 /**
@@ -16,6 +17,7 @@ import type { EntityType } from "@/services/api/types"
  */
 export function Backlinks({ type, id }: { type: EntityType; id: string }) {
   const { data } = useMomentsMentioning(type, id)
+  const resolve = useEntityResolver()
   const rows = data ?? []
   if (rows.length === 0) return null
   return (
@@ -34,7 +36,7 @@ export function Backlinks({ type, id }: { type: EntityType; id: string }) {
                 className="flex items-center justify-between gap-2 rounded-lg border border-slate-100 px-2.5 py-1.5 text-sm hover:bg-slate-50"
               >
                 <span className="break-words text-slate-700">
-                  {m.title || m.body?.slice(0, 80) || KIND_LABEL[m.kind]}
+                  {describeMoment(m, resolve)}
                 </span>
                 {when && <span className="shrink-0 text-xs text-slate-400">{formatDate(when)}</span>}
               </Link>

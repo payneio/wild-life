@@ -48,8 +48,10 @@ export type GroupReading = S["GroupReadingRead"]
 export type MetricEntry = S["MetricEntryRead"]
 export type Moment = S["MomentRead"]
 export type MomentImage = S["MomentImageRead"]
-/** One thing a moment involves, and the manner of the involvement. */
-export type MomentLink = S["MomentLinkRef"]
+/** One thing a moment involves, the manner of it, and what the pairing produced.
+ *  The payload fields are read-only — absent when writing, which is why the same
+ *  type serves both. */
+export type MomentLink = S["MomentLinkRead"]
 export type Commitment = S["CommitmentRead"]
 export type Request = S["RequestRead"]
 export type Delegation = S["DelegationRead"]

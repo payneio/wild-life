@@ -8,6 +8,7 @@ import { useQueries, useQuery } from "@tanstack/react-query"
 import {
   FAMILIES,
   FAMILY_OF,
+  describeMoment,
   KIND_LABEL,
   routeForMoment,
   subjectOf,
@@ -74,6 +75,7 @@ function useYears(years: number[]) {
  *  honest summary; the detail is one tap away for the day you actually want it. */
 function SmallCluster({ moments }: { moments: Moment[] }) {
   const [open, setOpen] = useState(false)
+  const resolve = useEntityResolver()
   const byKind = useMemo(() => {
     const m = new Map<MomentKind, number>()
     for (const x of moments) m.set(x.kind, (m.get(x.kind) ?? 0) + 1)
@@ -122,7 +124,7 @@ function SmallCluster({ moments }: { moments: Moment[] }) {
                   className="h-1.5 w-1.5 shrink-0 translate-y-1 rounded-full"
                   style={{ background: colorOf(m.kind) }}
                 />
-                <span className="truncate">{m.title || KIND_LABEL[m.kind]}</span>
+                <span className="truncate">{describeMoment(m, resolve)}</span>
               </Link>
             </li>
           ))}
@@ -134,6 +136,7 @@ function SmallCluster({ moments }: { moments: Moment[] }) {
 
 /** Something that closed. A line — it has an outcome, not content. */
 function MediumRow({ moment }: { moment: Moment }) {
+  const resolve = useEntityResolver()
   return (
     <Link
       to={routeForMoment(moment)}
@@ -144,7 +147,7 @@ function MediumRow({ moment }: { moment: Moment }) {
         style={{ background: colorOf(moment.kind) }}
       />
       <span className="min-w-0 flex-1 truncate text-sm text-slate-600 group-hover:text-slate-900">
-        {moment.title || KIND_LABEL[moment.kind]}
+        {describeMoment(moment, resolve)}
       </span>
     </Link>
   )
@@ -170,7 +173,7 @@ function LargeBlock({ moment }: { moment: Moment }) {
       <Link to={routeForMoment(moment)} className="block">
         <div className="flex items-baseline gap-2">
           <span className="min-w-0 flex-1 text-sm font-medium text-slate-800">
-            {moment.title || KIND_LABEL[moment.kind]}
+            {describeMoment(moment, resolve)}
           </span>
           {clock && <span className="shrink-0 text-[11px] text-slate-400">{clock}</span>}
         </div>
@@ -253,7 +256,9 @@ function YearHeading({
 }) {
   const total = sum(totals)
   return (
-    <div className="sticky top-0 z-10 -mx-1 mb-2 bg-slate-50/95 px-1 pb-2 pt-4 backdrop-blur">
+    /* Not sticky: the app header is already fixed there, and a second sticky
+       band slid underneath it. The rail is the position indicator. */
+    <div className="mb-2 pb-2 pt-5">
       <div className="flex items-baseline gap-3">
         <h2 className="font-display text-3xl leading-none tabular-nums text-slate-900">{year}</h2>
         <span className="text-xs tabular-nums text-slate-400">
