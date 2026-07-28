@@ -30,6 +30,7 @@ import argparse
 import uuid
 from collections.abc import Iterable
 from datetime import date, datetime, time, timedelta, timezone
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from typing import Any
 
 from sqlalchemy import create_engine, text
@@ -37,6 +38,17 @@ from sqlalchemy.engine import Connection
 
 from wild_life.config import settings
 from wild_life.recurrence import translate
+
+
+def _local_slot(instant: datetime, tzid: str | None) -> str:
+    """The wall-clock slot a series recurs at, in its own zone."""
+    if tzid:
+        try:
+            return instant.astimezone(ZoneInfo(tzid)).strftime("%H:%M")
+        except (ZoneInfoNotFoundError, ValueError):
+            pass
+    return instant.strftime("%H:%M")
+
 
 # A day-precision moment needs *some* instant. Noon UTC keeps a date from
 # sliding across the date line in either direction when rendered locally, which
@@ -470,14 +482,13 @@ class Backfill:
           16 of 74. Nothing is lost: the wire form is on the calendar record
           verbatim, which is what an export replays.
 
-        A note on the slot. ``timing`` holds the series' time of day, in UTC, as
-        "HH:MM" — a clock time where a dose rule holds a named slot, which is the
-        same idea ("when in the day") resolved one step further. The original
-        TZID is not ours to keep: it was dropped at import long before this, so
-        a series pinned to 9am local drifts an hour across a DST boundary. That
-        is the behaviour today too — the calendar expands from the same UTC
-        instant — so this preserves it rather than introducing it, and the wire
-        form on the calendar record remains the truth for anyone replaying it.
+        A note on the slot. ``timing`` holds the series' time of day as "HH:MM" —
+        a clock time where a dose rule holds a named slot, which is the same idea
+        ("when in the day") resolved one step further. It is read in the series'
+        own ``timezone`` when one was captured, so a 9am meeting stays 9am across
+        a daylight-saving boundary. Series imported before TZID was captured have
+        none, and keep the historical behaviour of expanding in UTC; re-running
+        ``scripts/import_ics.py`` over the source calendar is what fills them in.
         """
         attendees: dict[uuid.UUID, list[uuid.UUID]] = {}
         for a in self.rows("""
@@ -491,7 +502,7 @@ class Backfill:
 
         for e in self.rows(f"""
             SELECT id, title, description, start_at, end_at, recurrence,
-                   entity_type, entity_id, location_id
+                   entity_type, entity_id, location_id, timezone
             FROM wild_life.events
             WHERE recurrence IS NOT NULL {self._changed()}
         """):
@@ -509,7 +520,11 @@ class Backfill:
                 kind="occasion",
                 activity=e.title,
                 rationale=e.description,
-                timing=[e.start_at.strftime("%H:%M")],
+                # The slot is a wall time in the series' own zone, so it has to
+                # be read there — taking it off a UTC instant would bake in
+                # whichever offset happened to apply on the start date.
+                timing=[_local_slot(e.start_at, e.timezone)],
+                timezone=e.timezone,
                 days_of_week=cadence.days_of_week,
                 interval_days=cadence.interval_days,
                 start_date=e.start_at.date(),

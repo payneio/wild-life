@@ -20,6 +20,7 @@ class EventCreate(BaseModel):
     all_day: bool = False
     attendees: list[str] = []
     recurrence: str | None = None
+    timezone: str | None = None
     recurrence_exdates: list[str] = []
     recurrence_parent_id: uuid.UUID | None = None
     recurrence_id: datetime | None = None
@@ -43,6 +44,7 @@ class EventUpdate(BaseModel):
     all_day: bool | None = None
     attendees: list[str] | None = None
     recurrence: str | None = None
+    timezone: str | None = None
     recurrence_exdates: list[str] | None = None
     recurrence_parent_id: uuid.UUID | None = None
     recurrence_id: datetime | None = None
@@ -66,6 +68,7 @@ class EventRead(Entity):
     all_day: bool
     attendees: list[str]
     recurrence: str | None
+    timezone: str | None
     recurrence_exdates: list[str]
     recurrence_parent_id: uuid.UUID | None
     recurrence_id: datetime | None

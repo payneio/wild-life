@@ -36,6 +36,12 @@ export function RoutineDetail({ entity, onClose }: { entity: Entity; onClose: ()
         // kinds that have nothing to infer from. Never a control, for the same
         // reason a moment's kind never is — see `schemas/routines.py`.
         "kind",
+        // Both belong to `occasion` rules, which this surface is scoped away
+        // from (`listParams`): a dose takes no time and has no wall-clock slot
+        // to hold in a zone. They are edited where a recurring series is —
+        // the calendar — not on a page about medications and habits.
+        "expected_minutes",
+        "timezone",
       ]}
     >
       <RecordSection>

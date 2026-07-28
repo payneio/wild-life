@@ -10,7 +10,7 @@ from datetime import UTC, date, datetime
 
 from wild_life.models.protocols import Protocol
 from wild_life.models.routines import Routine
-from wild_life.rules import anchor_for, expected_days, expected_on, is_live
+from wild_life.rules import anchor_for, expected_days, expected_on, is_live, project
 
 MON = date(2026, 7, 27)
 TUE = date(2026, 7, 28)
@@ -26,6 +26,8 @@ def rule(**kw) -> Routine:  # noqa: ANN003
         interval_days=1,
         start_date=None,
         end_date=None,
+        timezone=None,
+        expected_minutes=None,
         created_at=datetime(2026, 1, 1, tzinfo=UTC),
     )
     return Routine(**{**defaults, **kw})
@@ -146,3 +148,70 @@ class TestKindIsDerivedNotAsked:
         from wild_life.schemas.routines import RoutineCreate
 
         assert RoutineCreate(activity="standup", kind="occasion").kind == "occasion"
+
+
+class TestAWeeklyMeetingIsNotAWeeklyInstant:
+    """Why the zone is a column.
+
+    A 9am meeting is 9am on both sides of a daylight-saving boundary. Stored as a
+    UTC instant it is not: it silently becomes 8am or 10am for half the year, for
+    every occurrence after the changeover. That is what the calendar does today,
+    because TZID was resolved to an offset at import and thrown away.
+    """
+
+    def occurrences(self, tz: str | None) -> list[datetime]:
+        # US DST ended 2026-11-01, so this window straddles it.
+        r = rule(
+            kind="occasion",
+            days_of_week=["sun"],
+            timing=["09:00"],
+            expected_minutes=60,
+            timezone=tz,
+            start_date=date(2026, 10, 25),
+        )
+        return [
+            o.start for o in project(r, None, date(2026, 10, 25), date(2026, 11, 9))
+        ]
+
+    def test_the_wall_time_holds_across_the_boundary(self) -> None:
+        starts = self.occurrences("America/Los_Angeles")
+        assert len(starts) == 3
+        # Same wall clock every week...
+        assert {s.strftime("%H:%M") for s in starts} == {"09:00"}
+        # ...which means the UTC instant *must* shift, and does. The changeover
+        # is at 02:00 on Nov 1, so 09:00 that morning is already PST: only the
+        # 25th is UTC-7.
+        assert [s.date().isoformat() for s in starts] == [
+            "2026-10-25",
+            "2026-11-01",
+            "2026-11-08",
+        ]
+        assert [s.astimezone(UTC).hour for s in starts] == [16, 17, 17]
+
+    def test_without_a_zone_it_is_the_instant_that_holds(self) -> None:
+        """The historical behaviour, kept for series whose TZID was never stored:
+        constant in UTC, and therefore an hour adrift locally after the change."""
+        starts = self.occurrences(None)
+        assert [s.astimezone(UTC).hour for s in starts] == [9, 9, 9]
+
+    def test_an_unknown_zone_falls_back_rather_than_failing(self) -> None:
+        """A zone this host does not know is a data problem, not a reason to
+        render no calendar at all."""
+        assert self.occurrences("Mars/Olympus") == self.occurrences(None)
+
+    def test_a_named_slot_projects_no_instant(self) -> None:
+        """ "breakfast" is a slot a dose is checked off in, not a clock time; only
+        a rule that says when in the day can be drawn on a calendar."""
+        r = rule(kind="dose", timing=["breakfast"], timezone="America/Los_Angeles")
+        assert project(r, None, date(2026, 7, 27), date(2026, 7, 29)) == []
+
+    def test_the_duration_comes_from_the_rule(self) -> None:
+        r = rule(
+            kind="occasion",
+            timing=["09:00"],
+            expected_minutes=90,
+            timezone="America/Los_Angeles",
+            start_date=date(2026, 7, 27),
+        )
+        occ = project(r, None, date(2026, 7, 27), date(2026, 7, 27))
+        assert (occ[0].end - occ[0].start).total_seconds() == 90 * 60

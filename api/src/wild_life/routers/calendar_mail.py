@@ -383,6 +383,9 @@ async def _ingest_request(session: AsyncSession, parsed: ics.ParsedEvent) -> boo
             organizer=payload.get("organizer"),
             sequence=payload.get("sequence"),
             rsvp_status=payload.get("rsvp_status"),
+            recurrence=payload.get("recurrence"),
+            recurrence_exdates=payload.get("recurrence_exdates") or [],
+            timezone=payload.get("timezone"),
         )
         session.add(event)
         return True
@@ -401,6 +404,9 @@ async def _ingest_request(session: AsyncSession, parsed: ics.ParsedEvent) -> boo
             datetime.fromisoformat(payload["end_at"]) if payload.get("end_at") else None
         )
         existing.all_day = payload.get("all_day", False)
+        existing.recurrence = payload.get("recurrence")
+        existing.recurrence_exdates = payload.get("recurrence_exdates") or []
+        existing.timezone = payload.get("timezone")
         existing.sequence = payload.get("sequence")
         return True
     return False

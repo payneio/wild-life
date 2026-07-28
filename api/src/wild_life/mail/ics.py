@@ -221,6 +221,19 @@ class ParsedEvent:
     attendees: list[ParsedAttendee] = field(default_factory=list)
 
 
+def _tzid(prop: Any) -> str | None:
+    """The zone a DTSTART was expressed in — see `scripts/import_ics.py:_tzid`."""
+    if prop is None:
+        return None
+    try:
+        tzid = prop.params.get("TZID")
+    except AttributeError:
+        tzid = None
+    if tzid:
+        return str(tzid)
+    return getattr(getattr(getattr(prop, "dt", None), "tzinfo", None), "key", None)
+
+
 def _vevent_payload(vevent: Any) -> dict[str, Any] | None:
     """Event-create fields from a VEVENT (mirrors calendar-mail.vevent_to_payload)."""
     uid = str(vevent.get("UID") or "").strip()
@@ -239,6 +252,12 @@ def _vevent_payload(vevent: Any) -> dict[str, Any] | None:
         v = vevent.get(name)
         return str(v) if v is not None else None
 
+    rrule = vevent.get("RRULE")
+    exdate = vevent.get("EXDATE")
+    exdates: list[str] = []
+    for group in exdate if isinstance(exdate, list) else ([exdate] if exdate else []):
+        exdates += [d.dt.isoformat() for d in getattr(group, "dts", [])]
+
     return {
         "title": s("SUMMARY") or "(untitled invite)",
         # Senders put HTML in DESCRIPTION (Google) or leave it empty and carry the
@@ -254,6 +273,14 @@ def _vevent_payload(vevent: Any) -> dict[str, Any] | None:
         "organizer": str(organizer) if organizer is not None else None,
         "sequence": int(seq.to_ical()) if seq is not None else None,
         "rsvp_status": "needs-action",
+        # Read at last. This module has always *written* RRULE on the way out
+        # (`_request`/`_cancel` both do) and never read one on the way in, so a
+        # recurring invitation arrived as a single meeting and the other 51
+        # occurrences simply were not there.
+        "recurrence": rrule.to_ical().decode() if rrule is not None else None,
+        "recurrence_exdates": exdates,
+        # Only meaningful for a series; a single invitation's instant is exact.
+        "timezone": _tzid(dtstart) if rrule is not None else None,
     }
 
 

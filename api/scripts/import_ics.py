@@ -59,6 +59,30 @@ def _to_aware(value: Any, default_tz: ZoneInfo) -> tuple[datetime, bool]:
     raise TypeError(f"unhandled DTSTART/DTEND type: {type(value)!r}")
 
 
+def _tzid(prop: Any) -> str | None:
+    """The zone a DTSTART was expressed in, as an IANA name.
+
+    The wire says it twice: as the ``TZID`` parameter, and (once icalendar has
+    resolved it) as the tzinfo on the value. The parameter is what the sender
+    actually wrote, so it wins; the resolved zone is the fallback for a floating
+    or already-UTC time.
+
+    Without this a weekly 9am series becomes a weekly *instant*, and every
+    occurrence after a daylight-saving boundary is an hour wrong.
+    """
+    if prop is None:
+        return None
+    try:
+        tzid = prop.params.get("TZID")
+    except AttributeError:
+        tzid = None
+    if tzid:
+        return str(tzid)
+    tz = getattr(getattr(prop, "dt", None), "tzinfo", None)
+    # ZoneInfo exposes `key`; a fixed UTC offset has nothing worth recording.
+    return getattr(tz, "key", None)
+
+
 def _attendees(vevent: Any) -> list[str]:
     raw = vevent.get("ATTENDEE")
     if raw is None:
@@ -137,6 +161,9 @@ def vevent_to_payload(vevent: Any, default_tz: ZoneInfo) -> dict[str, Any] | Non
         "recurrence": recurrence,
         "recurrence_exdates": _exdates(vevent),
         "external_ref": external_ref,
+        # Only meaningful for a series — a single event's instant is exact, and
+        # claiming a zone for it would be recording a spelling, not a fact.
+        "timezone": _tzid(dtstart) if recurrence else None,
     }
 
 

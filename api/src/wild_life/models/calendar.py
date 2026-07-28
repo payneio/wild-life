@@ -45,6 +45,11 @@ class Event(UUIDPrimaryKey, TimestampMixin, Base):
     # Recurrence — raw RFC-5545 RRULE (e.g. "FREQ=WEEKLY;BYDAY=TU") plus any
     # excluded occurrence dates. Occurrences are expanded on demand (reminders,
     # calendar grid); we store the rule losslessly, not the expansion.
+    # The TZID a recurring DTSTART arrived with, so the series can be expanded
+    # as wall times rather than as an instant that drifts across a DST boundary.
+    # Transitional: it rides here from the importers to the rule, and goes when
+    # this table does.
+    timezone: Mapped[str | None] = mapped_column(Text)
     recurrence: Mapped[str | None] = mapped_column(Text)
     recurrence_exdates: Mapped[list[str]] = mapped_column(
         ARRAY(Text), server_default="{}"

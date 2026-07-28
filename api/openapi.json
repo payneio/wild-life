@@ -3385,6 +3385,17 @@
             "title": "Start At",
             "type": "string"
           },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          },
           "title": {
             "title": "Title",
             "type": "string"
@@ -3651,6 +3662,17 @@
             "title": "Start At",
             "type": "string"
           },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          },
           "title": {
             "title": "Title",
             "type": "string"
@@ -3675,6 +3697,7 @@
           "all_day",
           "attendees",
           "recurrence",
+          "timezone",
           "recurrence_exdates",
           "recurrence_parent_id",
           "recurrence_id",
@@ -3941,6 +3964,17 @@
               }
             ],
             "title": "Start At"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
           },
           "title": {
             "anyOf": [
@@ -12924,6 +12958,17 @@
             "title": "Status",
             "type": "string"
           },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          },
           "timing": {
             "default": [],
             "items": {
@@ -13373,6 +13418,17 @@
             ],
             "title": "End Date"
           },
+          "expected_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Minutes"
+          },
           "frequency": {
             "anyOf": [
               {
@@ -13525,6 +13581,17 @@
             "title": "Status",
             "type": "string"
           },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          },
           "timing": {
             "items": {
               "type": "string"
@@ -13574,6 +13641,8 @@
           "timing",
           "days_of_week",
           "interval_days",
+          "timezone",
+          "expected_minutes",
           "sort_order",
           "area_id",
           "program_id",
@@ -13842,6 +13911,17 @@
               }
             ],
             "title": "Status"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
           },
           "timing": {
             "anyOf": [

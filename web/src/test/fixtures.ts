@@ -319,6 +319,10 @@ export const ROUTINE: Routine = {
   program_id: null,
   // Follows what the rule is *of*: no medication, so it generates activities.
   kind: "activity",
+  // Null: this rule has no clock slot, so no zone to hold it in. Only a rule
+  // that says when in the day (an occasion) needs one.
+  timezone: null,
+  expected_minutes: null,
   // Optional since the generalisation — a rule may stand on its own, and a
   // protocol is a container that narrows it rather than what makes it a rule.
   protocol_id: "22222222-2222-2222-2222-222222222222",
@@ -393,6 +397,8 @@ export const EVENT: EventItem = {
   attendees: [],
   recurrence: null,
   recurrence_exdates: [],
+  // The TZID a recurring DTSTART arrived with; nothing to record for a one-off.
+  timezone: null,
   recurrence_id: null,
   recurrence_parent_id: null,
   entity_type: null,

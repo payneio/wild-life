@@ -23,7 +23,9 @@ Two properties are load-bearing:
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from dataclasses import dataclass
+from datetime import UTC, date, datetime, time, timedelta, tzinfo
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from wild_life.models.protocols import Protocol
 from wild_life.models.routines import Routine
@@ -109,3 +111,78 @@ def expected_days(rule: Routine, anchor: date | None, start: date, end: date) ->
             total += 1
         d += timedelta(days=1)
     return total
+
+
+@dataclass(frozen=True)
+class Occurrence:
+    """One projected occurrence of a rule: when it is expected, and for how long.
+
+    Never stored. A projected occurrence becomes a row only when something
+    happens to it (decision 10), which is what makes the override row that iCal
+    needs unnecessary here.
+    """
+
+    start: datetime
+    end: datetime | None
+    slot: str
+
+
+def _zone(rule: Routine) -> tzinfo:
+    """The zone a rule's slots are wall times in.
+
+    Null means what the app has always done — treat the stored instant as
+    authoritative and expand in UTC. That is all an already-synced series can
+    honestly claim, because its TZID was discarded at import.
+    """
+    if not rule.timezone:
+        return UTC
+    try:
+        return ZoneInfo(rule.timezone)
+    except (ZoneInfoNotFoundError, ValueError):
+        # A zone the host does not know is a data problem, not a reason to
+        # produce no calendar. Fall back to the historical behaviour.
+        return UTC
+
+
+def _slot_time(slot: str) -> time | None:
+    """A clock slot ("14:30") as a time. Named slots ("breakfast") have none."""
+    try:
+        hh, _, mm = slot.partition(":")
+        return time(int(hh), int(mm))
+    except (TypeError, ValueError):
+        return None
+
+
+def project(
+    rule: Routine, protocol: Protocol | None, start: date, end: date
+) -> list[Occurrence]:
+    """Every occurrence this rule expects in [start, end], as instants.
+
+    **This is where the zone earns its column.** Each occurrence is built as a
+    wall time in the rule's zone and only then becomes an instant, so a weekly
+    9am meeting is 9am on both sides of a daylight-saving boundary. Building it
+    from a stored UTC instant instead — which is what the calendar does today —
+    moves the meeting by an hour for half the year.
+    """
+    zone = _zone(rule)
+    out: list[Occurrence] = []
+    day = start
+    while day <= end:
+        for slot in expected_on(rule, protocol, day):
+            at = _slot_time(slot)
+            if at is None:
+                continue
+            begins = datetime.combine(day, at, tzinfo=zone)
+            out.append(
+                Occurrence(
+                    start=begins,
+                    end=(
+                        begins + timedelta(minutes=rule.expected_minutes)
+                        if rule.expected_minutes
+                        else None
+                    ),
+                    slot=slot,
+                )
+            )
+        day += timedelta(days=1)
+    return out

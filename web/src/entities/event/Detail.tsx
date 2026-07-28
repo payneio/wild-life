@@ -50,6 +50,11 @@ export function EventDetail({
         // External calendar identity, written by sync.
         "external_ref",
         "sequence",
+        // The zone a recurring DTSTART arrived in, captured at import so the
+        // series can be expanded as wall times. Read off the wire, never set by
+        // hand — picking a zone that disagrees with the sender's is how a
+        // meeting moves an hour without anyone touching it.
+        "timezone",
         // Set by the cancel flow.
         "cancelled_at",
       ]}

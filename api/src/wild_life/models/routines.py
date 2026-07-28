@@ -93,6 +93,12 @@ class Routine(UUIDPrimaryKey, TimestampMixin, Base):
         Integer, server_default="1", nullable=False
     )
     sort_order: Mapped[int] = mapped_column(Integer, server_default="0", nullable=False)
+    # The zone this rule's `timing` slots are wall times in. "Every Tuesday at
+    # 09:00" is meaningless without saying where: stored as a UTC instant it
+    # drifts an hour when daylight saving moves under it. Null means the app's
+    # historical behaviour — expand in UTC — which is all the already-synced
+    # series can honestly claim, since TZID was discarded at import.
+    timezone: Mapped[str | None] = mapped_column(Text)
     # How long a generated occurrence runs. Decision 12 puts expected duration on
     # the intention, and a generated occurrence is one — a dose takes no time, a
     # meeting does, and "9am" without "for an hour" cannot be drawn.

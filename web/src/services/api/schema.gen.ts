@@ -3311,6 +3311,8 @@ export interface components {
              * Format: date-time
              */
             start_at: Instant;
+            /** Timezone */
+            timezone?: string | null;
             /** Title */
             title: string;
         };
@@ -3377,6 +3379,8 @@ export interface components {
              * Format: date-time
              */
             start_at: Instant;
+            /** Timezone */
+            timezone: string | null;
             /** Title */
             title: string;
             /**
@@ -3425,6 +3429,8 @@ export interface components {
             sequence?: number | null;
             /** Start At */
             start_at?: Instant | null;
+            /** Timezone */
+            timezone?: string | null;
             /** Title */
             title?: string | null;
         };
@@ -5802,6 +5808,8 @@ export interface components {
              * @enum {string}
              */
             status: "active" | "paused" | "archived";
+            /** Timezone */
+            timezone?: string | null;
             /**
              * Timing
              * @default []
@@ -5932,6 +5940,8 @@ export interface components {
             days_of_week: string[];
             /** End Date */
             end_date: CalendarDay | null;
+            /** Expected Minutes */
+            expected_minutes: number | null;
             /** Frequency */
             frequency: string | null;
             /**
@@ -5971,6 +5981,8 @@ export interface components {
              * @enum {string}
              */
             status: "active" | "paused" | "archived";
+            /** Timezone */
+            timezone: string | null;
             /** Timing */
             timing: string[];
             /** Tracking Method */
@@ -6023,6 +6035,8 @@ export interface components {
             start_date?: CalendarDay | null;
             /** Status */
             status?: ("active" | "paused" | "archived") | null;
+            /** Timezone */
+            timezone?: string | null;
             /** Timing */
             timing?: string[] | null;
             /** Tracking Method */
