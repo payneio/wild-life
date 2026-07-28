@@ -21,6 +21,13 @@ from wild_life.models.locations import (
     LocationVisit,
     PlaceCandidate,
 )
+from wild_life.models.moments import (
+    CalendarRecord,
+    Moment,
+    MomentDose,
+    MomentLink,
+    MomentReading,
+)
 from wild_life.models.notes import Note, NoteMention
 from wild_life.models.outcomes import Outcome
 from wild_life.models.organizations import Affiliation, Organization
@@ -30,7 +37,7 @@ from wild_life.models.push import PushSubscription, SentNudge, SentReminder
 from wild_life.models.requests import Request
 from wild_life.models.reviews import Review
 from wild_life.models.routines import Routine, RoutineInstance
-from wild_life.models.tasks import Task
+from wild_life.models.tasks import Dependency, Task
 from wild_life.models.tracking import Commitment, Delegation
 from wild_life.models.whiteboard import Whiteboard
 
@@ -77,6 +84,12 @@ __all__ = [
     "Resource",
     "Decision",
     "EntityLink",
+    "Moment",
+    "MomentLink",
+    "MomentReading",
+    "MomentDose",
+    "CalendarRecord",
+    "Dependency",
     "ChangeLog",
     "ApiToken",
 ]

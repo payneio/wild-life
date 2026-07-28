@@ -1104,7 +1104,8 @@
                   "protocol",
                   "protocol_item",
                   "insurance_plan",
-                  "allergy"
+                  "allergy",
+                  "moment"
                 ],
                 "type": "string"
               },
@@ -1266,7 +1267,8 @@
                   "protocol",
                   "protocol_item",
                   "insurance_plan",
-                  "allergy"
+                  "allergy",
+                  "moment"
                 ],
                 "type": "string"
               },
@@ -1452,7 +1454,8 @@
                   "protocol",
                   "protocol_item",
                   "insurance_plan",
-                  "allergy"
+                  "allergy",
+                  "moment"
                 ],
                 "type": "string"
               },
@@ -1635,7 +1638,8 @@
                   "protocol",
                   "protocol_item",
                   "insurance_plan",
-                  "allergy"
+                  "allergy",
+                  "moment"
                 ],
                 "type": "string"
               },
@@ -1782,7 +1786,8 @@
                   "protocol",
                   "protocol_item",
                   "insurance_plan",
-                  "allergy"
+                  "allergy",
+                  "moment"
                 ],
                 "type": "string"
               },
@@ -1946,7 +1951,8 @@
                   "protocol",
                   "protocol_item",
                   "insurance_plan",
-                  "allergy"
+                  "allergy",
+                  "moment"
                 ],
                 "type": "string"
               },
@@ -2134,7 +2140,8 @@
                   "protocol",
                   "protocol_item",
                   "insurance_plan",
-                  "allergy"
+                  "allergy",
+                  "moment"
                 ],
                 "type": "string"
               },
@@ -2381,7 +2388,8 @@
                   "protocol",
                   "protocol_item",
                   "insurance_plan",
-                  "allergy"
+                  "allergy",
+                  "moment"
                 ],
                 "type": "string"
               },
@@ -2658,7 +2666,8 @@
                   "protocol",
                   "protocol_item",
                   "insurance_plan",
-                  "allergy"
+                  "allergy",
+                  "moment"
                 ],
                 "type": "string"
               },
@@ -2966,7 +2975,8 @@
               "protocol",
               "protocol_item",
               "insurance_plan",
-              "allergy"
+              "allergy",
+              "moment"
             ],
             "title": "Target Type",
             "type": "string"
@@ -3213,7 +3223,8 @@
                   "protocol",
                   "protocol_item",
                   "insurance_plan",
-                  "allergy"
+                  "allergy",
+                  "moment"
                 ],
                 "type": "string"
               },
@@ -3464,7 +3475,8 @@
                   "protocol",
                   "protocol_item",
                   "insurance_plan",
-                  "allergy"
+                  "allergy",
+                  "moment"
                 ],
                 "type": "string"
               },
@@ -3755,7 +3767,8 @@
                   "protocol",
                   "protocol_item",
                   "insurance_plan",
-                  "allergy"
+                  "allergy",
+                  "moment"
                 ],
                 "type": "string"
               },
@@ -5808,7 +5821,8 @@
               "protocol",
               "protocol_item",
               "insurance_plan",
-              "allergy"
+              "allergy",
+              "moment"
             ],
             "title": "Type",
             "type": "string"
@@ -5894,7 +5908,8 @@
               "protocol",
               "protocol_item",
               "insurance_plan",
-              "allergy"
+              "allergy",
+              "moment"
             ],
             "title": "Entity Type",
             "type": "string"
@@ -6169,7 +6184,8 @@
               "protocol",
               "protocol_item",
               "insurance_plan",
-              "allergy"
+              "allergy",
+              "moment"
             ],
             "title": "Entity Type",
             "type": "string"
@@ -6235,7 +6251,8 @@
               "protocol",
               "protocol_item",
               "insurance_plan",
-              "allergy"
+              "allergy",
+              "moment"
             ],
             "title": "Entity Type",
             "type": "string"
@@ -6319,7 +6336,8 @@
                   "protocol",
                   "protocol_item",
                   "insurance_plan",
-                  "allergy"
+                  "allergy",
+                  "moment"
                 ],
                 "type": "string"
               },
@@ -6421,7 +6439,8 @@
               "protocol",
               "protocol_item",
               "insurance_plan",
-              "allergy"
+              "allergy",
+              "moment"
             ],
             "title": "Entity Type",
             "type": "string"
@@ -6625,7 +6644,8 @@
                   "protocol",
                   "protocol_item",
                   "insurance_plan",
-                  "allergy"
+                  "allergy",
+                  "moment"
                 ],
                 "type": "string"
               },
@@ -6785,7 +6805,8 @@
                   "protocol",
                   "protocol_item",
                   "insurance_plan",
-                  "allergy"
+                  "allergy",
+                  "moment"
                 ],
                 "type": "string"
               },
@@ -6952,7 +6973,8 @@
                   "protocol",
                   "protocol_item",
                   "insurance_plan",
-                  "allergy"
+                  "allergy",
+                  "moment"
                 ],
                 "type": "string"
               },
@@ -7081,7 +7103,8 @@
                   "protocol",
                   "protocol_item",
                   "insurance_plan",
-                  "allergy"
+                  "allergy",
+                  "moment"
                 ],
                 "type": "string"
               },
@@ -7775,7 +7798,8 @@
               "protocol",
               "protocol_item",
               "insurance_plan",
-              "allergy"
+              "allergy",
+              "moment"
             ],
             "title": "Entity Type",
             "type": "string"
@@ -7931,7 +7955,8 @@
               "protocol",
               "protocol_item",
               "insurance_plan",
-              "allergy"
+              "allergy",
+              "moment"
             ],
             "title": "Entity Type",
             "type": "string"
@@ -8111,7 +8136,8 @@
                   "protocol",
                   "protocol_item",
                   "insurance_plan",
-                  "allergy"
+                  "allergy",
+                  "moment"
                 ],
                 "type": "string"
               },
@@ -8998,7 +9024,8 @@
                 "protocol",
                 "protocol_item",
                 "insurance_plan",
-                "allergy"
+                "allergy",
+                "moment"
               ],
               "type": "string"
             },
@@ -9181,7 +9208,8 @@
                 "protocol",
                 "protocol_item",
                 "insurance_plan",
-                "allergy"
+                "allergy",
+                "moment"
               ],
               "type": "string"
             },
@@ -9374,7 +9402,8 @@
                     "protocol",
                     "protocol_item",
                     "insurance_plan",
-                    "allergy"
+                    "allergy",
+                    "moment"
                   ],
                   "type": "string"
                 },
@@ -10609,7 +10638,8 @@
                   "protocol",
                   "protocol_item",
                   "insurance_plan",
-                  "allergy"
+                  "allergy",
+                  "moment"
                 ],
                 "type": "string"
               },
@@ -10800,7 +10830,8 @@
                   "protocol",
                   "protocol_item",
                   "insurance_plan",
-                  "allergy"
+                  "allergy",
+                  "moment"
                 ],
                 "type": "string"
               },
@@ -11040,7 +11071,8 @@
                   "protocol",
                   "protocol_item",
                   "insurance_plan",
-                  "allergy"
+                  "allergy",
+                  "moment"
                 ],
                 "type": "string"
               },
@@ -11230,7 +11262,8 @@
                   "protocol",
                   "protocol_item",
                   "insurance_plan",
-                  "allergy"
+                  "allergy",
+                  "moment"
                 ],
                 "type": "string"
               },
@@ -11330,7 +11363,8 @@
                   "protocol",
                   "protocol_item",
                   "insurance_plan",
-                  "allergy"
+                  "allergy",
+                  "moment"
                 ],
                 "type": "string"
               },
@@ -11443,7 +11477,8 @@
                   "protocol",
                   "protocol_item",
                   "insurance_plan",
-                  "allergy"
+                  "allergy",
+                  "moment"
                 ],
                 "type": "string"
               },
@@ -17560,7 +17595,8 @@
                     "protocol",
                     "protocol_item",
                     "insurance_plan",
-                    "allergy"
+                    "allergy",
+                    "moment"
                   ],
                   "type": "string"
                 },
@@ -18589,7 +18625,8 @@
                     "protocol",
                     "protocol_item",
                     "insurance_plan",
-                    "allergy"
+                    "allergy",
+                    "moment"
                   ],
                   "type": "string"
                 },
@@ -18648,7 +18685,8 @@
                     "protocol",
                     "protocol_item",
                     "insurance_plan",
-                    "allergy"
+                    "allergy",
+                    "moment"
                   ],
                   "type": "string"
                 },
@@ -18800,7 +18838,8 @@
                     "protocol",
                     "protocol_item",
                     "insurance_plan",
-                    "allergy"
+                    "allergy",
+                    "moment"
                   ],
                   "type": "string"
                 },

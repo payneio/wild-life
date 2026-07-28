@@ -10,9 +10,11 @@ from sqlalchemy import (
     DateTime,
     Float,
     ForeignKey,
+    Index,
     Integer,
     Text,
     Time,
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
@@ -94,7 +96,40 @@ class Task(UUIDPrimaryKey, TimestampMixin, Base):
     )
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     # Cooperative claim so exactly one worker/agent works a task at a time.
+    # A lock, not an assignment: infrastructure rather than an ask.
     claimed_by_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("people.id", ondelete="SET NULL"), index=True
     )
     claimed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class Dependency(UUIDPrimaryKey, TimestampMixin, Base):
+    """ "This cannot start until that is done" — an edge, because it is one.
+
+    Replaces two mechanisms that could each say less than the truth:
+    ``Task.blocked_by_task_id`` allowed exactly one blocker, and ``waiting_on``
+    was free text, invisible to any planner. Real work is blocked by several
+    things at once, and a dependency is the one planning constraint that is
+    inherently relational — which is why the bounds (``due``, ``not_before``)
+    stay typed columns while this is a table.
+
+    Both ends are soft-polymorphic: a task can wait on another task today, and on
+    a moment (an appointment that has to happen first) once intentions are rows.
+    """
+
+    __tablename__ = "dependencies"
+    __table_args__ = (
+        UniqueConstraint(
+            "dependent_type",
+            "dependent_id",
+            "blocker_type",
+            "blocker_id",
+            name="uq_dependencies_edge",
+        ),
+        Index("ix_dependencies_blocker", "blocker_type", "blocker_id"),
+    )
+
+    dependent_type: Mapped[str] = mapped_column(Text, nullable=False)
+    dependent_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    blocker_type: Mapped[str] = mapped_column(Text, nullable=False)
+    blocker_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)

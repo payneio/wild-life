@@ -91,6 +91,45 @@ DelegationStatus = Literal[
     "reassigned",
     "cancelled",
 ]
+# --- moments ----------------------------------------------------------------
+# The act a moment *is*. Never its subject (which is what killed `note_type`),
+# never its target type (the links say that), and never its tense — a planned
+# lunch and a lunch you ate are both `occasion`, differing only in whether the
+# occurrence has happened yet.
+#
+# Every kind is written by the surface that creates the moment; no surface asks
+# the user. `Event.event_type` is null on 1,283 of 1,332 rows, which is what a
+# hand-set facet is worth, and this one carries the inbox predicate, the journal
+# and the default reading filter. `capture` is the one surface that cannot know —
+# you typed something and have not said what it is — and that *is* the inbox.
+#
+# See `api/docs/moments.md` for the full table, including what is deliberately
+# absent (`appointment`, `milestone`, `intention`, `lapsed`).
+MomentKind = Literal[
+    "capture",
+    "reflection",
+    "observation",
+    "occasion",
+    "exchange",
+    "visit",
+    "measurement",
+    "dose",
+    "activity",
+    "work",
+    "completion",
+    "withdrawal",
+    "decision",
+]
+# How a moment involves a thing. Four, closed, and about the *manner* of the
+# involvement rather than what is on the other end — a per-type vocabulary
+# (`doses`, `measures`) would restate kind + target type, which is the redundancy
+# that retired `note_type`. `subject` puts the moment on a thing's timeline;
+# `mention` puts it in that thing's backlinks.
+MomentRole = Literal["participant", "place", "subject", "mention"]
+# Who made the moment. `derived` rows are rebuildable from their source (a visit
+# from pings), which is the property a rebuild must respect — see LocationVisit.
+MomentSource = Literal["authored", "derived", "imported"]
+
 TokenRole = Literal["full", "worker"]
 # Canonical cross-entity phase (see lifecycle.py) — one uniform "state of work".
 LifecyclePhase = Literal["backlog", "active", "blocked", "done", "cancelled"]
@@ -131,6 +170,9 @@ EntityType = Literal[
     "protocol_item",
     "insurance_plan",
     "allergy",
+    # A moment can be about another moment — the 38 notes rooted at an event are
+    # exactly that, and both ends become moments.
+    "moment",
 ]
 
 
