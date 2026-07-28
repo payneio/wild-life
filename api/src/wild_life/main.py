@@ -36,6 +36,7 @@ from wild_life.routers import (
     merge,
     metric_groups,
     metrics,
+    moments,
     notes,
     nudges,
     organizations,
@@ -184,6 +185,7 @@ app.include_router(calendar_mail.router)
 app.include_router(calendar_mail.event_invites_router)
 app.include_router(preferences.router)
 app.include_router(whiteboard.router)
+app.include_router(moments.router)
 app.include_router(notes.router)
 app.include_router(notes.images_router)
 app.include_router(tracking.router)

@@ -1183,6 +1183,52 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/moments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Moments
+         * @description Moments, newest first.
+         *
+         *     ``linked_type``/``linked_id`` is the timeline of a thing; add ``role`` to ask
+         *     a narrower question ("moments *with* Melissa" rather than "moments involving
+         *     her at all"). ``unfulfilled`` is the derived lapse — a window that has passed
+         *     with nothing having happened in it and no decision to drop it — which is a
+         *     query rather than a stored state precisely so it can never go stale.
+         */
+        get: operations["moments_list"];
+        put?: never;
+        /** Create Moment */
+        post: operations["moments_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/moments/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Moment */
+        get: operations["moments_get"];
+        put?: never;
+        post?: never;
+        /** Delete Moment */
+        delete: operations["moments_delete"];
+        options?: never;
+        head?: never;
+        /** Update Moment */
+        patch: operations["moments_update"];
+        trace?: never;
+    };
     "/note-images/{image_id}": {
         parameters: {
             query?: never;
@@ -4117,6 +4163,152 @@ export interface components {
             source?: ("manual" | "derived") | null;
             /** Unit */
             unit?: string | null;
+        };
+        /** MomentCreate */
+        MomentCreate: {
+            /**
+             * All Day
+             * @default false
+             */
+            all_day: boolean;
+            /**
+             * Body
+             * @default
+             */
+            body: string;
+            /** Ended At */
+            ended_at?: Instant | null;
+            /** Expected Minutes */
+            expected_minutes?: number | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "work" | "completion" | "withdrawal" | "decision";
+            /**
+             * Links
+             * @default []
+             */
+            links: components["schemas"]["MomentLinkRef"][];
+            /**
+             * Source
+             * @default authored
+             * @enum {string}
+             */
+            source: "authored" | "derived" | "imported";
+            /** Started At */
+            started_at?: Instant | null;
+            /** Title */
+            title?: string | null;
+            /** Window End */
+            window_end?: Instant | null;
+            /** Window Start */
+            window_start?: Instant | null;
+        };
+        /**
+         * MomentLinkRef
+         * @description One thing a moment involves, and the manner of the involvement.
+         */
+        MomentLinkRef: {
+            /**
+             * Entity Id
+             * Format: uuid
+             */
+            entity_id: string;
+            /**
+             * Entity Type
+             * @enum {string}
+             */
+            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment";
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "participant" | "place" | "subject" | "mention";
+        };
+        /** MomentRead */
+        MomentRead: {
+            /** All Day */
+            all_day: boolean;
+            /** Body */
+            body: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: Instant;
+            /** Ended At */
+            ended_at: Instant | null;
+            /** Expected Minutes */
+            expected_minutes: number | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "work" | "completion" | "withdrawal" | "decision";
+            /**
+             * Links
+             * @default []
+             */
+            links: components["schemas"]["MomentLinkRef"][];
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "authored" | "derived" | "imported";
+            /** Source Ref */
+            source_ref: string | null;
+            /** Started At */
+            started_at: Instant | null;
+            /** Title */
+            title: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: Instant;
+            /** Window End */
+            window_end: Instant | null;
+            /** Window Start */
+            window_start: Instant | null;
+            /** Withdrawal Reason */
+            withdrawal_reason: string | null;
+            /** Withdrawn At */
+            withdrawn_at: Instant | null;
+        };
+        /** MomentUpdate */
+        MomentUpdate: {
+            /** All Day */
+            all_day?: boolean | null;
+            /** Body */
+            body?: string | null;
+            /** Ended At */
+            ended_at?: Instant | null;
+            /** Expected Minutes */
+            expected_minutes?: number | null;
+            /** Kind */
+            kind?: ("capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "work" | "completion" | "withdrawal" | "decision") | null;
+            /** Links */
+            links?: components["schemas"]["MomentLinkRef"][] | null;
+            /** Source */
+            source?: ("authored" | "derived" | "imported") | null;
+            /** Started At */
+            started_at?: Instant | null;
+            /** Title */
+            title?: string | null;
+            /** Window End */
+            window_end?: Instant | null;
+            /** Window Start */
+            window_start?: Instant | null;
+            /** Withdrawal Reason */
+            withdrawal_reason?: string | null;
+            /** Withdrawn At */
+            withdrawn_at?: Instant | null;
         };
         /** NoteCreate */
         NoteCreate: {
@@ -9092,6 +9284,171 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SeriesPoint"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    moments_list: {
+        parameters: {
+            query?: {
+                kind?: ("capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "work" | "completion" | "withdrawal" | "decision") | null;
+                linked_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+                linked_id?: string | null;
+                role?: ("participant" | "place" | "subject" | "mention") | null;
+                since?: Instant | null;
+                until?: Instant | null;
+                unfulfilled?: boolean | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    moments_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MomentCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    moments_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    moments_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    moments_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MomentUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentRead"];
                 };
             };
             /** @description Validation Error */

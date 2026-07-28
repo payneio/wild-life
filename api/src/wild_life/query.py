@@ -44,6 +44,7 @@ from wild_life.models import (
     Medication,
     Metric,
     MetricGroup,
+    Moment,
     Note,
     Organization,
     Outcome,
@@ -73,6 +74,7 @@ TYPE_TO_MODEL: dict[str, type[Any]] = {
     "metric_group": MetricGroup,
     "event": Event,
     "note": Note,
+    "moment": Moment,
     "commitment": Commitment,
     "request": Request,
     "delegation": Delegation,
@@ -89,6 +91,7 @@ MODEL_TO_TYPE: dict[type[Any], str] = {m: t for t, m in TYPE_TO_MODEL.items()}
 # Per type: (label column, curated text columns searched by ``q=`` / global search).
 # Curated on purpose — opaque fields (patient_id, rx_bin, …) are excluded.
 SEARCH_FIELDS: dict[str, tuple[str, list[str]]] = {
+    "moment": ("title", ["title", "body"]),
     "person": (
         "name",
         ["name", "nickname", "relationship", "role", "job_title", "specialty"],
