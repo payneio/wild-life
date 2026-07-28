@@ -242,6 +242,45 @@ async def moments_calendar(
     ]
 
 
+@router.get("/density", operation_id="moments_density")
+async def moments_density(
+    session: AsyncSession = Depends(get_session),
+    linked_type: EntityType | None = None,
+    linked_id: UUID | None = None,
+) -> list[dict]:
+    """Per-(year, month, kind) counts — the shape of the record over time.
+
+    The rail (`/calendar`) answers "which months have anything"; this answers
+    "what were they made of". One query rather than thirteen, because asking per
+    kind would mean the client issuing a request per act and reassembling them.
+    """
+    year = func.extract("year", _WHEN)
+    month = func.extract("month", _WHEN)
+    stmt = (
+        select(
+            year.label("year"),
+            month.label("month"),
+            Moment.kind.label("kind"),
+            func.count().label("count"),
+        )
+        .where(_WHEN.isnot(None))
+        .group_by(year, month, Moment.kind)
+        .order_by(year.desc(), month.desc())
+    )
+    if linked_type is not None and linked_id is not None:
+        stmt = stmt.where(Moment.id.in_(_linked(linked_type, linked_id, None)))
+    rows = (await session.execute(stmt)).all()
+    return [
+        {
+            "year": int(r.year),
+            "month": int(r.month),
+            "kind": r.kind,
+            "count": int(r.count),
+        }
+        for r in rows
+    ]
+
+
 @router.get("/{item_id}", response_model=MomentRead, operation_id="moments_get")
 async def get_moment(
     item_id: UUID, session: AsyncSession = Depends(get_session)

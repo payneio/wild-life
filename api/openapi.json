@@ -20239,6 +20239,105 @@
         ]
       }
     },
+    "/moments/density": {
+      "get": {
+        "description": "Per-(year, month, kind) counts \u2014 the shape of the record over time.\n\nThe rail (`/calendar`) answers \"which months have anything\"; this answers\n\"what were they made of\". One query rather than thirteen, because asking per\nkind would mean the client issuing a request per act and reassembling them.",
+        "operationId": "moments_density",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "linked_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "area",
+                    "program",
+                    "project",
+                    "task",
+                    "routine",
+                    "outcome",
+                    "metric",
+                    "metric_group",
+                    "event",
+                    "note",
+                    "person",
+                    "organization",
+                    "location",
+                    "commitment",
+                    "request",
+                    "delegation",
+                    "review",
+                    "resource",
+                    "decision",
+                    "medication",
+                    "protocol",
+                    "protocol_item",
+                    "insurance_plan",
+                    "allergy",
+                    "moment"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Linked Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "linked_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Linked Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "title": "Response Moments Density",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Moments Density",
+        "tags": [
+          "moments"
+        ]
+      }
+    },
     "/moments/sync": {
       "post": {
         "description": "Mirror the tables that still write their own rows into the spine.\n\nDoses, readings and task completions are authored through their own surfaces\nand land in `routine_instances`, `metric_entries` and `tasks`. Until those\nsurfaces move too, a moment for them exists only because this ran \u2014 so a dose\nlogged at noon would otherwise be missing from the timeline until someone\nremembered to backfill.\n\nSame shape as `locations/tick`, and for the same reason its docstring gives:\na rolling replay is what lets the live path stay simple. The window is\ngenerous rather than exact, because re-upserting a handful of rows is free\nand a stored high-water mark is a thing that can be wrong.\n\n`full=true` re-reads everything; that belongs nightly rather than every few\nminutes.",

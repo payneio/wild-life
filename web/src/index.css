@@ -53,6 +53,15 @@
   --indigo-600: #0f766e;
   --indigo-700: #0b5d56;
 
+  /* The four things a stretch of life is made of (see lib/moments.ts).
+     Desaturated and mid-value so four segments of one thin bar stay legible
+     side by side, and chosen to sit inside the warm-stone/ink-teal world rather
+     than arriving from a default chart palette. */
+  --family-writing: #57534e; /* the stone ramp itself — writing is the ground */
+  --family-places: #0f766e; /* the brand accent — time spent somewhere */
+  --family-body: #9b4d3f; /* warm brick, kin to stone */
+  --family-work: #4c4a7d; /* cool slate-violet, furthest in hue from the teal */
+
   /* Accent tints used as chip backgrounds — light = Tailwind defaults */
   --emerald-50: #ecfdf5;
   --emerald-100: #d1fae5;
@@ -101,6 +110,12 @@
   --indigo-500: #14b8a6;
   --indigo-600: #14b8a6;
   --indigo-700: #2dd4bf;
+
+  /* Families, lifted for a dark ground — same hues, raised value. */
+  --family-writing: #a8a29a;
+  --family-places: #2dd4bf;
+  --family-body: #d98a72;
+  --family-work: #9a97d6;
 
   /* Accent tints → deep, saturated backgrounds legible under colored text */
   --emerald-50: #0f2820;

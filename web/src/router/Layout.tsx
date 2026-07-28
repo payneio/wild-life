@@ -11,6 +11,7 @@ import {
   GitMerge,
   HeartHandshake,
   Repeat,
+  GalleryVerticalEnd,
   History,
   Home,
   Hourglass,
@@ -66,6 +67,7 @@ const DAILY: Item[] = [
   { to: "/notes", label: "Journal", icon: NotebookPen },
   { to: "/inbox", label: "Inbox", icon: Inbox },
   { to: "/calendar", label: "Calendar", icon: CalendarDays },
+  { to: "/timeline", label: "Timeline", icon: GalleryVerticalEnd },
   { to: "/whiteboard", label: "Whiteboard", icon: StickyNote },
 ]
 
@@ -122,6 +124,7 @@ const MOBILE_TABS: Item[] = [
   { to: "/today", label: "Today", icon: Home },
   { to: "/tasks", label: "Tasks", icon: ListChecks },
   { to: "/calendar", label: "Calendar", icon: CalendarDays },
+  { to: "/timeline", label: "Timeline", icon: GalleryVerticalEnd },
   { to: "/people", label: "People", icon: Users },
 ]
 

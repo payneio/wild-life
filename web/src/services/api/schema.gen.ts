@@ -1257,6 +1257,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/moments/density": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Moments Density
+         * @description Per-(year, month, kind) counts — the shape of the record over time.
+         *
+         *     The rail (`/calendar`) answers "which months have anything"; this answers
+         *     "what were they made of". One query rather than thirteen, because asking per
+         *     kind would mean the client issuing a request per act and reassembling them.
+         */
+        get: operations["moments_density"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/moments/sync": {
         parameters: {
             query?: never;
@@ -9758,6 +9782,40 @@ export interface operations {
                 linked_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
                 linked_id?: string | null;
                 role?: ("participant" | "place" | "subject" | "mention")[] | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    moments_density: {
+        parameters: {
+            query?: {
+                linked_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+                linked_id?: string | null;
             };
             header?: never;
             path?: never;

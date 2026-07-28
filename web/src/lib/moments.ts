@@ -65,6 +65,40 @@ export const KIND_CLASS: Record<MomentKind, string> = {
 }
 
 /**
+ * The four families a kind belongs to.
+ *
+ * Thirteen colours would be a legend nobody can hold; four is a sentence you can
+ * read off a bar — what a stretch of life was *made of*. The grouping is by what
+ * the act concerns rather than by anything structural, which is why `visit` sits
+ * with `occasion` (both are being somewhere) and `decision` with `completion`
+ * (both are work resolving).
+ */
+export type KindFamily = "writing" | "places" | "body" | "work"
+
+export const FAMILY_OF: Record<MomentKind, KindFamily> = {
+  capture: "writing",
+  reflection: "writing",
+  observation: "writing",
+  occasion: "places",
+  exchange: "places",
+  visit: "places",
+  measurement: "body",
+  dose: "body",
+  activity: "body",
+  work: "work",
+  completion: "work",
+  withdrawal: "work",
+  decision: "work",
+}
+
+export const FAMILIES: { key: KindFamily; label: string; color: string }[] = [
+  { key: "writing", label: "writing", color: "var(--family-writing)" },
+  { key: "places", label: "places", color: "var(--family-places)" },
+  { key: "body", label: "body", color: "var(--family-body)" },
+  { key: "work", label: "work", color: "var(--family-work)" },
+]
+
+/**
  * Where a moment sits in time: what happened, or failing that where it is meant
  * to.
  *

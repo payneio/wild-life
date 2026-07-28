@@ -19,6 +19,7 @@ import { PlacesPage } from "@/pages/PlacesPage"
 import { MetricsPage } from "@/pages/MetricsPage"
 import { HistoryPage } from "@/pages/HistoryPage"
 import { JournalRoute } from "@/pages/JournalRoute"
+import { TimelinePage } from "@/pages/TimelinePage"
 import { WhiteboardPage } from "@/pages/WhiteboardPage"
 import { DuplicatesPage } from "@/pages/DuplicatesPage"
 import { AgentsPage } from "@/pages/AgentsPage"
@@ -100,6 +101,9 @@ export const router = createBrowserRouter([
       // A moment is addressable wherever it appears — Backlinks, mention chips
       // and a record's Log all route here, whatever act the moment is.
       { path: "moments/:id", element: <RecordPage entityKey="moment" backTo="/notes" backLabel="Journal" /> },
+      // Everything recorded, read downward like a core sample. The payoff of the
+      // inversion: one query answers thirty years, because there is one spine.
+      { path: "timeline", element: <TimelinePage /> },
       // The whiteboard is one buffer, not a collection — no list, no detail, no id.
       { path: "whiteboard", element: <WhiteboardPage /> },
       {
