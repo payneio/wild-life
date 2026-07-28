@@ -113,7 +113,9 @@ const JournalEntry = memo(function JournalEntry({
               />
             ))}
           {note.tags.map((t) => (
-            <Badge key={t}>{t}</Badge>
+            <Badge key={t.id} color={t.color}>
+              {t.name}
+            </Badge>
           ))}
         </div>
       )}

@@ -56,7 +56,6 @@ export const NOTE_FIELDS: FieldSpec[] = [
   { name: "title", label: "Title", full: true },
   { name: "entry_date", label: "Date", type: "date" },
   { name: "mood", label: "Mood" },
-  { name: "tags", label: "Tags", type: "tags" },
   { name: "body", label: "Body", type: "textarea", full: true },
 ]
 
@@ -101,7 +100,6 @@ export const RESOURCE_FIELDS: FieldSpec[] = [
   { name: "resource_type", label: "Type", type: "select", options: ["link", "document", "book", "template", "tool", "account", "location", "reference"] },
   { name: "url", label: "URL", full: true },
   { name: "description", label: "Description", type: "textarea" },
-  { name: "tags", label: "Tags", type: "tags" },
 ]
 
 export const TAG_FIELDS: FieldSpec[] = [

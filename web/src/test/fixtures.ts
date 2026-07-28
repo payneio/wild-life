@@ -79,7 +79,6 @@ export const RESOURCE: Resource = {
   url: "https://travel.state.gov/ds82",
   resource_type: "document",
   description: "Mail-in renewal, needs a 2x2 photo",
-  tags: ["admin", "travel"],
   entity_type: null,
   entity_id: null,
 }
@@ -361,7 +360,7 @@ export const NOTE: Note = {
   body: "Walked through the cabinet options.",
   entry_date: "2026-07-21" as CalendarDay,
   mood: null,
-  tags: ["remodel"],
+  tags: [{ id: "t1", name: "remodel", color: null }],
   links: [],
   entity_type: null,
   entity_id: null,

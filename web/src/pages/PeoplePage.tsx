@@ -3,6 +3,7 @@ import { useMemo, useRef, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { DetailDrawer } from "@/components/DetailDrawer"
+import { TagField } from "@/components/TagField"
 import {
   Cake,
   Copy,
@@ -47,10 +48,7 @@ import {
   people,
   tags,
   tasks,
-  useAttachTag,
   useDeletePersonPhoto,
-  useDetachTag,
-  useEntityTags,
   usePersonEvents,
   useUploadPersonPhoto,
   requests,
@@ -168,75 +166,6 @@ function PhotoControl({ person }: { person: Person }) {
           onClick={() => remove.mutate(person.id)}
         >
           <X size={12} />
-        </button>
-      )}
-    </div>
-  )
-}
-
-// --- tags on a person -------------------------------------------------------
-function TagEditor({ personId }: { personId: string }) {
-  const { data: current } = useEntityTags("person", personId)
-  const { data: all } = tags.useList()
-  const attach = useAttachTag()
-  const detach = useDetachTag()
-  const createTag = tags.useCreate()
-  const [adding, setAdding] = useState(false)
-  const [value, setValue] = useState("")
-  const currentIds = new Set((current ?? []).map((t) => t.id))
-  const available = (all ?? []).filter((t) => !currentIds.has(t.id))
-
-  async function add() {
-    const name = value.trim()
-    if (!name) return
-    const existing = (all ?? []).find((t) => t.name.toLowerCase() === name.toLowerCase())
-    const tag = existing ?? ((await createTag.mutateAsync({ name })) as { id: string })
-    attach.mutate({ tagId: tag.id, entityType: "person", entityId: personId })
-    setValue("")
-    setAdding(false)
-  }
-
-  return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      {(current ?? []).map((t) => (
-        <Badge key={t.id} color={t.color}>
-          {t.name}
-          <button
-            className="ml-1 text-slate-400 hover:text-red-600"
-            onClick={() =>
-              detach.mutate({ tagId: t.id, entityType: "person", entityId: personId })
-            }
-          >
-            <X size={11} />
-          </button>
-        </Badge>
-      ))}
-      {adding ? (
-        <span className="flex items-center gap-1">
-          <Input
-            list="all-tags"
-            autoFocus
-            className="h-7 w-32 py-0.5"
-            value={value}
-            placeholder="tag…"
-            onChange={(e) => setValue(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && void add()}
-          />
-          <datalist id="all-tags">
-            {available.map((t) => (
-              <option key={t.id} value={t.name} />
-            ))}
-          </datalist>
-          <button className="text-indigo-600" onClick={() => void add()}>
-            <Plus size={14} />
-          </button>
-        </span>
-      ) : (
-        <button
-          className="flex items-center gap-0.5 rounded-full border border-dashed border-slate-300 px-2 py-0.5 text-xs text-slate-400 hover:text-indigo-600"
-          onClick={() => setAdding(true)}
-        >
-          <Plus size={11} /> tag
         </button>
       )}
     </div>
@@ -469,7 +398,7 @@ function PersonDetail({
             {person.preferred_contact && <span>prefers {person.preferred_contact}</span>}
           </div>
           <div className="mt-2">
-            <TagEditor personId={person.id} />
+            <TagField entityType="person" entityId={person.id} />
           </div>
         </div>
         <div className="flex gap-1">

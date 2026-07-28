@@ -37,8 +37,11 @@ not by hand-writing a bespoke stack. Everything below comes for free once it's r
 **Two deliberate exceptions** (intentional, not gaps): **Person** is a relationship-rich
 object modeled through its lookup + the bespoke `PeoplePage` rather than the generic
 registry — it's still a first-class object everywhere (references, mentions, history) via
-the `people` lookup (`mentions.ts` notes this). **Tag** is a *value-object* (a label), not a
-referenceable entity, so it has no `entityType`. A bespoke object still belongs to the object
+the `people` lookup (`mentions.ts` notes this). **Tag** has identity — a row, a name, a
+colour — but is not a *subject*: you attach it to things rather than rooting things to it,
+so it has no `entityType` and never appears in a picker. It reaches every object through
+`EntityTag`, and `<Record>` offers `TagField` as chrome rather than each entity declaring
+one — the same reason the Log is a band. A bespoke object still belongs to the object
 model; it just realizes its representations by hand because a §5 property earns it.
 
 ## 2. Representations — one object, many forms

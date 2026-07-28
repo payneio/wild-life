@@ -13,7 +13,6 @@ class ResourceCreate(BaseModel):
     resource_type: str | None = None
     url: str | None = None
     description: str | None = None
-    tags: list[str] = []
     entity_type: EntityType | None = None
     entity_id: uuid.UUID | None = None
 
@@ -23,7 +22,6 @@ class ResourceUpdate(BaseModel):
     resource_type: str | None = None
     url: str | None = None
     description: str | None = None
-    tags: list[str] | None = None
     entity_type: EntityType | None = None
     entity_id: uuid.UUID | None = None
 
@@ -33,7 +31,6 @@ class ResourceRead(Entity):
     resource_type: str | None
     url: str | None
     description: str | None
-    tags: list[str]
     entity_type: EntityType | None
     entity_id: uuid.UUID | None
 

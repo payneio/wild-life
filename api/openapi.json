@@ -6382,14 +6382,6 @@
             ],
             "title": "Mood"
           },
-          "tags": {
-            "default": [],
-            "items": {
-              "type": "string"
-            },
-            "title": "Tags",
-            "type": "array"
-          },
           "title": {
             "anyOf": [
               {
@@ -6562,8 +6554,9 @@
             "title": "Mood"
           },
           "tags": {
+            "default": [],
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/TagRef"
             },
             "title": "Tags",
             "type": "array"
@@ -6593,7 +6586,6 @@
           "body",
           "entry_date",
           "mood",
-          "tags",
           "entity_type",
           "entity_id"
         ],
@@ -6697,20 +6689,6 @@
               }
             ],
             "title": "Mood"
-          },
-          "tags": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Tags"
           },
           "title": {
             "anyOf": [
@@ -10786,14 +10764,6 @@
             ],
             "title": "Resource Type"
           },
-          "tags": {
-            "default": [],
-            "items": {
-              "type": "string"
-            },
-            "title": "Tags",
-            "type": "array"
-          },
           "title": {
             "title": "Title",
             "type": "string"
@@ -10898,13 +10868,6 @@
             ],
             "title": "Resource Type"
           },
-          "tags": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Tags",
-            "type": "array"
-          },
           "title": {
             "title": "Title",
             "type": "string"
@@ -10934,7 +10897,6 @@
           "resource_type",
           "url",
           "description",
-          "tags",
           "entity_type",
           "entity_id"
         ],
@@ -11012,20 +10974,6 @@
               }
             ],
             "title": "Resource Type"
-          },
-          "tags": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Tags"
           },
           "title": {
             "anyOf": [
@@ -12826,6 +12774,37 @@
           "color"
         ],
         "title": "TagRead",
+        "type": "object"
+      },
+      "TagRef": {
+        "description": "A tag on a note, projected into the read model.\n\nRead-only: tags are `EntityTag` rows and are written through `/tags/attach`.\nThey ride along here for the same reason `links` does \u2014 a log renders\nhundreds of notes at once, and a per-row lookup would be hundreds of queries.",
+        "properties": {
+          "color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "TagRef",
         "type": "object"
       },
       "TagUpdate": {

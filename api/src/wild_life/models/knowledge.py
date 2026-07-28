@@ -4,7 +4,7 @@ import uuid
 from datetime import date
 
 from sqlalchemy import Date, ForeignKey, Text
-from sqlalchemy.dialects.postgresql import ARRAY, UUID
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from wild_life.db.base import Base
@@ -20,7 +20,6 @@ class Resource(UUIDPrimaryKey, TimestampMixin, Base):
     )  # link/document/book/template/tool/account/location/reference
     url: Mapped[str | None] = mapped_column(Text)
     description: Mapped[str | None] = mapped_column(Text)
-    tags: Mapped[list[str]] = mapped_column(ARRAY(Text), server_default="{}")
     entity_type: Mapped[str | None] = mapped_column(Text)
     entity_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
 

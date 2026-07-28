@@ -113,6 +113,13 @@ Iterate with the dev servers; they never touch the live URLs. Publish separately
     its own single-row table, `__audit__ = False`, absent from `EntityType`, the
     registry and `change_log`. A scratch space has no subject, no date and no
     identity, which is exactly why it is not a Note.
+- **One tagging mechanism.** `Tag` + `EntityTag`, reaching every object through one
+  polymorphic edge. The `tags text[]` columns on notes and resources are gone
+  (`a0b1c2d3e4f5`): a tag column per table is the same per-entity-column pattern the
+  `notes` columns were, and a string has no identity to rename or colour — this data
+  held both `work` and `work:microsoft`. `Record` renders `TagField` as chrome, and
+  `NoteRead.tags` is a read-only projection batch-loaded like `links`, because a log
+  renders hundreds of notes at once.
 - **Where prose goes.** What the thing *is* → a named field on it. Measurable and
   must stay true → an Outcome. An observation → a note, on whatever it's about.
   Just thinking → the whiteboard.

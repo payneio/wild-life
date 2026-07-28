@@ -22,7 +22,7 @@ export type FieldType =
   | "checkbox"
   | "select"
   | "entity"
-  | "tags"
+ 
   | "attendees"
   | "multiselect"
   | "time"

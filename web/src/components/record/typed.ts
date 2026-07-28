@@ -12,7 +12,6 @@ import {
   RecordAttendees,
   RecordMultiSelect,
   RecordSelect,
-  RecordTags,
   RecordText,
   RecordTextarea,
   RecordTime,
@@ -75,7 +74,6 @@ export function recordFields<T>() {
     ) => ReactNode,
     Phone: RecordPhone as (p: { field: K; label?: string; placeholder?: string }) => ReactNode,
     Recurrence: RecordRecurrence as (p: { field: K; label?: string }) => ReactNode,
-    Tags: RecordTags as (p: { field: K; label?: string }) => ReactNode,
     MultiSelect: RecordMultiSelect as (p: {
       field: K
       label?: string

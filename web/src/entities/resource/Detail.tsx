@@ -52,7 +52,6 @@ export function ResourceDetail({
         <F.Title field="title" placeholder="Resource title" />
         <UrlField />
         <F.Select field="resource_type" label="Type" options={RESOURCE_TYPE} />
-        <F.Tags field="tags" label="Tags" />
         <F.Textarea field="description" label="Description" />
         {/* Editable for the first time: RESOURCE_FIELDS never listed the
             soft-poly pair, so the generic form couldn't reach it. */}

@@ -3929,11 +3929,6 @@ export interface components {
             links: components["schemas"]["EntityRef"][];
             /** Mood */
             mood?: string | null;
-            /**
-             * Tags
-             * @default []
-             */
-            tags: string[];
             /** Title */
             title?: string | null;
         };
@@ -3993,8 +3988,11 @@ export interface components {
             links: components["schemas"]["EntityRef"][];
             /** Mood */
             mood: string | null;
-            /** Tags */
-            tags: string[];
+            /**
+             * Tags
+             * @default []
+             */
+            tags: components["schemas"]["TagRef"][];
             /** Title */
             title: string | null;
             /**
@@ -4017,8 +4015,6 @@ export interface components {
             links?: components["schemas"]["EntityRef"][] | null;
             /** Mood */
             mood?: string | null;
-            /** Tags */
-            tags?: string[] | null;
             /** Title */
             title?: string | null;
         };
@@ -5003,11 +4999,6 @@ export interface components {
             entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Resource Type */
             resource_type?: string | null;
-            /**
-             * Tags
-             * @default []
-             */
-            tags: string[];
             /** Title */
             title: string;
             /** Url */
@@ -5033,8 +5024,6 @@ export interface components {
             id: string;
             /** Resource Type */
             resource_type: string | null;
-            /** Tags */
-            tags: string[];
             /** Title */
             title: string;
             /**
@@ -5055,8 +5044,6 @@ export interface components {
             entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Resource Type */
             resource_type?: string | null;
-            /** Tags */
-            tags?: string[] | null;
             /** Title */
             title?: string | null;
             /** Url */
@@ -5555,6 +5542,25 @@ export interface components {
              * Format: date-time
              */
             updated_at: Instant;
+        };
+        /**
+         * TagRef
+         * @description A tag on a note, projected into the read model.
+         *
+         *     Read-only: tags are `EntityTag` rows and are written through `/tags/attach`.
+         *     They ride along here for the same reason `links` does — a log renders
+         *     hundreds of notes at once, and a per-row lookup would be hundreds of queries.
+         */
+        TagRef: {
+            /** Color */
+            color?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
         };
         /** TagUpdate */
         TagUpdate: {

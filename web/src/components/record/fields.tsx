@@ -481,34 +481,6 @@ export function RecordRoot({ label = "Filed in" }: { label?: string }) {
   )
 }
 
-/** A comma-separated tag list over a string[] column. */
-export function RecordTags({ field, label }: { field: string; label?: string }) {
-  const { value, save } = useField(field)
-  const { draft, setDraft, setFocused } = useDraft(value, (v) =>
-    Array.isArray(v) ? (v as string[]).join(", ") : "",
-  )
-  return (
-    <Wrap label={label} full>
-      <input
-        type="text"
-        value={draft}
-        placeholder="comma, separated"
-        className={GHOST}
-        onFocus={() => setFocused(true)}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={() => {
-          setFocused(false)
-          save(
-            draft
-              .split(",")
-              .map((s) => s.trim())
-              .filter(Boolean),
-          )
-        }}
-      />
-    </Wrap>
-  )
-}
 
 /**
  * A chip-toggle set over a string[] column.

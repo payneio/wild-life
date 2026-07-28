@@ -21,10 +21,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from wild_life.config import settings
 from wild_life.db.session import get_session
 from wild_life.models.notes import Note, NoteImage, NoteMention
+from wild_life.models.tags import EntityTag, Tag
 from wild_life.query import apply_query
 from wild_life.schemas.common import EntityType
 from wild_life.schemas.notes import (
     EntityRef,
+    TagRef,
     NoteCreate,
     NoteImageRead,
     NoteRead,
@@ -36,6 +38,18 @@ from wild_life.schemas.notes import (
 # filtering on the raw column instead would make 14 undated notes belong to no
 # year at all — invisible in a stream that claims to show everything.
 _WHEN = func.coalesce(Note.entry_date, func.cast(Note.created_at, Date))
+
+
+def _tagged_note_ids(tag: str):
+    """Note ids carrying `tag`. Tags are `EntityTag` rows now, not a string
+    column, so one mechanism covers every entity rather than each table growing
+    its own array (see a0b1c2d3e4f5)."""
+    return (
+        select(EntityTag.entity_id)
+        .join(Tag, Tag.id == EntityTag.tag_id)
+        .where(EntityTag.entity_type == "note", Tag.name == tag)
+    )
+
 
 router = APIRouter(prefix="/notes", tags=["notes"])
 
@@ -96,9 +110,30 @@ async def _links_for(
     return out
 
 
-def _read(note: Note, links: list[EntityRef]) -> NoteRead:
+async def _tags_for(
+    session: AsyncSession, note_ids: list[UUID]
+) -> dict[UUID, list[TagRef]]:
+    """Batch-load tag rows for the given notes, grouped by note id."""
+    out: dict[UUID, list[TagRef]] = defaultdict(list)
+    if not note_ids:
+        return out
+    result = await session.execute(
+        select(EntityTag.entity_id, Tag)
+        .join(Tag, Tag.id == EntityTag.tag_id)
+        .where(EntityTag.entity_type == "note", EntityTag.entity_id.in_(note_ids))
+        .order_by(Tag.name)
+    )
+    for note_id, tag in result:
+        out[note_id].append(TagRef(id=tag.id, name=tag.name, color=tag.color))
+    return out
+
+
+def _read(
+    note: Note, links: list[EntityRef], tag_refs: list[TagRef] | None = None
+) -> NoteRead:
     read = NoteRead.model_validate(note)
     read.links = links
+    read.tags = tag_refs or []
     return read
 
 
@@ -138,7 +173,7 @@ async def list_notes(
     if year is not None:
         stmt = stmt.where(_WHEN.between(date(year, 1, 1), date(year, 12, 31)))
     if tag is not None:
-        stmt = stmt.where(Note.tags.contains([tag]))
+        stmt = stmt.where(Note.id.in_(_tagged_note_ids(tag)))
     if linked_type is not None and linked_id is not None:
         stmt = stmt.where(
             Note.id.in_(
@@ -156,8 +191,10 @@ async def list_notes(
         stmt = stmt.limit(limit)
     result = await session.execute(stmt)
     notes = list(result.scalars().all())
-    links = await _links_for(session, [n.id for n in notes])
-    return [_read(n, links[n.id]) for n in notes]
+    ids = [n.id for n in notes]
+    links = await _links_for(session, ids)
+    note_tags = await _tags_for(session, ids)
+    return [_read(n, links[n.id], note_tags[n.id]) for n in notes]
 
 
 @router.get("/calendar", operation_id="notes_calendar")
@@ -177,7 +214,7 @@ async def notes_calendar(
     m = func.extract("month", _WHEN)
     stmt = select(y.label("year"), m.label("month"), func.count().label("count"))
     if tag is not None:
-        stmt = stmt.where(Note.tags.contains([tag]))
+        stmt = stmt.where(Note.id.in_(_tagged_note_ids(tag)))
     if entity_type is not None:
         stmt = stmt.where(Note.entity_type == entity_type)
     if entity_id is not None:
@@ -198,7 +235,8 @@ async def get_note(
     if note is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not found")
     links = await _links_for(session, [note.id])
-    return _read(note, links[note.id])
+    note_tags = await _tags_for(session, [note.id])
+    return _read(note, links[note.id], note_tags[note.id])
 
 
 @router.patch("/{item_id}", response_model=NoteRead, operation_id="notes_update")
@@ -216,7 +254,8 @@ async def update_note(
     await session.flush()
     await session.refresh(note)
     links = await _links_for(session, [note.id])
-    return _read(note, links[note.id])
+    note_tags = await _tags_for(session, [note.id])
+    return _read(note, links[note.id], note_tags[note.id])
 
 
 @router.delete(
