@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from wild_life import push
 from wild_life.db.session import get_session
-from wild_life.models.calendar import Event
+from wild_life.routers.occurrences import collect
 from wild_life.models.people import Person
 from wild_life.models.push import PushSubscription, SentNudge
 from wild_life.models.requests import Request
@@ -39,12 +39,10 @@ async def _digest_lines(session: AsyncSession, today: date) -> list[str]:
     end = datetime.combine(today, time.max, tzinfo=UTC)
     mmdd = today.strftime("%m-%d")
 
-    events_n = await _count(
-        session,
-        select(func.count())
-        .select_from(Event)
-        .where(Event.start_at >= start, Event.start_at <= end),
-    )
+    # Counted from the spine, and through the same expansion the calendar draws:
+    # a recurring meeting today is a projection, not a row, so a plain count of
+    # stored moments would say the day was empty.
+    events_n = len(await collect(session, start, end, kind=["occasion"]))
     tasks_n = await _count(
         session,
         select(func.count())

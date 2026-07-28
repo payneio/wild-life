@@ -111,6 +111,25 @@ async def list_occurrences(
     linked_id: UUID | None = None,
 ) -> list[Occurrence]:
     """Everything happening in a window, stored or computed."""
+    return await collect(session, since, until, kind, linked_type, linked_id)
+
+
+async def collect(
+    session: AsyncSession,
+    since: datetime,
+    until: datetime,
+    kind: list[MomentKind] | None = None,
+    linked_type: str | None = None,
+    linked_id: UUID | None = None,
+) -> list[Occurrence]:
+    """The endpoint's body, callable.
+
+    Anything that needs to know when something happens asks *here*. Reminders
+    kept a fourth recurrence expander of its own — after `Routine`'s cadence,
+    `Event`'s RRULE and FullCalendar's — which is precisely the duplication this
+    migration exists to remove: four answers to one question, and no way to tell
+    which was right.
+    """
     if until < since:
         since, until = until, since
     until = min(until, since + MAX_WINDOW)

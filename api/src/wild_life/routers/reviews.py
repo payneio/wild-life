@@ -10,10 +10,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from wild_life import regimen
 from wild_life.db.session import get_session
 from wild_life.identity import Identity, current_identity
-from wild_life.models.calendar import Event
 from wild_life.models.core import Area, Program, Project
 from wild_life.models.outcomes import Outcome
-from wild_life.models.moments import Moment
+from wild_life.models.moments import CalendarRecord, Moment, MomentLink
 from wild_life.models.health import Medication
 from wild_life.models.protocols import Protocol
 from wild_life.models.metrics import Metric, MetricEntry
@@ -463,11 +462,26 @@ async def review_dashboard(
             select(func.count()).select_from(Moment).where(Moment.kind == "capture")
         )
     ).scalar_one()
+    # Occasions nobody has said what they concern. Synced ones are excluded the
+    # way they always were — a meeting someone else's calendar sent you is not a
+    # backlog — and "synced" is now "has a projection carrying a foreign UID",
+    # which is a fact about sharing rather than a column.
+    has_subject = select(MomentLink.moment_id).where(
+        MomentLink.moment_id == Moment.id, MomentLink.role == "subject"
+    )
+    shared = select(CalendarRecord.moment_id).where(
+        CalendarRecord.moment_id == Moment.id,
+        CalendarRecord.external_ref.isnot(None),
+    )
     unrooted_events_count = (
         await session.execute(
             select(func.count())
-            .select_from(Event)
-            .where(Event.entity_type.is_(None), Event.external_ref.is_(None))
+            .select_from(Moment)
+            .where(
+                Moment.kind == "occasion",
+                ~has_subject.exists(),
+                ~shared.exists(),
+            )
         )
     ).scalar_one()
 
