@@ -37,6 +37,7 @@ from wild_life.routers import (
     metric_groups,
     metrics,
     moments,
+    occurrences,
     notes,
     nudges,
     organizations,
@@ -187,6 +188,7 @@ app.include_router(preferences.router)
 app.include_router(whiteboard.router)
 app.include_router(moments.router)
 app.include_router(moments.images_router)
+app.include_router(occurrences.router)
 app.include_router(notes.router)
 app.include_router(notes.images_router)
 app.include_router(tracking.router)

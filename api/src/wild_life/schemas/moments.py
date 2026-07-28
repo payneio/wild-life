@@ -36,6 +36,12 @@ class MomentCreate(BaseModel):
     title: str | None = None
     body: str = ""
     source: MomentSource = "authored"
+    # Which series this belongs to. With `occurrence_at` set it is a
+    # materialised occurrence standing in for one projected slot — the thing
+    # iCal needs RECURRENCE-ID and a second VEVENT to say. Without it, the
+    # series' anchor.
+    rule_id: uuid.UUID | None = None
+    occurrence_at: datetime | None = None
     links: list[MomentLinkRef] = []
 
 
@@ -54,6 +60,8 @@ class MomentUpdate(BaseModel):
     # silence, and *that* is derived (window passed, nothing started).
     withdrawn_at: datetime | None = None
     withdrawal_reason: str | None = None
+    rule_id: uuid.UUID | None = None
+    occurrence_at: datetime | None = None
     links: list[MomentLinkRef] | None = None
 
 
@@ -78,4 +86,58 @@ class MomentRead(Entity):
     withdrawn_at: datetime | None
     withdrawal_reason: str | None
     source_ref: str | None
+    rule_id: uuid.UUID | None
+    occurrence_at: datetime | None
     links: list[MomentLinkRef] = []
+
+
+class CalendarRecordRead(BaseModel):
+    """A moment's shared projection — the only part of it that can leave here.
+
+    Privacy is structural rather than a filter: a moment with no calendar record
+    has nothing to export, so the question is never "did the export query say
+    WHERE correctly" but "which moments were given one".
+    """
+
+    external_ref: str | None = None
+    attendees: list[str] = []
+    organizer: str | None = None
+    sequence: int | None = None
+    rsvp_status: str | None = None
+    rsvp_sent_status: str | None = None
+    invites_enabled: bool = False
+    recurrence: str | None = None
+    recurrence_exdates: list[str] = []
+    cancelled_at: datetime | None = None
+
+    model_config = {"from_attributes": True}
+
+
+class Occurrence(BaseModel):
+    """One thing on the calendar, however it came to be there.
+
+    Three sources reach this one shape, which is the whole point of the read
+    path: a plain moment, a wire rule we could not translate and so expand as we
+    were given it, and a rule of our own projected forward. A client should not
+    have to know which — and before this it did, because it expanded RRULEs
+    itself.
+    """
+
+    # A stored row, when there is one. Null for a projection nothing has happened
+    # to yet: those are not rows, and inventing an id for one would be inventing
+    # the row (decision 10).
+    moment_id: uuid.UUID | None = None
+    rule_id: uuid.UUID | None = None
+    # The slot this stands for — a projection's identity, and what a scoped edit
+    # names. Stable across a move, unlike `start_at`.
+    occurrence_at: datetime
+    start_at: datetime
+    end_at: datetime | None = None
+    all_day: bool = False
+    title: str | None = None
+    body: str = ""
+    kind: MomentKind = "occasion"
+    # Derived, never stored: a window that passed with nothing in it.
+    withdrawn_at: datetime | None = None
+    links: list[MomentLinkRef] = []
+    calendar: CalendarRecordRead | None = None

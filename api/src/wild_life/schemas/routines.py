@@ -34,6 +34,8 @@ class RoutineCreate(BaseModel):
     interval_days: int = 1
     # The zone a rule's slots are wall times in; null = expand in UTC.
     timezone: str | None = None
+    # How long a generated occurrence runs (occasion rules; a dose takes none).
+    expected_minutes: int | None = None
     sort_order: int = 0
     area_id: uuid.UUID | None = None
     program_id: uuid.UUID | None = None
@@ -73,6 +75,7 @@ class RoutineUpdate(BaseModel):
     days_of_week: list[Weekday] | None = None
     interval_days: int | None = None
     timezone: str | None = None
+    expected_minutes: int | None = None
     sort_order: int | None = None
     area_id: uuid.UUID | None = None
     program_id: uuid.UUID | None = None

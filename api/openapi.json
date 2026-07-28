@@ -964,6 +964,112 @@
         "title": "Body_upload_person_photo_people__person_id__photo_post",
         "type": "object"
       },
+      "CalendarRecordRead": {
+        "description": "A moment's shared projection \u2014 the only part of it that can leave here.\n\nPrivacy is structural rather than a filter: a moment with no calendar record\nhas nothing to export, so the question is never \"did the export query say\nWHERE correctly\" but \"which moments were given one\".",
+        "properties": {
+          "attendees": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Attendees",
+            "type": "array"
+          },
+          "cancelled_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancelled At"
+          },
+          "external_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Ref"
+          },
+          "invites_enabled": {
+            "default": false,
+            "title": "Invites Enabled",
+            "type": "boolean"
+          },
+          "organizer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organizer"
+          },
+          "recurrence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recurrence"
+          },
+          "recurrence_exdates": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Recurrence Exdates",
+            "type": "array"
+          },
+          "rsvp_sent_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rsvp Sent Status"
+          },
+          "rsvp_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rsvp Status"
+          },
+          "sequence": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sequence"
+          }
+        },
+        "title": "CalendarRecordRead",
+        "type": "object"
+      },
       "ChangeLogRead": {
         "description": "A recorded change to an entity.",
         "properties": {
@@ -6869,6 +6975,30 @@
             "title": "Links",
             "type": "array"
           },
+          "occurrence_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurrence At"
+          },
+          "rule_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Id"
+          },
           "source": {
             "default": "authored",
             "enum": [
@@ -7122,6 +7252,30 @@
             "title": "Links",
             "type": "array"
           },
+          "occurrence_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurrence At"
+          },
+          "rule_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Id"
+          },
           "source": {
             "enum": [
               "authored",
@@ -7234,7 +7388,9 @@
           "source",
           "withdrawn_at",
           "withdrawal_reason",
-          "source_ref"
+          "source_ref",
+          "rule_id",
+          "occurrence_at"
         ],
         "title": "MomentRead",
         "type": "object"
@@ -7325,6 +7481,30 @@
               }
             ],
             "title": "Links"
+          },
+          "occurrence_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurrence At"
+          },
+          "rule_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Id"
           },
           "source": {
             "anyOf": [
@@ -7821,6 +8001,134 @@
           }
         },
         "title": "NoteUpdate",
+        "type": "object"
+      },
+      "Occurrence": {
+        "description": "One thing on the calendar, however it came to be there.\n\nThree sources reach this one shape, which is the whole point of the read\npath: a plain moment, a wire rule we could not translate and so expand as we\nwere given it, and a rule of our own projected forward. A client should not\nhave to know which \u2014 and before this it did, because it expanded RRULEs\nitself.",
+        "properties": {
+          "all_day": {
+            "default": false,
+            "title": "All Day",
+            "type": "boolean"
+          },
+          "body": {
+            "default": "",
+            "title": "Body",
+            "type": "string"
+          },
+          "calendar": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalendarRecordRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "end_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End At"
+          },
+          "kind": {
+            "default": "occasion",
+            "enum": [
+              "capture",
+              "reflection",
+              "observation",
+              "occasion",
+              "exchange",
+              "visit",
+              "measurement",
+              "dose",
+              "activity",
+              "work",
+              "completion",
+              "withdrawal",
+              "decision"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "links": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/MomentLinkRef"
+            },
+            "title": "Links",
+            "type": "array"
+          },
+          "moment_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moment Id"
+          },
+          "occurrence_at": {
+            "format": "date-time",
+            "title": "Occurrence At",
+            "type": "string"
+          },
+          "rule_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Id"
+          },
+          "start_at": {
+            "format": "date-time",
+            "title": "Start At",
+            "type": "string"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "withdrawn_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Withdrawn At"
+          }
+        },
+        "required": [
+          "occurrence_at",
+          "start_at"
+        ],
+        "title": "Occurrence",
         "type": "object"
       },
       "OccurrenceEdit": {
@@ -12800,6 +13108,17 @@
             ],
             "title": "End Date"
           },
+          "expected_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Minutes"
+          },
           "frequency": {
             "anyOf": [
               {
@@ -13729,6 +14048,17 @@
               }
             ],
             "title": "End Date"
+          },
+          "expected_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Minutes"
           },
           "frequency": {
             "anyOf": [
@@ -20693,6 +21023,135 @@
         "summary": "Digest",
         "tags": [
           "nudges"
+        ]
+      }
+    },
+    "/occurrences": {
+      "get": {
+        "description": "Everything happening in a window, stored or computed.",
+        "operationId": "occurrences_list",
+        "parameters": [
+          {
+            "description": "Window start (inclusive)",
+            "in": "query",
+            "name": "since",
+            "required": true,
+            "schema": {
+              "description": "Window start (inclusive)",
+              "format": "date-time",
+              "title": "Since",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Window end (inclusive)",
+            "in": "query",
+            "name": "until",
+            "required": true,
+            "schema": {
+              "description": "Window end (inclusive)",
+              "format": "date-time",
+              "title": "Until",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "enum": [
+                      "capture",
+                      "reflection",
+                      "observation",
+                      "occasion",
+                      "exchange",
+                      "visit",
+                      "measurement",
+                      "dose",
+                      "activity",
+                      "work",
+                      "completion",
+                      "withdrawal",
+                      "decision"
+                    ],
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          },
+          {
+            "in": "query",
+            "name": "linked_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Linked Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "linked_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Linked Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Occurrence"
+                  },
+                  "title": "Response Occurrences List",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Occurrences",
+        "tags": [
+          "calendar"
         ]
       }
     },

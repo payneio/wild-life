@@ -54,6 +54,7 @@ class Moment(UUIDPrimaryKey, TimestampMixin, Base):
         # having happened in it.
         Index("ix_moments_window_end", "window_end"),
         Index("uq_moments_source_ref", "source_ref", unique=True),
+        Index("uq_moments_rule_occurrence", "rule_id", "occurrence_at", unique=True),
     )
 
     # MomentKind. Written by the surface that creates the moment, never asked of
@@ -86,6 +87,28 @@ class Moment(UUIDPrimaryKey, TimestampMixin, Base):
 
     withdrawn_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     withdrawal_reason: Mapped[str | None] = mapped_column(Text)
+
+    # --- this moment's place in a series -------------------------------------
+    # Two roles, told apart by whether `occurrence_at` is set:
+    #
+    # - **anchor** (`occurrence_at IS NULL`) — the series' representative row,
+    #   which the `calendar_records` projection hangs off so the wire form has
+    #   somewhere to live. The rule beside it is *our* expression of the same
+    #   cadence; both exist on purpose (decision 8), and the read path expands
+    #   from the rule and never from the anchor's wire rule. Doing both put the
+    #   same therapy appointment on the calendar twice every week.
+    # - **materialised occurrence** (`occurrence_at` set) — something happened to
+    #   one projected slot: moved, renamed, or withdrawn. Untouched occurrences
+    #   are never rows, which is what makes iCal's override VEVENT unnecessary:
+    #   `RECURRENCE-ID`/`EXDATE` exist because a series cannot record an
+    #   exception, and ours can.
+    rule_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("routines.id", ondelete="CASCADE")
+    )
+    # The *original* projected instant this row stands in for — the identity of
+    # the slot, not the new time. Moving a meeting must not change which
+    # occurrence it is.
+    occurrence_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     # The row this was backfilled from — "note:<uuid>", "task:<uuid>:completion".
     # Unique, which is what makes the backfill idempotent, and null for anything

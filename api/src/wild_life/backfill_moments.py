@@ -539,6 +539,18 @@ class Backfill:
                 edges.append(("place", "location", e.location_id))
             edges += [("participant", "person", p) for p in attendees.get(e.id, [])]
             self.rule_links(rid, edges)
+            # Tie the series' anchor moment to the rule, so the read path knows
+            # to expand our cadence rather than the wire form it also carries.
+            # `occurrence_at` stays null: the anchor is the series, not one of
+            # its occurrences.
+            if not self.dry_run:
+                self.conn.execute(
+                    text("""
+                        UPDATE wild_life.moments SET rule_id = :rid
+                        WHERE source_ref = :ref AND occurrence_at IS NULL
+                    """),
+                    {"rid": rid, "ref": f"event:{e.id}"},
+                )
             self.count("event→occasion rule")
             self.count("rule links", len(edges))
 
