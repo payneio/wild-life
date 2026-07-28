@@ -1,6 +1,8 @@
 import { Record, RecordSection } from "@/components/record/Record"
-import { ProgramDetail as ProgramStats } from "@/components/detail/planning"
-import { CareTimeline } from "@/components/detail/health"
+import {
+  ProgramDetail as ProgramStats,
+  ProgramTimeline,
+} from "@/components/detail/planning"
 import { recordFields } from "@/components/record/typed"
 import { HEALTH_CATEGORY, PROGRAM_STATUS } from "@/services/api/enums"
 import { REGISTRY } from "@/services/api/registry"
@@ -16,8 +18,9 @@ const F = recordFields<Program>()
  * the measurements on one and the treatment on the other.
  *
  * So this one layout serves both. The clinical parts appear because the program
- * has them (`involves`, and the care timeline self-hides), never because
- * something checked which area you are in.
+ * has them (`involves`), never because something checked which area you are in.
+ * The timeline is not one of those: every program has a history, and a clinical
+ * one's history is its course of care.
  */
 export function ProgramDetail({ entity, onClose }: { entity: Entity; onClose: () => void }) {
   const program = entity as Program
@@ -28,9 +31,10 @@ export function ProgramDetail({ entity, onClose }: { entity: Entity; onClose: ()
       </RecordSection>
 
       <ProgramStats entity={entity} />
-      {/* The dated course of care. Returns null when there's nothing to show, so
-          it costs a program with no clinical history nothing. */}
-      <CareTimeline entity={entity} />
+      {/* The program's dated history — the events filed under it — plus a place
+          to record one. A band rather than a relation panel, so it can't be
+          absent on the program you need it on (see `ProgramTimeline`). */}
+      <ProgramTimeline entity={entity} />
 
       <RecordSection>
         <F.Select field="status" label="Status" options={PROGRAM_STATUS} />

@@ -1,9 +1,8 @@
 import { useState } from "react"
 import { RefName } from "@/components/cells"
-import { events, routineInstances, routines } from "@/services/api/hooks"
+import { routineInstances, routines } from "@/services/api/hooks"
 import type {
   Allergy,
-  Program,
   Entity,
   InsurancePlan,
   Medication,
@@ -11,42 +10,8 @@ import type {
 import { Heatmap, Section, Timeline, type TimelineItem } from "@/components/detail/kit"
 import { LogDoseModal } from "@/components/LogDoseModal"
 import { cn } from "@/lib/utils"
-import { dayLabel, formatInstant, humanize, localDay } from "@/lib/format"
+import { dayLabel, formatInstant, localDay } from "@/lib/format"
 import { formatPhone } from "@/lib/phone"
-
-// --- Care timeline ---------------------------------------------------------
-// A condition is a Program in the Health area, so this hangs off a program.
-// Medications / Protocols / Metrics / Outcomes are rendered by the generic
-// RelatedPanel (program.relations); this adds the dated course of care. It
-// returns null when there is nothing to show, so it costs a program with no
-// clinical history nothing.
-export function CareTimeline({ entity }: { entity: Entity }) {
-  const c = entity as Program
-  const evts = events.useList({ entity_type: "program", entity_id: c.id }).data ?? []
-
-  const timeline: TimelineItem[] = []
-  for (const e of evts)
-    timeline.push({
-      key: `e${e.id}`,
-      date: e.start_at ? e.start_at.slice(0, 10) : null,
-      title: e.title,
-      meta: e.event_type ? humanize(e.event_type) : "",
-      to: `/calendar/${e.id}`,
-      tone: "accent",
-    })
-  if (c.start_date) timeline.push({ key: "start", date: c.start_date, title: "Started" })
-  if (c.ended_date)
-    timeline.push({ key: "ended", date: c.ended_date, title: "Ended", tone: "good" })
-  timeline.sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""))
-
-  if (timeline.length === 0) return null
-
-  return (
-    <Section title="Care timeline">
-      <Timeline items={timeline} />
-    </Section>
-  )
-}
 
 export function MedicationDetail({ entity }: { entity: Entity }) {
   const m = entity as Medication

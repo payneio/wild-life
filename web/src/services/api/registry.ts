@@ -240,7 +240,11 @@ export const REGISTRY: Record<string, EntityDef> = {
     // `involves` on RelatedPanel.
     { mode: "fk-children", label: "Medications", type: "medication", fkField: "program_id", hideWhenEmpty: true },
     { mode: "fk-children", label: "Protocols", type: "protocol", fkField: "program_id", hideWhenEmpty: true },
-    { mode: "soft-backref", label: "Events", type: "event", hideWhenEmpty: true },
+    // No Events panel: a program renders its events as the Timeline band
+    // (`detail/planning.tsx`), which earns them a dated rendering the generic
+    // list can't give. Declaring both put the same rows on the page twice, and
+    // left the only way to record one five panels below the surface they're read
+    // on.
   ] },
   // Tightest first, though the API now guarantees only one is ever set.
   task: { key: "task", label: "Task", crud: tasks, fields: TASK_FIELDS, title: (e) => e.title, parent: (e) => refOf(e, ["project_id", "project"], ["program_id", "program"], ["area_id", "area"]), entityType: "task", titleField: "title", quickCreate: true, detail: TaskRecord, relations: [
