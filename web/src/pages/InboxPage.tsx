@@ -7,9 +7,9 @@ import { showActionToast } from "@/lib/toast"
 import { formatDate } from "@/lib/utils"
 import { whenOf } from "@/lib/moments"
 import type { Body } from "@/services/api/crud"
-import { events, moments } from "@/services/api/hooks"
+import { moments } from "@/services/api/hooks"
 import { useEntityResolver } from "@/services/api/mentions"
-import type { EntityType, EventItem, Moment, MomentLink } from "@/services/api/types"
+import type { EntityType, Moment, MomentLink } from "@/services/api/types"
 
 const norm = (t: string) => t.trim().toLowerCase()
 
@@ -175,74 +175,94 @@ export function InboxPage() {
   )
 }
 
-// --- Events: grouped by title, file a whole group at once -------------------
-//
-// Still event-shaped, and deliberately. An occasion is mirrored from `events` by
-// `POST /moments/sync` every five minutes, links and all — so filing the *moment*
-// would be reverted by the next tick that read its source row. The calendar is
-// the surface that owns an event's filing until `calendar_records` has a read
-// path of its own, so triage writes there.
+// --- Occasions: grouped by title, file a whole group at once ----------------
 //
 // Synced calendars repeat the same meeting as many rows ("Therapy w/ Jessica"
-// ×24). Grouping by title turns 1,000+ rows into a handful of decisions, and a
-// home you've already assigned to that title is suggested for the rest.
+// ×24). Grouping by title turns a thousand rows into a handful of decisions, and
+// a home already assigned to that title is suggested for the rest.
+//
+// Unlike a capture, an occasion's kind is not in doubt — it was a meeting either
+// way. What is missing is only what it *concerned*, so filing writes a `subject`
+// link and leaves the kind alone.
 function EventTriage() {
   const resolve = useEntityResolver()
-  const update = events.useUpdate()
+  const update = moments.useUpdate()
   const [hidden, setHidden] = useState<Set<string>>(new Set())
   const [showSynced, setShowSynced] = useState(false)
   const [glimit, setGlimit] = useState(150)
-  const unrootedData = events.useList({ entity_type__isnull: "true" }).data
-  const rootedData = events.useList({ entity_type__isnull: "false" }).data
+  const unfiledData = moments.useList({
+    kind: "occasion",
+    unfiled: "true",
+    limit: "500",
+  }).data
+  const filedData = moments.useList({
+    kind: "occasion",
+    unfiled: "false",
+    limit: "500",
+  }).data
 
-  const rootMany = (ids: string[], type: EntityType, entityId: string) => {
-    if (ids.length === 0) return
-    for (const id of ids) update.mutate({ id, body: { entity_type: type, entity_id: entityId } as Body })
-    setHidden((s) => new Set([...s, ...ids]))
+  const fileMany = (rows: Moment[], type: EntityType, entityId: string) => {
+    if (rows.length === 0) return
+    for (const m of rows) {
+      // Everything but the subject is carried through: the participants an
+      // invitation resolved and the place it named are not ours to drop.
+      const kept = m.links.filter((l) => l.role !== "subject")
+      const links: MomentLink[] = [
+        { role: "subject", entity_type: type, entity_id: entityId },
+        ...kept,
+      ]
+      update.mutate({ id: m.id, body: { links } as Body })
+    }
+    setHidden((s) => new Set([...s, ...rows.map((m) => m.id)]))
     const label = resolve(type, entityId) ?? type
-    const what = ids.length > 1 ? `${ids.length} events` : "event"
+    const what = rows.length > 1 ? `${rows.length} occasions` : "occasion"
     showActionToast(`Filed ${what} in ${label}`, {
       label: "Undo",
       onClick: () => {
-        for (const id of ids) update.mutate({ id, body: { entity_type: null, entity_id: null } as Body })
+        for (const m of rows) update.mutate({ id: m.id, body: { links: m.links } as Body })
         setHidden((s) => {
           const n = new Set(s)
-          for (const id of ids) n.delete(id)
+          for (const m of rows) n.delete(m.id)
           return n
         })
       },
     })
   }
 
-  // Learn a title → home map from what's already rooted.
+  // Learn a title → home map from what is already filed.
   const learned = useMemo(() => {
     const m = new Map<string, { type: EntityType; id: string }>()
-    for (const e of (rootedData ?? []) as EventItem[])
-      if (e.entity_type && e.entity_id && !m.has(norm(e.title)))
-        m.set(norm(e.title), { type: e.entity_type, id: e.entity_id })
+    for (const occ of (filedData ?? []) as Moment[]) {
+      const subject = occ.links.find((l) => l.role === "subject")
+      const key = norm(occ.title ?? "")
+      if (subject && key && !m.has(key))
+        m.set(key, { type: subject.entity_type, id: subject.entity_id })
+    }
     return m
-  }, [rootedData])
+  }, [filedData])
 
-  const unrooted = (unrootedData ?? []) as EventItem[]
-  const visible = unrooted.filter((e) => (showSynced || !e.external_ref) && !hidden.has(e.id))
-  const syncedHidden = unrooted.filter((e) => e.external_ref && !hidden.has(e.id)).length
+  const unfiled = ((unfiledData ?? []) as Moment[]).filter((m) => !hidden.has(m.id))
+  // A synced meeting nobody filed is not a backlog, so it stays behind a reveal.
+  const isSynced = (m: Moment) => (m.source_ref ?? "").startsWith("event:")
+  const visible = unfiled.filter((m) => showSynced || !isSynced(m))
+  const syncedHidden = unfiled.filter(isSynced).length
 
   const groups = useMemo(() => {
-    const g = new Map<string, EventItem[]>()
-    for (const e of visible) {
-      const k = norm(e.title)
+    const g = new Map<string, Moment[]>()
+    for (const m of visible) {
+      const k = norm(m.title ?? "")
       const arr = g.get(k)
-      if (arr) arr.push(e)
-      else g.set(k, [e])
+      if (arr) arr.push(m)
+      else g.set(k, [m])
     }
     return [...g.entries()].sort((a, b) => b[1].length - a[1].length)
   }, [visible])
 
   const withSuggestion = groups.filter(([k]) => learned.has(k))
   const acceptAll = () =>
-    withSuggestion.forEach(([k, evs]) => {
+    withSuggestion.forEach(([k, rows]) => {
       const s = learned.get(k)!
-      rootMany(evs.map((e) => e.id), s.type, s.id)
+      fileMany(rows, s.type, s.id)
     })
 
   const countLabel =
@@ -281,16 +301,16 @@ function EventTriage() {
           </p>
         ) : (
           <ul className="divide-y divide-slate-100">
-            {groups.slice(0, glimit).map(([k, evs]) => {
+            {groups.slice(0, glimit).map(([k, rows]) => {
               const s = learned.get(k)
               return (
                 <li key={k} className="flex items-center gap-3 py-2">
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm text-slate-800">
-                      {evs[0].title || "(untitled)"}
-                      {evs.length > 1 && (
+                      {rows[0].title || "(untitled)"}
+                      {rows.length > 1 && (
                         <span className="ml-1.5 rounded-full bg-slate-100 px-1.5 text-xs text-slate-500">
-                          ×{evs.length}
+                          ×{rows.length}
                         </span>
                       )}
                     </div>
@@ -298,13 +318,13 @@ function EventTriage() {
                   {s ? (
                     <button
                       type="button"
-                      onClick={() => rootMany(evs.map((e) => e.id), s.type, s.id)}
+                      onClick={() => fileMany(rows, s.type, s.id)}
                       className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700 transition hover:bg-indigo-100"
                     >
                       <Sparkles size={12} /> {resolve(s.type, s.id) ?? "…"}
                     </button>
                   ) : (
-                    <HomePicker onPick={(type, id) => rootMany(evs.map((e) => e.id), type, id)} />
+                    <HomePicker onPick={(type, id) => fileMany(rows, type, id)} />
                   )}
                 </li>
               )

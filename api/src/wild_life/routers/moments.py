@@ -22,7 +22,7 @@ from fastapi import (
     status,
 )
 from fastapi.responses import Response
-from sqlalchemy import delete, func, or_, select
+from sqlalchemy import delete, func, or_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.concurrency import run_in_threadpool
 
@@ -166,6 +166,7 @@ async def list_moments(
     since: datetime | None = None,
     until: datetime | None = None,
     unfulfilled: bool | None = None,
+    unfiled: bool | None = None,
 ) -> list[MomentRead]:
     """Moments, newest first.
 
@@ -188,6 +189,15 @@ async def list_moments(
         stmt = stmt.where(or_(Moment.started_at >= since, Moment.window_end >= since))
     if until is not None:
         stmt = stmt.where(or_(Moment.started_at <= until, Moment.window_start <= until))
+    if unfiled is not None:
+        # Nobody has said what it is about. The triage predicate — and its
+        # inverse, which is how the Inbox learns a home for a repeated title.
+        # Deliberately about the `subject` role only: an occasion with attendees
+        # and a place but nothing it *concerns* is still unfiled.
+        has_subject = select(MomentLink.moment_id).where(
+            MomentLink.moment_id == Moment.id, MomentLink.role == "subject"
+        )
+        stmt = stmt.where(~has_subject.exists() if unfiled else has_subject.exists())
     if unfulfilled:
         stmt = stmt.where(
             Moment.window_end < func.now(),
@@ -281,6 +291,114 @@ async def moments_density(
         }
         for r in rows
     ]
+
+
+@router.get(
+    "/calendar-records",
+    response_model=list[CalendarRecordRead],
+    operation_id="calendar_records_list",
+)
+async def list_calendar_records(
+    session: AsyncSession = Depends(get_session),
+    external_ref: str | None = None,
+    limit: int = 500,
+    offset: int = 0,
+) -> list[CalendarRecord]:
+    """Everything shared, by wire UID — the importer's dedup index.
+
+    Listing *projections* rather than moments is the point: a sync knows things
+    by the UID it was given, and only what has been shared has one.
+    """
+    stmt = select(CalendarRecord)
+    if external_ref is not None:
+        stmt = stmt.where(CalendarRecord.external_ref == external_ref)
+    stmt = stmt.limit(min(limit, 1000)).offset(offset)
+    return list((await session.execute(stmt)).scalars().all())
+
+
+@router.post("/{item_id}/auto-file", operation_id="moments_auto_file")
+async def auto_file(
+    item_id: UUID, session: AsyncSession = Depends(get_session)
+) -> dict:
+    """On-import filing: resolve attendee addresses to people, and inherit a
+    subject from a same-titled occasion already filed.
+
+    Both are applications of something already decided. An address that matches a
+    person's card *is* a participant, and a home you deliberately gave "Therapy
+    w/ Jessica" once is the answer for the next one. Nothing is invented: an
+    unknown address stays on the projection as an address, because guessing a
+    person into existence is worse than leaving a string alone.
+    """
+    moment = await session.get(Moment, item_id)
+    if moment is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not found")
+    record = await session.get(CalendarRecord, item_id)
+
+    linked = 0
+    if record is not None:
+        seen: set[UUID] = set()
+        for raw in record.attendees or []:
+            email = (raw or "").replace("mailto:", "").strip().lower()
+            if "@" not in email:
+                continue
+            pid = (
+                await session.execute(
+                    text(
+                        "SELECT id FROM wild_life.people WHERE EXISTS ("
+                        "SELECT 1 FROM jsonb_array_elements(emails) el "
+                        "WHERE lower(el->>'value') = :email) LIMIT 1"
+                    ),
+                    {"email": email},
+                )
+            ).scalar()
+            # The frame is never a participant in its own life (see
+            # `_reconcile_links`): 325 such edges were deleted for saying nothing.
+            if pid is None or pid in seen or pid == settings.self_person_id:
+                continue
+            seen.add(pid)
+            session.add(
+                MomentLink(
+                    moment_id=item_id,
+                    role="participant",
+                    entity_type="person",
+                    entity_id=pid,
+                )
+            )
+            linked += 1
+
+    filed = False
+    already = await session.scalar(
+        select(MomentLink.id).where(
+            MomentLink.moment_id == item_id, MomentLink.role == "subject"
+        )
+    )
+    if already is None and moment.title:
+        row = (
+            await session.execute(
+                text("""
+                    SELECT l.entity_type, l.entity_id
+                    FROM wild_life.moments m
+                    JOIN wild_life.moment_links l
+                      ON l.moment_id = m.id AND l.role = 'subject'
+                    WHERE m.kind = :kind AND m.id <> :id
+                      AND lower(trim(m.title)) = lower(trim(:title))
+                    LIMIT 1
+                """),
+                {"kind": moment.kind, "id": item_id, "title": moment.title},
+            )
+        ).first()
+        if row is not None:
+            session.add(
+                MomentLink(
+                    moment_id=item_id,
+                    role="subject",
+                    entity_type=row[0],
+                    entity_id=row[1],
+                )
+            )
+            filed = True
+    await session.flush()
+    return {"linked": linked, "filed": filed}
 
 
 # --- the shared projection --------------------------------------------------- #

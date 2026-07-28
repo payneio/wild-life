@@ -94,8 +94,17 @@ class Backfill:
         title: str | None = None,
         body: str = "",
         source: str = "authored",
+        changed_at: datetime | None = None,
     ) -> uuid.UUID | None:
-        """Upsert one moment, returning its id (None on a dry run)."""
+        """Upsert one moment, returning its id (None on a dry run).
+
+        ``changed_at`` is when the *source row* last changed. When given, an
+        existing moment is only overwritten if it has not been edited since —
+        which matters now that the surfaces write moments directly. Before the
+        cut-over the mirror was the only writer and could always win; now a
+        title corrected on the calendar would be silently reverted by the next
+        full run, and reverting someone\'s edit is worse than a stale mirror.
+        """
         if self.dry_run:
             return None
         row = self.conn.execute(
@@ -120,6 +129,8 @@ class Backfill:
                     title = EXCLUDED.title,
                     body = EXCLUDED.body,
                     source = EXCLUDED.source
+                WHERE :changed_at IS NULL
+                   OR wild_life.moments.updated_at <= :changed_at
                 RETURNING id
             """),
             {
@@ -134,9 +145,17 @@ class Backfill:
                 "body": body,
                 "source": source,
                 "source_ref": source_ref,
+                "changed_at": changed_at,
             },
-        ).one()
-        return row[0]
+        ).first()
+        if row is not None:
+            return row[0]
+        # The conflict was declined: the moment has been edited since the source
+        # row last changed, so it keeps what it has.
+        return self.conn.execute(
+            text("SELECT id FROM wild_life.moments WHERE source_ref = :ref"),
+            {"ref": source_ref},
+        ).scalar()
 
     def links(
         self,
@@ -250,7 +269,8 @@ class Backfill:
             mentions.setdefault(m.note_id, []).append((m.target_type, m.target_id))
 
         for n in self.rows(f"""
-            SELECT id, title, body, entry_date, entity_type, entity_id, created_at
+            SELECT id, title, body, entry_date, entity_type, entity_id, created_at,
+                   updated_at
             FROM wild_life.notes WHERE true {self._changed()}
         """):
             rooted_at_self = self._is_self(n.entity_type, n.entity_id)
@@ -270,6 +290,7 @@ class Backfill:
                 all_day=True,
                 title=n.title,
                 body=n.body or "",
+                changed_at=n.updated_at,
             )
             edges: list[tuple[str, str, uuid.UUID]] = []
             # The self link is dropped, not migrated: you are the frame, and
@@ -379,7 +400,8 @@ class Backfill:
                    start_at, end_at, all_day, attendees, recurrence,
                    recurrence_exdates, recurrence_parent_id, recurrence_id,
                    entity_type, entity_id, external_ref, organizer, sequence,
-                   rsvp_status, rsvp_sent_status, invites_enabled, cancelled_at
+                   rsvp_status, rsvp_sent_status, invites_enabled, cancelled_at,
+                   updated_at
             FROM wild_life.events WHERE true {changed}
         """.format(changed=self._changed())
         ):
@@ -397,6 +419,7 @@ class Backfill:
                 title=e.title,
                 body=e.description or "",
                 source="imported" if e.external_ref else "authored",
+                changed_at=e.updated_at,
             )
             edges = []
             if e.entity_type:

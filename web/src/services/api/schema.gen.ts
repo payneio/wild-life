@@ -1196,6 +1196,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/moments/calendar-records": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Calendar Records
+         * @description Everything shared, by wire UID — the importer's dedup index.
+         *
+         *     Listing *projections* rather than moments is the point: a sync knows things
+         *     by the UID it was given, and only what has been shared has one.
+         */
+        get: operations["calendar_records_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/moments/density": {
         parameters: {
             query?: never;
@@ -1271,6 +1294,33 @@ export interface paths {
         head?: never;
         /** Update Moment */
         patch: operations["moments_update"];
+        trace?: never;
+    };
+    "/moments/{item_id}/auto-file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Auto File
+         * @description On-import filing: resolve attendee addresses to people, and inherit a
+         *     subject from a same-titled occasion already filed.
+         *
+         *     Both are applications of something already decided. An address that matches a
+         *     person's card *is* a participant, and a home you deliberately gave "Therapy
+         *     w/ Jessica" once is the answer for the next one. Nothing is invented: an
+         *     unknown address stays on the projection as an address, because guessing a
+         *     person into existence is worse than leaving a string alone.
+         */
+        post: operations["moments_auto_file"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/moments/{item_id}/calendar": {
@@ -2878,6 +2928,10 @@ export interface components {
              * @default false
              */
             invites_enabled: boolean;
+            /** Location */
+            location?: string | null;
+            /** Moment Id */
+            moment_id?: string | null;
             /** Organizer */
             organizer?: string | null;
             /** Recurrence */
@@ -2893,6 +2947,8 @@ export interface components {
             rsvp_status?: string | null;
             /** Sequence */
             sequence?: number | null;
+            /** Timezone */
+            timezone?: string | null;
         };
         /**
          * CalendarRecordUpdate
@@ -9673,6 +9729,7 @@ export interface operations {
                 since?: Instant | null;
                 until?: Instant | null;
                 unfulfilled?: boolean | null;
+                unfiled?: boolean | null;
             };
             header?: never;
             path?: never;
@@ -9756,6 +9813,39 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     }[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    calendar_records_list: {
+        parameters: {
+            query?: {
+                external_ref?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarRecordRead"][];
                 };
             };
             /** @description Validation Error */
@@ -9919,6 +10009,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MomentRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    moments_auto_file: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             /** @description Validation Error */

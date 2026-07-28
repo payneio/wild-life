@@ -42,21 +42,24 @@ def vevent(*, recurring: bool, tzid: str | None) -> icalendar.Event:
 
 
 class TestTheCalendarImport:
+    """The importer emits two things because they are two: the meeting is a
+    moment, and what the sender said about it is its projection."""
+
     def test_a_recurring_series_records_the_zone_it_was_written_in(self) -> None:
         payload = vevent_to_payload(vevent(recurring=True, tzid=ZONE), UTC)
         assert payload is not None
-        assert payload["timezone"] == ZONE
+        assert payload["calendar"]["timezone"] == ZONE
 
     def test_a_single_event_claims_no_zone(self) -> None:
         """Its instant is exact; a zone would be recording a spelling, not a fact."""
         payload = vevent_to_payload(vevent(recurring=False, tzid=ZONE), UTC)
         assert payload is not None
-        assert payload["timezone"] is None
+        assert payload["calendar"]["timezone"] is None
 
     def test_a_floating_or_utc_series_records_none(self) -> None:
         payload = vevent_to_payload(vevent(recurring=True, tzid=None), UTC)
         assert payload is not None
-        assert payload["timezone"] in (None, "UTC")
+        assert payload["calendar"]["timezone"] in (None, "UTC")
 
 
 class TestTheInvitePath:

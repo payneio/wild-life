@@ -66,9 +66,7 @@ def upgrade() -> None:
             ),
             schema=SCHEMA,
         )
-        op.create_index(
-            f"ix_{table}_moment", table, ["moment_id"], schema=SCHEMA
-        )
+        op.create_index(f"ix_{table}_moment", table, ["moment_id"], schema=SCHEMA)
         op.execute(f"""
             UPDATE {SCHEMA}.{table} t SET moment_id = m.id
             FROM {SCHEMA}.moments m

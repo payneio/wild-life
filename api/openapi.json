@@ -1003,6 +1003,29 @@
             "title": "Invites Enabled",
             "type": "boolean"
           },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "moment_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moment Id"
+          },
           "organizer": {
             "anyOf": [
               {
@@ -1065,6 +1088,17 @@
               }
             ],
             "title": "Sequence"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
           }
         },
         "title": "CalendarRecordRead",
@@ -19931,6 +19965,22 @@
               ],
               "title": "Unfulfilled"
             }
+          },
+          {
+            "in": "query",
+            "name": "unfiled",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Unfiled"
+            }
           }
         ],
         "responses": {
@@ -20154,6 +20204,80 @@
           }
         },
         "summary": "Moments Calendar",
+        "tags": [
+          "moments"
+        ]
+      }
+    },
+    "/moments/calendar-records": {
+      "get": {
+        "description": "Everything shared, by wire UID \u2014 the importer's dedup index.\n\nListing *projections* rather than moments is the point: a sync knows things\nby the UID it was given, and only what has been shared has one.",
+        "operationId": "calendar_records_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "external_ref",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "External Ref"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 500,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CalendarRecordRead"
+                  },
+                  "title": "Response Calendar Records List",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Calendar Records",
         "tags": [
           "moments"
         ]
@@ -20439,6 +20563,52 @@
           }
         },
         "summary": "Update Moment",
+        "tags": [
+          "moments"
+        ]
+      }
+    },
+    "/moments/{item_id}/auto-file": {
+      "post": {
+        "description": "On-import filing: resolve attendee addresses to people, and inherit a\nsubject from a same-titled occasion already filed.\n\nBoth are applications of something already decided. An address that matches a\nperson's card *is* a participant, and a home you deliberately gave \"Therapy\nw/ Jessica\" once is the answer for the next one. Nothing is invented: an\nunknown address stays on the projection as an address, because guessing a\nperson into existence is worse than leaving a string alone.",
+        "operationId": "moments_auto_file",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Moments Auto File",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Auto File",
         "tags": [
           "moments"
         ]

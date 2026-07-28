@@ -99,6 +99,7 @@ class CalendarRecordRead(BaseModel):
     WHERE correctly" but "which moments were given one".
     """
 
+    moment_id: uuid.UUID | None = None
     external_ref: str | None = None
     attendees: list[str] = []
     organizer: str | None = None
@@ -106,6 +107,11 @@ class CalendarRecordRead(BaseModel):
     rsvp_status: str | None = None
     rsvp_sent_status: str | None = None
     invites_enabled: bool = False
+    # Wire form the sender gave us, kept so a replay can echo it back: iCal's
+    # LOCATION string (the *place* is a link on the moment) and the TZID a
+    # recurring DTSTART arrived in.
+    location: str | None = None
+    timezone: str | None = None
     recurrence: str | None = None
     recurrence_exdates: list[str] = []
     cancelled_at: datetime | None = None

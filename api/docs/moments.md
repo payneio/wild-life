@@ -145,7 +145,7 @@ Three things the run corrected in this document:
 | **Recurrence** — wire ⇄ our cadence, proved against all 74 real rules | 58 translate · 16 materialised |
 | **Calendar** — reads and writes `/occurrences`; scoped edits; server-side expansion | **on moments + rules** |
 | **iMIP** — invitations, RSVP, guests | **on moments + calendar records** |
-| The ICS importer and the Inbox's occasion triage | still on `events` (see below) |
+| The ICS importer and the Inbox's occasion triage | **on moments + calendar records** |
 
 **The sync job is why the mirrored kinds stay current.** Doses, readings,
 completions and imported occasions are still authored through their own surfaces
@@ -198,13 +198,24 @@ pins the default; `tests/test_calendar_mail_tick.py` exercises the lifecycle.
 Both iMIP ledgers re-key onto the moment. They record what has already left the
 building, so they have to hang off the thing that can leave it.
 
-### What is still on `events`
+### What is left of `events`
 
-The ICS importer (`scripts/import_ics.py`) and the Inbox's occasion triage. Both
-write `events`, and the 5-minute mirror carries them into moments. Moving them is
-the last step, and the smaller one: the importer POSTs a payload that is already
-almost a moment plus a record, and the triage writes a subject the moment can
-carry directly.
+Nothing writes it. The importer POSTs a moment then shares it; the invite ingest
+does the same; the calendar, the Inbox and iMIP all read and write the spine. The
+table and its 1,332 rows stay as the thing the backfill was derived from and the
+thing `wild-life-reverse-moments` can write back to.
+
+Two threads remain, and both are retirement rather than migration:
+
+- **`event` is still in the registry**, so the mention resolver lists it and the
+  Area/Project "Events" relation panels still render — historical rows that now
+  duplicate what the Log band shows. Removing the entry retires
+  `entities/event/`, the `EventCapture`, and those panels.
+- **The mirror still runs.** It is a no-op for anything new, since the source
+  tables are frozen. It no longer overwrites edits: `moment()` declines the
+  conflict when the moment has been touched more recently than its source row,
+  which matters now that the calendar edits moments directly and a full run would
+  otherwise revert a title corrected there.
 
 ### `notes.mood` is dropped, and would be a Metric if it ever comes back
 

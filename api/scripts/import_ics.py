@@ -149,21 +149,30 @@ def vevent_to_payload(vevent: Any, default_tz: ZoneInfo) -> dict[str, Any] | Non
         v = vevent.get(name)
         return str(v) if v is not None else None
 
+    # Two things, because they are two things: the meeting is a moment, and what
+    # the sender said about it is the projection. An import is the second of the
+    # only two ways a moment acquires one.
     return {
-        "title": s("SUMMARY") or "(untitled)",
-        # Exports carry HTML bodies; store the one plain form (see richtext).
-        "description": normalize_description(s("DESCRIPTION")),
-        "location": s("LOCATION"),
-        "start_at": start_at.isoformat(),
-        "end_at": end_at.isoformat() if end_at else None,
-        "all_day": all_day,
-        "attendees": _attendees(vevent),
-        "recurrence": recurrence,
-        "recurrence_exdates": _exdates(vevent),
-        "external_ref": external_ref,
-        # Only meaningful for a series — a single event's instant is exact, and
-        # claiming a zone for it would be recording a spelling, not a fact.
-        "timezone": _tzid(dtstart) if recurrence else None,
+        "moment": {
+            "kind": "occasion",
+            "title": s("SUMMARY") or "(untitled)",
+            # Exports carry HTML bodies; store the one plain form (see richtext).
+            "body": normalize_description(s("DESCRIPTION")) or "",
+            "started_at": start_at.isoformat(),
+            "ended_at": end_at.isoformat() if end_at else None,
+            "all_day": all_day,
+            "source": "imported",
+        },
+        "calendar": {
+            "external_ref": external_ref,
+            "location": s("LOCATION"),
+            "attendees": _attendees(vevent),
+            "recurrence": recurrence,
+            "recurrence_exdates": _exdates(vevent),
+            # Only meaningful for a series — a single event's instant is exact,
+            # and claiming a zone for it would record a spelling, not a fact.
+            "timezone": _tzid(dtstart) if recurrence else None,
+        },
     }
 
 
@@ -186,34 +195,33 @@ def get_token(explicit: str | None) -> str:
 
 
 def load_existing(http: httpx.Client) -> dict[str, dict[str, Any]]:
-    """Index existing wild-life-api events by external_ref (UID) for dedup.
+    """Wire UID → the projection carrying it.
 
-    Loads the whole collection once; manually-created events (external_ref null)
-    are simply skipped, never matched.
-    """
+    Indexed on calendar records rather than moments, which is the honest shape: a
+    sync knows things by the UID it was given, and only what has been shared has
+    one."""
     index: dict[str, dict[str, Any]] = {}
     offset = 0
     limit = 500
     while True:
-        r = http.get("/events", params={"limit": limit, "offset": offset})
+        r = http.get(
+            "/moments/calendar-records", params={"limit": limit, "offset": offset}
+        )
         r.raise_for_status()
         batch = r.json()
-        for ev in batch:
-            if ev.get("external_ref"):
-                index[ev["external_ref"]] = ev
+        for rec in batch:
+            if rec.get("external_ref"):
+                index[rec["external_ref"]] = rec
         if len(batch) < limit:
             break
         offset += limit
     return index
 
 
-UPDATE_FIELDS = [
-    "title",
-    "description",
+# What may be converged on a re-import, per side of the pair.
+MOMENT_FIELDS = ["title", "body", "started_at", "ended_at", "all_day"]
+CALENDAR_FIELDS = [
     "location",
-    "start_at",
-    "end_at",
-    "all_day",
     "attendees",
     "recurrence",
     "recurrence_exdates",
@@ -284,40 +292,61 @@ def main() -> int:
 
     created = skipped = updated = 0
     for p in payloads:
-        ref = p["external_ref"]
+        ref = p["calendar"]["external_ref"]
         prior = existing.get(ref)
+
         if prior is None:
             if args.no_create:
                 skipped += 1
                 continue
             if args.dry_run:
-                print(f"  + CREATE {p['title']!r} ({ref})")
+                print(f"  + CREATE {p['moment']['title']!r} ({ref})")
             else:
-                r = http.post("/events", json=p)
+                r = http.post("/moments", json=p["moment"])
                 if r.status_code >= 400:
                     raise RuntimeError(f"POST failed {r.status_code}: {r.text}\n{p}")
-                # Link attendees to People + inherit a home from a same-title event.
-                http.post(f"/events/{r.json()['id']}/auto-file")
+                mid = r.json()["id"]
+                # Sharing, as a separate act: the meeting exists first, and the
+                # invitation it arrived in is what gives it a projection.
+                http.patch(f"/moments/{mid}/calendar", json=p["calendar"])
+                # Resolve attendees to people and inherit a home from a
+                # same-titled occasion already filed.
+                http.post(f"/moments/{mid}/auto-file")
             created += 1
             continue
 
         if args.update:
-            fields = (
-                [f for f in UPDATE_FIELDS if f in args.only]
-                if args.only
-                else UPDATE_FIELDS
-            )
-            changed = {f: p[f] for f in fields if f in p and prior.get(f) != p[f]}
-            if changed:
-                if args.dry_run:
-                    print(f"  ~ UPDATE {p['title']!r} ({ref}): {sorted(changed)}")
-                else:
-                    r = http.patch(f"/events/{prior['id']}", json=changed)
-                    r.raise_for_status()
-                    if "attendees" in changed:
-                        http.post(f"/events/{prior['id']}/reconcile-attendees")
-                updated += 1
-                continue
+            mid = prior["moment_id"]
+            cal = {
+                f: p["calendar"][f]
+                for f in CALENDAR_FIELDS
+                if (not args.only or f in args.only)
+                and f in p["calendar"]
+                and prior.get(f) != p["calendar"][f]
+            }
+            moment_fields = [
+                f for f in MOMENT_FIELDS if not args.only or f in args.only
+            ]
+            if args.dry_run:
+                if cal or moment_fields:
+                    print(f"  ~ UPDATE {p['moment']['title']!r} ({ref}): {sorted(cal)}")
+                    updated += 1
+                    continue
+            else:
+                changed = False
+                if cal:
+                    http.patch(f"/moments/{mid}/calendar", json=cal).raise_for_status()
+                    changed = True
+                if moment_fields:
+                    body = {
+                        f: p["moment"][f] for f in moment_fields if f in p["moment"]
+                    }
+                    if body:
+                        http.patch(f"/moments/{mid}", json=body).raise_for_status()
+                        changed = True
+                if changed:
+                    updated += 1
+                    continue
         skipped += 1
 
     verb = "would " if args.dry_run else ""
