@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { X } from "lucide-react"
+import { useState, type ReactNode } from "react"
+import { ChevronRight, X } from "lucide-react"
 import { Record, RecordSection } from "@/components/record/Record"
 import { HomePicker } from "@/components/graph/HomePicker"
 import { GuestsPanel } from "@/components/calendar/GuestsPanel"
@@ -8,7 +8,7 @@ import { useCalendarRecord, useSetRsvp, useShareMoment } from "@/services/api/ho
 import { MentionChip } from "@/components/MentionChip"
 import { useFields } from "@/components/record/context"
 import { recordFields } from "@/components/record/typed"
-import { KIND_CLASS, KIND_LABEL } from "@/lib/moments"
+import { KIND_LABEL } from "@/lib/moments"
 import { REGISTRY } from "@/services/api/registry"
 import { useEntityResolver } from "@/services/api/mentions"
 import type { Entity, EntityType, Moment, MomentLink, MomentRole } from "@/services/api/types"
@@ -101,11 +101,121 @@ function Provenance() {
   const { row } = useFields(["kind", "source", "source_ref"])
   const moment = row as unknown as Moment
   return (
-    <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
-      <span className={`rounded px-1.5 py-0.5 font-medium uppercase tracking-wide ${KIND_CLASS[moment.kind]}`}>
-        {KIND_LABEL[moment.kind]}
-      </span>
-      <span>{moment.source}</span>
+    // Quiet, and last. The kind badge earns its colour on a mixed timeline
+    // where the act is the news; on a record you opened deliberately it is
+    // telling you what you already knew by opening it.
+    <p className="text-[11px] text-slate-400">
+      {KIND_LABEL[moment.kind]} · {moment.source}
+    </p>
+  )
+}
+
+/**
+ * When it is, said the way a person says it.
+ *
+ * The most important fact about a calendar entry was three rows of raw datetime
+ * inputs under a heading reading "What happened", below a wall of imported Teams
+ * boilerplate. Reading the time off an occasion meant scrolling past everything
+ * that did not matter to reach the one thing that did — the layout was ordered
+ * by the data model rather than by the question being asked of it.
+ *
+ * The inputs are still below and still the way you change it. This only *says*
+ * it, at the top, where the answer belongs.
+ */
+function When() {
+  const { row } = useFields([])
+  const m = row as unknown as Moment
+  const start = m.started_at ?? m.window_start
+  if (!start) return null
+  const from = new Date(start)
+  const to = m.ended_at ? new Date(m.ended_at) : null
+  const day = from.toLocaleDateString(undefined, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: from.getFullYear() === new Date().getFullYear() ? undefined : "numeric",
+  })
+  const clock = (d: Date) =>
+    d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })
+  const sameDay = to && to.toDateString() === from.toDateString()
+  return (
+    <p className="text-sm text-slate-600">
+      <span className="font-medium text-slate-800">{day}</span>
+      {!m.all_day && (
+        <span className="text-slate-500">
+          {" · "}
+          {clock(from)}
+          {to && (sameDay ? `–${clock(to)}` : ` – ${to.toLocaleDateString()} ${clock(to)}`)}
+        </span>
+      )}
+    </p>
+  )
+}
+
+/**
+ * An imported description, folded away.
+ *
+ * What a synced invitation carries is join links, meeting IDs, passcodes and
+ * system references — boilerplate the sender's software wrote, not the meeting.
+ * Shown in full it filled the screen above every fact worth reading. Authored
+ * prose is never folded: you wrote it, so it *is* the content.
+ */
+function Description() {
+  const { row } = useFields(["body"])
+  const m = row as unknown as Moment
+  const body = (m.body || "").trim()
+  const boilerplate = m.source === "imported" && body.length > 240
+  const [open, setOpen] = useState(!boilerplate)
+  if (!body) return null
+  if (!boilerplate) {
+    return (
+      <RecordSection columns={false}>
+        <F.Markdown field="body" label="Description" minRows={4} />
+      </RecordSection>
+    )
+  }
+  return (
+    <RecordSection columns={false}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="flex items-center gap-1.5 text-xs text-slate-400 transition hover:text-slate-600"
+      >
+        <ChevronRight size={13} className={open ? "rotate-90 transition" : "transition"} />
+        Details from the invitation
+      </button>
+      {open && <F.Markdown field="body" label="" minRows={4} />}
+    </RecordSection>
+  )
+}
+
+/**
+ * The machinery, folded.
+ *
+ * The raw instants, the intention window and the withdrawal are how you *change*
+ * a moment; `When` above is how you read one. Once the answer is stated in words
+ * at the top, three date inputs and an empty "no earlier than" are the second
+ * most prominent thing on a drawer you opened to check a time.
+ *
+ * Hidden with a class rather than unmounted: the coverage suite asserts every
+ * key the row carries renders somewhere, and a field that exists only after a
+ * click is a field that can be quietly dropped.
+ */
+function Fold({ label, children }: { label: string; children: ReactNode }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="border-t border-slate-100 pt-2">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="flex items-center gap-1.5 text-xs text-slate-400 transition hover:text-slate-600"
+      >
+        <ChevronRight size={13} className={open ? "rotate-90 transition" : "transition"} />
+        {label}
+      </button>
+      <div className={open ? "mt-2 space-y-4" : "hidden"}>{children}</div>
     </div>
   )
 }
@@ -236,40 +346,46 @@ export function MomentDetail({ entity, onClose }: { entity: Entity; onClose: () 
         <F.Title field="title" placeholder="Untitled" />
       </RecordSection>
 
-      <Provenance />
-
-      <RecordSection columns={false}>
-        {/* Renders the same way the Log does — one field, one appearance. */}
-        <F.Markdown field="body" label="Body" minRows={8} />
-      </RecordSection>
+      {/* Answer the question first: when, then what it concerns, then — for
+          anything shared — who. The description comes after all three, because
+          for an imported meeting it is mostly the sender's software talking. */}
+      <When />
 
       <RecordSection title="Involves">
         <Involvement />
-      </RecordSection>
-
-      <RecordSection title="What happened">
-        <F.DateTime field="started_at" label="Started" />
-        <F.DateTime field="ended_at" label="Ended" />
-        <F.Checkbox field="all_day" label="All day" />
-      </RecordSection>
-
-      <RecordSection title="What was intended">
-        <F.DateTime field="window_start" label="No earlier than" />
-        <F.DateTime field="window_end" label="No later than" />
-        <F.Number field="expected_minutes" label="Expected minutes" />
       </RecordSection>
 
       {/* Only for an occasion: sharing a reflection with a guest list is not a
           thing, and offering it would suggest otherwise. */}
       {(entity as Moment).kind === "occasion" && <Sharing momentId={entity.id} />}
 
-      {/* Deciding not to do something is an act and is recorded. Letting a date
-          pass is a silence, and *that* is derived — there is nothing to store
-          and so nothing that can go stale. */}
-      <RecordSection title="Withdrawn">
-        <F.DateTime field="withdrawn_at" label="Withdrawn at" />
-        <F.Text field="withdrawal_reason" label="Because" />
-      </RecordSection>
+      <Description />
+
+      <Fold label="Times and intention">
+        <RecordSection title="What happened">
+          <F.DateTime field="started_at" label="Started" />
+          <F.DateTime field="ended_at" label="Ended" />
+          <F.Checkbox field="all_day" label="All day" />
+        </RecordSection>
+
+        {/* Tense is not a type: a planned lunch and a lunch you ate differ by
+            which of these is filled, and both may be set — the delta between
+            "planned two hours" and "took four" is how estimation improves. */}
+        <RecordSection title="What was intended">
+          <F.DateTime field="window_start" label="No earlier than" />
+          <F.DateTime field="window_end" label="No later than" />
+          <F.Number field="expected_minutes" label="Expected minutes" />
+        </RecordSection>
+
+        {/* Deciding not to do something is an act and is recorded. Letting a
+            date pass is a silence, and *that* is derived. */}
+        <RecordSection title="Withdrawn">
+          <F.DateTime field="withdrawn_at" label="Withdrawn at" />
+          <F.Text field="withdrawal_reason" label="Because" />
+        </RecordSection>
+      </Fold>
+
+      <Provenance />
     </Record>
   )
 }

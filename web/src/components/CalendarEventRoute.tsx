@@ -6,6 +6,7 @@ import { RecurrenceScopeDialog } from "@/components/RecurrenceScopeDialog"
 import { EmptyState, Modal } from "@/components/ui/primitives"
 import { moments, useDeleteOccurrence } from "@/services/api/hooks"
 import { REGISTRY } from "@/services/api/registry"
+import { KIND_LABEL } from "@/lib/moments"
 import type { RecurrenceScope } from "@/services/api/types"
 
 /**
@@ -41,7 +42,10 @@ export function CalendarEventRoute() {
     if (idx > 0) navigate(-1)
     else navigate("..", { relative: "path" })
   }
-  const title = event ? def.title(event) : def.label
+  // The drawer header names the *kind* of thing, not the thing: the title is
+  // the first editable field inside, and printing it twice in a 380px drawer
+  // spends the most valuable line on a repeat.
+  const title = event ? KIND_LABEL[event.kind] : def.label
 
   const onDelete = () => {
     if (!event) return
