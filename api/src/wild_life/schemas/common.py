@@ -52,7 +52,18 @@ MeasurementFrequency = Literal["daily", "weekly", "monthly", "quarterly", "yearl
 MetricSource = Literal["manual", "derived"]
 # The computations a derived metric can name. Each reads data the app already
 # holds and needs no entry UI at all.
-DerivationKey = Literal["task_throughput", "routine_adherence"]
+DerivationKey = Literal[
+    "task_throughput",
+    "routine_adherence",
+    # A relationship between two other metrics, read within one occasion.
+    # Storing the quotient would store a fact you can always recover — and
+    # one that can go stale, as the imported spreadsheet proved.
+    "ratio",
+    "percent",
+]
+# The derivations that read two other metrics rather than a table of rows. Named
+# once so the schema validator and the computation can't disagree about which.
+TWO_OPERAND_DERIVATIONS = ("ratio", "percent")
 RoutineInstanceStatus = Literal["pending", "done", "skipped"]
 OutcomeStatus = Literal["active", "achieved", "paused", "dropped"]
 # What kind of claim an outcome makes. A standard must hold continuously, a target
@@ -103,6 +114,7 @@ EntityType = Literal[
     "routine",
     "outcome",
     "metric",
+    "metric_group",
     "event",
     "note",
     "person",

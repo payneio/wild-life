@@ -22,12 +22,13 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta, timezone
 
-from sqlalchemy import func, select
+from sqlalchemy import and_, func, or_, select
+from sqlalchemy.orm import aliased
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wild_life import regimen
 from wild_life.hierarchy import tasks_rooted_at
-from wild_life.models.metrics import Metric
+from wild_life.models.metrics import Metric, MetricEntry
 from wild_life.models.protocols import Protocol
 from wild_life.models.routines import Routine, RoutineInstance
 from wild_life.models.tasks import Task
@@ -165,6 +166,70 @@ async def _routine_adherence(session: AsyncSession, metric: Metric) -> list[Poin
     return points
 
 
+async def _paired(
+    session: AsyncSession, metric: Metric
+) -> list[tuple[datetime, float, float]]:
+    """The two operands' readings, paired by the occasion that produced them.
+
+    This is the whole reason a group reading is a row. A ratio is a relationship
+    between two values *from one act* — without an occasion to join on, pairing
+    would mean guessing which cholesterol goes with which HDL by nearness of
+    timestamp, and the answer would quietly change as readings accumulated.
+
+    Entries taken outside any group fall back to an exact `recorded_at` match, so
+    two numbers typed in the same submit still pair.
+    """
+    if metric.numerator_metric_id is None or metric.denominator_metric_id is None:
+        return []
+
+    num = aliased(MetricEntry)
+    den = aliased(MetricEntry)
+    # Join on the occasion when both have one, else on the exact instant. Never
+    # on the day: several readings a day is the case `recorded_at` exists for.
+    same_occasion = and_(
+        num.group_reading_id.is_not(None),
+        num.group_reading_id == den.group_reading_id,
+    )
+    rows = (
+        await session.execute(
+            select(num.recorded_at, num.value, den.value)
+            .join(
+                den,
+                or_(same_occasion, num.recorded_at == den.recorded_at),
+            )
+            .where(
+                num.metric_id == metric.numerator_metric_id,
+                den.metric_id == metric.denominator_metric_id,
+            )
+            .order_by(num.recorded_at)
+        )
+    ).all()
+    return [(at, n, d) for at, n, d in rows]
+
+
+async def _ratio(session: AsyncSession, metric: Metric) -> list[Point]:
+    """One metric divided by another, per occasion.
+
+    A point exists only where *both* operands do. That is the correction, not a
+    limitation: the spreadsheet this replaced carried a stored `TRI/HDL` of 120
+    on a draw with no triglycerides at all.
+    """
+    return [
+        Point(recorded_at=at, value=n / d)
+        for at, n, d in await _paired(session, metric)
+        if d
+    ]
+
+
+async def _percent(session: AsyncSession, metric: Metric) -> list[Point]:
+    """The same, as a percentage — iron saturation, savings rate."""
+    return [
+        Point(recorded_at=at, value=n / d * 100)
+        for at, n, d in await _paired(session, metric)
+        if d
+    ]
+
+
 DERIVATIONS: dict[str, Derivation] = {
     d.key: d
     for d in (
@@ -181,6 +246,20 @@ DERIVATIONS: dict[str, Derivation] = {
             unit="%",
             description="Of the routine days due this week, how many were done.",
             compute=_routine_adherence,
+        ),
+        Derivation(
+            key="ratio",
+            label="Ratio of two metrics",
+            unit="",
+            description="One metric divided by another, paired within a reading.",
+            compute=_ratio,
+        ),
+        Derivation(
+            key="percent",
+            label="Percent of two metrics",
+            unit="%",
+            description="One metric as a percentage of another, within a reading.",
+            compute=_percent,
         ),
     )
 }

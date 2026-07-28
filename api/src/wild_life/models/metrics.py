@@ -37,6 +37,15 @@ class Metric(UUIDPrimaryKey, TimestampMixin, Base):
         Text
     )  # MeasurementFrequency; drives the review dashboard's overdue check
     data_source: Mapped[str | None] = mapped_column(Text)
+    # Operands for a `ratio`/`percent` derivation. Explicit columns rather than a
+    # parameter blob: a ratio takes exactly two metrics, and naming them as FKs
+    # means deleting an operand can't leave a computation pointing at nothing.
+    numerator_metric_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("metrics.id", ondelete="CASCADE")
+    )
+    denominator_metric_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("metrics.id", ondelete="CASCADE")
+    )
     # How to read the instrument: a lab's phrasing, or the scale you defined
     # ("1 = none · 2 = incomplete, straining · …"). Not commentary — without it
     # a bare number on the chart cannot be interpreted.
@@ -60,3 +69,12 @@ class MetricEntry(UUIDPrimaryKey, TimestampMixin, Base):
     value: Mapped[float] = mapped_column(Float, nullable=False)
     # Why this reading looked the way it did — the annotation a number can't carry.
     context: Mapped[str | None] = mapped_column(Text)
+    # The occasion that produced this value, when it came from one. Null for a
+    # standalone reading (weighing yourself on a Tuesday), which is why it is
+    # nullable rather than required. SET NULL on delete: dropping the record of a
+    # draw must never take the numbers with it.
+    group_reading_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("group_readings.id", ondelete="SET NULL"),
+        index=True,
+    )

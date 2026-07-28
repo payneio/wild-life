@@ -6,6 +6,7 @@ from datetime import datetime
 from pydantic import BaseModel, model_validator
 
 from wild_life.schemas.common import (
+    TWO_OPERAND_DERIVATIONS,
     DerivationKey,
     Entity,
     EntityType,
@@ -26,6 +27,8 @@ class MetricCreate(BaseModel):
     measurement_frequency: MeasurementFrequency | None = None
     data_source: str | None = None
     scale: str | None = None
+    numerator_metric_id: uuid.UUID | None = None
+    denominator_metric_id: uuid.UUID | None = None
 
     @model_validator(mode="after")
     def _derivation_matches_source(self) -> "MetricCreate":
@@ -35,6 +38,23 @@ class MetricCreate(BaseModel):
             raise ValueError("a derived metric must name a derivation")
         if self.source == "manual" and self.derivation is not None:
             raise ValueError("a manual metric cannot have a derivation")
+        # Same argument one level down: a ratio missing an operand computes
+        # nothing, and an operand on a computation that ignores it is a lie about
+        # where the number comes from.
+        needs_operands = self.derivation in TWO_OPERAND_DERIVATIONS
+        has_operands = (
+            self.numerator_metric_id is not None
+            and self.denominator_metric_id is not None
+        )
+        if needs_operands and not has_operands:
+            raise ValueError(
+                f"a {self.derivation} metric must name both a numerator and a denominator"
+            )
+        if not needs_operands and (
+            self.numerator_metric_id is not None
+            or self.denominator_metric_id is not None
+        ):
+            raise ValueError("only ratio/percent metrics take operands")
         return self
 
 
@@ -50,6 +70,8 @@ class MetricUpdate(BaseModel):
     measurement_frequency: MeasurementFrequency | None = None
     data_source: str | None = None
     scale: str | None = None
+    numerator_metric_id: uuid.UUID | None = None
+    denominator_metric_id: uuid.UUID | None = None
 
 
 class MetricRead(Entity):
@@ -64,6 +86,8 @@ class MetricRead(Entity):
     measurement_frequency: MeasurementFrequency | None
     data_source: str | None
     scale: str | None
+    numerator_metric_id: uuid.UUID | None
+    denominator_metric_id: uuid.UUID | None
 
 
 class MetricEntryCreate(BaseModel):

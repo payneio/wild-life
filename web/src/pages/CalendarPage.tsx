@@ -29,6 +29,7 @@ import {
   useCalendarSources,
   type CalendarItem,
 } from "@/services/calendar/sources"
+import { AGENDA_VIEW, asView, VIEWS, type ViewType } from "@/services/calendar/views"
 import { cn } from "@/lib/utils"
 import {
   addDays,
@@ -79,30 +80,6 @@ function itemToInput(it: CalendarItem): EventInput {
 }
 
 const LAYERS_KEY = "wild_life_calendar_layers"
-
-type ViewType = "dayGridMonth" | "timeGridWeek" | "timeGridDay" | "agenda"
-const VIEWS: { value: ViewType; label: string }[] = [
-  { value: "dayGridMonth", label: "Month" },
-  { value: "timeGridWeek", label: "Week" },
-  { value: "timeGridDay", label: "Day" },
-  { value: "agenda", label: "Agenda" },
-]
-
-/**
- * The agenda is a *rolling* 30 days from the day you're on — not FullCalendar's
- * `listMonth`, which lists the calendar month containing that day.
- *
- * A month-shaped list answers "what happened in July", which is a question a
- * grid already answers better. What you open an agenda for is "what's coming",
- * and on the 27th a list starting on the 1st is three quarters spent. Anchoring
- * on the day also gives Today something to do: in `listMonth` it moved the date
- * inside the same month, so the list never changed.
- */
-const AGENDA_DAYS = 30
-
-/** Persisted view names from before the rolling agenda. */
-const asView = (v: string): ViewType =>
-  v === "listMonth" || v === "listWeek" || v === "listDay" ? "agenda" : (v as ViewType)
 
 interface PendingMove {
   masterId: string
@@ -387,16 +364,7 @@ export function CalendarPage() {
             initialView={initialView}
             initialDate={initialDate}
             headerToolbar={false}
-            views={{
-              agenda: {
-                type: "list",
-                duration: { days: AGENDA_DAYS },
-                // The weekday reads on the row itself, so the repeat FullCalendar
-                // puts on the right of every heading is just noise.
-                listDayFormat: { weekday: "long", month: "short", day: "numeric" },
-                listDaySideFormat: false,
-              },
-            }}
+            views={{ agenda: AGENDA_VIEW }}
             noEventsText="Nothing scheduled in these 30 days."
             // Fill the viewport and let weeks share the height evenly, instead of
             // sizing to content (which left short/tall rows and dead space).

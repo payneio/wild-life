@@ -12,6 +12,7 @@ from wild_life.models.protocols import Protocol
 from wild_life.models.history import ChangeLog
 from wild_life.models.knowledge import Decision, Resource
 from wild_life.models.links import EntityLink
+from wild_life.models.metric_groups import GroupMember, GroupReading, MetricGroup
 from wild_life.models.metrics import Metric, MetricEntry
 from wild_life.models.locations import (
     GeocodeCache,
@@ -48,6 +49,9 @@ __all__ = [
     "Allergy",
     "Metric",
     "MetricEntry",
+    "MetricGroup",
+    "GroupMember",
+    "GroupReading",
     "Event",
     "SentInvite",
     "AttendeeResponse",
