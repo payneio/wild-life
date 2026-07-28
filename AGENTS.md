@@ -93,12 +93,38 @@ Iterate with the dev servers; they never touch the live URLs. Publish separately
   app-wide SSE stream (`web/src/services/api/live.ts` ↔ `api/.../routers/stream.py`)
   triggers a global React Query invalidation. Your own edits and external edits
   travel the same path — so a new page stays live just by using normal hooks.
-- **Three notes scopes, one component + one table.** `web/src/pages/NotesPage.tsx`
-  backs **Journal** (`/notes`), **Work Journal** (`/work-journal`), and
-  **Whiteboard** (`/whiteboard`), discriminated by tags on the shared `notes`
-  table: Work = notes tagged `work:microsoft`, Whiteboard = tagged `whiteboard`,
-  Journal = notes with *neither* (uses the repeatable `no_tag` query param on
-  `/notes` + `/notes/calendar`). Keep the three disjoint when touching this.
+- **Every note is about something, and *you* are a valid something.** A note
+  carries `entity_type`/`entity_id` (its subject), `entry_date` (when), and
+  `note_mentions` (what else it touches). There is deliberately **no genre
+  column**: `note_type` used to exist and only ever restated the root — journal
+  meant "about me", meeting meant "about an event" — so it was dropped
+  (`e8f9a0b1c2d3`). Documents aren't stored in this app at all; they live on disk.
+  What follows from one universal root:
+  - **The Journal** (`/notes`) is the self Person's log — *my observations about
+    myself*, the same relation a note on anyone else has to them. It is
+    `NotesPage` pointed at `WILD_LIFE_SELF_PERSON_ID` via `JournalRoute`, so the
+    same component can front any object's log. Treat "no self person" as a normal
+    state, not an error.
+  - **The Inbox** (`/inbox`) is *unrooted*, full stop — a note you wrote without
+    saying what it was about. The predicate lives in two places, `InboxPage.tsx`
+    and `unrooted_notes_count` in `routers/reviews.py`, and nothing binds them but
+    `api/tests/test_notes.py`; keep them in lockstep.
+  - **The Whiteboard** (`/whiteboard`) is one buffer, not a collection of notes —
+    its own single-row table, `__audit__ = False`, absent from `EntityType`, the
+    registry and `change_log`. A scratch space has no subject, no date and no
+    identity, which is exactly why it is not a Note.
+- **Where prose goes.** What the thing *is* → a named field on it. Measurable and
+  must stay true → an Outcome. An observation → a note, on whatever it's about.
+  Just thinking → the whiteboard.
+  **No column may be named `notes`** (`f9a0b1c2d3e4` retired the last nine): a
+  field named for nothing accumulates whatever has nowhere else to go, which is
+  how `medications.notes` came to hold four hand-dated events beside one standing
+  contingency. Each is now named for the question it answers — `metrics.scale`,
+  `routines.rationale`, `protocols.adjustments`, `metric_entries.context`. The
+  tell that you have misfiled prose is that you typed a date into it.
+  Likewise one `purpose` per stewarded object, not `description` +
+  `intended_outcome`; and no `Interaction` table — a touchpoint with a person is
+  a note rooted at them, with mentions, tags, images and search that table lacked.
 - **Generic CRUD.** Most backend routers compose `crud_router` factory
   (`api/.../routers/crud.py`); the frontend mirrors it with `createCrud`
   (`web/src/services/api/crud.ts`) + a registry (`web/src/services/api/registry.ts`).

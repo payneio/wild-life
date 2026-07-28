@@ -84,7 +84,6 @@ class Task(UUIDPrimaryKey, TimestampMixin, Base):
     # renders as a timed block, else the task is an all-day chip on scheduled_date.
     scheduled_time: Mapped[time | None] = mapped_column(Time)
     estimated_minutes: Mapped[int | None] = mapped_column(Integer)
-    context: Mapped[str | None] = mapped_column(Text)  # @home, @calls, @errands...
     recurrence: Mapped[str | None] = mapped_column(Text)  # daily/weekly/monthly/...
     blocked_by_task_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("tasks.id", ondelete="SET NULL")

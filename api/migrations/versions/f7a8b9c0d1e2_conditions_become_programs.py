@@ -62,8 +62,14 @@ def upgrade() -> None:
     conn = op.get_bind()
 
     # --- program grows the fields a condition needs -------------------------
-    op.add_column("programs", sa.Column("ended_date", sa.Date(), nullable=True), schema="wild_life")
-    op.add_column("programs", sa.Column("category", sa.Text(), nullable=True), schema="wild_life")
+    op.add_column(
+        "programs",
+        sa.Column("ended_date", sa.Date(), nullable=True),
+        schema="wild_life",
+    )
+    op.add_column(
+        "programs", sa.Column("category", sa.Text(), nullable=True), schema="wild_life"
+    )
     op.add_column(
         "programs",
         sa.Column(
@@ -74,7 +80,11 @@ def upgrade() -> None:
         ),
         schema="wild_life",
     )
-    op.add_column("medications", sa.Column("program_id", sa.UUID(), nullable=True), schema="wild_life")
+    op.add_column(
+        "medications",
+        sa.Column("program_id", sa.UUID(), nullable=True),
+        schema="wild_life",
+    )
     op.create_foreign_key(
         "medications_program_id_fkey",
         "medications",
@@ -86,7 +96,10 @@ def upgrade() -> None:
         ondelete="SET NULL",
     )
     op.create_index(
-        "ix_wild_life_medications_program_id", "medications", ["program_id"], schema="wild_life"
+        "ix_wild_life_medications_program_id",
+        "medications",
+        ["program_id"],
+        schema="wild_life",
     )
 
     # No program has ever carried a target date, and the field invites reading a
@@ -202,8 +215,14 @@ def upgrade() -> None:
         )
 
     # --- metric gets one root -----------------------------------------------
-    op.add_column("metrics", sa.Column("entity_type", sa.Text(), nullable=True), schema="wild_life")
-    op.add_column("metrics", sa.Column("entity_id", sa.UUID(), nullable=True), schema="wild_life")
+    op.add_column(
+        "metrics",
+        sa.Column("entity_type", sa.Text(), nullable=True),
+        schema="wild_life",
+    )
+    op.add_column(
+        "metrics", sa.Column("entity_id", sa.UUID(), nullable=True), schema="wild_life"
+    )
     # Most specific wins: what a reading is *about* is the program before the area.
     conn.execute(
         sa.text(
@@ -248,7 +267,9 @@ def downgrade() -> None:
     op.drop_index("ix_metrics_root", "metrics", schema="wild_life")
     op.drop_column("metrics", "entity_id", schema="wild_life")
     op.drop_column("metrics", "entity_type", schema="wild_life")
-    op.drop_index("ix_wild_life_medications_program_id", "medications", schema="wild_life")
+    op.drop_index(
+        "ix_wild_life_medications_program_id", "medications", schema="wild_life"
+    )
     op.drop_column("medications", "program_id", schema="wild_life")
     op.drop_column("programs", "involves", schema="wild_life")
     op.drop_column("programs", "category", schema="wild_life")

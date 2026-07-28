@@ -6,6 +6,7 @@ import { EntityPicker } from "@/components/graph/EntityPicker"
 import { EntityRef } from "@/components/graph/EntityRef"
 import { useFloatingNote } from "@/notes/floatingNoteContext"
 import type { Body } from "@/services/api/crud"
+import { byLifecycle } from "@/services/api/lifecycle"
 import type { EntityDef, RelationSpec } from "@/services/api/registry"
 import type { Entity, EntityType } from "@/services/api/types"
 
@@ -32,7 +33,9 @@ export function RelatedPanel({
     spec.mode === "fk-children"
       ? { [spec.fkField]: parent.id }
       : { entity_type: parentType, entity_id: parent.id }
-  const items = targetDef.crud.useList(params).data ?? []
+  // Live work first, finished last — a panel has no toolbar to sort with, so the
+  // one order it shows had better be the one you read in.
+  const items = byLifecycle(spec.type, targetDef.crud.useList(params).data ?? [])
   const update = targetDef.crud.useUpdate()
   const { openNote } = useFloatingNote()
   const [open, setOpen] = useState(false)

@@ -24,7 +24,6 @@ vi.mock("@/services/api/client", () => ({ apiClient: { get: (...a: unknown[]) =>
 const {
   useMetricEntries,
   useRoutineInstances,
-  usePersonInteractions,
   usePersonAffiliations,
   useOrganizationAffiliations,
   useOutcomeEvaluation,
@@ -66,9 +65,6 @@ describe("nested reads are reachable by the SSE invalidation that concerns them"
     await refetchesWhenChanges(() => useRoutineInstances(ID), "routine-instances")
   })
 
-  it("an interaction refreshes the person's interactions", async () => {
-    await refetchesWhenChanges(() => usePersonInteractions(ID), "interactions")
-  })
 
   // Both sides of the join, separately — one `it` per mount, because the call
   // counter is shared and two mounts in one test can't tell whose refetch fired.

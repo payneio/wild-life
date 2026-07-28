@@ -58,9 +58,6 @@ export function InsurancePlanDetail({
         </RecordSection>
       </div>
 
-      <RecordSection>
-        <F.Textarea field="notes" label="Notes" />
-      </RecordSection>
     </Record>
   )
 }

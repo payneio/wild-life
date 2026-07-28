@@ -101,7 +101,7 @@ def test_standard_is_in_band_or_breached(
 def test_one_sided_band_only_constrains_its_side(
     client: TestClient, auth_headers: dict, require_db: None
 ) -> None:
-    """"Under 100" is a ceiling alone — zero is not a breach."""
+    """ "Under 100" is a ceiling alone — zero is not a breach."""
     owner = auth_headers
     areas: list[str] = []
     metrics: list[str] = []

@@ -18,7 +18,6 @@ class EntityRef(BaseModel):
 class NoteCreate(BaseModel):
     title: str | None = None
     body: str = ""
-    note_type: str = "note"
     entry_date: date | None = None
     mood: str | None = None
     tags: list[str] = []
@@ -30,7 +29,6 @@ class NoteCreate(BaseModel):
 class NoteUpdate(BaseModel):
     title: str | None = None
     body: str | None = None
-    note_type: str | None = None
     entry_date: date | None = None
     mood: str | None = None
     tags: list[str] | None = None
@@ -42,7 +40,6 @@ class NoteUpdate(BaseModel):
 class NoteRead(Entity):
     title: str | None
     body: str
-    note_type: str
     entry_date: date | None
     mood: str | None
     tags: list[str]

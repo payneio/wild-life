@@ -40,12 +40,73 @@ from wild_life.config import settings  # noqa: E402
 # --- the vocabulary --------------------------------------------------------
 
 US_STATES = {
-    "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL",
-    "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT",
-    "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI",
-    "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "DC",
+    "AL",
+    "AK",
+    "AZ",
+    "AR",
+    "CA",
+    "CO",
+    "CT",
+    "DE",
+    "FL",
+    "GA",
+    "HI",
+    "ID",
+    "IL",
+    "IN",
+    "IA",
+    "KS",
+    "KY",
+    "LA",
+    "ME",
+    "MD",
+    "MA",
+    "MI",
+    "MN",
+    "MS",
+    "MO",
+    "MT",
+    "NE",
+    "NV",
+    "NH",
+    "NJ",
+    "NM",
+    "NY",
+    "NC",
+    "ND",
+    "OH",
+    "OK",
+    "OR",
+    "PA",
+    "RI",
+    "SC",
+    "SD",
+    "TN",
+    "TX",
+    "UT",
+    "VT",
+    "VA",
+    "WA",
+    "WV",
+    "WI",
+    "WY",
+    "DC",
 }
-CA_PROVINCES = {"AB", "BC", "MB", "NB", "NL", "NS", "NT", "NU", "ON", "PE", "QC", "SK", "YT"}
+CA_PROVINCES = {
+    "AB",
+    "BC",
+    "MB",
+    "NB",
+    "NL",
+    "NS",
+    "NT",
+    "NU",
+    "ON",
+    "PE",
+    "QC",
+    "SK",
+    "YT",
+}
 
 US_ZIP = re.compile(r"^\d{5}(?:-\d{4})?$")
 CA_POST = re.compile(r"^[A-Z]\d[A-Z]\s?\d[A-Z]\d$", re.I)
@@ -64,7 +125,9 @@ _UNIT_WORDS = r"APT|APARTMENT|SUITE|STE|UNIT|RM|ROOM|FLOOR|FL|BLDG|BUILDING"
 UNIT_TAIL = re.compile(
     rf"\s+(?:(?:{_UNIT_WORDS})\.?\s*[A-Za-z0-9\-]+|#\s*[A-Za-z0-9\-]+)$", re.I
 )
-UNIT_WHOLE = re.compile(rf"^(?:(?:{_UNIT_WORDS})\.?\s*[A-Za-z0-9\-]+|#\s*[A-Za-z0-9\-]+)$", re.I)
+UNIT_WHOLE = re.compile(
+    rf"^(?:(?:{_UNIT_WORDS})\.?\s*[A-Za-z0-9\-]+|#\s*[A-Za-z0-9\-]+)$", re.I
+)
 
 
 @dataclass
@@ -156,9 +219,23 @@ def parse_address(blob: str) -> Parsed:
 
 # Names that identify nothing on their own. Rather than guess, they are reported.
 VAGUE = {
-    "sb", "sea", "the hill", "the sound", "imperial", "jupiter", "lincoln",
-    "screwdriver", "haymarket", "boom city", "harold's", "sal's", "maude's",
-    "buckley's", "daman's", "long ridge court", "mtlake terrace",
+    "sb",
+    "sea",
+    "the hill",
+    "the sound",
+    "imperial",
+    "jupiter",
+    "lincoln",
+    "screwdriver",
+    "haymarket",
+    "boom city",
+    "harold's",
+    "sal's",
+    "maude's",
+    "buckley's",
+    "daman's",
+    "long ridge court",
+    "mtlake terrace",
 }
 # Where this dataset plainly lives. Used only to flag matches that landed
 # somewhere surprising, never to bias the query itself.
@@ -172,8 +249,17 @@ HOME_REGIONS = {"Washington", "Oregon", "California", "Idaho"}
 # neighbourhood), "Santa Fe" matches Argentina, "Flint Creek" matches Oklahoma.
 # Each name below was checked against what Nominatim actually returned.
 ADMIN_AREAS = {
-    "california", "england", "hawaii", "idaho", "indiana", "nebraska", "texas",
-    "tokyo", "tonga", "tulum", "lake cushman",
+    "california",
+    "england",
+    "hawaii",
+    "idaho",
+    "indiana",
+    "nebraska",
+    "texas",
+    "tokyo",
+    "tonga",
+    "tulum",
+    "lake cushman",
 }
 
 
@@ -223,17 +309,26 @@ def main() -> None:
     with engine.begin() as conn:
         # --- pass 1: parse what is already there -----------------------------
         for table in ("locations", "organizations"):
-            rows = conn.execute(
-                text(
-                    f"SELECT id, name, street FROM wild_life.{table} "
-                    "WHERE street IS NOT NULL AND city IS NULL"
+            rows = (
+                conn.execute(
+                    text(
+                        f"SELECT id, name, street FROM wild_life.{table} "
+                        "WHERE street IS NOT NULL AND city IS NULL"
+                    )
                 )
-            ).mappings().all()
+                .mappings()
+                .all()
+            )
             for row in rows:
                 parsed = parse_address(row["street"])
                 report["parsed"].append(
-                    {"kind": table, "name": row["name"], "from": row["street"],
-                     "to": parsed.as_dict(), "notes": parsed.notes}
+                    {
+                        "kind": table,
+                        "name": row["name"],
+                        "from": row["street"],
+                        "to": parsed.as_dict(),
+                        "notes": parsed.notes,
+                    }
                 )
                 if args.apply:
                     conn.execute(
@@ -245,12 +340,16 @@ def main() -> None:
                         {**parsed.as_dict(), "id": row["id"]},
                     )
 
-        people = conn.execute(
-            text(
-                "SELECT id, name, addresses FROM wild_life.people "
-                "WHERE jsonb_array_length(addresses) > 0"
+        people = (
+            conn.execute(
+                text(
+                    "SELECT id, name, addresses FROM wild_life.people "
+                    "WHERE jsonb_array_length(addresses) > 0"
+                )
             )
-        ).mappings().all()
+            .mappings()
+            .all()
+        )
         for person in people:
             rebuilt = []
             changed = False
@@ -265,9 +364,13 @@ def main() -> None:
                 rebuilt.append(merged)
                 changed = True
                 report["parsed"].append(
-                    {"kind": "person", "name": person["name"],
-                     "from": entry["street"], "to": parsed.as_dict(),
-                     "notes": parsed.notes}
+                    {
+                        "kind": "person",
+                        "name": person["name"],
+                        "from": entry["street"],
+                        "to": parsed.as_dict(),
+                        "notes": parsed.notes,
+                    }
                 )
             if changed and args.apply:
                 conn.execute(
@@ -277,12 +380,16 @@ def main() -> None:
 
         # --- pass 2: look up locations with nothing but a name ---------------
         if not args.skip_lookup:
-            blanks = conn.execute(
-                text(
-                    "SELECT id, name FROM wild_life.locations "
-                    "WHERE street IS NULL AND city IS NULL ORDER BY name"
+            blanks = (
+                conn.execute(
+                    text(
+                        "SELECT id, name FROM wild_life.locations "
+                        "WHERE street IS NULL AND city IS NULL ORDER BY name"
+                    )
                 )
-            ).mappings().all()
+                .mappings()
+                .all()
+            )
             with httpx.Client(timeout=settings.geocode_timeout_seconds) as client:
                 for row in blanks:
                     ok, why = looks_specific(row["name"])
@@ -294,10 +401,14 @@ def main() -> None:
                     try:
                         hits = search(client, row["name"])
                     except httpx.HTTPError as exc:
-                        report["skipped"].append({"name": row["name"], "why": f"lookup failed: {exc}"})
+                        report["skipped"].append(
+                            {"name": row["name"], "why": f"lookup failed: {exc}"}
+                        )
                         continue
                     if not hits:
-                        report["skipped"].append({"name": row["name"], "why": "no match"})
+                        report["skipped"].append(
+                            {"name": row["name"], "why": "no match"}
+                        )
                         continue
 
                     parsed = components(hits[0])
@@ -306,8 +417,12 @@ def main() -> None:
                         # A region or a country: keep what it has and skip the
                         # city/street and home-area checks, which do not apply.
                         report["looked_up"].append(
-                            {"name": row["name"], "matched": hits[0].get("display_name"),
-                             "to": parsed.as_dict(), "alternatives": []}
+                            {
+                                "name": row["name"],
+                                "matched": hits[0].get("display_name"),
+                                "to": parsed.as_dict(),
+                                "alternatives": [],
+                            }
                         )
                         if args.apply:
                             conn.execute(
@@ -315,14 +430,21 @@ def main() -> None:
                                     "UPDATE wild_life.locations SET city=:city, "
                                     "region=:region, country=:country WHERE id=:id"
                                 ),
-                                {"city": parsed.city, "region": parsed.region,
-                                 "country": parsed.country, "id": row["id"]},
+                                {
+                                    "city": parsed.city,
+                                    "region": parsed.region,
+                                    "country": parsed.country,
+                                    "id": row["id"],
+                                },
                             )
                         continue
                     if not (parsed.city or parsed.street):
                         report["skipped"].append(
-                            {"name": row["name"], "why": "match had no address detail",
-                             "matched": hits[0].get("display_name")}
+                            {
+                                "name": row["name"],
+                                "why": "match had no address detail",
+                                "matched": hits[0].get("display_name"),
+                            }
                         )
                         continue
 

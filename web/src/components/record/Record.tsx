@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { Check, GitMerge, NotebookPen, RotateCcw, Trash2 } from "lucide-react"
 import { Backlinks } from "@/components/Backlinks"
+import { Log } from "@/components/Log"
+import { Section } from "@/components/detail/kit"
 import { MergeDialog } from "@/components/MergeDialog"
 import { Ancestry } from "@/components/record/Ancestry"
 import { InvolvesControl } from "@/components/record/InvolvesControl"
-import { NoteRootField } from "@/components/graph/NoteRootField"
 import { RelatedPanel } from "@/components/graph/RelatedPanel"
 import { RecordContext, useCoverage } from "@/components/record/context"
 import { Button } from "@/components/ui/primitives"
@@ -115,7 +116,6 @@ export function Record({
             onClick={() =>
               openNote({
                 owner: { type: def.entityType!, id: entity.id },
-                noteType: def.entityType === "event" ? "meeting" : undefined,
               })
             }
           >
@@ -152,21 +152,6 @@ export function Record({
       {/* The entity's own layout */}
       <RecordContext.Provider value={ctx}>{children}</RecordContext.Provider>
 
-      {/* Primary context — the single entity this is "about". */}
-      {def.contextLabel && (
-        <div>
-          <div className="text-[11px] font-medium uppercase tracking-wide text-slate-400">
-            {def.contextLabel}
-          </div>
-          <div className="mt-0.5">
-            <NoteRootField
-              entityType={(row.entity_type as string | null) ?? null}
-              entityId={(row.entity_id as string | null) ?? null}
-              onSave={(body) => update.mutate({ id: entity.id, body: body as Body })}
-            />
-          </div>
-        </div>
-      )}
 
       {def.entityType &&
         def.relations?.map((spec, i) => {
@@ -182,6 +167,17 @@ export function Record({
             />
           )
         })}
+
+      {/* The log is a band, not a relation. Being declarable meant being
+          forgettable: nine objects had no Notes panel and grew a `notes` column
+          instead, which is how dated events ended up in a field. Every object
+          that can be a note's subject has one, in the same place, always.
+          `note` is excluded because a note about a note is a mention. */}
+      {def.entityType && def.entityType !== "note" && (
+        <Section title="Log">
+          <Log rootType={def.entityType} rootId={entity.id} base="/notes" />
+        </Section>
+      )}
 
       {def.entityType && <Backlinks type={def.entityType} id={entity.id} />}
 

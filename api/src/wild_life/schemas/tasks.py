@@ -23,7 +23,6 @@ class TaskCreate(BaseModel):
     scheduled_date: date | None = None
     scheduled_time: time | None = None
     estimated_minutes: int | None = None
-    context: str | None = None
     recurrence: str | None = None
     blocked_by_task_id: uuid.UUID | None = None
     waiting_on: str | None = None
@@ -66,7 +65,6 @@ class TaskUpdate(BaseModel):
     scheduled_date: date | None = None
     scheduled_time: time | None = None
     estimated_minutes: int | None = None
-    context: str | None = None
     recurrence: str | None = None
     blocked_by_task_id: uuid.UUID | None = None
     waiting_on: str | None = None
@@ -91,7 +89,6 @@ class TaskRead(Entity):
     scheduled_date: date | None
     scheduled_time: time | None
     estimated_minutes: int | None
-    context: str | None
     recurrence: str | None
     blocked_by_task_id: uuid.UUID | None
     waiting_on: str | None

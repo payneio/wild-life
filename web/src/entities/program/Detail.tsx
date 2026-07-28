@@ -37,13 +37,12 @@ export function ProgramDetail({ entity, onClose }: { entity: Entity; onClose: ()
         <F.Ref field="area_id" label="Area" lookup="area" />
         <F.Date field="start_date" label="Started" />
         <F.Date field="ended_date" label="Ended" />
-        <F.Textarea field="description" label="Description" minRows={2} />
       </RecordSection>
 
-      <RecordSection title="Intent">
-        {/* The why, in prose. What must be *true* is the Outcomes panel below —
-            this field used to hold both, and restated its own goals. */}
-        <F.Textarea field="intended_outcome" label="Intended outcome" minRows={2} />
+      <RecordSection title="Purpose">
+        {/* What this is and what it is for, in one statement. What must be
+            *true* is the Outcomes panel below. */}
+        <F.Textarea field="purpose" label="Purpose" minRows={3} />
       </RecordSection>
 
       {/* The health facet, offered once a program says it's clinical. `category`

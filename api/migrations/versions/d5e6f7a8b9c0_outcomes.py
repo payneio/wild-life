@@ -82,7 +82,9 @@ def upgrade() -> None:
     # Area gains the prose "why" that Program, Project and Protocol already have,
     # so `desired_standard` can become claims without losing its narrative half.
     op.add_column(
-        "areas", sa.Column("intended_outcome", sa.Text(), nullable=True), schema="wild_life"
+        "areas",
+        sa.Column("intended_outcome", sa.Text(), nullable=True),
+        schema="wild_life",
     )
 
     conn = op.get_bind()
@@ -91,13 +93,17 @@ def upgrade() -> None:
     # kind: a goal with a number to reach is a target; one without is a standard
     # it should simply hold. Root: the program if there is one, else the area —
     # no goal carries a condition, so that branch would be dead weight.
-    goals = conn.execute(
-        sa.text(
-            "SELECT id, name, description, area_id, program_id, metric_id, "
-            "target_state, target_value, baseline, target_date, status, "
-            "measurement_method FROM wild_life.goals"
+    goals = (
+        conn.execute(
+            sa.text(
+                "SELECT id, name, description, area_id, program_id, metric_id, "
+                "target_state, target_value, baseline, target_date, status, "
+                "measurement_method FROM wild_life.goals"
+            )
         )
-    ).mappings().all()
+        .mappings()
+        .all()
+    )
 
     for g in goals:
         aiming_down = g["baseline"] is None or (
@@ -156,12 +162,16 @@ def upgrade() -> None:
     # goals, retyped — so migrating it too would recreate the duplication this
     # change exists to remove.
     def migrate_prose(table: str, column: str, root_type: str, kind: str) -> None:
-        rows = conn.execute(
-            sa.text(
-                f"SELECT id, {column} AS text FROM wild_life.{table} "
-                f"WHERE {column} IS NOT NULL AND {column} <> ''"
+        rows = (
+            conn.execute(
+                sa.text(
+                    f"SELECT id, {column} AS text FROM wild_life.{table} "
+                    f"WHERE {column} IS NOT NULL AND {column} <> ''"
+                )
             )
-        ).mappings().all()
+            .mappings()
+            .all()
+        )
         for r in rows:
             already = conn.execute(
                 sa.text(
@@ -188,17 +198,25 @@ def upgrade() -> None:
     # A preferred point inside a reference band (blood pressure's 115 within
     # 90–130). It isn't a band and it isn't a claim, so it is recorded on the
     # outcome that covers the metric rather than invented into one.
-    for m in conn.execute(
-        sa.text(
-            "SELECT id, name, target_value, area_id, program_id, condition_id "
-            "FROM wild_life.metrics WHERE target_value IS NOT NULL"
+    for m in (
+        conn.execute(
+            sa.text(
+                "SELECT id, name, target_value, area_id, program_id, condition_id "
+                "FROM wild_life.metrics WHERE target_value IS NOT NULL"
+            )
         )
-    ).mappings().all():
+        .mappings()
+        .all()
+    ):
         note = f"Preferred value: {m['target_value']:g}"
-        covering = conn.execute(
-            sa.text("SELECT id FROM wild_life.outcomes WHERE metric_id = :m"),
-            {"m": m["id"]},
-        ).scalars().all()
+        covering = (
+            conn.execute(
+                sa.text("SELECT id FROM wild_life.outcomes WHERE metric_id = :m"),
+                {"m": m["id"]},
+            )
+            .scalars()
+            .all()
+        )
         if covering:
             conn.execute(
                 sa.text(

@@ -26,7 +26,7 @@ class LocationCreate(BaseModel):
     region: str | None = None
     postcode: str | None = None
     country: str | None = None
-    notes: str | None = None
+    description: str | None = None
     latitude: Latitude | None = None
     longitude: Longitude | None = None
     radius_m: RadiusM = 150
@@ -41,7 +41,7 @@ class LocationUpdate(BaseModel):
     region: str | None = None
     postcode: str | None = None
     country: str | None = None
-    notes: str | None = None
+    description: str | None = None
     latitude: Latitude | None = None
     longitude: Longitude | None = None
     radius_m: RadiusM | None = None
@@ -56,7 +56,7 @@ class LocationRead(Entity):
     region: str | None
     postcode: str | None
     country: str | None
-    notes: str | None
+    description: str | None
     latitude: float | None
     longitude: float | None
     radius_m: float

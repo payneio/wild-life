@@ -21,7 +21,6 @@ export function LocationsPage() {
       // A location now carries a map, a fence you draw, and its own visit
       // history — it became somewhere you go in and work rather than something
       // you glance at beside a list. See docs/ui-architecture.md §5 (Spatiality).
-      detail="page"
     />
   )
 }

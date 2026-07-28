@@ -62,13 +62,14 @@ export function FloatingNoteWindow() {
 
   if (!target) return null
 
-  const noteType = existing.data?.note_type ?? target.noteType
-  const heading = noteType === "meeting" ? "Meeting notes" : "Note"
   // The note's base entity — from the saved note, or the pending owner while
   // still composing — shown as a link so you can jump back to it.
   const rootType =
     (existing.data?.entity_type as EntityType | null | undefined) ?? target.owner?.type ?? null
   const rootId = existing.data?.entity_id ?? target.owner?.id ?? null
+  // The root says what kind of note this is, so the heading reads it rather than
+  // a genre column: writing from an event is writing meeting notes.
+  const heading = rootType === "event" ? "Meeting notes" : "Note"
 
   let body
   if (noteId) {
@@ -104,13 +105,13 @@ export function FloatingNoteWindow() {
         autoFocus
         createLabel="Save"
         placeholder="Take notes…"
+        // Seeded rather than overridden: the composer now owns both, so spreading
+        // the target *after* the body would silently discard a choice the user
+        // just made in it. Quick capture (⌘⇧N) passes neither, so it writes a
+        // `note` with no home — which is exactly what the inbox is for.
+        defaultRoot={target.owner ?? null}
         onSubmit={(b, pending) => {
-          const rooted: Body = {
-            ...b,
-            ...(target.owner ? { entity_type: target.owner.type, entity_id: target.owner.id } : {}),
-            ...(target.noteType ? { note_type: target.noteType } : {}),
-          }
-          void submitCreate(rooted, pending).then((n) => setActiveNoteId(n.id))
+          void submitCreate(b, pending).then((n) => setActiveNoteId(n.id))
         }}
       />
     )

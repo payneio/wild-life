@@ -19,9 +19,17 @@ target_metadata = Base.metadata
 
 
 def include_name(name: str | None, type_: str, parent_names: dict) -> bool:
-    """Restrict autogenerate to our own schema (never touch public/others)."""
+    """Restrict autogenerate to our own schema (never touch public/others).
+
+    Underscore-prefixed tables are a migration's own bookkeeping — a revision
+    keeping what it needs to undo itself — and have no model by design. Without
+    this, `alembic check` would demand a drop for every one of them and stop
+    meaning anything.
+    """
     if type_ == "schema":
         return name == DB_SCHEMA
+    if type_ == "table" and name is not None and name.startswith("_"):
+        return False
     return True
 
 

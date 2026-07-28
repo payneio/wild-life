@@ -8,7 +8,7 @@ import { deriveListConfig, useListFilter } from "@/lib/listFilter"
 import { cn } from "@/lib/utils"
 import { PROGRAM_FIELDS } from "@/services/api/fields"
 import { areas, programs } from "@/services/api/hooks"
-import { isTerminal } from "@/services/api/lifecycle"
+import { byLifecycle, isTerminal } from "@/services/api/lifecycle"
 import type { Area, Program } from "@/services/api/types"
 
 /** Programs with no area, which the model allows and capture here doesn't create. */
@@ -61,10 +61,25 @@ export function ProgramsPage() {
     const named = [...areaList]
       .sort((a: Area, b: Area) => a.name.localeCompare(b.name))
       .filter((a) => !isTerminal("area", a.status) || byArea.has(a.id))
-      .map((a) => ({ key: a.id, label: a.name, items: byArea.get(a.id) ?? [], canCreate: true }))
+      .map((a) => ({
+        key: a.id,
+        label: a.name,
+        // Live work first inside each area; the toolbar's sort still orders
+        // within a phase (`byLifecycle` is stable).
+        items: byLifecycle("program", byArea.get(a.id) ?? []),
+        canCreate: true,
+      }))
     const orphaned = list.filter((p) => !p.area_id || !areaList.some((a) => a.id === p.area_id))
     return orphaned.length > 0
-      ? [...named, { key: UNASSIGNED, label: "No area", items: orphaned, canCreate: false }]
+      ? [
+          ...named,
+          {
+            key: UNASSIGNED,
+            label: "No area",
+            items: byLifecycle("program", orphaned),
+            canCreate: false,
+          },
+        ]
       : named
   }, [list, areaList])
 

@@ -16,7 +16,6 @@ import type {
   GuestStatus,
   Outcome,
   InsurancePlan,
-  Interaction,
   Location,
   LocationVisit,
   Presence,
@@ -51,7 +50,6 @@ export const programs = createCrud<Program>("programs")
 export const projects = createCrud<Project>("projects")
 export const tasks = createCrud<Task>("tasks")
 export const people = createCrud<Person>("people")
-export const interactions = createCrud<Interaction>("interactions")
 export const organizations = createCrud<Organization>("organizations")
 export const locations = createCrud<Location>("locations")
 export const affiliations = createCrud<Affiliation>("affiliations")
@@ -163,34 +161,66 @@ export function useDuplicates(type?: EntityType) {
   })
 }
 
-// --- journal year/month navigation ---
+// --- whiteboard (one buffer, deliberately not an entity) ---
+export interface WhiteboardRead {
+  content: string
+  updated_at: string | null
+}
+
+export function useWhiteboard() {
+  return useQuery({
+    queryKey: ["whiteboard"],
+    queryFn: () => apiClient.get<WhiteboardRead>("/whiteboard"),
+  })
+}
+
+export function useSaveWhiteboard() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (content: string) => apiClient.put<WhiteboardRead>("/whiteboard", { content }),
+    // No SSE fan-out reaches this (it is unaudited by design), so seed the cache
+    // from the response rather than waiting for an invalidation that never comes.
+    onSuccess: (board) => qc.setQueryData(["whiteboard"], board),
+  })
+}
+
+// --- a log's year/month navigation ---
+/** Which log to read: an object's notes, or the self person's (the journal). */
+export interface NoteScope {
+  tag?: string
+  entity_type?: string
+  entity_id?: string
+}
+
 export interface CalendarBucket {
   year: number
   month: number
   count: number
 }
 
-export function useNotesCalendar(params?: { tag?: string; no_tag?: string | string[] }) {
+export function useNotesCalendar(params?: NoteScope) {
   return useQuery({
-    queryKey: ["notes", "calendar", params?.tag ?? "", params?.no_tag ?? ""],
+    queryKey: ["notes", "calendar", params?.tag ?? "", params?.entity_type ?? "", params?.entity_id ?? ""],
     queryFn: () =>
       apiClient.get<CalendarBucket[]>("/notes/calendar", {
         tag: params?.tag,
-        no_tag: params?.no_tag,
+        entity_type: params?.entity_type,
+        entity_id: params?.entity_id,
       }),
   })
 }
 
 /** All scoped notes (every year), fetched once for instant client-side journal
  * search. `keepPreviousData` avoids flashing while the query key changes. */
-export function useNoteCorpus(
-  params: { tag?: string; no_tag?: string | string[] },
-  enabled: boolean,
-) {
+export function useNoteCorpus(params: NoteScope, enabled: boolean) {
   return useQuery({
-    queryKey: ["notes", "corpus", params.tag ?? "", params.no_tag ?? ""],
+    queryKey: ["notes", "corpus", params.tag ?? "", params.entity_type ?? "", params.entity_id ?? ""],
     queryFn: () =>
-      apiClient.get<Note[]>("/notes", { tag: params.tag, no_tag: params.no_tag }),
+      apiClient.get<Note[]>("/notes", {
+        tag: params.tag,
+        entity_type: params.entity_type,
+        entity_id: params.entity_id,
+      }),
     enabled,
     placeholderData: keepPreviousData,
     staleTime: 60_000,
@@ -323,13 +353,6 @@ export function useSetPreference(key: string) {
 // changed row's table (`live.ts`), so `["metrics", id, "entries"]` never heard
 // about a new metric entry: that fires `["metric-entries"]`. The endpoint the
 // data comes from is irrelevant; what matters is what makes it stale.
-export function usePersonInteractions(personId: string | null) {
-  return useQuery({
-    queryKey: ["interactions", "by-person", personId],
-    queryFn: () => apiClient.get<Interaction[]>(`/people/${personId}/interactions`),
-    enabled: !!personId,
-  })
-}
 
 // --- person <-> organization affiliations ---
 export function usePersonAffiliations(personId: string | null) {

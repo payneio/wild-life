@@ -29,13 +29,12 @@ export function ProjectDetail({ entity, onClose }: { entity: Entity; onClose: ()
         <F.Select field="status" label="Status" options={PROJECT_STATUS} />
         <F.Select field="priority" label="Priority" options={PRIORITIES} />
         <F.Text field="next_action" label="Next action" full />
-        <F.Textarea field="description" label="Description" minRows={2} />
       </RecordSection>
 
-      <RecordSection title="Intent">
-        {/* Completion criteria are now "Done when" outcomes — testable claims
-            rather than a paragraph nothing could check. */}
-        <F.Textarea field="intended_outcome" label="Intended outcome" minRows={2} />
+      <RecordSection title="Purpose">
+        {/* What this is and what it is for. Completion criteria are "Done when"
+            outcomes — testable claims rather than a paragraph nothing checks. */}
+        <F.Textarea field="purpose" label="Purpose" minRows={3} />
       </RecordSection>
 
       <RecordSection title="Dates">

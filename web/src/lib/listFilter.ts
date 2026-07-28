@@ -71,11 +71,16 @@ export function useListFilter<T extends Record<string, unknown>>(
   storageKey?: string,
   /** Enables the hide-closed default; omit for types with no lifecycle. */
   entityType?: EntityType,
+  /** Filter values a list opens on — for a list that *is* a subset (the Journal
+   *  is one person's notes), so the subset is a default the user can widen out
+   *  of rather than a query they can't see. A persisted choice overrides this
+   *  wholesale, so changing the shape of a list means changing its storage key. */
+  initialValues?: Record<string, string>,
 ): { filtered: T[]; toolbarProps: ToolbarProps; closedCount: number } {
   const [search, setSearch] = usePersistentState(storageKey ? `${storageKey}:q` : null, "")
   const [values, setValues] = usePersistentState<Record<string, string>>(
     storageKey ? `${storageKey}:f` : null,
-    {},
+    initialValues ?? {},
   )
   // Config may depend on the current filter values (e.g. narrow a Program filter
   // to the selected Area). For a static config `cfg` is a stable reference.

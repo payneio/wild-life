@@ -10,21 +10,11 @@ import { Badge, Card, EmptyState } from "@/components/ui/primitives"
 import { useListFilter, type FilterDef, type ListConfig } from "@/lib/listFilter"
 import type { Body } from "@/services/api/crud"
 import { notes, useCreateNoteWithImages, useNoteCorpus, useNotesCalendar } from "@/services/api/hooks"
-import { cn, formatDate } from "@/lib/utils"
+import { formatDate } from "@/lib/utils"
 import { useEntityResolver } from "@/services/api/mentions"
 import { routeFor } from "@/services/api/routes"
-import type { Note } from "@/services/api/types"
+import type { EntityType, Note } from "@/services/api/types"
 import { groupNotesByDay } from "@/lib/format"
-
-const NOTE_TYPES = ["note", "journal", "idea", "meeting", "reference"] as const
-
-// Notes carrying this tag are the imported Microsoft work stream; the Journal
-// (personal) and Work Journal pages are the same component scoped by its presence.
-const WORK_TAG = "work:microsoft"
-
-// The Whiteboard is a third notes scope: notes carrying this tag. The personal
-// Journal excludes both this and the work tag so leftovers don't leak into it.
-const WHITEBOARD_TAG = "whiteboard"
 
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -63,7 +53,6 @@ const JournalEntry = memo(function JournalEntry({
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
           <span>{entryTime(note)}</span>
-          {note.note_type !== "journal" && <Badge>{note.note_type}</Badge>}
           {note.mood && <span>· {note.mood}</span>}
         </div>
         {/* Reveal on hover for pointer devices; always visible on touch (no
@@ -193,28 +182,51 @@ function SearchResultRow({ note, q, onOpen }: { note: Note; q: string; onOpen: (
   )
 }
 
-// --- page -------------------------------------------------------------------
-export function NotesPage({
-  scope = "personal",
+// --- the log ----------------------------------------------------------------
+/** Above this many entries a log stops being a list and starts being an archive:
+ *  it earns the year stepper, the month rail, and whole-corpus search. Below it,
+ *  navigation for four rows would be furniture. */
+const NAVIGABLE_AT = 30
+
+/**
+ * A log: every note about one subject, newest first, with a composer on top.
+ *
+ * Every object has exactly one, in the same place — which is what makes "where do
+ * I write this" a navigation question rather than a control you have to choose.
+ * The Journal is this component pointed at the self Person: "my observations
+ * about myself", the same relation a note on anyone else has to them.
+ *
+ * One component rather than two, scaled by volume. A medication with four entries
+ * is a flat list; 254 journal entries across 29 years get the archive furniture.
+ */
+export function Log({
+  rootType,
+  rootId,
+  heading,
+  base,
 }: {
-  scope?: "personal" | "work" | "whiteboard"
+  rootType: EntityType
+  rootId: string | undefined
+  /** Rendered as the page header. Omit inside a Record, which supplies its own. */
+  heading?: string
+  base: string
 }) {
   const { id } = useParams()
   const navigate = useNavigate()
-  const scopeParam =
-    scope === "work"
-      ? { tag: WORK_TAG }
-      : scope === "whiteboard"
-        ? { tag: WHITEBOARD_TAG }
-        : { no_tag: [WORK_TAG, WHITEBOARD_TAG] }
-  // Tag stamped onto notes composed in a tagged scope (personal adds nothing).
-  const scopeTag = scope === "work" ? WORK_TAG : scope === "whiteboard" ? WHITEBOARD_TAG : null
+  const scopeParam = { entity_type: rootType, entity_id: rootId }
 
+  // One cheap grouped count answers both questions: which years exist, and
+  // whether there are enough entries to be worth navigating.
   const { data: calendar } = useNotesCalendar(scopeParam)
   const years = useMemo(
     () => [...new Set((calendar ?? []).map((b) => b.year))].sort((a, b) => b - a),
     [calendar],
   )
+  const total = useMemo(
+    () => (calendar ?? []).reduce((n, b) => n + b.count, 0),
+    [calendar],
+  )
+  const navigable = total >= NAVIGABLE_AT
   const [picked, setPicked] = useState<number | null>(null)
   const [search, setSearch] = useState("")
   const searchQ = search.trim()
@@ -230,7 +242,10 @@ export function NotesPage({
 
   // Browse: year-scoped (fast first paint). Search (≥3 chars): fetch the whole scoped
   // corpus once and filter on the client so typing is instant.
-  const { data, isLoading } = notes.useList({ year: String(year), ...scopeParam })
+  const { data, isLoading } = notes.useList(
+    navigable ? { year: String(year), ...scopeParam } : scopeParam,
+    { enabled: !!rootId },
+  )
   const corpus = useNoteCorpus(scopeParam, searching)
   const results = useMemo(() => {
     if (!searching) return [] as Note[]
@@ -247,9 +262,6 @@ export function NotesPage({
   const focusedRef = useRef<HTMLDivElement>(null)
   const monthRefs = useRef<Record<number, HTMLDivElement | null>>({})
 
-  const base =
-    scope === "work" ? "/work-journal" : scope === "whiteboard" ? "/whiteboard" : "/notes"
-  const heading = scope === "work" ? "Work Journal" : scope === "whiteboard" ? "Whiteboard" : "Journal"
   // Stable handlers so memoized JournalEntry rows don't re-render on every keystroke/refetch.
   const removeMutate = remove.mutate
   const handleEdit = useCallback((noteId: string) => setEditingId(noteId), [])
@@ -262,7 +274,8 @@ export function NotesPage({
     },
     [removeMutate, id, navigate, base],
   )
-  // Merge in a cross-scope permalinked note so its link never dead-ends. Stamp a
+  // Merge in a permalinked note from another subject's log so its link never
+  // dead-ends — `/notes/:id` addresses any note, not just this log's. Stamp a
   // derived `root_kind` (the note's base entity type, or "unrooted") so the
   // toolbar can filter the stream by what a note is rooted to.
   const rows = useMemo(() => {
@@ -272,13 +285,14 @@ export function NotesPage({
     return merged.map((n) => ({ ...n, root_kind: n.entity_type ?? "unrooted" }))
   }, [data, focusedNote])
 
-  // "Type" filters by note_type (note/journal/idea/meeting/reference); "Rooted"
-  // filters by base entity — options reflect what's present this year.
+  // "Filed in" filters by base entity — options reflect what's present this year.
+  // Genre is *not* here: it scopes the page (and so the rail and the corpus),
+  // rather than hiding rows the counts above still claim.
   const noteConfig = useMemo<ListConfig>(() => {
     const kinds = Array.from(new Set(rows.map((n) => n.root_kind))).sort((a, b) =>
       a === "unrooted" ? -1 : b === "unrooted" ? 1 : a.localeCompare(b),
     )
-    const filters: FilterDef[] = [{ field: "note_type", label: "Type", options: NOTE_TYPES }]
+    const filters: FilterDef[] = []
     if (kinds.length > 1)
       filters.push({ field: "root_kind", label: "Filed in", options: kinds, optionLabels: { unrooted: "Unfiled" } })
     return { searchKeys: ["title", "body"], filters, sorts: [{ key: "default", label: "Newest", field: "" }] }
@@ -287,13 +301,21 @@ export function NotesPage({
   const { filtered, toolbarProps } = useListFilter(
     rows as unknown as Record<string, unknown>[],
     noteConfig,
-    `notes:${scope}`,
+    `log:${rootType}`,
   )
-  const notesList = filtered as unknown as Note[]
+  // A permalinked note is the thing you asked for by id, so no filter may hide it.
+  const notesList = useMemo(() => {
+    const list = filtered as unknown as Note[]
+    return focusedNote && !list.some((n) => n.id === focusedNote.id)
+      ? [focusedNote, ...list]
+      : list
+  }, [filtered, focusedNote])
   const groups = useMemo(() => groupNotesByDay(notesList), [notesList])
+  // From what the stream actually shows, not from the calendar: a month button
+  // whose rows were filtered away scrolls nowhere.
   const monthsPresent = useMemo(
-    () => new Set((calendar ?? []).filter((b) => b.year === year).map((b) => b.month)),
-    [calendar, year],
+    () => new Set(groups.map((g) => Number(g.key.slice(5, 7)))),
+    [groups],
   )
 
   useEffect(() => {
@@ -305,24 +327,19 @@ export function NotesPage({
   const seenMonths = new Set<number>()
 
   return (
-    <div
-      className={cn(
-        "space-y-4",
-        // Whiteboard is a canvas — let it use the whole width. The journals stay a
-        // comfortable reading column, just a wider one than before.
-        scope === "whiteboard" ? "w-full" : "mx-auto max-w-4xl",
-      )}
-    >
+    <div className="space-y-4">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-lg font-semibold text-slate-900">{heading}</h1>
+          {heading && <h1 className="text-lg font-semibold text-slate-900">{heading}</h1>}
           <p className="text-sm text-slate-500">
             {searching
               ? `${results.length} result${results.length === 1 ? "" : "s"}`
-              : `${notesList.length} in ${year}`}
+              : navigable
+                ? `${notesList.length} in ${year}`
+                : `${notesList.length} ${notesList.length === 1 ? "entry" : "entries"}`}
           </p>
         </div>
-        {!searching && (
+        {navigable && !searching && (
         <div className="flex items-center gap-1">
           <button
             className="rounded p-1 text-slate-400 hover:bg-slate-100 disabled:opacity-30"
@@ -359,24 +376,15 @@ export function NotesPage({
         <NoteComposer
           mode="create"
           autoFocus
+          defaultRoot={rootId ? { type: rootType, id: rootId } : null}
           onSubmit={(b, pending) =>
-            submitNote(
-              scopeTag
-                ? {
-                    ...b,
-                    tags: Array.from(
-                      new Set([...((b.tags as string[] | undefined) ?? []), scopeTag]),
-                    ),
-                  }
-                : b,
-              pending,
-            ).then(() => setPicked(new Date().getFullYear()))
+            submitNote(b, pending).then(() => setPicked(new Date().getFullYear()))
           }
         />
       </Card>
 
       {/* month rail */}
-      {!searching && (
+      {navigable && !searching && (
         <div className="flex flex-wrap gap-0.5">
           {MONTHS.map((label, i) => {
           const m = i + 1

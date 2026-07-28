@@ -23,11 +23,8 @@ class Area(UUIDPrimaryKey, TimestampMixin, Base):
     __tablename__ = "areas"
 
     name: Mapped[str] = mapped_column(Text, nullable=False)
-    description: Mapped[str | None] = mapped_column(Text)
-    status: Mapped[str] = mapped_column(
-        Text, server_default="active", nullable=False
-    )  # active/inactive/archived
-    intended_outcome: Mapped[str | None] = mapped_column(Text)
+    purpose: Mapped[str | None] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(Text, server_default="active", nullable=False)
     review_frequency: Mapped[str | None] = mapped_column(Text)  # weekly/monthly/...
     accountable_owner_id: Mapped[uuid.UUID | None] = _person_fk()
     responsible_lead_id: Mapped[uuid.UUID | None] = _person_fk()
@@ -40,11 +37,10 @@ class Program(UUIDPrimaryKey, TimestampMixin, Base):
     __tablename__ = "programs"
 
     name: Mapped[str] = mapped_column(Text, nullable=False)
-    description: Mapped[str | None] = mapped_column(Text)
+    purpose: Mapped[str | None] = mapped_column(Text)
     area_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("areas.id", ondelete="SET NULL"), index=True
     )
-    intended_outcome: Mapped[str | None] = mapped_column(Text)
     status: Mapped[str] = mapped_column(
         Text, server_default="proposed", nullable=False
     )  # ProgramStatus
@@ -72,7 +68,7 @@ class Project(UUIDPrimaryKey, TimestampMixin, Base):
     __tablename__ = "projects"
 
     name: Mapped[str] = mapped_column(Text, nullable=False)
-    description: Mapped[str | None] = mapped_column(Text)
+    purpose: Mapped[str | None] = mapped_column(Text)
     # The program it serves — the project's one and only parent, the way a
     # protocol's is. There is no `area_id` beside it: every project that had a
     # program agreed with that program's area in all 25 rows, and the 11 that
@@ -90,7 +86,6 @@ class Project(UUIDPrimaryKey, TimestampMixin, Base):
         index=True,
         nullable=False,
     )
-    intended_outcome: Mapped[str | None] = mapped_column(Text)
     status: Mapped[str] = mapped_column(
         Text, server_default="proposed", nullable=False
     )  # proposed/active/waiting/paused/completed/cancelled

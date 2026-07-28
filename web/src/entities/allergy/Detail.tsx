@@ -47,7 +47,6 @@ export function AllergyDetail({ entity, onClose }: { entity: Entity; onClose: ()
         <F.Select field="allergy_type" label="Type" options={ALLERGY_TYPE} />
         <F.Date field="noted_on" label="Noted on" />
         <F.Textarea field="reaction" label="Reaction" minRows={2} />
-        <F.Textarea field="notes" label="Notes" minRows={2} />
       </RecordSection>
     </Record>
   )

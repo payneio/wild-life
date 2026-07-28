@@ -29,7 +29,7 @@ class Protocol(UUIDPrimaryKey, TimestampMixin, Base):
 
     name: Mapped[str] = mapped_column(Text, nullable=False)
     category: Mapped[str | None] = mapped_column(Text)
-    intended_outcome: Mapped[str | None] = mapped_column(Text)
+    purpose: Mapped[str | None] = mapped_column(Text)
     paused: Mapped[bool] = mapped_column(
         Boolean, server_default="false", nullable=False
     )
@@ -47,4 +47,6 @@ class Protocol(UUIDPrimaryKey, TimestampMixin, Base):
     provider_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("people.id", ondelete="SET NULL")
     )
-    notes: Mapped[str | None] = mapped_column(Text)
+    # Standing rules for adapting the protocol ("if plateaued, add oregano oil
+    # for 2-4 wk") — part of the plan, not a record of what happened.
+    adjustments: Mapped[str | None] = mapped_column(Text)

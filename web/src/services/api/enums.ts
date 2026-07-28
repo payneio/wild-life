@@ -37,6 +37,7 @@ import type {
 
 export const PRIORITIES = ["low", "medium", "high", "urgent"] as const satisfies readonly Priority[]
 
+
 export const AREA_STATUS = [
   "active",
   "inactive",

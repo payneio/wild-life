@@ -22,6 +22,7 @@ import { RoutineDetail as RoutineRecord } from "@/entities/routine/Detail"
 import { DelegationDetail as DelegationRecord } from "@/entities/delegation/Detail"
 import { NoteDetail as NoteRecord } from "@/entities/note/Detail"
 import { EventDetail as EventRecord } from "@/entities/event/Detail"
+import { EventCapture } from "@/entities/event/Capture"
 import type { createCrud } from "@/services/api/crud"
 import type { Entity, EntityType } from "@/services/api/types"
 import {
@@ -146,7 +147,6 @@ export interface EntityDef {
   /** If set, the detail shows a polymorphic "primary context" picker (writes the
    *  entity_type/entity_id soft-poly pair) under this label — e.g. "Rooted to"
    *  for notes, "About" for events. */
-  contextLabel?: string
   /**
    * The one object this is filed under — ancestry, declared once.
    *
@@ -215,17 +215,14 @@ export const REGISTRY: Record<string, EntityDef> = {
     { mode: "fk-children", label: "Routines", type: "routine", fkField: "area_id" },
     { mode: "soft-backref", label: "Metrics", type: "metric" },
     { mode: "soft-backref", label: "Events", type: "event", hideWhenEmpty: true },
-    { mode: "soft-backref", label: "Notes", type: "note" },
   ] },
   project: { key: "project", label: "Project", crud: projects, fields: PROJECT_FIELDS, title: (e) => e.name, parent: (e) => ({ type: "program", id: e.program_id }), entityType: "project", titleField: "name", quickCreate: true, detail: ProjectRecord, relations: [
     { mode: "soft-backref", label: "Events", type: "event", hideWhenEmpty: true },
-    { mode: "soft-backref", label: "Notes", type: "note" },
     { mode: "soft-backref", label: "Resources", type: "resource" },
     { mode: "soft-backref", label: "Decisions", type: "decision" },
     { mode: "soft-backref", label: "Done when", type: "outcome", defaults: { kind: "deliverable" } },
   ] },
   outcome: { key: "outcome", label: "Outcome", crud: outcomes, fields: OUTCOME_FIELDS, title: (e) => e.statement, parent: (e) => (e.entity_type && e.entity_id ? { type: e.entity_type, id: e.entity_id } : undefined), entityType: "outcome", titleField: "statement", quickCreate: true, detail: OutcomeRecord, relations: [
-    { mode: "soft-backref", label: "Notes", type: "note" },
   ] },
   // Rooted soft-polymorphically, not on an `area_id` — the subtitle used to read
   // one, years after the column moved, and printed nothing on every row.
@@ -243,17 +240,13 @@ export const REGISTRY: Record<string, EntityDef> = {
     { mode: "fk-children", label: "Medications", type: "medication", fkField: "program_id", hideWhenEmpty: true },
     { mode: "fk-children", label: "Protocols", type: "protocol", fkField: "program_id", hideWhenEmpty: true },
     { mode: "soft-backref", label: "Events", type: "event", hideWhenEmpty: true },
-    { mode: "soft-backref", label: "Notes", type: "note" },
   ] },
   // Tightest first, though the API now guarantees only one is ever set.
   task: { key: "task", label: "Task", crud: tasks, fields: TASK_FIELDS, title: (e) => e.title, parent: (e) => refOf(e, ["project_id", "project"], ["program_id", "program"], ["area_id", "area"]), entityType: "task", titleField: "title", quickCreate: true, detail: TaskRecord, relations: [
-    { mode: "soft-backref", label: "Notes", type: "note", hideWhenEmpty: true },
   ] },
   delegation: { key: "delegation", label: "Delegation", crud: delegations, fields: DELEGATION_FIELDS, title: (e) => e.requested_outcome, entityType: "delegation", titleField: "requested_outcome", quickCreate: true, detail: DelegationRecord, relations: [
-    { mode: "soft-backref", label: "Notes", type: "note", hideWhenEmpty: true },
   ] },
   review: { key: "review", label: "Review", crud: reviews, fields: REVIEW_FIELDS, title: (e) => `${e.review_type} review`, entityType: "review", titleField: "review_type", detail: ReviewRecord, relations: [
-    { mode: "soft-backref", label: "Notes", type: "note", hideWhenEmpty: true },
   ] },
   organization: { key: "organization", label: "Organization", crud: organizations, fields: ORGANIZATION_FIELDS, title: (e) => e.name, context: (e) => e.org_type ?? undefined, entityType: "organization", titleField: "name", quickCreate: true, detail: OrganizationRecord, relations: [
     { mode: "fk-children", label: "Insurance plans", type: "insurance_plan", fkField: "organization_id" },
@@ -261,17 +254,13 @@ export const REGISTRY: Record<string, EntityDef> = {
   location: { key: "location", label: "Location", crud: locations, fields: LOCATION_FIELDS, title: (e) => e.name, context: (e) => e.city ?? undefined, entityType: "location", titleField: "name", quickCreate: true, detail: LocationRecord },
   protocol: { key: "protocol", label: "Protocol", crud: protocols, fields: PROTOCOL_FIELDS, title: (e) => e.name, parent: (e) => refOf(e, ["program_id", "program"]), entityType: "protocol", titleField: "name", quickCreate: true, detail: ProtocolRecord },
   note: { key: "note", label: "Note", crud: notes, fields: NOTE_FIELDS, title: (e) => e.title || "(untitled)", entityType: "note", titleField: "title", detail: NoteRecord },
-  event: { key: "event", label: "Event", crud: events, fields: EVENT_FIELDS, title: (e) => e.title, entityType: "event", titleField: "title", detail: EventRecord, relations: [
-    { mode: "soft-backref", label: "Notes", type: "note" },
+  event: { key: "event", label: "Event", crud: events, fields: EVENT_FIELDS, title: (e) => e.title, entityType: "event", titleField: "title", detail: EventRecord, capture: EventCapture, relations: [
   ] },
   commitment: { key: "commitment", label: "Commitment", crud: commitments, fields: COMMITMENT_FIELDS, title: (e) => e.description, entityType: "commitment", titleField: "description", quickCreate: true, detail: CommitmentRecord, relations: [
-    { mode: "soft-backref", label: "Notes", type: "note", hideWhenEmpty: true },
   ] },
   request: { key: "request", label: "Request", crud: requests, fields: REQUEST_FIELDS, title: (e) => e.subject, entityType: "request", titleField: "subject", quickCreate: true, detail: RequestRecord, relations: [
-    { mode: "soft-backref", label: "Notes", type: "note", hideWhenEmpty: true },
   ] },
   decision: { key: "decision", label: "Decision", crud: decisions, fields: DECISION_FIELDS, title: (e) => e.question, entityType: "decision", titleField: "question", quickCreate: true, detail: DecisionRecord, relations: [
-    { mode: "soft-backref", label: "Notes", type: "note", hideWhenEmpty: true },
   ] },
   resource: { key: "resource", label: "Resource", crud: resources, fields: RESOURCE_FIELDS, title: (e) => e.title, context: (e) => e.resource_type ?? undefined, entityType: "resource", titleField: "title", quickCreate: true, detail: ResourceRecord },
   tag: { key: "tag", label: "Tag", crud: tags, fields: TAG_FIELDS, title: (e) => e.name, titleField: "name", quickCreate: true, detail: TagRecord },

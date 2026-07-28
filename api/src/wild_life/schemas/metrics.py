@@ -25,7 +25,7 @@ class MetricCreate(BaseModel):
     reference_max: float | None = None
     measurement_frequency: MeasurementFrequency | None = None
     data_source: str | None = None
-    notes: str | None = None
+    scale: str | None = None
 
     @model_validator(mode="after")
     def _derivation_matches_source(self) -> "MetricCreate":
@@ -49,7 +49,7 @@ class MetricUpdate(BaseModel):
     reference_max: float | None = None
     measurement_frequency: MeasurementFrequency | None = None
     data_source: str | None = None
-    notes: str | None = None
+    scale: str | None = None
 
 
 class MetricRead(Entity):
@@ -63,27 +63,27 @@ class MetricRead(Entity):
     reference_max: float | None
     measurement_frequency: MeasurementFrequency | None
     data_source: str | None
-    notes: str | None
+    scale: str | None
 
 
 class MetricEntryCreate(BaseModel):
     metric_id: uuid.UUID
     recorded_at: datetime
     value: float
-    notes: str | None = None
+    context: str | None = None
 
 
 class MetricEntryUpdate(BaseModel):
     recorded_at: datetime | None = None
     value: float | None = None
-    notes: str | None = None
+    context: str | None = None
 
 
 class MetricEntryRead(Entity):
     metric_id: uuid.UUID
     recorded_at: datetime
     value: float
-    notes: str | None
+    context: str | None
 
 
 class SeriesPoint(BaseModel):

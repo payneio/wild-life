@@ -286,7 +286,7 @@ export function RoutineDetail({ entity }: { entity: Entity }) {
                 i.amount != null
                   ? `Logged · ${i.amount}${i.unit ? ` ${i.unit}` : ""}`
                   : "Logged",
-              meta: [i.ad_hoc ? "extra" : null, i.notes]
+              meta: [i.ad_hoc ? "extra" : null, i.context]
                 .filter(Boolean)
                 .join(" · ") || undefined,
               tone: i.ad_hoc ? ("accent" as const) : ("good" as const),

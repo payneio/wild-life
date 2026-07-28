@@ -19,9 +19,8 @@ from wild_life.schemas.common import (
 # --- Area -------------------------------------------------------------------
 class AreaCreate(BaseModel):
     name: str
-    description: str | None = None
+    purpose: str | None = None
     status: AreaStatus = "active"
-    intended_outcome: str | None = None
     review_frequency: str | None = None
     accountable_owner_id: uuid.UUID | None = None
     responsible_lead_id: uuid.UUID | None = None
@@ -29,9 +28,8 @@ class AreaCreate(BaseModel):
 
 class AreaUpdate(BaseModel):
     name: str | None = None
-    description: str | None = None
+    purpose: str | None = None
     status: AreaStatus | None = None
-    intended_outcome: str | None = None
     review_frequency: str | None = None
     accountable_owner_id: uuid.UUID | None = None
     responsible_lead_id: uuid.UUID | None = None
@@ -40,9 +38,8 @@ class AreaUpdate(BaseModel):
 
 class AreaRead(Entity):
     name: str
-    description: str | None
+    purpose: str | None
     status: AreaStatus
-    intended_outcome: str | None
     review_frequency: str | None
     accountable_owner_id: uuid.UUID | None
     responsible_lead_id: uuid.UUID | None
@@ -52,9 +49,8 @@ class AreaRead(Entity):
 # --- Program ----------------------------------------------------------------
 class ProgramCreate(BaseModel):
     name: str
-    description: str | None = None
+    purpose: str | None = None
     area_id: uuid.UUID | None = None
-    intended_outcome: str | None = None
     status: ProgramStatus = "proposed"
     start_date: date | None = None
     ended_date: date | None = None
@@ -68,9 +64,8 @@ class ProgramCreate(BaseModel):
 
 class ProgramUpdate(BaseModel):
     name: str | None = None
-    description: str | None = None
+    purpose: str | None = None
     area_id: uuid.UUID | None = None
-    intended_outcome: str | None = None
     status: ProgramStatus | None = None
     start_date: date | None = None
     ended_date: date | None = None
@@ -84,9 +79,8 @@ class ProgramUpdate(BaseModel):
 
 class ProgramRead(Entity):
     name: str
-    description: str | None
+    purpose: str | None
     area_id: uuid.UUID | None
-    intended_outcome: str | None
     status: ProgramStatus
     start_date: date | None
     ended_date: date | None
@@ -105,9 +99,8 @@ class ProgramRead(Entity):
 # ask for it (ui-architecture §2b.4).
 class ProjectCreate(BaseModel):
     name: str
-    description: str | None = None
+    purpose: str | None = None
     program_id: uuid.UUID
-    intended_outcome: str | None = None
     status: ProjectStatus = "proposed"
     priority: Priority = "medium"
     start_date: date | None = None
@@ -120,12 +113,11 @@ class ProjectCreate(BaseModel):
 
 class ProjectUpdate(BaseModel):
     name: str | None = None
-    description: str | None = None
+    purpose: str | None = None
     # Re-filing is allowed; unparenting is not. `None` here means "not supplied"
     # — the router patches with `exclude_unset`, so an explicit null is rejected
     # by the column rather than silently orphaning the project.
     program_id: uuid.UUID | None = None
-    intended_outcome: str | None = None
     status: ProjectStatus | None = None
     priority: Priority | None = None
     start_date: date | None = None
@@ -138,9 +130,8 @@ class ProjectUpdate(BaseModel):
 
 class ProjectRead(Entity):
     name: str
-    description: str | None
+    purpose: str | None
     program_id: uuid.UUID
-    intended_outcome: str | None
     status: ProjectStatus
     priority: Priority
     start_date: date | None

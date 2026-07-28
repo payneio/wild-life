@@ -146,7 +146,7 @@ export function useCalendarSources(range: Range, enabled: Set<string>) {
   if (enabled.has("delegation"))
     for (const d of delegQ.data ?? []) push("delegation", d.id, `→ ${d.requested_outcome}`, d.expected_completion_date, "expected_completion_date")
   if (enabled.has("note"))
-    for (const n of noteQ.data ?? []) push("note", n.id, n.title ?? n.note_type, n.entry_date, "entry_date")
+    for (const n of noteQ.data ?? []) push("note", n.id, n.title ?? "Note", n.entry_date, "entry_date")
   if (enabled.has("project"))
     for (const p of projectQ.data ?? []) push("project", p.id, p.name, p.start_date, "start_date", false, p.target_date ?? undefined)
   if (enabled.has("birthday") && from) {

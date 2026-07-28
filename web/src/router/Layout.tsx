@@ -58,9 +58,12 @@ import {
 
 type Item = { to: string; label: string; icon: ComponentType<{ size?: number }> }
 
-/** The daily surfaces — where you land and what's in front of you. */
+/** The daily surfaces — where you land and what's in front of you. The Journal
+ *  belongs here rather than in Reference: it is a practice you do, not material
+ *  you look things up in. */
 const DAILY: Item[] = [
   { to: "/today", label: "Today", icon: Home },
+  { to: "/notes", label: "Journal", icon: NotebookPen },
   { to: "/inbox", label: "Inbox", icon: Inbox },
   { to: "/calendar", label: "Calendar", icon: CalendarDays },
   { to: "/whiteboard", label: "Whiteboard", icon: StickyNote },
@@ -105,7 +108,6 @@ const REFERENCE: Item[] = [
   { to: "/organizations", label: "Organizations", icon: Building2 },
   { to: "/locations", label: "Locations", icon: MapPin },
   { to: "/places", label: "Places", icon: MapPinned },
-  { to: "/notes", label: "Journal", icon: NotebookPen },
   { to: "/commitments", label: "Commitments", icon: HeartHandshake },
   { to: "/decisions", label: "Decisions", icon: Scale },
   { to: "/resources", label: "Resources", icon: Bookmark },

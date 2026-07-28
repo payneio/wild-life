@@ -21,8 +21,9 @@ function Links() {
 
 /**
  * The note body carries the note, so it leads and everything else is metadata
- * beneath it. `entity_type`/`entity_id` is the rooting link the triage inbox
- * works against, so it stays prominent rather than being buried.
+ * beneath it. `entity_type`/`entity_id` — what this note is *about* — stays
+ * prominent rather than buried: it is the note's one structural fact, and the
+ * only thing separating an entry in a log from an unfiled scrap.
  */
 export function NoteDetail({ entity, onClose }: { entity: Entity; onClose: () => void }) {
   return (
@@ -40,7 +41,6 @@ export function NoteDetail({ entity, onClose }: { entity: Entity; onClose: () =>
 
       <RecordSection title="Filing">
         <F.Root label="Rooted to" />
-        <F.Text field="note_type" label="Type" />
         <F.Date field="entry_date" label="Entry date" />
         <F.Text field="mood" label="Mood" />
         <F.Tags field="tags" label="Tags" />

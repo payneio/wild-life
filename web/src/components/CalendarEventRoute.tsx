@@ -10,7 +10,7 @@ import { deleteOccurrence, type RecurrenceScope } from "@/services/calendar/recu
 
 /**
  * Deep-linkable event detail on the calendar: `/calendar/:id`. Unlike the generic
- * EntityDetailRoute (inline pane on desktop), an event always opens in a slide-over
+ * a record (which now always opens full-page), an event opens in a slide-over
  * drawer so the calendar grid stays put. Recurring deletes route through the
  * this/following/all scope dialog instead of DetailView's whole-series delete.
  * `?occ=<iso>` carries the clicked occurrence's start; cold deep-links (Today,

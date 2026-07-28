@@ -65,7 +65,9 @@ def _in_band(value: float, lo: float | None, hi: float | None) -> bool:
 def _target_edge(outcome: Outcome) -> float | None:
     """The number a target is travelling towards — whichever bound it must reach."""
     if outcome.baseline is None:
-        return outcome.target_max if outcome.target_max is not None else outcome.target_min
+        return (
+            outcome.target_max if outcome.target_max is not None else outcome.target_min
+        )
     # Aiming down means the ceiling is the finish line; aiming up, the floor.
     if outcome.target_max is not None and outcome.target_max < outcome.baseline:
         return outcome.target_max
@@ -89,7 +91,9 @@ async def evaluate_outcome(
     today = date.today()
 
     advanced_by = await session.scalar(
-        select(func.count()).select_from(EntityLink).where(
+        select(func.count())
+        .select_from(EntityLink)
+        .where(
             EntityLink.target_type == "outcome",
             EntityLink.target_id == outcome_id,
             EntityLink.relation == "advances",
@@ -160,7 +164,9 @@ async def evaluate_outcome(
 
     if outcome.kind == "standard":
         result["state"] = (
-            "met" if _in_band(value, outcome.target_min, outcome.target_max) else "breached"
+            "met"
+            if _in_band(value, outcome.target_min, outcome.target_max)
+            else "breached"
         )
         return result
 
@@ -192,8 +198,12 @@ async def evaluate_outcome(
     if outcome.baseline is not None and outcome.baseline != edge:
         elapsed = (today - outcome.created_at.date()).days
         window = (outcome.by_when - outcome.created_at.date()).days
-        result["pace_required"] = round(abs(edge - outcome.baseline) / max(window, 1), 4)
-        result["pace_actual"] = round(abs(value - outcome.baseline) / max(elapsed, 1), 4)
+        result["pace_required"] = round(
+            abs(edge - outcome.baseline) / max(window, 1), 4
+        )
+        result["pace_actual"] = round(
+            abs(value - outcome.baseline) / max(elapsed, 1), 4
+        )
         expected = 100.0 * elapsed / window if window > 0 else 100.0
         result["state"] = (
             "on_pace" if (result["progress"] or 0) >= expected else "behind"

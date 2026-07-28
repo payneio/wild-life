@@ -277,7 +277,7 @@ function StepRow({
             <R.MultiSelect field="timing" label="Times of day" options={SLOTS} />
             <R.MultiSelect field="days_of_week" label="Days (blank = every day)" options={WEEKDAYS} />
             <R.Number field="interval_days" label="Every N days" placeholder="1" />
-            <R.Textarea field="notes" label="Notes" minRows={2} />
+            <R.Textarea field="rationale" label="Why / prescribed by" minRows={2} />
           </div>
         </SubRecord>
       )}

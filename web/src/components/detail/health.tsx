@@ -121,7 +121,7 @@ export function MedicationDetail({ entity }: { entity: Entity }) {
         </span>
         {i.slot && <span className="text-slate-400">· {i.slot}</span>}
         {i.ad_hoc && <span className="text-indigo-500">· extra</span>}
-        {i.notes && <span className="text-slate-400">· {i.notes}</span>}
+        {i.context && <span className="text-slate-400">· {i.context}</span>}
         <button
           className="ml-1 text-slate-300 hover:text-red-600"
           title="Delete this dose"

@@ -37,7 +37,6 @@ class OrganizationCreate(BaseModel):
     country: str | None = None
     description: str | None = None
     status: OrgStatus = "active"
-    notes: str | None = None
 
 
 class OrganizationUpdate(BaseModel):
@@ -55,7 +54,6 @@ class OrganizationUpdate(BaseModel):
     country: str | None = None
     description: str | None = None
     status: OrgStatus | None = None
-    notes: str | None = None
 
 
 class OrganizationRead(Entity):
@@ -73,7 +71,6 @@ class OrganizationRead(Entity):
     country: str | None
     description: str | None
     status: OrgStatus
-    notes: str | None
 
 
 class AffiliationCreate(BaseModel):

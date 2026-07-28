@@ -127,6 +127,19 @@ SOFT_POLY = [
 ]
 
 SKIP_FIELDS = {"id", "created_at", "updated_at"}
+# Prose the survivor should end up with both halves of, rather than whichever
+# side happened to be non-empty. Named explicitly: a column called `notes` used
+# to stand in for "this is prose", and no column is called that any more.
+APPEND_FIELDS = {
+    "purpose",
+    "description",
+    "adjustments",
+    "rationale",
+    "scale",
+    "context",
+    "reaction",
+    "instructions",
+}
 
 
 def _fk_sites(target_table: Any) -> list[tuple[Any, Any]]:
@@ -258,15 +271,17 @@ async def merge_entities(
     )
     note_bodies = body_res.rowcount or 0
 
-    # field merge: fill survivor blanks from loser, append notes
+    # field merge: fill survivor blanks from loser, and append rather than
+    # discard where both sides hold prose — losing half of what someone wrote is
+    # worse than a duplicated paragraph they can edit down.
     if req.fill_fields:
         for c in model.__table__.columns:
             if c.name in SKIP_FIELDS:
                 continue
-            if c.name == "notes":
-                sn, ln = getattr(survivor, "notes", None), getattr(loser, "notes", None)
-                if ln:
-                    survivor.notes = f"{sn}\n\n{ln}" if sn else ln
+            if c.name in APPEND_FIELDS:
+                sv, lv = getattr(survivor, c.name, None), getattr(loser, c.name, None)
+                if lv:
+                    setattr(survivor, c.name, f"{sv}\n\n{lv}" if sv else lv)
                 continue
             cur = getattr(survivor, c.name, None)
             if cur is None or cur == "" or cur == [] or cur == {}:

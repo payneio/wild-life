@@ -31,7 +31,7 @@ postgres. All tables live in an isolated Postgres schema **`wild_life`**.
   breaks async SQLAlchemy). Runs before routing; `/health` + docs are open;
   `OPTIONS` (CORS preflight) passes through.
 - `models/` — grouped modules for the life-management model: `core` (Area/Program/
-  Project), `tasks`, `people` (Person/Interaction), `routines` (Routine/Instance),
+  Project), `tasks`, `people` (Person), `routines` (Routine/Instance),
   `goals` (Goal + GoalProject link), `metrics` (Metric/Entry), `calendar` (Event),
   `notes` (Note), `tracking` (Commitment/WaitingItem/Delegation), `reviews`,
   `knowledge` (Resource/Decision), `tags` (Tag + EntityTag). `mixins.py` gives uuid

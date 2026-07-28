@@ -1,6 +1,6 @@
-import { useMemo, useRef, useState } from "react"
-import { Home, Inbox as InboxIcon, Sparkles } from "lucide-react"
-import { EntityPicker } from "@/components/graph/EntityPicker"
+import { useMemo, useState } from "react"
+import { Inbox as InboxIcon, Sparkles } from "lucide-react"
+import { HomePicker } from "@/components/graph/HomePicker"
 import { Card } from "@/components/ui/primitives"
 import { Section } from "@/components/detail/kit"
 import { showActionToast } from "@/lib/toast"
@@ -12,9 +12,15 @@ import type { Entity, EntityType, EventItem, Note } from "@/services/api/types"
 const norm = (t: string) => t.trim().toLowerCase()
 
 /**
- * Triage surface for unrooted items. "Unrooted = unintentional" — everything here
- * lacks a primary link (`entity_type IS NULL`). Assign each a home (any entity) and
- * it leaves the inbox immediately, with an Undo.
+ * Triage surface for items captured without saying what they are about.
+ *
+ * That is now the whole definition, and it is finally true. It used to over-count
+ * badly: a journal entry had no legitimate subject to be rooted to, so 254 years'
+ * worth of reflective writing sat here looking like a backlog. Giving the self
+ * Person a log fixed the premise rather than patching the query — every note has
+ * a subject, so an unrooted one is exactly a note you never named one for.
+ *
+ * Assign a home (any entity) and it leaves immediately, with an Undo.
  */
 
 /** Optimistic rooting: hide filed rows instantly (the list is server-filtered, so
@@ -43,40 +49,6 @@ function useRooter<T extends Entity>(crud: ReturnType<typeof createCrud<T>>, nou
     })
   }
   return { hidden, rootMany }
-}
-
-/** A one-shot "set home" picker: search any entity type, pick once. */
-function HomePicker({ label = "Set home…", onPick }: { label?: string; onPick: (type: EntityType, id: string) => void }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLButtonElement>(null)
-  return (
-    <>
-      <button
-        ref={ref}
-        type="button"
-        onClick={() => setOpen(true)}
-        className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-slate-300 bg-surface px-2 py-1 text-xs font-medium text-slate-600 transition hover:border-slate-400 hover:text-slate-900"
-      >
-        <Home size={12} /> {label}
-      </button>
-      {open && (
-        <EntityPicker
-          getAnchor={() => ref.current}
-          allowCreate={false}
-          // Triage is historical: filing a 2024 meeting into the project that
-          // shipped is the job. Same poly-link write as NoteRootField, so it
-          // must have the same policy — classify by the write, not the label.
-          intent="reference"
-          placeholder="File in… (search any area, project, person…)"
-          onClose={() => setOpen(false)}
-          onSelect={(r) => {
-            onPick(r.type, r.id)
-            setOpen(false)
-          }}
-        />
-      )}
-    </>
-  )
 }
 
 function TriageSection<T extends Entity>({
@@ -177,6 +149,8 @@ function TriageSection<T extends Entity>({
 }
 
 export function InboxPage() {
+  // Keep in lockstep with `unrooted_notes_count` in routers/reviews.py — two
+  // expressions of one definition, and nothing but a test binds them.
   const noteRows = (notes.useList({ entity_type__isnull: "true" }).data ?? []) as Note[]
 
   return (
@@ -186,8 +160,8 @@ export function InboxPage() {
           <InboxIcon size={20} className="text-slate-400" /> Inbox
         </h1>
         <p className="text-sm text-slate-500">
-          Unrooted items — file each in the area, project, or person it belongs to, so it shows
-          up in the right place and in reviews.
+          Captured without saying what it's about — file each in the area, project, or person
+          it concerns, so it shows up in the right place and in reviews.
         </p>
       </div>
 

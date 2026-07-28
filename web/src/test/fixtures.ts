@@ -58,7 +58,6 @@ export const TASK: Task = {
   scheduled_date: "2026-07-28" as CalendarDay,
   scheduled_time: "09:30" as WallTime,
   estimated_minutes: 45,
-  context: "@errands",
   recurrence: null,
   blocked_by_task_id: null,
   waiting_on: null,
@@ -95,7 +94,7 @@ export const LOCATION: Location = {
   region: "WA",
   postcode: "98104",
   country: "United States",
-  notes: "Appointment only",
+  description: "Appointment only",
   latitude: 47.6042,
   longitude: -122.3327,
   radius_m: 120,
@@ -119,9 +118,8 @@ export const DECISION: Decision = {
 export const AREA: Area = {
   ...BASE,
   name: "Health",
-  description: "Body and mind upkeep",
+  purpose: "Body and mind upkeep",
   status: "active",
-  intended_outcome: "A body that keeps up with what I ask of it",
   review_frequency: "weekly",
   accountable_owner_id: null,
   responsible_lead_id: null,
@@ -131,9 +129,8 @@ export const AREA: Area = {
 export const PROGRAM: Program = {
   ...BASE,
   name: "Home admin",
-  description: "Recurring household paperwork",
+  purpose: "Recurring household paperwork",
   area_id: null,
-  intended_outcome: "Nothing lapses",
   status: "active",
   start_date: "2026-01-01" as CalendarDay,
   ended_date: null,
@@ -208,7 +205,6 @@ export const ORGANIZATION: Organization = {
   region: "WA",
   postcode: "98101",
   country: "United States",
-  notes: null,
 }
 
 export const MEDICATION: Medication = {
@@ -221,7 +217,7 @@ export const MEDICATION: Medication = {
   pharmacy_id: null,
   reason: "Inflammation",
   instructions: "With food",
-  notes: null,
+  adjustments: null,
 }
 
 export const ALLERGY: Allergy = {
@@ -232,7 +228,6 @@ export const ALLERGY: Allergy = {
   status: "active",
   reaction: "Hives, swelling",
   noted_on: "2019-03-11" as CalendarDay,
-  notes: null,
 }
 
 export const INSURANCE_PLAN: InsurancePlan = {
@@ -248,21 +243,20 @@ export const INSURANCE_PLAN: InsurancePlan = {
   rx_pcn: "A4",
   rx_group: "RX7890",
   phone: "800-555-0100",
-  notes: null,
 }
 
 export const PROTOCOL: Protocol = {
   ...BASE,
   name: "Heel rehab",
   category: "physio",
-  intended_outcome: "Pain-free walking",
+  purpose: "Pain-free walking",
   paused: false,
   program_id: null,
   start_date: "2026-06-01" as CalendarDay,
   end_date: null,
   duration: "8 weeks",
   provider_id: null,
-  notes: null,
+  adjustments: null,
 }
 
 export const METRIC: Metric = {
@@ -277,16 +271,15 @@ export const METRIC: Metric = {
   reference_max: 65,
   measurement_frequency: "daily",
   data_source: "Watch",
-  notes: null,
+  scale: null,
 }
 
 export const PROJECT: Project = {
   ...BASE,
   name: "Kitchen remodel",
-  description: "Cabinets, counters, lighting",
+  purpose: "Cabinets, counters, lighting",
   // Non-null in the schema — a project without a program cannot exist.
   program_id: "22222222-2222-2222-2222-222222222222",
-  intended_outcome: "A kitchen we want to cook in",
   status: "active",
   priority: "high",
   start_date: "2026-06-01" as CalendarDay,
@@ -336,7 +329,7 @@ export const ROUTINE: Routine = {
   end_date: null,
   tracking_method: null,
   sort_order: 0,
-  notes: null,
+  rationale: null,
 }
 
 export const DELEGATION: Delegation = {
@@ -366,7 +359,6 @@ export const NOTE: Note = {
   ...BASE,
   title: "Contractor call",
   body: "Walked through the cabinet options.",
-  note_type: "meeting",
   entry_date: "2026-07-21" as CalendarDay,
   mood: null,
   tags: ["remodel"],

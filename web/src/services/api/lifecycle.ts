@@ -75,3 +75,31 @@ export function rowIsTerminal(type: EntityType, row: unknown): boolean {
   if (!row || typeof row !== "object") return false
   return isTerminal(type, (row as { status?: unknown }).status)
 }
+
+/**
+ * Reading order for a list nobody sorted: what's live, then what's stalled, then
+ * what hasn't started, then what's over.
+ *
+ * Statuses are per-type and their enum order is definition order, not
+ * importance — `proposed` comes before `active` in `PROJECT_STATUS`. The phase is
+ * the shared axis, so one rank orders every status-bearing type the same way.
+ */
+const PHASE_ORDER: readonly LifecyclePhase[] = ["active", "blocked", "backlog", "done", "cancelled"]
+
+/** A row's reading rank; rows with no (or an unknown) status sort with the live ones. */
+export function lifecycleRank(type: EntityType, row: unknown): number {
+  const status = (row as { status?: unknown } | null)?.status
+  if (typeof status !== "string") return 0
+  const phase = (LIFECYCLE as Record<string, Record<string, LifecyclePhase>>)[type]?.[status]
+  const i = phase ? PHASE_ORDER.indexOf(phase) : -1
+  return i === -1 ? 0 : i
+}
+
+/**
+ * Order rows by lifecycle phase, keeping the server's order within each phase
+ * (`Array.prototype.sort` is stable), so a list stays sorted the way its endpoint
+ * sorted it and only gains the grouping.
+ */
+export function byLifecycle<T>(type: EntityType, rows: readonly T[]): T[] {
+  return [...rows].sort((a, b) => lifecycleRank(type, a) - lifecycleRank(type, b))
+}

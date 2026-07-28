@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { LIFECYCLE } from "@/services/api/lifecycle.gen"
-import { isTerminal, rowIsTerminal } from "@/services/api/lifecycle"
+import { byLifecycle, isTerminal, rowIsTerminal } from "@/services/api/lifecycle"
 import { REGISTRY } from "@/services/api/registry"
 import { FIXTURES } from "@/test/fixtures"
 
@@ -69,5 +69,49 @@ describe("isTerminal", () => {
     expect(rowIsTerminal("project", { status: "completed" })).toBe(true)
     expect(rowIsTerminal("project", { status: "active" })).toBe(false)
     expect(rowIsTerminal("project", null)).toBe(false)
+  })
+})
+
+describe("byLifecycle", () => {
+  const order = (type: Parameters<typeof byLifecycle>[0], statuses: string[]) =>
+    byLifecycle(
+      type,
+      statuses.map((status, i) => ({ status, i })),
+    ).map((r) => r.status)
+
+  it("puts live work first and finished work last", () => {
+    expect(order("project", ["archived", "proposed", "active"])).toEqual([
+      "active",
+      "proposed",
+      "archived",
+    ])
+    expect(order("program", ["cancelled", "resolved", "proposed", "monitoring"])).toEqual([
+      "monitoring",
+      "proposed",
+      "resolved",
+      "cancelled",
+    ])
+  })
+
+  it("keeps stalled work with the living, ahead of what hasn't started", () => {
+    expect(order("project", ["proposed", "paused", "waiting"])).toEqual([
+      "paused",
+      "waiting",
+      "proposed",
+    ])
+  })
+
+  it("is stable, so the caller's order survives inside a phase", () => {
+    const rows = [
+      { status: "active", i: 0 },
+      { status: "completed", i: 1 },
+      { status: "active", i: 2 },
+    ]
+    expect(byLifecycle("project", rows).map((r) => r.i)).toEqual([0, 2, 1])
+    expect(rows.map((r) => r.i)).toEqual([0, 1, 2]) // copies rather than sorting in place
+  })
+
+  it("leaves rows with no status alone", () => {
+    expect(byLifecycle("note", [{ id: "b" }, { id: "a" }]).map((r) => r.id)).toEqual(["b", "a"])
   })
 })

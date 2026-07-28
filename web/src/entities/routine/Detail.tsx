@@ -57,7 +57,7 @@ export function RoutineDetail({ entity, onClose }: { entity: Entity; onClose: ()
         <F.Ref field="program_id" label="Program" lookup="program" />
         <F.Ref field="responsible_id" label="Responsible" lookup="people" />
         <F.Text field="tracking_method" label="Tracking method" />
-        <F.Textarea field="notes" label="Notes" />
+        <F.Textarea field="rationale" label="Why / prescribed by" />
       </RecordSection>
     </Record>
   )

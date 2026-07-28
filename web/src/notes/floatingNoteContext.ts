@@ -7,8 +7,6 @@ export interface FloatingNoteTarget {
   noteId?: string
   /** Root the (new) note to this entity via its scalar entity_type/entity_id. */
   owner?: { type: EntityType; id: string }
-  /** Seed the note type (e.g. "meeting" when opened from a calendar event). */
-  noteType?: string
 }
 
 export interface FloatingNoteState {

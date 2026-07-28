@@ -54,7 +54,6 @@ export const EVENT_FIELDS: FieldSpec[] = [
 
 export const NOTE_FIELDS: FieldSpec[] = [
   { name: "title", label: "Title", full: true },
-  { name: "note_type", label: "Type", type: "select", options: ["note", "journal", "idea", "meeting", "reference"] },
   { name: "entry_date", label: "Date", type: "date" },
   { name: "mood", label: "Mood" },
   { name: "tags", label: "Tags", type: "tags" },

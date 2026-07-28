@@ -66,10 +66,17 @@ single-user tool the intent is always *see-and-work*.
 
 **Detail layouts are composed, not configured.** An object's detail lives in
 `src/entities/<obj>/Detail.tsx` and writes its fields as JSX using the vocabulary in
-`components/record/` — `<Record>` supplies the chrome (action bar, `relations` panels,
-backlinks, timestamps) and the entity supplies the layout. Field primitives are
-*called*, never dispatched to by a type tag, and `recordFields<T>()` makes every
-`field` prop `keyof T`.
+`components/record/` — `<Record>` supplies the chrome and the entity supplies the layout.
+Field primitives are *called*, never dispatched to by a type tag, and `recordFields<T>()`
+makes every `field` prop `keyof T`.
+
+`<Record>`'s bands, in order: **ancestry → action bar → the entity's own fields →
+`relations` panels → Log → backlinks → timestamps**. The **Log** — every note rooted at
+this object, with a composer on top — is a band rather than a declared relation, and that
+distinction is load-bearing. It used to be one entry in `def.relations`, which meant it
+could be forgotten: eleven objects had one, nine did not, and those nine grew a `notes`
+column that filled up with dated events instead. Being unforgettable is what makes
+"where do I write this?" answerable by navigation alone.
 
 `def.detail` is **required** — there is no generic field-grid renderer left to fall
 back to, so nothing can half-own a surface. The old partial-override shape (`extra` +
@@ -121,22 +128,22 @@ list you're looking at — so a mistake is visible and deletable in place rather
 becoming an orphan. For tasks it lands in `inbox`, which is a designed state with a
 triage page, not a stray row.
 
-## 3. Framing — pane / modal / full-page
+## 3. Framing — one, plus a modal for the canvas
 
-The **same** detail representation (the object's `Detail`) is *framed* differently by context.
-This is the **space** argument to `f(…)`, and it's a **routing** decision — not a different
-component:
+A record opens **full-page**, always: a standalone `/<obj>/:id` sibling route rendering
+`RecordPage`, with the list left behind as a full-width launcher.
 
 | Framing | Routing | Component |
 |---|---|---|
-| **Pane** (beside a list) | detail route **nested under a list layout** (the list renders `<Outlet/>`) | `EntityDetailRoute` |
-| **Modal** (over a surface) | detail route **nested under a canvas layout** | `CalendarEventRoute` |
-| **Full-page** | detail route **standalone** (a sibling route, no list around it) | `RecordPage` |
+| **Full-page** | detail route **standalone** (a sibling route) | `RecordPage` |
+| **Modal** (over a canvas) | detail route **nested under a canvas layout** | `CalendarEventRoute` |
 
-The knob is literally *"is the detail route nested inside a list layout or not."* On
-`SimpleEntityPage`, `detail="page"` flips a list from two-pane (pane) to a full-width
-launcher whose rows open a standalone `RecordPage`. On mobile, pane collapses to a
-full-screen drawer (there's only room for one thing).
+There used to be a third — a pane beside the list, chosen per entity by intent
+("Directory" vs "Workbench"). It's gone, and the reason is §2's Log band: every record
+now carries the place you write about that object, and a 384px column is not somewhere
+you write. Twelve entities were converted and `EntityDetailRoute` deleted. The modal
+survives because being *summoned from a canvas* is a different question from how wide a
+record is.
 
 ## 4. Choosing the framing — by **intent**
 
@@ -149,16 +156,11 @@ Pick the representation by intent:
 - **Browse many** → collection (list/table) — or a **canvas** if position or time *is* data
   (§5 spatiality / temporality).
 - **Reference / assign** → chip (`RefName`) or picker (`EntityRefField`).
-- **Inspect-and-work one** → the detail-editor (`entities/<obj>/Detail.tsx`), **framed** by intent + space:
-  - **peek / reference** a small record with a list beside it → **pane** *(a "Directory")*
-  - **go in and work** it → **full-page** *(a "Workbench")*
-  - **summoned** from a canvas or a cross-page link → **modal**
+- **Inspect-and-work one** → the detail-editor (`entities/<obj>/Detail.tsx`), full-page —
+  or **modal** when summoned from a canvas.
 
-Framing is an **intent** call, not a structural one. The everyday full-page case is an
-**operational work-item** — an object with a lifecycle you go *into* to get work done
-(task, project, goal, review). It earns a full page because you *work in* it, **even with
-no containment**. Objects you merely glance at (a tag, a location, a contact you reference)
-stay panes. Mobile collapses pane → full-screen drawer (room for one thing).
+Framing is no longer a per-object decision, so there is nothing here to get wrong. What
+*is* an intent call is §5: whether an object earns views beyond the default set.
 
 ## 5. When an object earns *bespoke* views
 
@@ -187,12 +189,9 @@ framing/representation change, not a new object.
 
 1. **New object** → extend the registry + `createCrud`. It gets the default representation
    set immediately.
-2. **Pick the framing by intent** (§4):
-   - *Directory* — you peek/reference it → `withDetail(...)` in `routes.tsx` → pane.
-   - *Workbench* — you go in and work it (an operational work-item, or a container you
-     operate) → a standalone `/<obj>/:id` route with `RecordPage` + `detail="page"` on the
-     list. Tasks, Projects, Goals, Areas, Programs, and Reviews are Workbenches because you
-     *work in* them.
+2. **Wire the routes** (§3):
+   Add a `/<obj>` list and a sibling `/<obj>/:id` route rendering `RecordPage`. There is
+   one framing, so this is the same two lines for every object.
 3. **Add bespoke views only when a §5 property earns it.** Otherwise the generic
    a plain `Record` layout + a framing is the answer.
 
@@ -202,8 +201,9 @@ framing/representation change, not a new object.
 |---|---|
 | Object model | `src/services/api/registry.ts` |
 | Detail + editor (modeless) | `src/entities/<obj>/Detail.tsx` · `src/components/record/` |
-| Framings | `EntityDetailRoute.tsx` (pane) · `RecordPage.tsx` (full-page) · `CalendarEventRoute.tsx` (modal) |
-| List page + launcher/pane toggle | `src/components/SimpleEntityPage.tsx` (`detail` prop) |
+| Framings | `RecordPage.tsx` (full-page) · `CalendarEventRoute.tsx` (modal, canvas only) |
+| List launcher | `src/components/SimpleEntityPage.tsx` |
+| The Log band | `src/components/Log.tsx`, rendered by `record/Record.tsx` |
 | Reference / collection cells | `src/components/cells.tsx` |
 | Selector | `src/components/graph/EntityRefField.tsx` |
 | Field controls (create form) | `src/components/EntityForm.tsx` |

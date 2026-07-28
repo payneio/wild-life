@@ -18,7 +18,7 @@ export function ProtocolDetail({ entity, onClose }: { entity: Entity; onClose: (
         <F.Title field="name" placeholder="Protocol name" />
         <F.Text field="category" label="Category" />
         <F.Checkbox field="paused" label="Paused" />
-        <F.Textarea field="intended_outcome" label="Intended outcome" minRows={2} />
+        <F.Textarea field="purpose" label="Purpose" minRows={2} />
       </RecordSection>
 
       <RecordSection title="Window">
@@ -33,7 +33,7 @@ export function ProtocolDetail({ entity, onClose }: { entity: Entity; onClose: (
       <RecordSection title="Context">
         <F.Ref field="provider_id" label="Provider" lookup="people" />
         <F.Ref field="program_id" label="Program" lookup="program" />
-        <F.Textarea field="notes" label="Notes" />
+        <F.Textarea field="adjustments" label="Adjustments" />
       </RecordSection>
     </Record>
   )

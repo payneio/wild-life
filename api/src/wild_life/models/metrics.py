@@ -37,7 +37,10 @@ class Metric(UUIDPrimaryKey, TimestampMixin, Base):
         Text
     )  # MeasurementFrequency; drives the review dashboard's overdue check
     data_source: Mapped[str | None] = mapped_column(Text)
-    notes: Mapped[str | None] = mapped_column(Text)
+    # How to read the instrument: a lab's phrasing, or the scale you defined
+    # ("1 = none · 2 = incomplete, straining · …"). Not commentary — without it
+    # a bare number on the chart cannot be interpreted.
+    scale: Mapped[str | None] = mapped_column(Text)
 
 
 class MetricEntry(UUIDPrimaryKey, TimestampMixin, Base):
@@ -55,4 +58,5 @@ class MetricEntry(UUIDPrimaryKey, TimestampMixin, Base):
         DateTime(timezone=True), nullable=False, index=True
     )
     value: Mapped[float] = mapped_column(Float, nullable=False)
-    notes: Mapped[str | None] = mapped_column(Text)
+    # Why this reading looked the way it did — the annotation a number can't carry.
+    context: Mapped[str | None] = mapped_column(Text)

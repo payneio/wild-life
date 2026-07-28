@@ -38,7 +38,6 @@ class Organization(UUIDPrimaryKey, TimestampMixin, Base):
     status: Mapped[str] = mapped_column(
         Text, server_default="active", nullable=False
     )  # active/inactive/archived
-    notes: Mapped[str | None] = mapped_column(Text)
 
 
 class Affiliation(UUIDPrimaryKey, TimestampMixin, Base):

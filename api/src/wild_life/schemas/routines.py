@@ -26,7 +26,7 @@ class RoutineCreate(BaseModel):
     status: RoutineStatus = "active"
     start_date: date | None = None
     end_date: date | None = None
-    notes: str | None = None
+    rationale: str | None = None
     # legacy free-text cadence (accepted during transition)
     frequency: str | None = None
     preferred_days: list[str] = []
@@ -51,7 +51,7 @@ class RoutineUpdate(BaseModel):
     status: RoutineStatus | None = None
     start_date: date | None = None
     end_date: date | None = None
-    notes: str | None = None
+    rationale: str | None = None
     frequency: str | None = None
     preferred_days: list[str] | None = None
     preferred_time: str | None = None
@@ -75,7 +75,7 @@ class RoutineRead(Entity):
     status: RoutineStatus
     start_date: date | None
     end_date: date | None
-    notes: str | None
+    rationale: str | None
     frequency: str | None
     preferred_days: list[str]
     preferred_time: str | None
@@ -92,7 +92,7 @@ class RoutineInstanceCreate(BaseModel):
     amount: float | None = None
     unit: str | None = None
     ad_hoc: bool = False
-    notes: str | None = None
+    context: str | None = None
 
 
 class RoutineInstanceUpdate(BaseModel):
@@ -105,7 +105,7 @@ class RoutineInstanceUpdate(BaseModel):
     amount: float | None = None
     unit: str | None = None
     ad_hoc: bool | None = None
-    notes: str | None = None
+    context: str | None = None
 
 
 class RoutineInstanceRead(Entity):
@@ -118,7 +118,7 @@ class RoutineInstanceRead(Entity):
     amount: float | None
     unit: str | None
     ad_hoc: bool
-    notes: str | None
+    context: str | None
 
 
 class DoseLogCreate(BaseModel):
@@ -135,4 +135,4 @@ class DoseLogCreate(BaseModel):
     slot: str = ""
     scheduled_date: date | None = None  # LOCAL day of the intake (client sends dayOf)
     completed_at: datetime | None = None  # actual time taken; defaults to now
-    notes: str | None = None
+    context: str | None = None

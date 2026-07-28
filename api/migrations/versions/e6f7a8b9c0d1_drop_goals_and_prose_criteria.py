@@ -57,7 +57,9 @@ def upgrade() -> None:
 def downgrade() -> None:
     # Structure only — the prose itself lives on as outcome statements.
     op.add_column(
-        "areas", sa.Column("desired_standard", sa.Text(), nullable=True), schema="wild_life"
+        "areas",
+        sa.Column("desired_standard", sa.Text(), nullable=True),
+        schema="wild_life",
     )
     op.add_column(
         "projects",
@@ -70,7 +72,9 @@ def downgrade() -> None:
         schema="wild_life",
     )
     op.add_column(
-        "metrics", sa.Column("target_value", sa.Float(), nullable=True), schema="wild_life"
+        "metrics",
+        sa.Column("target_value", sa.Float(), nullable=True),
+        schema="wild_life",
     )
     op.create_table(
         "goals",

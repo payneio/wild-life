@@ -59,7 +59,7 @@ class Location(UUIDPrimaryKey, TimestampMixin, Base):
     postcode: Mapped[str | None] = mapped_column(Text)
     country: Mapped[str | None] = mapped_column(Text)
 
-    notes: Mapped[str | None] = mapped_column(Text)
+    description: Mapped[str | None] = mapped_column(Text)
 
     # Geofence. `Double` (float8) rather than `Float`: float4's ~7 significant
     # digits land at roughly a metre of longitude, the same order as the smallest

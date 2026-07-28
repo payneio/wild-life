@@ -449,8 +449,10 @@ async def review_dashboard(
                 }
             )
 
-    # Inbox: items with no primary link — unintentional, awaiting triage. Events
-    # exclude externally-synced meetings (external_ref), which are noise here.
+    # Inbox: captured without saying what it is about. Every note has a subject
+    # now — a journal entry's is the self Person — so an unrooted note is one you
+    # wrote without naming one, and nothing else. Events exclude externally-synced
+    # meetings (external_ref), which are noise here.
     unrooted_notes_count = (
         await session.execute(
             select(func.count()).select_from(Note).where(Note.entity_type.is_(None))

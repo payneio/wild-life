@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { Outlet, useNavigate, useParams } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 import { QuickCreate } from "@/components/QuickCreate"
 import { EntityRefField } from "@/components/graph/EntityRefField"
 import { ListToolbar } from "@/components/ListToolbar"
@@ -108,7 +108,7 @@ export function DelegationsPage() {
 
 
   return (
-    <div className="flex flex-col gap-4 lg:flex-row">
+    <div className="mx-auto max-w-3xl space-y-3">
       <div className="space-y-3 lg:w-[28rem] lg:shrink-0">
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
@@ -189,13 +189,6 @@ export function DelegationsPage() {
           </div>
         )}
       </div>
-
-      {!selectedId && (
-        <div className="hidden flex-1 lg:block">
-          <EmptyState>Select a delegation to see its details.</EmptyState>
-        </div>
-      )}
-      <Outlet />
 
     </div>
   )

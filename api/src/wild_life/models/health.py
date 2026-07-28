@@ -65,7 +65,10 @@ class Medication(UUIDPrimaryKey, TimestampMixin, Base):
     prescriber_id: Mapped[uuid.UUID | None] = _people_fk()
     pharmacy_id: Mapped[uuid.UUID | None] = _org_fk()
     instructions: Mapped[str | None] = mapped_column(Text)
-    notes: Mapped[str | None] = mapped_column(Text)
+    # Standing rules for adapting the regimen ("could switch to magnesium
+    # oxide if needed"). What actually happened — stopped, denied, reordered —
+    # is a note rooted here, because it has a date.
+    adjustments: Mapped[str | None] = mapped_column(Text)
 
 
 class InsurancePlan(UUIDPrimaryKey, TimestampMixin, Base):
@@ -88,7 +91,6 @@ class InsurancePlan(UUIDPrimaryKey, TimestampMixin, Base):
     status: Mapped[str] = mapped_column(
         Text, server_default="active", nullable=False
     )  # active/inactive
-    notes: Mapped[str | None] = mapped_column(Text)
 
 
 class Allergy(UUIDPrimaryKey, TimestampMixin, Base):
@@ -100,10 +102,10 @@ class Allergy(UUIDPrimaryKey, TimestampMixin, Base):
     allergy_type: Mapped[str | None] = mapped_column(
         Text
     )  # medication/food/environmental/other
+    # What happens, and how it has behaved historically.
     reaction: Mapped[str | None] = mapped_column(Text)
     severity: Mapped[str | None] = mapped_column(Text)  # mild/moderate/severe/unknown
     status: Mapped[str] = mapped_column(
         Text, server_default="active", nullable=False
     )  # active/suspected/resolved
     noted_on: Mapped[date | None] = mapped_column(Date)
-    notes: Mapped[str | None] = mapped_column(Text)

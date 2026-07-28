@@ -83,9 +83,6 @@ export function TaskRow({
         )}
       >
         <span className="min-w-0 break-words">{task.title}</span>
-        {task.context && (
-          <span className="shrink-0 text-xs text-slate-400">{task.context}</span>
-        )}
       </span>
       {task.project_id && !hideProject && (
         <span className="hidden max-w-[9rem] shrink-0 truncate text-xs text-slate-400 sm:block">

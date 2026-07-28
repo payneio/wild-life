@@ -1,9 +1,9 @@
 import { useMemo, useRef, useState } from "react"
-import { Eye, Image as ImageIcon, Link2, PencilLine, Settings2, X } from "lucide-react"
+import { Eye, Home, Image as ImageIcon, Link2, PencilLine, Settings2, X } from "lucide-react"
 import { AutoTextarea } from "@/components/AutoTextarea"
 import { EntityCombobox } from "@/components/EntityCombobox"
 import { MentionText } from "@/components/MentionText"
-import { Button, Field, Input, Select } from "@/components/ui/primitives"
+import { Button, Field, Input } from "@/components/ui/primitives"
 import { todayISO } from "@/lib/format"
 import { asDay } from "@/lib/date"
 import type { Body } from "@/services/api/crud"
@@ -19,16 +19,15 @@ import {
   uploadNoteImage,
   type PendingImage,
 } from "@/services/api/noteImages"
-import type { Note } from "@/services/api/types"
-
-const NOTE_TYPES = ["note", "journal", "idea", "meeting", "reference"] as const
+import { HomePicker } from "@/components/graph/HomePicker"
+import type { EntityType, Note } from "@/services/api/types"
 
 const BODY_CLS =
   "w-full rounded-lg border border-slate-300 bg-surface px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
 
 /**
  * The journal composer: a minimal body box with inline @-mentions, a collapsible
- * details panel (title/type/date/mood/tags), a linked-entity chips row, and
+ * details panel (title/date/mood/tags/about), a linked-entity chips row, and
  * ⌘/Ctrl+Enter to save. Used both as the always-on composer at the top of the
  * Notes stream and for inline entry editing.
  */
@@ -41,6 +40,7 @@ export function NoteComposer({
   compact,
   placeholder = "What's on your mind?",
   createLabel = "Post",
+  defaultRoot = null,
 }: {
   initial?: Note | null
   onSubmit: (body: Body, pending: PendingImage[]) => void
@@ -51,10 +51,22 @@ export function NoteComposer({
   placeholder?: string
   /** Label for the create-mode submit button ("Post" in the journal, "Save" in the dock). */
   createLabel?: string
+  /** Pre-filed: what a new note here is about (a record's Notes panel, say). */
+  defaultRoot?: { type: EntityType; id: string } | null
 }) {
   const resolve = useEntityResolver()
   const [title, setTitle] = useState(initial?.title ?? "")
-  const [noteType, setNoteType] = useState(initial?.note_type ?? "journal")
+  // What the note is *about*, as opposed to the genre it is. Seeded from the row
+  // being edited: `update_note` uses `exclude_unset`, so a root used to survive an
+  // edit by omission — now that the composer can write the pair, an unseeded
+  // picker would silently unroot every note it touches. `rootTouched` keeps the
+  // pair out of the payload entirely until the user actually chooses.
+  const [root, setRoot] = useState<{ type: EntityType; id: string } | null>(
+    initial?.entity_type && initial?.entity_id
+      ? { type: initial.entity_type, id: initial.entity_id }
+      : defaultRoot,
+  )
+  const [rootTouched, setRootTouched] = useState(false)
   const [entryDate, setEntryDate] = useState(initial?.entry_date ?? todayISO())
   const [mood, setMood] = useState(initial?.mood ?? "")
   const [tags, setTags] = useState((initial?.tags ?? []).join(", "))
@@ -155,12 +167,15 @@ export function NoteComposer({
     onSubmit(
       {
         title: title || null,
-        note_type: noteType,
         entry_date: entryDate || null,
         mood: mood || null,
         tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
         body,
         links: mergeLinks(body, manual).map((r) => ({ target_type: r.type, target_id: r.id })),
+        // Omitted unless chosen — see `rootTouched` above.
+        ...(mode === "create" || rootTouched
+          ? { entity_type: root?.type ?? null, entity_id: root?.id ?? null }
+          : {}),
       },
       pending,
     )
@@ -173,6 +188,8 @@ export function NoteComposer({
       setPending([])
       setDetails(false)
       setPreview(false)
+      setRoot(defaultRoot)
+      setRootTouched(false)
       setTimeout(() => taRef.current?.focus(), 0)
     }
   }
@@ -255,12 +272,37 @@ export function NoteComposer({
           <Field label="Title" className="col-span-2">
             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Optional title" />
           </Field>
-          <Field label="Type">
-            <Select value={noteType} onChange={(e) => setNoteType(e.target.value)}>
-              {NOTE_TYPES.map((t) => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </Select>
+          {/* A mention names something the writing touches; a root says what the
+              writing *is about*. Offering it here is what stops "I'll file it
+              later" from being the only option — filing later is the inbox. */}
+          <Field label="About" className="col-span-2">
+            {root ? (
+              <div className="flex items-center gap-2">
+                <span className="inline-flex w-fit items-center gap-1 rounded-md bg-indigo-600 px-2 py-0.5 text-xs font-medium text-white">
+                  <Home size={11} /> {resolve(root.type, root.id) ?? "…"}
+                </span>
+                <button
+                  type="button"
+                  className="text-slate-400 transition hover:text-red-600"
+                  title="Not about anything in particular"
+                  onClick={() => {
+                    setRoot(null)
+                    setRootTouched(true)
+                  }}
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            ) : (
+              <HomePicker
+                label="About…"
+                placeholder="What's this about? (any area, project, person…)"
+                onPick={(type, id) => {
+                  setRoot({ type, id })
+                  setRootTouched(true)
+                }}
+              />
+            )}
           </Field>
           <Field label="Date">
             <Input type="date" value={entryDate} onChange={(e) => setEntryDate(asDay(e.target.value))} />
@@ -278,7 +320,7 @@ export function NoteComposer({
         <div className="flex items-center gap-1 text-slate-400">
           <button
             type="button"
-            title="Details (title, type, date, mood, tags)"
+            title="Details (title, date, mood, tags, what it's about)"
             className={`rounded p-1 hover:bg-slate-100 hover:text-slate-600 ${details ? "bg-slate-100 text-slate-600" : ""}`}
             onClick={() => setDetails((v) => !v)}
           >

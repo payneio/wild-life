@@ -28,7 +28,7 @@ class MedicationCreate(BaseModel):
     prescriber_id: uuid.UUID | None = None
     pharmacy_id: uuid.UUID | None = None
     instructions: str | None = None
-    notes: str | None = None
+    adjustments: str | None = None
 
 
 class MedicationUpdate(BaseModel):
@@ -40,7 +40,7 @@ class MedicationUpdate(BaseModel):
     prescriber_id: uuid.UUID | None = None
     pharmacy_id: uuid.UUID | None = None
     instructions: str | None = None
-    notes: str | None = None
+    adjustments: str | None = None
 
 
 class MedicationRead(Entity):
@@ -52,7 +52,7 @@ class MedicationRead(Entity):
     prescriber_id: uuid.UUID | None
     pharmacy_id: uuid.UUID | None
     instructions: str | None
-    notes: str | None
+    adjustments: str | None
 
 
 # --- InsurancePlan ----------------------------------------------------------
@@ -68,7 +68,6 @@ class InsurancePlanCreate(BaseModel):
     rx_group: str | None = None
     phone: PhoneNumber = None
     status: PlanStatus = "active"
-    notes: str | None = None
 
 
 class InsurancePlanUpdate(BaseModel):
@@ -83,7 +82,6 @@ class InsurancePlanUpdate(BaseModel):
     rx_group: str | None = None
     phone: PhoneNumber = None
     status: PlanStatus | None = None
-    notes: str | None = None
 
 
 class InsurancePlanRead(Entity):
@@ -98,7 +96,6 @@ class InsurancePlanRead(Entity):
     rx_group: str | None
     phone: str | None
     status: PlanStatus
-    notes: str | None
 
 
 # --- Allergy ----------------------------------------------------------------
@@ -109,7 +106,6 @@ class AllergyCreate(BaseModel):
     severity: AllergySeverity | None = None
     status: AllergyStatus = "active"
     noted_on: date | None = None
-    notes: str | None = None
 
 
 class AllergyUpdate(BaseModel):
@@ -119,7 +115,6 @@ class AllergyUpdate(BaseModel):
     severity: AllergySeverity | None = None
     status: AllergyStatus | None = None
     noted_on: date | None = None
-    notes: str | None = None
 
 
 class AllergyRead(Entity):
@@ -129,7 +124,6 @@ class AllergyRead(Entity):
     severity: AllergySeverity | None
     status: AllergyStatus
     noted_on: date | None
-    notes: str | None
 
 
 class RegimenEntry(BaseModel):

@@ -1,7 +1,16 @@
-"""Note — unstructured information, optionally linked to any entity.
+"""Note — an observation about a subject, at a time.
 
 ``entity_type``/``entity_id`` are a soft polymorphic link (no DB FK, since the
-target may be any table). ``entry_date`` supports the daily-journal use case.
+target may be any table) naming *what the note is about*. Every note has one: the
+self Person is a subject like any other, so the journal is "my observations about
+myself" the same way a note on Brian is my observations about Brian. That is why
+``entity_type IS NULL`` can mean exactly one thing — captured without saying what
+it is about — which is the inbox.
+
+There is deliberately no genre column. What used to be `note_type` only ever
+restated the root (journal → me, meeting → the event, note → the thing), and
+documents are not stored in this app at all. ``entry_date`` places the note in
+time; ``NoteMention`` records what else it touches.
 """
 
 import uuid
@@ -37,9 +46,6 @@ class Note(UUIDPrimaryKey, TimestampMixin, Base):
 
     title: Mapped[str | None] = mapped_column(Text)
     body: Mapped[str] = mapped_column(Text, nullable=False, server_default="")
-    note_type: Mapped[str] = mapped_column(
-        Text, server_default="note", nullable=False
-    )  # note/journal/idea/meeting/reference
     entry_date: Mapped[date | None] = mapped_column(Date, index=True)
     mood: Mapped[str | None] = mapped_column(Text)
     tags: Mapped[list[str]] = mapped_column(ARRAY(Text), server_default="{}")

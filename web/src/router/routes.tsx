@@ -1,6 +1,5 @@
 import { createBrowserRouter, Navigate } from "react-router-dom"
 import { Layout } from "@/router/Layout"
-import { EntityDetailRoute } from "@/components/EntityDetailRoute"
 import { CalendarEventRoute, EventsRedirect } from "@/components/CalendarEventRoute"
 import { RecordPage } from "@/components/RecordPage"
 import { TodayPage } from "@/pages/TodayPage"
@@ -19,7 +18,8 @@ import { LocationsPage } from "@/pages/LocationsPage"
 import { PlacesPage } from "@/pages/PlacesPage"
 import { MetricsPage } from "@/pages/MetricsPage"
 import { HistoryPage } from "@/pages/HistoryPage"
-import { NotesPage } from "@/pages/NotesPage"
+import { JournalRoute } from "@/pages/JournalRoute"
+import { WhiteboardPage } from "@/pages/WhiteboardPage"
 import { DuplicatesPage } from "@/pages/DuplicatesPage"
 import { AgentsPage } from "@/pages/AgentsPage"
 import { SettingsPage } from "@/pages/SettingsPage"
@@ -37,20 +37,13 @@ import {
   ProtocolsPage,
 } from "@/pages/health"
 
-/** A list route with a deep-linkable `/:id` detail child. */
-function withDetail(path: string, element: React.ReactNode, entityKey: string) {
-  return {
-    path,
-    element,
-    children: [{ path: ":id", element: <EntityDetailRoute entityKey={entityKey} /> }],
-  }
-}
-
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <Layout />,
     children: [
+      // One framing: every object opens full-page. A detail is a place you work,
+      // and now that each carries a Log, a side pane is too narrow to write in.
       { index: true, element: <Navigate to="/today" replace /> },
       { path: "today", element: <TodayPage /> },
       { path: "inbox", element: <InboxPage /> },
@@ -72,28 +65,38 @@ export const router = createBrowserRouter([
       { path: "routines/:id", element: <RecordPage entityKey="routine" backTo="/protocols" backLabel="Protocols" /> },
       { path: "outcomes", element: <OutcomesPage /> },
       { path: "outcomes/:id", element: <RecordPage entityKey="outcome" backTo="/outcomes" backLabel="Outcomes" /> },
-      withDetail("delegations", <DelegationsPage />, "delegation"),
-      withDetail("requests", <RequestsPage />, "request"),
+      { path: "delegations", element: <DelegationsPage /> },
+      { path: "delegations/:id", element: <RecordPage entityKey="delegation" backTo="/delegations" backLabel="Delegations" /> },
+      { path: "requests", element: <RequestsPage /> },
+      { path: "requests/:id", element: <RecordPage entityKey="request" backTo="/requests" backLabel="Requests" /> },
       // Review is a Workbench (you work in a review) — deep-linkable full-page record.
       { path: "reviews", element: <ReviewsPage /> },
       { path: "reviews/:id", element: <RecordPage entityKey="review" backTo="/reviews" backLabel="Review" /> },
       // People self-renders its detail from the :id param (keeps list state on
       // navigate); the empty child only makes /people/:id match + expose the param.
       { path: "people", element: <PeoplePage />, children: [{ path: ":id", element: <></> }] },
-      withDetail("organizations", <OrganizationsPage />, "organization"),
+      { path: "organizations", element: <OrganizationsPage /> },
+      { path: "organizations/:id", element: <RecordPage entityKey="organization" backTo="/organizations" backLabel="Organizations" /> },
       { path: "locations", element: <LocationsPage /> },
       { path: "places", element: <PlacesPage /> },
       { path: "locations/:id", element: <RecordPage entityKey="location" backTo="/locations" backLabel="Locations" /> },
-      withDetail("metrics", <MetricsPage />, "metric"),
-      withDetail("medications", <MedicationsPage />, "medication"),
-      withDetail("protocols", <ProtocolsPage />, "protocol"),
-      withDetail("insurance", <InsurancePage />, "insurancePlan"),
-      withDetail("allergies", <AllergiesPage />, "allergy"),
-      // Notes is a bespoke page (markdown + @-mentions); it self-renders its
-      // detail from the :id param like People. The same component backs the
-      // personal Journal and the Microsoft Work Journal, scoped by the work tag.
-      { path: "notes", element: <NotesPage scope="personal" />, children: [{ path: ":id", element: <></> }] },
-      { path: "whiteboard", element: <NotesPage scope="whiteboard" />, children: [{ path: ":id", element: <></> }] },
+      { path: "metrics", element: <MetricsPage /> },
+      { path: "metrics/:id", element: <RecordPage entityKey="metric" backTo="/metrics" backLabel="Metrics" /> },
+      { path: "medications", element: <MedicationsPage /> },
+      { path: "medications/:id", element: <RecordPage entityKey="medication" backTo="/medications" backLabel="Medications" /> },
+      { path: "protocols", element: <ProtocolsPage /> },
+      { path: "protocols/:id", element: <RecordPage entityKey="protocol" backTo="/protocols" backLabel="Protocols" /> },
+      { path: "insurance", element: <InsurancePage /> },
+      { path: "insurance/:id", element: <RecordPage entityKey="insurancePlan" backTo="/insurance" backLabel="Insurance" /> },
+      { path: "allergies", element: <AllergiesPage /> },
+      { path: "allergies/:id", element: <RecordPage entityKey="allergy" backTo="/allergies" backLabel="Allergies" /> },
+      // The Journal is a log like any other — the self Person's. It self-renders
+      // its detail from the :id param like People, and `/notes/:id` stays the
+      // permalink space for *any* note whatever its subject, since mention chips
+      // and Backlinks route here.
+      { path: "notes", element: <JournalRoute />, children: [{ path: ":id", element: <></> }] },
+      // The whiteboard is one buffer, not a collection — no list, no detail, no id.
+      { path: "whiteboard", element: <WhiteboardPage /> },
       {
         path: "calendar",
         element: <CalendarPage />,
@@ -103,10 +106,14 @@ export const router = createBrowserRouter([
       // links (Today, Coming-up, push notifications, bookmarks) alive.
       { path: "events", element: <EventsRedirect /> },
       { path: "events/:id", element: <EventsRedirect /> },
-      withDetail("commitments", <CommitmentsPage />, "commitment"),
-      withDetail("decisions", <DecisionsPage />, "decision"),
-      withDetail("resources", <ResourcesPage />, "resource"),
-      withDetail("tags", <TagsPage />, "tag"),
+      { path: "commitments", element: <CommitmentsPage /> },
+      { path: "commitments/:id", element: <RecordPage entityKey="commitment" backTo="/commitments" backLabel="Commitments" /> },
+      { path: "decisions", element: <DecisionsPage /> },
+      { path: "decisions/:id", element: <RecordPage entityKey="decision" backTo="/decisions" backLabel="Decisions" /> },
+      { path: "resources", element: <ResourcesPage /> },
+      { path: "resources/:id", element: <RecordPage entityKey="resource" backTo="/resources" backLabel="Resources" /> },
+      { path: "tags", element: <TagsPage /> },
+      { path: "tags/:id", element: <RecordPage entityKey="tag" backTo="/tags" backLabel="Tags" /> },
       { path: "history", element: <HistoryPage /> },
       { path: "duplicates", element: <DuplicatesPage /> },
       { path: "settings", element: <SettingsPage /> },

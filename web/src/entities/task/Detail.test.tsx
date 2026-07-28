@@ -29,7 +29,6 @@ describe("TaskDetail", () => {
     mount(<TaskDetail entity={TASK} onClose={() => {}} />)
     expect(screen.getByDisplayValue("Renew the passport")).toBeInTheDocument()
     expect(screen.getByDisplayValue("Photos, form DS-82, cheque")).toBeInTheDocument()
-    expect(screen.getByDisplayValue("@errands")).toBeInTheDocument()
   })
 
   it("offers every status the column accepts", () => {

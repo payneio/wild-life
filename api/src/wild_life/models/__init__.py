@@ -23,7 +23,7 @@ from wild_life.models.locations import (
 from wild_life.models.notes import Note, NoteMention
 from wild_life.models.outcomes import Outcome
 from wild_life.models.organizations import Affiliation, Organization
-from wild_life.models.people import Interaction, Person
+from wild_life.models.people import Person
 from wild_life.models.preferences import Preference
 from wild_life.models.push import PushSubscription, SentNudge, SentReminder
 from wild_life.models.requests import Request
@@ -32,6 +32,7 @@ from wild_life.models.routines import Routine, RoutineInstance
 from wild_life.models.tags import EntityTag, Tag
 from wild_life.models.tasks import Task
 from wild_life.models.tracking import Commitment, Delegation
+from wild_life.models.whiteboard import Whiteboard
 
 __all__ = [
     "Area",
@@ -52,9 +53,9 @@ __all__ = [
     "SentInvite",
     "AttendeeResponse",
     "Preference",
+    "Whiteboard",
     "Note",
     "Person",
-    "Interaction",
     "NoteMention",
     "Organization",
     "Affiliation",

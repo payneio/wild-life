@@ -1,10 +1,14 @@
-"""People and interactions (the CRM surface)."""
+"""People — the CRM surface.
 
-import uuid
-from datetime import date, datetime
+Touchpoints are not a table here. A logged interaction is a dated observation
+about a person, which is exactly a Note rooted at them — and a Note carries
+mentions, tags, images and search that the old `interactions` table did not.
+"""
 
-from sqlalchemy import Date, DateTime, ForeignKey, Text
-from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
+from datetime import date
+
+from sqlalchemy import Date, Text
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from wild_life.db.base import Base
@@ -44,21 +48,3 @@ class Person(UUIDPrimaryKey, TimestampMixin, Base):
         JSONB, server_default="[]", nullable=False
     )
     photo_url: Mapped[str | None] = mapped_column(Text)
-
-
-class Interaction(UUIDPrimaryKey, TimestampMixin, Base):
-    """A logged touchpoint with a person."""
-
-    __tablename__ = "interactions"
-
-    person_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("people.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
-    )
-    occurred_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
-    )
-    kind: Mapped[str] = mapped_column(Text, nullable=False)  # call/email/meeting/note
-    summary: Mapped[str | None] = mapped_column(Text)

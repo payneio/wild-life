@@ -249,17 +249,6 @@
             ],
             "title": "Noted On"
           },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
-          },
           "reaction": {
             "anyOf": [
               {
@@ -350,17 +339,6 @@
             ],
             "title": "Noted On"
           },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
-          },
           "reaction": {
             "anyOf": [
               {
@@ -417,8 +395,7 @@
           "reaction",
           "severity",
           "status",
-          "noted_on",
-          "notes"
+          "noted_on"
         ],
         "title": "AllergyRead",
         "type": "object"
@@ -453,17 +430,6 @@
               }
             ],
             "title": "Noted On"
-          },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
           },
           "reaction": {
             "anyOf": [
@@ -706,31 +672,20 @@
             ],
             "title": "Accountable Owner Id"
           },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "intended_outcome": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Intended Outcome"
-          },
           "name": {
             "title": "Name",
             "type": "string"
+          },
+          "purpose": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purpose"
           },
           "responsible_lead_id": {
             "anyOf": [
@@ -803,23 +758,16 @@
             "title": "Created At",
             "type": "string"
           },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
           "id": {
             "format": "uuid",
             "title": "Id",
             "type": "string"
           },
-          "intended_outcome": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "purpose": {
             "anyOf": [
               {
                 "type": "string"
@@ -828,11 +776,7 @@
                 "type": "null"
               }
             ],
-            "title": "Intended Outcome"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
+            "title": "Purpose"
           },
           "responsible_lead_id": {
             "anyOf": [
@@ -877,9 +821,8 @@
           "created_at",
           "updated_at",
           "name",
-          "description",
+          "purpose",
           "status",
-          "intended_outcome",
           "review_frequency",
           "accountable_owner_id",
           "responsible_lead_id",
@@ -914,28 +857,6 @@
             ],
             "title": "Archived At"
           },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "intended_outcome": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Intended Outcome"
-          },
           "name": {
             "anyOf": [
               {
@@ -946,6 +867,17 @@
               }
             ],
             "title": "Name"
+          },
+          "purpose": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purpose"
           },
           "responsible_lead_id": {
             "anyOf": [
@@ -2923,6 +2855,17 @@
             ],
             "title": "Completed At"
           },
+          "context": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context"
+          },
           "medication_id": {
             "anyOf": [
               {
@@ -2934,17 +2877,6 @@
               }
             ],
             "title": "Medication Id"
-          },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
           },
           "routine_id": {
             "anyOf": [
@@ -4294,17 +4226,6 @@
             ],
             "title": "Network"
           },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
-          },
           "organization_id": {
             "anyOf": [
               {
@@ -4443,17 +4364,6 @@
             ],
             "title": "Network"
           },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
-          },
           "organization_id": {
             "anyOf": [
               {
@@ -4555,8 +4465,7 @@
           "rx_pcn",
           "rx_group",
           "phone",
-          "status",
-          "notes"
+          "status"
         ],
         "title": "InsurancePlanRead",
         "type": "object"
@@ -4606,17 +4515,6 @@
               }
             ],
             "title": "Network"
-          },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
           },
           "organization_id": {
             "anyOf": [
@@ -4708,149 +4606,6 @@
           }
         },
         "title": "InsurancePlanUpdate",
-        "type": "object"
-      },
-      "InteractionCreate": {
-        "properties": {
-          "kind": {
-            "title": "Kind",
-            "type": "string"
-          },
-          "occurred_at": {
-            "format": "date-time",
-            "title": "Occurred At",
-            "type": "string"
-          },
-          "person_id": {
-            "format": "uuid",
-            "title": "Person Id",
-            "type": "string"
-          },
-          "summary": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Summary"
-          }
-        },
-        "required": [
-          "person_id",
-          "occurred_at",
-          "kind"
-        ],
-        "title": "InteractionCreate",
-        "type": "object"
-      },
-      "InteractionRead": {
-        "properties": {
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "kind": {
-            "title": "Kind",
-            "type": "string"
-          },
-          "occurred_at": {
-            "format": "date-time",
-            "title": "Occurred At",
-            "type": "string"
-          },
-          "person_id": {
-            "format": "uuid",
-            "title": "Person Id",
-            "type": "string"
-          },
-          "summary": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Summary"
-          },
-          "updated_at": {
-            "format": "date-time",
-            "title": "Updated At",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "created_at",
-          "updated_at",
-          "person_id",
-          "occurred_at",
-          "kind",
-          "summary"
-        ],
-        "title": "InteractionRead",
-        "type": "object"
-      },
-      "InteractionUpdate": {
-        "properties": {
-          "kind": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Kind"
-          },
-          "occurred_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Occurred At"
-          },
-          "person_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Person Id"
-          },
-          "summary": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Summary"
-          }
-        },
-        "title": "InteractionUpdate",
         "type": "object"
       },
       "LabelledAddress": {
@@ -4979,6 +4734,17 @@
             ],
             "title": "Country"
           },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
           "latitude": {
             "anyOf": [
               {
@@ -5008,17 +4774,6 @@
           "name": {
             "title": "Name",
             "type": "string"
-          },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
           },
           "postcode": {
             "anyOf": [
@@ -5125,6 +4880,17 @@
             "title": "Created At",
             "type": "string"
           },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
           "geo_dirty_at": {
             "anyOf": [
               {
@@ -5167,17 +4933,6 @@
           "name": {
             "title": "Name",
             "type": "string"
-          },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
           },
           "postcode": {
             "anyOf": [
@@ -5245,7 +5000,7 @@
           "region",
           "postcode",
           "country",
-          "notes",
+          "description",
           "latitude",
           "longitude",
           "radius_m",
@@ -5296,6 +5051,17 @@
             ],
             "title": "Country"
           },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
           "latitude": {
             "anyOf": [
               {
@@ -5332,17 +5098,6 @@
               }
             ],
             "title": "Name"
-          },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
           },
           "postcode": {
             "anyOf": [
@@ -5528,6 +5283,17 @@
       },
       "MedicationCreate": {
         "properties": {
+          "adjustments": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adjustments"
+          },
           "brand": {
             "anyOf": [
               {
@@ -5563,17 +5329,6 @@
           "name": {
             "title": "Name",
             "type": "string"
-          },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
           },
           "pharmacy_id": {
             "anyOf": [
@@ -5631,6 +5386,17 @@
       },
       "MedicationRead": {
         "properties": {
+          "adjustments": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adjustments"
+          },
           "brand": {
             "anyOf": [
               {
@@ -5675,17 +5441,6 @@
           "name": {
             "title": "Name",
             "type": "string"
-          },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
           },
           "pharmacy_id": {
             "anyOf": [
@@ -5752,13 +5507,24 @@
           "prescriber_id",
           "pharmacy_id",
           "instructions",
-          "notes"
+          "adjustments"
         ],
         "title": "MedicationRead",
         "type": "object"
       },
       "MedicationUpdate": {
         "properties": {
+          "adjustments": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adjustments"
+          },
           "brand": {
             "anyOf": [
               {
@@ -5807,17 +5573,6 @@
               }
             ],
             "title": "Name"
-          },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
           },
           "pharmacy_id": {
             "anyOf": [
@@ -6009,17 +5764,6 @@
             "title": "Name",
             "type": "string"
           },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
-          },
           "reference_max": {
             "anyOf": [
               {
@@ -6041,6 +5785,17 @@
               }
             ],
             "title": "Reference Min"
+          },
+          "scale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scale"
           },
           "source": {
             "default": "manual",
@@ -6073,12 +5828,7 @@
       },
       "MetricEntryCreate": {
         "properties": {
-          "metric_id": {
-            "format": "uuid",
-            "title": "Metric Id",
-            "type": "string"
-          },
-          "notes": {
+          "context": {
             "anyOf": [
               {
                 "type": "string"
@@ -6087,7 +5837,12 @@
                 "type": "null"
               }
             ],
-            "title": "Notes"
+            "title": "Context"
+          },
+          "metric_id": {
+            "format": "uuid",
+            "title": "Metric Id",
+            "type": "string"
           },
           "recorded_at": {
             "format": "date-time",
@@ -6109,6 +5864,17 @@
       },
       "MetricEntryRead": {
         "properties": {
+          "context": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -6123,17 +5889,6 @@
             "format": "uuid",
             "title": "Metric Id",
             "type": "string"
-          },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
           },
           "recorded_at": {
             "format": "date-time",
@@ -6157,14 +5912,14 @@
           "metric_id",
           "recorded_at",
           "value",
-          "notes"
+          "context"
         ],
         "title": "MetricEntryRead",
         "type": "object"
       },
       "MetricEntryUpdate": {
         "properties": {
-          "notes": {
+          "context": {
             "anyOf": [
               {
                 "type": "string"
@@ -6173,7 +5928,7 @@
                 "type": "null"
               }
             ],
-            "title": "Notes"
+            "title": "Context"
           },
           "recorded_at": {
             "anyOf": [
@@ -6296,17 +6051,6 @@
             "title": "Name",
             "type": "string"
           },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
-          },
           "reference_max": {
             "anyOf": [
               {
@@ -6328,6 +6072,17 @@
               }
             ],
             "title": "Reference Min"
+          },
+          "scale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scale"
           },
           "source": {
             "enum": [
@@ -6368,7 +6123,7 @@
           "reference_max",
           "measurement_frequency",
           "data_source",
-          "notes"
+          "scale"
         ],
         "title": "MetricRead",
         "type": "object"
@@ -6478,17 +6233,6 @@
             ],
             "title": "Name"
           },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
-          },
           "reference_max": {
             "anyOf": [
               {
@@ -6510,6 +6254,17 @@
               }
             ],
             "title": "Reference Min"
+          },
+          "scale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scale"
           },
           "source": {
             "anyOf": [
@@ -6626,11 +6381,6 @@
               }
             ],
             "title": "Mood"
-          },
-          "note_type": {
-            "default": "note",
-            "title": "Note Type",
-            "type": "string"
           },
           "tags": {
             "default": [],
@@ -6811,10 +6561,6 @@
             ],
             "title": "Mood"
           },
-          "note_type": {
-            "title": "Note Type",
-            "type": "string"
-          },
           "tags": {
             "items": {
               "type": "string"
@@ -6845,7 +6591,6 @@
           "updated_at",
           "title",
           "body",
-          "note_type",
           "entry_date",
           "mood",
           "tags",
@@ -6952,17 +6697,6 @@
               }
             ],
             "title": "Mood"
-          },
-          "note_type": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Note Type"
           },
           "tags": {
             "anyOf": [
@@ -7081,17 +6815,6 @@
           "name": {
             "title": "Name",
             "type": "string"
-          },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
           },
           "org_type": {
             "anyOf": [
@@ -7269,17 +6992,6 @@
             "title": "Name",
             "type": "string"
           },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
-          },
           "org_type": {
             "anyOf": [
               {
@@ -7400,8 +7112,7 @@
           "postcode",
           "country",
           "description",
-          "status",
-          "notes"
+          "status"
         ],
         "title": "OrganizationRead",
         "type": "object"
@@ -7473,17 +7184,6 @@
               }
             ],
             "title": "Name"
-          },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
           },
           "org_type": {
             "anyOf": [
@@ -8840,17 +8540,6 @@
             ],
             "title": "Category"
           },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
           "ended_date": {
             "anyOf": [
               {
@@ -8862,17 +8551,6 @@
               }
             ],
             "title": "Ended Date"
-          },
-          "intended_outcome": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Intended Outcome"
           },
           "involves": {
             "default": [],
@@ -8910,6 +8588,17 @@
           "name": {
             "title": "Name",
             "type": "string"
+          },
+          "purpose": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purpose"
           },
           "reporting_cadence": {
             "anyOf": [
@@ -9029,17 +8718,6 @@
             "title": "Created At",
             "type": "string"
           },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
           "ended_date": {
             "anyOf": [
               {
@@ -9056,17 +8734,6 @@
             "format": "uuid",
             "title": "Id",
             "type": "string"
-          },
-          "intended_outcome": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Intended Outcome"
           },
           "involves": {
             "items": {
@@ -9103,6 +8770,17 @@
           "name": {
             "title": "Name",
             "type": "string"
+          },
+          "purpose": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purpose"
           },
           "reporting_cadence": {
             "anyOf": [
@@ -9173,9 +8851,8 @@
           "created_at",
           "updated_at",
           "name",
-          "description",
+          "purpose",
           "area_id",
-          "intended_outcome",
           "status",
           "start_date",
           "ended_date",
@@ -9236,17 +8913,6 @@
             ],
             "title": "Category"
           },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
           "ended_date": {
             "anyOf": [
               {
@@ -9258,17 +8924,6 @@
               }
             ],
             "title": "Ended Date"
-          },
-          "intended_outcome": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Intended Outcome"
           },
           "involves": {
             "anyOf": [
@@ -9319,6 +8974,17 @@
               }
             ],
             "title": "Name"
+          },
+          "purpose": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purpose"
           },
           "reporting_cadence": {
             "anyOf": [
@@ -9403,28 +9069,6 @@
             ],
             "title": "Accountable Owner Id"
           },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "intended_outcome": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Intended Outcome"
-          },
           "last_activity_date": {
             "anyOf": [
               {
@@ -9467,6 +9111,17 @@
             "format": "uuid",
             "title": "Program Id",
             "type": "string"
+          },
+          "purpose": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purpose"
           },
           "responsible_lead_id": {
             "anyOf": [
@@ -9545,32 +9200,10 @@
             "title": "Created At",
             "type": "string"
           },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
           "id": {
             "format": "uuid",
             "title": "Id",
             "type": "string"
-          },
-          "intended_outcome": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Intended Outcome"
           },
           "last_activity_date": {
             "anyOf": [
@@ -9613,6 +9246,17 @@
             "format": "uuid",
             "title": "Program Id",
             "type": "string"
+          },
+          "purpose": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purpose"
           },
           "responsible_lead_id": {
             "anyOf": [
@@ -9674,9 +9318,8 @@
           "created_at",
           "updated_at",
           "name",
-          "description",
+          "purpose",
           "program_id",
-          "intended_outcome",
           "status",
           "priority",
           "start_date",
@@ -9702,28 +9345,6 @@
               }
             ],
             "title": "Accountable Owner Id"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "intended_outcome": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Intended Outcome"
           },
           "last_activity_date": {
             "anyOf": [
@@ -9787,6 +9408,17 @@
               }
             ],
             "title": "Program Id"
+          },
+          "purpose": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purpose"
           },
           "responsible_lead_id": {
             "anyOf": [
@@ -9921,6 +9553,17 @@
       },
       "ProtocolCreate": {
         "properties": {
+          "adjustments": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adjustments"
+          },
           "category": {
             "anyOf": [
               {
@@ -9955,31 +9598,9 @@
             ],
             "title": "End Date"
           },
-          "intended_outcome": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Intended Outcome"
-          },
           "name": {
             "title": "Name",
             "type": "string"
-          },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
           },
           "paused": {
             "default": false,
@@ -10010,6 +9631,17 @@
             ],
             "title": "Provider Id"
           },
+          "purpose": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purpose"
+          },
           "start_date": {
             "anyOf": [
               {
@@ -10031,6 +9663,17 @@
       },
       "ProtocolRead": {
         "properties": {
+          "adjustments": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adjustments"
+          },
           "category": {
             "anyOf": [
               {
@@ -10075,31 +9718,9 @@
             "title": "Id",
             "type": "string"
           },
-          "intended_outcome": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Intended Outcome"
-          },
           "name": {
             "title": "Name",
             "type": "string"
-          },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
           },
           "paused": {
             "title": "Paused",
@@ -10129,6 +9750,17 @@
             ],
             "title": "Provider Id"
           },
+          "purpose": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purpose"
+          },
           "start_date": {
             "anyOf": [
               {
@@ -10153,20 +9785,31 @@
           "updated_at",
           "name",
           "category",
-          "intended_outcome",
+          "purpose",
           "paused",
           "program_id",
           "start_date",
           "end_date",
           "duration",
           "provider_id",
-          "notes"
+          "adjustments"
         ],
         "title": "ProtocolRead",
         "type": "object"
       },
       "ProtocolUpdate": {
         "properties": {
+          "adjustments": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adjustments"
+          },
           "category": {
             "anyOf": [
               {
@@ -10201,17 +9844,6 @@
             ],
             "title": "End Date"
           },
-          "intended_outcome": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Intended Outcome"
-          },
           "name": {
             "anyOf": [
               {
@@ -10222,17 +9854,6 @@
               }
             ],
             "title": "Name"
-          },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
           },
           "paused": {
             "anyOf": [
@@ -10268,6 +9889,17 @@
               }
             ],
             "title": "Provider Id"
+          },
+          "purpose": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purpose"
           },
           "start_date": {
             "anyOf": [
@@ -12078,17 +11710,6 @@
             ],
             "title": "Name"
           },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
-          },
           "preferred_days": {
             "default": [],
             "items": {
@@ -12124,6 +11745,17 @@
             "format": "uuid",
             "title": "Protocol Id",
             "type": "string"
+          },
+          "rationale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rationale"
           },
           "responsible_id": {
             "anyOf": [
@@ -12231,6 +11863,17 @@
             ],
             "title": "Completed At"
           },
+          "context": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context"
+          },
           "medication_id": {
             "anyOf": [
               {
@@ -12242,17 +11885,6 @@
               }
             ],
             "title": "Medication Id"
-          },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
           },
           "routine_id": {
             "anyOf": [
@@ -12333,6 +11965,17 @@
             ],
             "title": "Completed At"
           },
+          "context": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -12354,17 +11997,6 @@
               }
             ],
             "title": "Medication Id"
-          },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
           },
           "routine_id": {
             "anyOf": [
@@ -12426,7 +12058,7 @@
           "amount",
           "unit",
           "ad_hoc",
-          "notes"
+          "context"
         ],
         "title": "RoutineInstanceRead",
         "type": "object"
@@ -12467,6 +12099,17 @@
             ],
             "title": "Completed At"
           },
+          "context": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context"
+          },
           "medication_id": {
             "anyOf": [
               {
@@ -12478,17 +12121,6 @@
               }
             ],
             "title": "Medication Id"
-          },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
           },
           "routine_id": {
             "anyOf": [
@@ -12659,17 +12291,6 @@
             ],
             "title": "Name"
           },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
-          },
           "preferred_days": {
             "items": {
               "type": "string"
@@ -12704,6 +12325,17 @@
             "format": "uuid",
             "title": "Protocol Id",
             "type": "string"
+          },
+          "rationale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rationale"
           },
           "responsible_id": {
             "anyOf": [
@@ -12797,7 +12429,7 @@
           "status",
           "start_date",
           "end_date",
-          "notes",
+          "rationale",
           "frequency",
           "preferred_days",
           "preferred_time",
@@ -12922,17 +12554,6 @@
             ],
             "title": "Name"
           },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
-          },
           "preferred_days": {
             "anyOf": [
               {
@@ -12981,6 +12602,17 @@
               }
             ],
             "title": "Protocol Id"
+          },
+          "rationale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rationale"
           },
           "responsible_id": {
             "anyOf": [
@@ -13291,17 +12923,6 @@
             ],
             "title": "Completed At"
           },
-          "context": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Context"
-          },
           "description": {
             "anyOf": [
               {
@@ -13608,17 +13229,6 @@
             ],
             "title": "Completed At"
           },
-          "context": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Context"
-          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -13801,7 +13411,6 @@
           "scheduled_date",
           "scheduled_time",
           "estimated_minutes",
-          "context",
           "recurrence",
           "blocked_by_task_id",
           "waiting_on",
@@ -13872,17 +13481,6 @@
               }
             ],
             "title": "Blocked By Task Id"
-          },
-          "context": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Context"
           },
           "description": {
             "anyOf": [
@@ -14219,6 +13817,42 @@
           "visit_id"
         ],
         "title": "VisitWithLocation",
+        "type": "object"
+      },
+      "WhiteboardRead": {
+        "properties": {
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "content"
+        ],
+        "title": "WhiteboardRead",
+        "type": "object"
+      },
+      "WhiteboardWrite": {
+        "properties": {
+          "content": {
+            "default": "",
+            "title": "Content",
+            "type": "string"
+          }
+        },
+        "title": "WhiteboardWrite",
         "type": "object"
       }
     }
@@ -16616,198 +16250,6 @@
         ]
       }
     },
-    "/interactions": {
-      "get": {
-        "operationId": "interactions_list",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/InteractionRead"
-                  },
-                  "title": "Response Interactions List",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          }
-        },
-        "summary": "List All",
-        "tags": [
-          "people"
-        ]
-      },
-      "post": {
-        "operationId": "interactions_create",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/InteractionCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/InteractionRead"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Create",
-        "tags": [
-          "people"
-        ]
-      }
-    },
-    "/interactions/{item_id}": {
-      "delete": {
-        "operationId": "interactions_delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Delete",
-        "tags": [
-          "people"
-        ]
-      },
-      "get": {
-        "operationId": "interactions_get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/InteractionRead"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Get One",
-        "tags": [
-          "people"
-        ]
-      },
-      "patch": {
-        "operationId": "interactions_update",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/InteractionUpdate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/InteractionRead"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Update",
-        "tags": [
-          "people"
-        ]
-      }
-    },
     "/location-pings": {
       "get": {
         "description": "Raw positions over a window, for drawing a track.\n\nHand-rolled rather than a `crud_router`, because the factory applies no limit\nwhen the caller passes none \u2014 on a table that grows by hundreds of rows a day\nthat is a request to serialise the year. Defaults to the last 24 hours.",
@@ -18372,22 +17814,6 @@
           },
           {
             "in": "query",
-            "name": "note_type",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Note Type"
-            }
-          },
-          {
-            "in": "query",
             "name": "linked_type",
             "required": false,
             "schema": {
@@ -18475,25 +17901,6 @@
               ],
               "title": "Tag"
             }
-          },
-          {
-            "in": "query",
-            "name": "no_tag",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "No Tag"
-            }
           }
         ],
         "responses": {
@@ -18569,7 +17976,7 @@
     },
     "/notes/calendar": {
       "get": {
-        "description": "Per-(year, month) entry counts for the journal's year/month navigation.",
+        "description": "Per-(year, month) entry counts for a log's year/month navigation.\n\nScoped by root the same way ``list_notes`` is, so the rail counts exactly the\nrows the stream shows \u2014 the journal passes the self Person, any other object's\nlog passes itself.",
         "operationId": "notes_calendar",
         "parameters": [
           {
@@ -18590,21 +17997,60 @@
           },
           {
             "in": "query",
-            "name": "no_tag",
+            "name": "entity_type",
             "required": false,
             "schema": {
               "anyOf": [
                 {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
+                  "enum": [
+                    "area",
+                    "program",
+                    "project",
+                    "task",
+                    "routine",
+                    "outcome",
+                    "metric",
+                    "event",
+                    "note",
+                    "person",
+                    "organization",
+                    "location",
+                    "commitment",
+                    "request",
+                    "delegation",
+                    "review",
+                    "resource",
+                    "decision",
+                    "medication",
+                    "protocol",
+                    "protocol_item",
+                    "insurance_plan",
+                    "allergy"
+                  ],
+                  "type": "string"
                 },
                 {
                   "type": "null"
                 }
               ],
-              "title": "No Tag"
+              "title": "Entity Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "entity_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Entity Id"
             }
           }
         ],
@@ -19652,53 +19098,6 @@
         "summary": "Person Events",
         "tags": [
           "calendar"
-        ]
-      }
-    },
-    "/people/{person_id}/interactions": {
-      "get": {
-        "operationId": "list_person_interactions_people__person_id__interactions_get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "person_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Person Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/InteractionRead"
-                  },
-                  "title": "Response List Person Interactions People  Person Id  Interactions Get",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "List Person Interactions",
-        "tags": [
-          "people"
         ]
       }
     },
@@ -22794,22 +22193,6 @@
           },
           {
             "in": "query",
-            "name": "context",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Context"
-            }
-          },
-          {
-            "in": "query",
             "name": "include_closed",
             "required": false,
             "schema": {
@@ -23249,6 +22632,66 @@
         "summary": "Where Was I",
         "tags": [
           "locations"
+        ]
+      }
+    },
+    "/whiteboard": {
+      "get": {
+        "operationId": "whiteboard_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WhiteboardRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Whiteboard",
+        "tags": [
+          "whiteboard"
+        ]
+      },
+      "put": {
+        "operationId": "whiteboard_set",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WhiteboardWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WhiteboardRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Whiteboard",
+        "tags": [
+          "whiteboard"
         ]
       }
     }

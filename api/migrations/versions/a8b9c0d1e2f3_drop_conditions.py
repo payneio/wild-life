@@ -39,7 +39,9 @@ SOFT_POLY = (
 def upgrade() -> None:
     conn = op.get_bind()
 
-    conditions = conn.execute(sa.text("SELECT count(*) FROM wild_life.conditions")).scalar()
+    conditions = conn.execute(
+        sa.text("SELECT count(*) FROM wild_life.conditions")
+    ).scalar()
     carried = conn.execute(
         sa.text("SELECT count(*) FROM wild_life._condition_program_map")
     ).scalar()
@@ -52,7 +54,9 @@ def upgrade() -> None:
     stranded: list[str] = []
     for table, tcol in SOFT_POLY:
         n = conn.execute(
-            sa.text(f"SELECT count(*) FROM wild_life.{table} WHERE {tcol} = 'condition'")
+            sa.text(
+                f"SELECT count(*) FROM wild_life.{table} WHERE {tcol} = 'condition'"
+            )
         ).scalar()
         if n:
             stranded.append(f"{table}.{tcol}={n}")
@@ -79,12 +83,22 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     # Structure only — the rows live on as programs.
-    op.add_column("programs", sa.Column("target_date", sa.Date(), nullable=True), schema="wild_life")
-    op.add_column("metrics", sa.Column("program_id", sa.UUID(), nullable=True), schema="wild_life")
-    op.add_column("metrics", sa.Column("area_id", sa.UUID(), nullable=True), schema="wild_life")
+    op.add_column(
+        "programs",
+        sa.Column("target_date", sa.Date(), nullable=True),
+        schema="wild_life",
+    )
+    op.add_column(
+        "metrics", sa.Column("program_id", sa.UUID(), nullable=True), schema="wild_life"
+    )
+    op.add_column(
+        "metrics", sa.Column("area_id", sa.UUID(), nullable=True), schema="wild_life"
+    )
     op.create_table(
         "conditions",
-        sa.Column("id", sa.UUID(), server_default=sa.text("gen_random_uuid()"), nullable=False),
+        sa.Column(
+            "id", sa.UUID(), server_default=sa.text("gen_random_uuid()"), nullable=False
+        ),
         sa.Column("name", sa.Text(), nullable=False),
         sa.Column("category", sa.Text(), nullable=True),
         sa.Column("status", sa.Text(), server_default="active", nullable=False),
@@ -96,10 +110,24 @@ def downgrade() -> None:
         sa.Column("diagnosed_by_id", sa.UUID(), nullable=True),
         sa.Column("description", sa.Text(), nullable=True),
         sa.Column("notes", sa.Text(), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.PrimaryKeyConstraint("id"),
         schema="wild_life",
     )
     for table in ("metrics", "protocols", "medications"):
-        op.add_column(table, sa.Column("condition_id", sa.UUID(), nullable=True), schema="wild_life")
+        op.add_column(
+            table,
+            sa.Column("condition_id", sa.UUID(), nullable=True),
+            schema="wild_life",
+        )

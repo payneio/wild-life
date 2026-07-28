@@ -180,7 +180,7 @@ async def log_intake(
         if payload.unit is not None
         else (routine.unit if routine else None),
         ad_hoc=True,
-        notes=payload.notes,
+        context=payload.context,
     )
     session.add(instance)
     await session.flush()

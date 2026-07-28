@@ -1,7 +1,6 @@
-"""Schemas for Person and Interaction."""
+"""Schemas for Person."""
 
-import uuid
-from datetime import date, datetime
+from datetime import date
 
 from typing import Annotated
 
@@ -91,24 +90,3 @@ class PersonRead(Entity):
     birthday: date | None
     important_dates: list[ImportantDate]
     photo_url: str | None
-
-
-class InteractionCreate(BaseModel):
-    person_id: uuid.UUID
-    occurred_at: datetime
-    kind: str
-    summary: str | None = None
-
-
-class InteractionUpdate(BaseModel):
-    person_id: uuid.UUID | None = None
-    occurred_at: datetime | None = None
-    kind: str | None = None
-    summary: str | None = None
-
-
-class InteractionRead(Entity):
-    person_id: uuid.UUID
-    occurred_at: datetime
-    kind: str
-    summary: str | None

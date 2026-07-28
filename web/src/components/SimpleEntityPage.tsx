@@ -1,5 +1,5 @@
 import { useMemo, type ReactNode } from "react"
-import { Outlet, useNavigate, useParams } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 import { Card, EmptyState } from "@/components/ui/primitives"
 import { QuickCreate } from "@/components/QuickCreate"
 import type { FieldSpec } from "@/services/api/fieldSpec"
@@ -31,10 +31,13 @@ const slug = (s: string) =>
     .replace(/^-|-$/g, "")
 
 /**
- * Master/detail list page: a compact list on the left (search/filter toolbar +
- * rows) and a persistent detail pane on the right (desktop) / full-screen overlay
- * (mobile), rendered from the `/:id` child route via <Outlet/>. Clicking a row
- * navigates to its detail without dismissing the list.
+ * A launcher: search/filter toolbar, one-line capture, and rows that open a
+ * full-page record at a sibling `/<thing>/:id` route.
+ *
+ * There is no pane variant any more. Framing used to be a per-entity choice —
+ * "Directory" beside a list vs "Workbench" full-page — but every record now
+ * carries a Log you write into, and a 384px column is not somewhere you write.
+ * One framing also means one answer to where a detail appears.
  */
 export function SimpleEntityPage<T extends Entity>({
   title,
@@ -45,7 +48,6 @@ export function SimpleEntityPage<T extends Entity>({
   newLabel = "New",
   emptyText = "Nothing here yet.",
   extraFilters,
-  detail = "pane",
   entityType,
 }: {
   title: string
@@ -62,9 +64,6 @@ export function SimpleEntityPage<T extends Entity>({
    *  select filters. Receives current filter values so options can depend on
    *  another filter (e.g. narrow Program to the selected Area). */
   extraFilters?: (values: Record<string, string>) => FilterDef[]
-  /** How the detail opens: "pane" (Directory — beside the list) or "page"
-   *  (Workbench — the list is a full-width launcher; rows open a full page). */
-  detail?: "pane" | "page"
 }) {
   const navigate = useNavigate()
   const { id: selectedId } = useParams()
@@ -154,25 +153,5 @@ export function SimpleEntityPage<T extends Entity>({
     </>
   )
 
-  // Workbench: the list is a full-width launcher; rows open a full page elsewhere.
-  if (detail === "page") {
-    return (
-      <div className="mx-auto max-w-3xl space-y-3">
-        {listContent}
-      </div>
-    )
-  }
-
-  // Directory: compact list + detail pane on desktop, full-screen overlay on mobile.
-  return (
-    <div className="flex flex-col gap-4 lg:flex-row">
-      <div className="space-y-3 lg:w-96 lg:shrink-0">{listContent}</div>
-      {!selectedId && (
-        <div className="hidden flex-1 lg:block">
-          <EmptyState>Select an item to see its details.</EmptyState>
-        </div>
-      )}
-      <Outlet />
-    </div>
-  )
+  return <div className="mx-auto max-w-3xl space-y-3">{listContent}</div>
 }

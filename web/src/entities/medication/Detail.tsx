@@ -33,7 +33,9 @@ export function MedicationDetail({ entity, onClose }: { entity: Entity; onClose:
 
       <RecordSection>
         <F.Textarea field="instructions" label="Instructions" minRows={2} />
-        <F.Textarea field="notes" label="Notes" minRows={2} />
+        {/* Standing rules for adapting the regimen. What actually happened —
+            stopped, denied, reordered — is a dated entry in the log below. */}
+        <F.Textarea field="adjustments" label="Adjustments" minRows={2} />
       </RecordSection>
     </Record>
   )

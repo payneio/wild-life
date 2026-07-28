@@ -53,3 +53,33 @@ describe("useListFilter — finished rows", () => {
     expect(result.current.filtered).toHaveLength(4)
   })
 })
+
+describe("useListFilter — opening filter values", () => {
+  it("opens on the given values", () => {
+    // For a list that *is* a subset: a log shows one subject's notes, so the
+    // subset should be a visible default rather than an invisible query.
+    const { result } = renderHook(() =>
+      useListFilter(ROWS, CONFIG, undefined, undefined, { status: "archived" }),
+    )
+    expect(names(result.current.filtered)).toEqual(["Filed away"])
+    expect(result.current.toolbarProps.values).toEqual({ status: "archived" })
+  })
+
+  it("lets the user widen out of them", () => {
+    const { result } = renderHook(() =>
+      useListFilter(ROWS, CONFIG, undefined, undefined, { status: "archived" }),
+    )
+    act(() => result.current.toolbarProps.onFilter("status", ""))
+    expect(names(result.current.filtered)).toHaveLength(4)
+  })
+
+  it("yields to a persisted choice wholesale", () => {
+    // There is no merge — which is why reshaping a list means renaming its
+    // storage key, or the new default silently never applies.
+    localStorage.setItem("wild_life_view:notes:f", JSON.stringify({ status: "active" }))
+    const { result } = renderHook(() =>
+      useListFilter(ROWS, CONFIG, "notes", undefined, { status: "archived" }),
+    )
+    expect(names(result.current.filtered)).toEqual(["Live one"])
+  })
+})

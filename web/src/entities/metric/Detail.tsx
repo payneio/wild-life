@@ -54,7 +54,9 @@ export function MetricDetail({ entity, onClose }: { entity: Entity; onClose: () 
             triple that let two readings of the same kind be filed differently. */}
         <F.Root label="Measures" />
         {!derived && <F.Text field="data_source" label="Data source" />}
-        <F.Textarea field="notes" label="Notes" />
+        {/* How to read the instrument — a lab's phrasing, or the scale you
+            defined. Without it a bare number on the chart means nothing. */}
+        <F.Textarea field="scale" label="How to read it" />
       </RecordSection>
     </Record>
   )

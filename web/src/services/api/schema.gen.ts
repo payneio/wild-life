@@ -639,43 +639,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/interactions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List All */
-        get: operations["interactions_list"];
-        put?: never;
-        /** Create */
-        post: operations["interactions_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/interactions/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["interactions_get"];
-        put?: never;
-        post?: never;
-        /** Delete */
-        delete: operations["interactions_delete"];
-        options?: never;
-        head?: never;
-        /** Update */
-        patch: operations["interactions_update"];
-        trace?: never;
-    };
     "/location-pings": {
         parameters: {
             query?: never;
@@ -1154,7 +1117,11 @@ export interface paths {
         };
         /**
          * Notes Calendar
-         * @description Per-(year, month) entry counts for the journal's year/month navigation.
+         * @description Per-(year, month) entry counts for a log's year/month navigation.
+         *
+         *     Scoped by root the same way ``list_notes`` is, so the rail counts exactly the
+         *     rows the stream shows — the journal passes the self Person, any other object's
+         *     log passes itself.
          */
         get: operations["notes_calendar"];
         put?: never;
@@ -1411,23 +1378,6 @@ export interface paths {
         };
         /** Person Events */
         get: operations["people_events"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/people/{person_id}/interactions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Person Interactions */
-        get: operations["list_person_interactions_people__person_id__interactions_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2302,6 +2252,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/whiteboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Whiteboard */
+        get: operations["whiteboard_get"];
+        /** Set Whiteboard */
+        put: operations["whiteboard_set"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2387,8 +2355,6 @@ export interface components {
             allergy_type?: ("medication" | "food" | "environmental" | "other") | null;
             /** Noted On */
             noted_on?: CalendarDay | null;
-            /** Notes */
-            notes?: string | null;
             /** Reaction */
             reaction?: string | null;
             /** Severity */
@@ -2418,8 +2384,6 @@ export interface components {
             id: string;
             /** Noted On */
             noted_on: CalendarDay | null;
-            /** Notes */
-            notes: string | null;
             /** Reaction */
             reaction: string | null;
             /** Severity */
@@ -2443,8 +2407,6 @@ export interface components {
             allergy_type?: ("medication" | "food" | "environmental" | "other") | null;
             /** Noted On */
             noted_on?: CalendarDay | null;
-            /** Notes */
-            notes?: string | null;
             /** Reaction */
             reaction?: string | null;
             /** Severity */
@@ -2534,12 +2496,10 @@ export interface components {
         AreaCreate: {
             /** Accountable Owner Id */
             accountable_owner_id?: string | null;
-            /** Description */
-            description?: string | null;
-            /** Intended Outcome */
-            intended_outcome?: string | null;
             /** Name */
             name: string;
+            /** Purpose */
+            purpose?: string | null;
             /** Responsible Lead Id */
             responsible_lead_id?: string | null;
             /** Review Frequency */
@@ -2562,17 +2522,15 @@ export interface components {
              * Format: date-time
              */
             created_at: Instant;
-            /** Description */
-            description: string | null;
             /**
              * Id
              * Format: uuid
              */
             id: string;
-            /** Intended Outcome */
-            intended_outcome: string | null;
             /** Name */
             name: string;
+            /** Purpose */
+            purpose: string | null;
             /** Responsible Lead Id */
             responsible_lead_id: string | null;
             /** Review Frequency */
@@ -2594,12 +2552,10 @@ export interface components {
             accountable_owner_id?: string | null;
             /** Archived At */
             archived_at?: Instant | null;
-            /** Description */
-            description?: string | null;
-            /** Intended Outcome */
-            intended_outcome?: string | null;
             /** Name */
             name?: string | null;
+            /** Purpose */
+            purpose?: string | null;
             /** Responsible Lead Id */
             responsible_lead_id?: string | null;
             /** Review Frequency */
@@ -3038,10 +2994,10 @@ export interface components {
             amount?: number | null;
             /** Completed At */
             completed_at?: Instant | null;
+            /** Context */
+            context?: string | null;
             /** Medication Id */
             medication_id?: string | null;
-            /** Notes */
-            notes?: string | null;
             /** Routine Id */
             routine_id?: string | null;
             /** Scheduled Date */
@@ -3388,8 +3344,6 @@ export interface components {
             name: string;
             /** Network */
             network?: string | null;
-            /** Notes */
-            notes?: string | null;
             /** Organization Id */
             organization_id?: string | null;
             /** Phone */
@@ -3429,8 +3383,6 @@ export interface components {
             name: string;
             /** Network */
             network: string | null;
-            /** Notes */
-            notes: string | null;
             /** Organization Id */
             organization_id: string | null;
             /** Phone */
@@ -3464,8 +3416,6 @@ export interface components {
             name?: string | null;
             /** Network */
             network?: string | null;
-            /** Notes */
-            notes?: string | null;
             /** Organization Id */
             organization_id?: string | null;
             /** Phone */
@@ -3480,66 +3430,6 @@ export interface components {
             rx_pcn?: string | null;
             /** Status */
             status?: ("active" | "inactive") | null;
-        };
-        /** InteractionCreate */
-        InteractionCreate: {
-            /** Kind */
-            kind: string;
-            /**
-             * Occurred At
-             * Format: date-time
-             */
-            occurred_at: Instant;
-            /**
-             * Person Id
-             * Format: uuid
-             */
-            person_id: string;
-            /** Summary */
-            summary?: string | null;
-        };
-        /** InteractionRead */
-        InteractionRead: {
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: Instant;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Kind */
-            kind: string;
-            /**
-             * Occurred At
-             * Format: date-time
-             */
-            occurred_at: Instant;
-            /**
-             * Person Id
-             * Format: uuid
-             */
-            person_id: string;
-            /** Summary */
-            summary: string | null;
-            /**
-             * Updated At
-             * Format: date-time
-             */
-            updated_at: Instant;
-        };
-        /** InteractionUpdate */
-        InteractionUpdate: {
-            /** Kind */
-            kind?: string | null;
-            /** Occurred At */
-            occurred_at?: Instant | null;
-            /** Person Id */
-            person_id?: string | null;
-            /** Summary */
-            summary?: string | null;
         };
         /**
          * LabelledAddress
@@ -3569,14 +3459,14 @@ export interface components {
             city?: string | null;
             /** Country */
             country?: string | null;
+            /** Description */
+            description?: string | null;
             /** Latitude */
             latitude?: number | null;
             /** Longitude */
             longitude?: number | null;
             /** Name */
             name: string;
-            /** Notes */
-            notes?: string | null;
             /** Postcode */
             postcode?: string | null;
             /**
@@ -3604,6 +3494,8 @@ export interface components {
              * Format: date-time
              */
             created_at: Instant;
+            /** Description */
+            description: string | null;
             /** Geo Dirty At */
             geo_dirty_at: Instant | null;
             /**
@@ -3617,8 +3509,6 @@ export interface components {
             longitude: number | null;
             /** Name */
             name: string;
-            /** Notes */
-            notes: string | null;
             /** Postcode */
             postcode: string | null;
             /** Radius M */
@@ -3643,14 +3533,14 @@ export interface components {
             city?: string | null;
             /** Country */
             country?: string | null;
+            /** Description */
+            description?: string | null;
             /** Latitude */
             latitude?: number | null;
             /** Longitude */
             longitude?: number | null;
             /** Name */
             name?: string | null;
-            /** Notes */
-            notes?: string | null;
             /** Postcode */
             postcode?: string | null;
             /** Radius M */
@@ -3746,6 +3636,8 @@ export interface components {
         };
         /** MedicationCreate */
         MedicationCreate: {
+            /** Adjustments */
+            adjustments?: string | null;
             /** Brand */
             brand?: string | null;
             /** Instructions */
@@ -3758,8 +3650,6 @@ export interface components {
             med_type: "prescription" | "otc" | "supplement";
             /** Name */
             name: string;
-            /** Notes */
-            notes?: string | null;
             /** Pharmacy Id */
             pharmacy_id?: string | null;
             /** Prescriber Id */
@@ -3771,6 +3661,8 @@ export interface components {
         };
         /** MedicationRead */
         MedicationRead: {
+            /** Adjustments */
+            adjustments: string | null;
             /** Brand */
             brand: string | null;
             /**
@@ -3792,8 +3684,6 @@ export interface components {
             med_type: "prescription" | "otc" | "supplement";
             /** Name */
             name: string;
-            /** Notes */
-            notes: string | null;
             /** Pharmacy Id */
             pharmacy_id: string | null;
             /** Prescriber Id */
@@ -3810,6 +3700,8 @@ export interface components {
         };
         /** MedicationUpdate */
         MedicationUpdate: {
+            /** Adjustments */
+            adjustments?: string | null;
             /** Brand */
             brand?: string | null;
             /** Instructions */
@@ -3818,8 +3710,6 @@ export interface components {
             med_type?: ("prescription" | "otc" | "supplement") | null;
             /** Name */
             name?: string | null;
-            /** Notes */
-            notes?: string | null;
             /** Pharmacy Id */
             pharmacy_id?: string | null;
             /** Prescriber Id */
@@ -3872,12 +3762,12 @@ export interface components {
             measurement_frequency?: ("daily" | "weekly" | "monthly" | "quarterly" | "yearly") | null;
             /** Name */
             name: string;
-            /** Notes */
-            notes?: string | null;
             /** Reference Max */
             reference_max?: number | null;
             /** Reference Min */
             reference_min?: number | null;
+            /** Scale */
+            scale?: string | null;
             /**
              * Source
              * @default manual
@@ -3889,13 +3779,13 @@ export interface components {
         };
         /** MetricEntryCreate */
         MetricEntryCreate: {
+            /** Context */
+            context?: string | null;
             /**
              * Metric Id
              * Format: uuid
              */
             metric_id: string;
-            /** Notes */
-            notes?: string | null;
             /**
              * Recorded At
              * Format: date-time
@@ -3906,6 +3796,8 @@ export interface components {
         };
         /** MetricEntryRead */
         MetricEntryRead: {
+            /** Context */
+            context: string | null;
             /**
              * Created At
              * Format: date-time
@@ -3921,8 +3813,6 @@ export interface components {
              * Format: uuid
              */
             metric_id: string;
-            /** Notes */
-            notes: string | null;
             /**
              * Recorded At
              * Format: date-time
@@ -3938,8 +3828,8 @@ export interface components {
         };
         /** MetricEntryUpdate */
         MetricEntryUpdate: {
-            /** Notes */
-            notes?: string | null;
+            /** Context */
+            context?: string | null;
             /** Recorded At */
             recorded_at?: Instant | null;
             /** Value */
@@ -3975,12 +3865,12 @@ export interface components {
             measurement_frequency: ("daily" | "weekly" | "monthly" | "quarterly" | "yearly") | null;
             /** Name */
             name: string;
-            /** Notes */
-            notes: string | null;
             /** Reference Max */
             reference_max: number | null;
             /** Reference Min */
             reference_min: number | null;
+            /** Scale */
+            scale: string | null;
             /**
              * Source
              * @enum {string}
@@ -4008,12 +3898,12 @@ export interface components {
             measurement_frequency?: ("daily" | "weekly" | "monthly" | "quarterly" | "yearly") | null;
             /** Name */
             name?: string | null;
-            /** Notes */
-            notes?: string | null;
             /** Reference Max */
             reference_max?: number | null;
             /** Reference Min */
             reference_min?: number | null;
+            /** Scale */
+            scale?: string | null;
             /** Source */
             source?: ("manual" | "derived") | null;
             /** Unit */
@@ -4039,11 +3929,6 @@ export interface components {
             links: components["schemas"]["EntityRef"][];
             /** Mood */
             mood?: string | null;
-            /**
-             * Note Type
-             * @default note
-             */
-            note_type: string;
             /**
              * Tags
              * @default []
@@ -4108,8 +3993,6 @@ export interface components {
             links: components["schemas"]["EntityRef"][];
             /** Mood */
             mood: string | null;
-            /** Note Type */
-            note_type: string;
             /** Tags */
             tags: string[];
             /** Title */
@@ -4134,8 +4017,6 @@ export interface components {
             links?: components["schemas"]["EntityRef"][] | null;
             /** Mood */
             mood?: string | null;
-            /** Note Type */
-            note_type?: string | null;
             /** Tags */
             tags?: string[] | null;
             /** Title */
@@ -4170,8 +4051,6 @@ export interface components {
             industry?: string | null;
             /** Name */
             name: string;
-            /** Notes */
-            notes?: string | null;
             /** Org Type */
             org_type?: ("employer" | "client" | "vendor" | "partner" | "nonprofit" | "school" | "government" | "community" | "other") | null;
             /** Phone */
@@ -4217,8 +4096,6 @@ export interface components {
             industry: string | null;
             /** Name */
             name: string;
-            /** Notes */
-            notes: string | null;
             /** Org Type */
             org_type: ("employer" | "client" | "vendor" | "partner" | "nonprofit" | "school" | "government" | "community" | "other") | null;
             /** Phone */
@@ -4258,8 +4135,6 @@ export interface components {
             industry?: string | null;
             /** Name */
             name?: string | null;
-            /** Notes */
-            notes?: string | null;
             /** Org Type */
             org_type?: ("employer" | "client" | "vendor" | "partner" | "nonprofit" | "school" | "government" | "community" | "other") | null;
             /** Phone */
@@ -4612,12 +4487,8 @@ export interface components {
             area_id?: string | null;
             /** Category */
             category?: ("gastrointestinal" | "cardiovascular" | "dermatologic" | "musculoskeletal" | "urologic" | "auditory" | "mental_health" | "other") | null;
-            /** Description */
-            description?: string | null;
             /** Ended Date */
             ended_date?: CalendarDay | null;
-            /** Intended Outcome */
-            intended_outcome?: string | null;
             /**
              * Involves
              * @default []
@@ -4625,6 +4496,8 @@ export interface components {
             involves: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy")[];
             /** Name */
             name: string;
+            /** Purpose */
+            purpose?: string | null;
             /** Reporting Cadence */
             reporting_cadence?: string | null;
             /** Responsible Lead Id */
@@ -4653,8 +4526,6 @@ export interface components {
              * Format: date-time
              */
             created_at: Instant;
-            /** Description */
-            description: string | null;
             /** Ended Date */
             ended_date: CalendarDay | null;
             /**
@@ -4662,12 +4533,12 @@ export interface components {
              * Format: uuid
              */
             id: string;
-            /** Intended Outcome */
-            intended_outcome: string | null;
             /** Involves */
             involves: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy")[];
             /** Name */
             name: string;
+            /** Purpose */
+            purpose: string | null;
             /** Reporting Cadence */
             reporting_cadence: string | null;
             /** Responsible Lead Id */
@@ -4695,16 +4566,14 @@ export interface components {
             area_id?: string | null;
             /** Category */
             category?: ("gastrointestinal" | "cardiovascular" | "dermatologic" | "musculoskeletal" | "urologic" | "auditory" | "mental_health" | "other") | null;
-            /** Description */
-            description?: string | null;
             /** Ended Date */
             ended_date?: CalendarDay | null;
-            /** Intended Outcome */
-            intended_outcome?: string | null;
             /** Involves */
             involves?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy")[] | null;
             /** Name */
             name?: string | null;
+            /** Purpose */
+            purpose?: string | null;
             /** Reporting Cadence */
             reporting_cadence?: string | null;
             /** Responsible Lead Id */
@@ -4720,10 +4589,6 @@ export interface components {
         ProjectCreate: {
             /** Accountable Owner Id */
             accountable_owner_id?: string | null;
-            /** Description */
-            description?: string | null;
-            /** Intended Outcome */
-            intended_outcome?: string | null;
             /** Last Activity Date */
             last_activity_date?: CalendarDay | null;
             /** Name */
@@ -4741,6 +4606,8 @@ export interface components {
              * Format: uuid
              */
             program_id: string;
+            /** Purpose */
+            purpose?: string | null;
             /** Responsible Lead Id */
             responsible_lead_id?: string | null;
             /** Start Date */
@@ -4763,15 +4630,11 @@ export interface components {
              * Format: date-time
              */
             created_at: Instant;
-            /** Description */
-            description: string | null;
             /**
              * Id
              * Format: uuid
              */
             id: string;
-            /** Intended Outcome */
-            intended_outcome: string | null;
             /** Last Activity Date */
             last_activity_date: CalendarDay | null;
             /** Name */
@@ -4788,6 +4651,8 @@ export interface components {
              * Format: uuid
              */
             program_id: string;
+            /** Purpose */
+            purpose: string | null;
             /** Responsible Lead Id */
             responsible_lead_id: string | null;
             /** Start Date */
@@ -4809,10 +4674,6 @@ export interface components {
         ProjectUpdate: {
             /** Accountable Owner Id */
             accountable_owner_id?: string | null;
-            /** Description */
-            description?: string | null;
-            /** Intended Outcome */
-            intended_outcome?: string | null;
             /** Last Activity Date */
             last_activity_date?: CalendarDay | null;
             /** Name */
@@ -4823,6 +4684,8 @@ export interface components {
             priority?: ("low" | "medium" | "high" | "urgent") | null;
             /** Program Id */
             program_id?: string | null;
+            /** Purpose */
+            purpose?: string | null;
             /** Responsible Lead Id */
             responsible_lead_id?: string | null;
             /** Start Date */
@@ -4855,18 +4718,16 @@ export interface components {
         };
         /** ProtocolCreate */
         ProtocolCreate: {
+            /** Adjustments */
+            adjustments?: string | null;
             /** Category */
             category?: string | null;
             /** Duration */
             duration?: string | null;
             /** End Date */
             end_date?: CalendarDay | null;
-            /** Intended Outcome */
-            intended_outcome?: string | null;
             /** Name */
             name: string;
-            /** Notes */
-            notes?: string | null;
             /**
              * Paused
              * @default false
@@ -4876,11 +4737,15 @@ export interface components {
             program_id?: string | null;
             /** Provider Id */
             provider_id?: string | null;
+            /** Purpose */
+            purpose?: string | null;
             /** Start Date */
             start_date?: CalendarDay | null;
         };
         /** ProtocolRead */
         ProtocolRead: {
+            /** Adjustments */
+            adjustments: string | null;
             /** Category */
             category: string | null;
             /**
@@ -4897,18 +4762,16 @@ export interface components {
              * Format: uuid
              */
             id: string;
-            /** Intended Outcome */
-            intended_outcome: string | null;
             /** Name */
             name: string;
-            /** Notes */
-            notes: string | null;
             /** Paused */
             paused: boolean;
             /** Program Id */
             program_id: string | null;
             /** Provider Id */
             provider_id: string | null;
+            /** Purpose */
+            purpose: string | null;
             /** Start Date */
             start_date: CalendarDay | null;
             /**
@@ -4919,24 +4782,24 @@ export interface components {
         };
         /** ProtocolUpdate */
         ProtocolUpdate: {
+            /** Adjustments */
+            adjustments?: string | null;
             /** Category */
             category?: string | null;
             /** Duration */
             duration?: string | null;
             /** End Date */
             end_date?: CalendarDay | null;
-            /** Intended Outcome */
-            intended_outcome?: string | null;
             /** Name */
             name?: string | null;
-            /** Notes */
-            notes?: string | null;
             /** Paused */
             paused?: boolean | null;
             /** Program Id */
             program_id?: string | null;
             /** Provider Id */
             provider_id?: string | null;
+            /** Purpose */
+            purpose?: string | null;
             /** Start Date */
             start_date?: CalendarDay | null;
         };
@@ -5367,8 +5230,6 @@ export interface components {
             medication_id?: string | null;
             /** Name */
             name?: string | null;
-            /** Notes */
-            notes?: string | null;
             /**
              * Preferred Days
              * @default []
@@ -5383,6 +5244,8 @@ export interface components {
              * Format: uuid
              */
             protocol_id: string;
+            /** Rationale */
+            rationale?: string | null;
             /** Responsible Id */
             responsible_id?: string | null;
             /**
@@ -5419,10 +5282,10 @@ export interface components {
             amount?: number | null;
             /** Completed At */
             completed_at?: Instant | null;
+            /** Context */
+            context?: string | null;
             /** Medication Id */
             medication_id?: string | null;
-            /** Notes */
-            notes?: string | null;
             /** Routine Id */
             routine_id?: string | null;
             /**
@@ -5452,6 +5315,8 @@ export interface components {
             amount: number | null;
             /** Completed At */
             completed_at: Instant | null;
+            /** Context */
+            context: string | null;
             /**
              * Created At
              * Format: date-time
@@ -5464,8 +5329,6 @@ export interface components {
             id: string;
             /** Medication Id */
             medication_id: string | null;
-            /** Notes */
-            notes: string | null;
             /** Routine Id */
             routine_id: string | null;
             /**
@@ -5496,10 +5359,10 @@ export interface components {
             amount?: number | null;
             /** Completed At */
             completed_at?: Instant | null;
+            /** Context */
+            context?: string | null;
             /** Medication Id */
             medication_id?: string | null;
-            /** Notes */
-            notes?: string | null;
             /** Routine Id */
             routine_id?: string | null;
             /** Scheduled Date */
@@ -5541,8 +5404,6 @@ export interface components {
             medication_id: string | null;
             /** Name */
             name: string | null;
-            /** Notes */
-            notes: string | null;
             /** Preferred Days */
             preferred_days: string[];
             /** Preferred Time */
@@ -5554,6 +5415,8 @@ export interface components {
              * Format: uuid
              */
             protocol_id: string;
+            /** Rationale */
+            rationale: string | null;
             /** Responsible Id */
             responsible_id: string | null;
             /** Sort Order */
@@ -5597,8 +5460,6 @@ export interface components {
             medication_id?: string | null;
             /** Name */
             name?: string | null;
-            /** Notes */
-            notes?: string | null;
             /** Preferred Days */
             preferred_days?: string[] | null;
             /** Preferred Time */
@@ -5607,6 +5468,8 @@ export interface components {
             program_id?: string | null;
             /** Protocol Id */
             protocol_id?: string | null;
+            /** Rationale */
+            rationale?: string | null;
             /** Responsible Id */
             responsible_id?: string | null;
             /** Sort Order */
@@ -5717,8 +5580,6 @@ export interface components {
             blocked_by_task_id?: string | null;
             /** Completed At */
             completed_at?: Instant | null;
-            /** Context */
-            context?: string | null;
             /** Description */
             description?: string | null;
             /** Due Date */
@@ -5794,8 +5655,6 @@ export interface components {
             claimed_by_id?: string | null;
             /** Completed At */
             completed_at: Instant | null;
-            /** Context */
-            context: string | null;
             /**
              * Created At
              * Format: date-time
@@ -5858,8 +5717,6 @@ export interface components {
             assignee_id?: string | null;
             /** Blocked By Task Id */
             blocked_by_task_id?: string | null;
-            /** Context */
-            context?: string | null;
             /** Description */
             description?: string | null;
             /** Due Date */
@@ -5954,6 +5811,21 @@ export interface components {
              * Format: uuid
              */
             visit_id: string;
+        };
+        /** WhiteboardRead */
+        WhiteboardRead: {
+            /** Content */
+            content: string;
+            /** Updated At */
+            updated_at?: Instant | null;
+        };
+        /** WhiteboardWrite */
+        WhiteboardWrite: {
+            /**
+             * Content
+             * @default
+             */
+            content: string;
         };
     };
     responses: never;
@@ -7697,154 +7569,6 @@ export interface operations {
             };
         };
     };
-    interactions_list: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InteractionRead"][];
-                };
-            };
-        };
-    };
-    interactions_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["InteractionCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InteractionRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    interactions_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InteractionRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    interactions_delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    interactions_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["InteractionUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InteractionRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     location_track: {
         parameters: {
             query?: {
@@ -8903,12 +8627,10 @@ export interface operations {
             query?: {
                 entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
                 entity_id?: string | null;
-                note_type?: string | null;
                 linked_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
                 linked_id?: string | null;
                 year?: number | null;
                 tag?: string | null;
-                no_tag?: string[] | null;
             };
             header?: never;
             path?: never;
@@ -8973,7 +8695,8 @@ export interface operations {
         parameters: {
             query?: {
                 tag?: string | null;
-                no_tag?: string[] | null;
+                entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+                entity_id?: string | null;
             };
             header?: never;
             path?: never;
@@ -9741,37 +9464,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EventRead"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_person_interactions_people__person_id__interactions_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                person_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InteractionRead"][];
                 };
             };
             /** @description Validation Error */
@@ -11892,7 +11584,6 @@ export interface operations {
                 area_id?: string | null;
                 program_id?: string | null;
                 project_id?: string | null;
-                context?: string | null;
                 include_closed?: boolean;
             };
             header?: never;
@@ -12193,6 +11884,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Presence"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    whiteboard_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WhiteboardRead"];
+                };
+            };
+        };
+    };
+    whiteboard_set: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WhiteboardWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WhiteboardRead"];
                 };
             };
             /** @description Validation Error */

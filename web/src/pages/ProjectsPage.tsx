@@ -8,7 +8,7 @@ import { deriveListConfig, useListFilter } from "@/lib/listFilter"
 import { cn } from "@/lib/utils"
 import { PROJECT_FIELDS } from "@/services/api/fields"
 import { areas, programs, projects } from "@/services/api/hooks"
-import { isTerminal } from "@/services/api/lifecycle"
+import { byLifecycle, isTerminal } from "@/services/api/lifecycle"
 import type { Area, Program, Project } from "@/services/api/types"
 
 /**
@@ -62,7 +62,9 @@ export function ProjectsPage() {
         key: p.id,
         label: p.name,
         area: (p.area_id && areaName.get(p.area_id)) || "No area",
-        items: byProgram.get(p.id) ?? [],
+        // Live work first inside each program; the toolbar's sort still orders
+        // within a phase (`byLifecycle` is stable).
+        items: byLifecycle("project", byProgram.get(p.id) ?? []),
       }))
       .sort(
         (a, b) => a.area.localeCompare(b.area) || a.label.localeCompare(b.label),

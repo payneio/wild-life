@@ -82,7 +82,8 @@ class Routine(UUIDPrimaryKey, TimestampMixin, Base):
     )  # active/paused/archived
     start_date: Mapped[date | None] = mapped_column(Date)
     end_date: Mapped[date | None] = mapped_column(Date)
-    notes: Mapped[str | None] = mapped_column(Text)
+    # Why this routine exists, and who prescribed it.
+    rationale: Mapped[str | None] = mapped_column(Text)
 
     # Legacy free-text cadence — superseded by the structured cadence above, kept
     # until the best-effort migration lands, then dropped.
@@ -138,7 +139,8 @@ class RoutineInstance(UUIDPrimaryKey, TimestampMixin, Base):
     ad_hoc: Mapped[bool] = mapped_column(
         Boolean, server_default="false", nullable=False
     )  # True = extra/PRN/backdated/un-prescribed intake (not a scheduled check-off)
-    notes: Mapped[str | None] = mapped_column(Text)
+    # Why this occurrence went the way it did (skipped, doubled, taken late).
+    context: Mapped[str | None] = mapped_column(Text)
 
     __table_args__ = (
         # Scheduled check-offs are unique per (routine, day, slot); ad-hoc intakes aren't.

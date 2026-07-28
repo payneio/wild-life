@@ -36,9 +36,6 @@ export function OrganizationDetail({
       {/* The people-affiliation graph is an earned relationship view. */}
       <OrganizationExtra entity={entity} />
 
-      <RecordSection>
-        <F.Textarea field="notes" label="Notes" />
-      </RecordSection>
     </Record>
   )
 }

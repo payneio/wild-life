@@ -100,7 +100,6 @@ def _spawn_next_occurrence(task: Task) -> Task | None:
         scheduled_date=nxt if task.scheduled_date else None,
         due_date=(task.due_date + timedelta(days=shift)) if task.due_date else None,
         estimated_minutes=task.estimated_minutes,
-        context=task.context,
         recurrence=task.recurrence,
         acceptance_required=task.acceptance_required,
     )
@@ -168,7 +167,6 @@ async def list_tasks(
     area_id: UUID | None = None,
     program_id: UUID | None = None,
     project_id: UUID | None = None,
-    context: str | None = None,
     include_closed: bool = True,
 ) -> list[Task]:
     stmt = select(Task)
@@ -185,8 +183,6 @@ async def list_tasks(
         stmt = stmt.where(tasks_rooted_at("program", program_id))
     if project_id is not None:
         stmt = stmt.where(Task.project_id == project_id)
-    if context is not None:
-        stmt = stmt.where(Task.context == context)
     if queue == "personal":
         # Personal execution queue excludes delegated work.
         stmt = stmt.where(Task.status.notin_(_DELEGATED_STATUSES | _CLOSED_STATUSES))

@@ -27,7 +27,9 @@ def upgrade() -> None:
         sa.Column("source", sa.Text(), server_default="manual", nullable=False),
         schema="wild_life",
     )
-    op.add_column("metrics", sa.Column("derivation", sa.Text(), nullable=True), schema="wild_life")
+    op.add_column(
+        "metrics", sa.Column("derivation", sa.Text(), nullable=True), schema="wild_life"
+    )
 
 
 def downgrade() -> None:

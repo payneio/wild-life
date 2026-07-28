@@ -1,4 +1,4 @@
-"""Routes for people + interactions + contact photos."""
+"""Routes for people + contact photos."""
 
 from pathlib import Path
 from uuid import UUID
@@ -12,17 +12,13 @@ from fastapi import (
     status,
 )
 from fastapi.responses import Response
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wild_life.config import settings
 from wild_life.db.session import get_session
-from wild_life.models.people import Interaction, Person
+from wild_life.models.people import Person
 from wild_life.routers.crud import crud_router
 from wild_life.schemas.people import (
-    InteractionCreate,
-    InteractionRead,
-    InteractionUpdate,
     PersonCreate,
     PersonRead,
     PersonUpdate,
@@ -60,34 +56,8 @@ router.include_router(
         order_by=Person.name,
     )
 )
-router.include_router(
-    crud_router(
-        prefix="/interactions",
-        tag="people",
-        model=Interaction,
-        create_schema=InteractionCreate,
-        read_schema=InteractionRead,
-        update_schema=InteractionUpdate,
-        order_by=Interaction.occurred_at.desc(),
-    )
-)
 
 nested = APIRouter(prefix="/people", tags=["people"])
-
-
-@nested.get("/{person_id}/interactions", response_model=list[InteractionRead])
-async def list_person_interactions(
-    person_id: UUID, session: AsyncSession = Depends(get_session)
-) -> list[Interaction]:
-    person = await session.get(Person, person_id)
-    if person is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Person not found")
-    result = await session.execute(
-        select(Interaction)
-        .where(Interaction.person_id == person_id)
-        .order_by(Interaction.occurred_at.desc())
-    )
-    return list(result.scalars().all())
 
 
 @nested.get("/{person_id}/photo")

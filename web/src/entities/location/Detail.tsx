@@ -61,7 +61,7 @@ export function LocationDetail({
       </RecordSection>
 
       <RecordSection>
-        <F.Textarea field="notes" label="Notes" />
+        <F.Textarea field="description" label="Description" />
       </RecordSection>
     </Record>
   )

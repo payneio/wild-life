@@ -10,13 +10,12 @@ from fastapi import (
     Depends,
     File,
     HTTPException,
-    Query,
     Request,
     UploadFile,
     status,
 )
 from fastapi.responses import Response
-from sqlalchemy import delete, func, select
+from sqlalchemy import Date, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wild_life.config import settings
@@ -31,6 +30,12 @@ from wild_life.schemas.notes import (
     NoteRead,
     NoteUpdate,
 )
+
+# When a note sits in time. `entry_date` is what you meant; `created_at` is when
+# you typed it. The frontend's `groupNotesByDay` already falls back this way, so
+# filtering on the raw column instead would make 14 undated notes belong to no
+# year at all — invisible in a stream that claims to show everything.
+_WHEN = func.coalesce(Note.entry_date, func.cast(Note.created_at, Date))
 
 router = APIRouter(prefix="/notes", tags=["notes"])
 
@@ -120,26 +125,20 @@ async def list_notes(
     session: AsyncSession = Depends(get_session),
     entity_type: EntityType | None = None,
     entity_id: UUID | None = None,
-    note_type: str | None = None,
     linked_type: EntityType | None = None,
     linked_id: UUID | None = None,
     year: int | None = None,
     tag: str | None = None,
-    no_tag: list[str] | None = Query(None),
 ) -> list[NoteRead]:
     stmt = select(Note)
     if entity_type is not None:
         stmt = stmt.where(Note.entity_type == entity_type)
     if entity_id is not None:
         stmt = stmt.where(Note.entity_id == entity_id)
-    if note_type is not None:
-        stmt = stmt.where(Note.note_type == note_type)
     if year is not None:
-        stmt = stmt.where(Note.entry_date.between(date(year, 1, 1), date(year, 12, 31)))
+        stmt = stmt.where(_WHEN.between(date(year, 1, 1), date(year, 12, 31)))
     if tag is not None:
         stmt = stmt.where(Note.tags.contains([tag]))
-    for t in no_tag or []:
-        stmt = stmt.where(~Note.tags.contains([t]))
     if linked_type is not None and linked_id is not None:
         stmt = stmt.where(
             Note.id.in_(
@@ -149,7 +148,7 @@ async def list_notes(
                 )
             )
         )
-    stmt = stmt.order_by(Note.entry_date.desc().nulls_last(), Note.updated_at.desc())
+    stmt = stmt.order_by(_WHEN.desc(), Note.updated_at.desc())
     stmt, limit, offset = apply_query(stmt, Note, request.query_params)
     if offset is not None:
         stmt = stmt.offset(offset)
@@ -165,18 +164,24 @@ async def list_notes(
 async def notes_calendar(
     session: AsyncSession = Depends(get_session),
     tag: str | None = None,
-    no_tag: list[str] | None = Query(None),
+    entity_type: EntityType | None = None,
+    entity_id: UUID | None = None,
 ) -> list[dict]:
-    """Per-(year, month) entry counts for the journal's year/month navigation."""
-    y = func.extract("year", Note.entry_date)
-    m = func.extract("month", Note.entry_date)
-    stmt = select(y.label("year"), m.label("month"), func.count().label("count")).where(
-        Note.entry_date.is_not(None)
-    )
+    """Per-(year, month) entry counts for a log's year/month navigation.
+
+    Scoped by root the same way ``list_notes`` is, so the rail counts exactly the
+    rows the stream shows — the journal passes the self Person, any other object's
+    log passes itself.
+    """
+    y = func.extract("year", _WHEN)
+    m = func.extract("month", _WHEN)
+    stmt = select(y.label("year"), m.label("month"), func.count().label("count"))
     if tag is not None:
         stmt = stmt.where(Note.tags.contains([tag]))
-    for t in no_tag or []:
-        stmt = stmt.where(~Note.tags.contains([t]))
+    if entity_type is not None:
+        stmt = stmt.where(Note.entity_type == entity_type)
+    if entity_id is not None:
+        stmt = stmt.where(Note.entity_id == entity_id)
     stmt = stmt.group_by(y, m).order_by(y.desc(), m.desc())
     rows = (await session.execute(stmt)).all()
     return [

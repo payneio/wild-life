@@ -114,7 +114,6 @@ export function TaskDetail({ entity, onClose }: { entity: Entity; onClose: () =>
           </div>
         </div>
         <F.Number field="estimated_minutes" label="Estimate (min)" placeholder="—" />
-        <F.Text field="context" label="Context" placeholder="@home, @calls" />
         <F.Recurrence field="recurrence" label="Recurrence" />
       </RecordSection>
 

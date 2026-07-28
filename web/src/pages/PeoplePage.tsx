@@ -32,20 +32,18 @@ import {
   Button,
   Card,
   EmptyState,
-  Field,
   Input,
   Modal,
   Select,
 } from "@/components/ui/primitives"
 import { usePersistentState } from "@/lib/persistentState"
 import { formatImportantDate } from "@/lib/date"
-import { formatDate, formatDateTime } from "@/lib/utils"
+import { formatDate } from "@/lib/utils"
 import { apiClient } from "@/services/api/client"
 import type { Body } from "@/services/api/crud"
 import {
   commitments,
   delegations,
-  interactions,
   people,
   tags,
   tasks,
@@ -54,7 +52,6 @@ import {
   useDetachTag,
   useEntityTags,
   usePersonEvents,
-  usePersonInteractions,
   useUploadPersonPhoto,
   requests,
 } from "@/services/api/hooks"
@@ -241,68 +238,6 @@ function TagEditor({ personId }: { personId: string }) {
         >
           <Plus size={11} /> tag
         </button>
-      )}
-    </div>
-  )
-}
-
-// --- interactions -----------------------------------------------------------
-function InteractionSection({ personId }: { personId: string }) {
-  const { data } = usePersonInteractions(personId)
-  const create = interactions.useCreate()
-  const [kind, setKind] = useState("call")
-  const [summary, setSummary] = useState("")
-  const list = data ?? []
-
-  function log() {
-    create.mutate({
-      person_id: personId,
-      kind,
-      summary: summary || null,
-      occurred_at: new Date().toISOString(),
-    })
-    setSummary("")
-  }
-
-  return (
-    <div className="space-y-2">
-      <div className="flex items-end gap-2">
-        <Field label="Log interaction" className="w-32">
-          <Select value={kind} onChange={(e) => setKind(e.target.value)}>
-            {["call", "email", "meeting", "note"].map((k) => (
-              <option key={k} value={k}>
-                {k}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        <Input
-          className="flex-1"
-          placeholder="summary…"
-          value={summary}
-          onChange={(e) => setSummary(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && log()}
-        />
-        <Button variant="secondary" onClick={log}>
-          Log
-        </Button>
-      </div>
-      {list.length === 0 ? (
-        <p className="text-sm text-slate-400">No interactions logged.</p>
-      ) : (
-        <ul className="space-y-1.5">
-          {list.map((i) => (
-            <li key={i.id} className="rounded-lg border border-slate-100 p-2 text-sm">
-              <div className="flex justify-between">
-                <span className="font-medium capitalize">{i.kind}</span>
-                <span className="text-xs text-slate-400">
-                  {formatDateTime(i.occurred_at)}
-                </span>
-              </div>
-              {i.summary && <p className="text-slate-600">{i.summary}</p>}
-            </li>
-          ))}
-        </ul>
       )}
     </div>
   )
@@ -628,7 +563,7 @@ function PersonDetail({
           <RelatedPanel
             parent={person}
             parentType="person"
-            spec={{ mode: "soft-backref", label: "Notes", type: "note" }}
+            spec={{ mode: "soft-backref", label: "Log", type: "note" }}
             targetDef={REGISTRY_BY_TYPE.note!}
           />
         </div>
@@ -636,10 +571,6 @@ function PersonDetail({
 
       <Section title="Organizations">
         <AffiliationsEditor personId={person.id} />
-      </Section>
-
-      <Section title="Interactions">
-        <InteractionSection personId={person.id} />
       </Section>
 
       <PersonEventsSection personId={person.id} />
