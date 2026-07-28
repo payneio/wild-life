@@ -1455,6 +1455,34 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/occurrences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Occurrences
+         * @description Everything happening in a window, stored or computed.
+         */
+        get: operations["occurrences_list"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete Occurrence
+         * @description Remove one occurrence, the following ones, or the whole series.
+         */
+        delete: operations["occurrences_delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Edit Occurrence
+         * @description Edit one occurrence, the following ones, or the whole series.
+         */
+        patch: operations["occurrences_edit"];
+        trace?: never;
+    };
     "/organizations": {
         parameters: {
             query?: never;
@@ -2767,6 +2795,45 @@ export interface components {
         Body_upload_person_photo_people__person_id__photo_post: {
             /** File */
             file: string;
+        };
+        /**
+         * CalendarRecordRead
+         * @description A moment's shared projection — the only part of it that can leave here.
+         *
+         *     Privacy is structural rather than a filter: a moment with no calendar record
+         *     has nothing to export, so the question is never "did the export query say
+         *     WHERE correctly" but "which moments were given one".
+         */
+        CalendarRecordRead: {
+            /**
+             * Attendees
+             * @default []
+             */
+            attendees: string[];
+            /** Cancelled At */
+            cancelled_at?: Instant | null;
+            /** External Ref */
+            external_ref?: string | null;
+            /**
+             * Invites Enabled
+             * @default false
+             */
+            invites_enabled: boolean;
+            /** Organizer */
+            organizer?: string | null;
+            /** Recurrence */
+            recurrence?: string | null;
+            /**
+             * Recurrence Exdates
+             * @default []
+             */
+            recurrence_exdates: string[];
+            /** Rsvp Sent Status */
+            rsvp_sent_status?: string | null;
+            /** Rsvp Status */
+            rsvp_status?: string | null;
+            /** Sequence */
+            sequence?: number | null;
         };
         /**
          * ChangeLogRead
@@ -4303,6 +4370,10 @@ export interface components {
              * @default []
              */
             links: components["schemas"]["MomentLinkRef"][];
+            /** Occurrence At */
+            occurrence_at?: Instant | null;
+            /** Rule Id */
+            rule_id?: string | null;
             /**
              * Source
              * @default authored
@@ -4398,6 +4469,10 @@ export interface components {
              * @default []
              */
             links: components["schemas"]["MomentLinkRef"][];
+            /** Occurrence At */
+            occurrence_at: Instant | null;
+            /** Rule Id */
+            rule_id: string | null;
             /**
              * Source
              * @enum {string}
@@ -4437,6 +4512,10 @@ export interface components {
             kind?: ("capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "work" | "completion" | "withdrawal" | "decision") | null;
             /** Links */
             links?: components["schemas"]["MomentLinkRef"][] | null;
+            /** Occurrence At */
+            occurrence_at?: Instant | null;
+            /** Rule Id */
+            rule_id?: string | null;
             /** Source */
             source?: ("authored" | "derived" | "imported") | null;
             /** Started At */
@@ -4556,20 +4635,77 @@ export interface components {
             /** Title */
             title?: string | null;
         };
-        /** OccurrenceEdit */
-        OccurrenceEdit: {
-            /** @default {} */
-            changes: components["schemas"]["EventUpdate"];
+        /**
+         * Occurrence
+         * @description One thing on the calendar, however it came to be there.
+         *
+         *     Three sources reach this one shape, which is the whole point of the read
+         *     path: a plain moment, a wire rule we could not translate and so expand as we
+         *     were given it, and a rule of our own projected forward. A client should not
+         *     have to know which — and before this it did, because it expanded RRULEs
+         *     itself.
+         */
+        Occurrence: {
             /**
-             * Occurrence Date
-             * Format: date-time
+             * All Day
+             * @default false
              */
-            occurrence_date: Instant;
+            all_day: boolean;
             /**
-             * Scope
+             * Body
+             * @default
+             */
+            body: string;
+            calendar?: components["schemas"]["CalendarRecordRead"] | null;
+            /** End At */
+            end_at?: Instant | null;
+            /**
+             * Kind
+             * @default occasion
              * @enum {string}
              */
-            scope: "this" | "following" | "all";
+            kind: "capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "work" | "completion" | "withdrawal" | "decision";
+            /**
+             * Links
+             * @default []
+             */
+            links: components["schemas"]["MomentLinkRef"][];
+            /** Moment Id */
+            moment_id?: string | null;
+            /**
+             * Occurrence At
+             * Format: date-time
+             */
+            occurrence_at: Instant;
+            /** Rule Id */
+            rule_id?: string | null;
+            /**
+             * Start At
+             * Format: date-time
+             */
+            start_at: Instant;
+            /** Title */
+            title?: string | null;
+            /** Withdrawn At */
+            withdrawn_at?: Instant | null;
+        };
+        /**
+         * OccurrenceChanges
+         * @description What an edit may set. Absent fields are left alone.
+         */
+        OccurrenceChanges: {
+            /** All Day */
+            all_day?: boolean | null;
+            /** Body */
+            body?: string | null;
+            /** End At */
+            end_at?: Instant | null;
+            /** Links */
+            links?: components["schemas"]["MomentLinkRef"][] | null;
+            /** Start At */
+            start_at?: Instant | null;
+            /** Title */
+            title?: string | null;
         };
         /** OrganizationCreate */
         OrganizationCreate: {
@@ -5767,6 +5903,8 @@ export interface components {
             days_of_week: ("mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun")[];
             /** End Date */
             end_date?: CalendarDay | null;
+            /** Expected Minutes */
+            expected_minutes?: number | null;
             /** Frequency */
             frequency?: string | null;
             /**
@@ -6007,6 +6145,8 @@ export interface components {
             days_of_week?: ("mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun")[] | null;
             /** End Date */
             end_date?: CalendarDay | null;
+            /** Expected Minutes */
+            expected_minutes?: number | null;
             /** Frequency */
             frequency?: string | null;
             /** Interval Days */
@@ -6349,6 +6489,37 @@ export interface components {
              * @default
              */
             content: string;
+        };
+        /** OccurrenceEdit */
+        wild_life__routers__calendar__OccurrenceEdit: {
+            /** @default {} */
+            changes: components["schemas"]["EventUpdate"];
+            /**
+             * Occurrence Date
+             * Format: date-time
+             */
+            occurrence_date: Instant;
+            /**
+             * Scope
+             * @enum {string}
+             */
+            scope: "this" | "following" | "all";
+        };
+        /** OccurrenceEdit */
+        wild_life__routers__occurrences__OccurrenceEdit: {
+            /** @default {} */
+            changes: components["schemas"]["OccurrenceChanges"];
+            /** Moment Id */
+            moment_id?: string | null;
+            /** Occurrence At */
+            occurrence_at?: Instant | null;
+            /** Rule Id */
+            rule_id?: string | null;
+            /**
+             * Scope
+             * @enum {string}
+             */
+            scope: "this" | "following" | "all";
         };
     };
     responses: never;
@@ -7580,7 +7751,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["OccurrenceEdit"];
+                "application/json": components["schemas"]["wild_life__routers__calendar__OccurrenceEdit"];
             };
         };
         responses: {
@@ -10152,6 +10323,108 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    occurrences_list: {
+        parameters: {
+            query: {
+                /** @description Window start (inclusive) */
+                since: Instant;
+                /** @description Window end (inclusive) */
+                until: Instant;
+                kind?: ("capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "work" | "completion" | "withdrawal" | "decision")[] | null;
+                linked_type?: string | null;
+                linked_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Occurrence"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    occurrences_delete: {
+        parameters: {
+            query: {
+                scope: "this" | "following" | "all";
+                rule_id?: string | null;
+                moment_id?: string | null;
+                occurrence_at?: Instant | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    occurrences_edit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["wild_life__routers__occurrences__OccurrenceEdit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Occurrence"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

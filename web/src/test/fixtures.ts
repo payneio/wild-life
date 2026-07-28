@@ -381,6 +381,10 @@ export const MOMENT: Moment = {
   withdrawn_at: null,
   withdrawal_reason: null,
   source_ref: null,
+  // Not part of a series: a moment only names a rule when it is that series'
+  // anchor, or an occurrence something happened to.
+  rule_id: null,
+  occurrence_at: null,
   links: [],
 }
 

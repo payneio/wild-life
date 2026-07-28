@@ -4,17 +4,22 @@ import { useQueryClient } from "@tanstack/react-query"
 import { DetailDrawer } from "@/components/DetailDrawer"
 import { RecurrenceScopeDialog } from "@/components/RecurrenceScopeDialog"
 import { EmptyState, Modal } from "@/components/ui/primitives"
-import { events } from "@/services/api/hooks"
+import { moments, useDeleteOccurrence } from "@/services/api/hooks"
 import { REGISTRY } from "@/services/api/registry"
-import { deleteOccurrence, type RecurrenceScope } from "@/services/calendar/recurrence"
+import type { RecurrenceScope } from "@/services/api/types"
 
 /**
- * Deep-linkable event detail on the calendar: `/calendar/:id`. Unlike the generic
- * a record (which now always opens full-page), an event opens in a slide-over
- * drawer so the calendar grid stays put. Recurring deletes route through the
- * this/following/all scope dialog instead of DetailView's whole-series delete.
- * `?occ=<iso>` carries the clicked occurrence's start; cold deep-links (Today,
- * Coming-up, push) fall back to the series master start.
+ * Deep-linkable occurrence detail on the calendar: `/calendar/:id`, where `:id`
+ * is a **moment**. Unlike a generic record (which always opens full-page), it
+ * opens in a slide-over so the calendar grid stays put.
+ *
+ * Only a stored occurrence reaches here. A projection has no row to address, and
+ * creating one just because someone clicked it is what "computed, never
+ * materialised" forbids — so the grid sends those to the series instead.
+ *
+ * `?occ=<iso>` carries the slot that was clicked, which is what a scoped delete
+ * names: an exception belonging to a series is withdrawn at its slot, not
+ * deleted as a row.
  */
 export function CalendarEventRoute() {
   const { id } = useParams()
@@ -22,9 +27,10 @@ export function CalendarEventRoute() {
   const occ = sp.get("occ")
   const navigate = useNavigate()
   const qc = useQueryClient()
-  const def = REGISTRY.event
-  const { data: event, isLoading, isError } = events.useGet(id)
-  const remove = events.useRemove()
+  const def = REGISTRY.moment
+  const { data: event, isLoading, isError } = moments.useGet(id)
+  const remove = moments.useRemove()
+  const removeOcc = useDeleteOccurrence()
   const [deleting, setDeleting] = useState(false)
 
   // Return to wherever the event was opened from (a person/condition timeline,
@@ -39,11 +45,12 @@ export function CalendarEventRoute() {
 
   const onDelete = () => {
     if (!event) return
-    if (event.recurrence) {
+    // Part of a series: ask how far the deletion reaches before doing anything.
+    if (event.rule_id) {
       setDeleting(true)
       return
     }
-    if (confirm("Delete this event?")) {
+    if (confirm("Delete this?")) {
       remove.mutate(event.id)
       close()
     }
@@ -51,7 +58,12 @@ export function CalendarEventRoute() {
 
   const applyDelete = async (scope: RecurrenceScope) => {
     if (!event) return
-    await deleteOccurrence(event.id, scope, occ ?? event.start_at)
+    await removeOcc.mutateAsync({
+      scope,
+      rule_id: event.rule_id,
+      moment_id: event.id,
+      occurrence_at: occ ?? event.occurrence_at ?? event.started_at,
+    })
     qc.invalidateQueries()
     setDeleting(false)
     close()
@@ -83,7 +95,7 @@ export function CalendarEventRoute() {
 
       {deleting && (
         <RecurrenceScopeDialog
-          title="Delete recurring event"
+          title="Delete recurring occurrence"
           confirmLabel="Delete"
           danger
           onChoose={applyDelete}

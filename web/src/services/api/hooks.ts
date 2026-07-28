@@ -32,6 +32,8 @@ import type {
   Moment,
   MomentKind,
   MomentRole,
+  Occurrence,
+  RecurrenceScope,
   Organization,
   Person,
   Program,
@@ -723,5 +725,84 @@ export function useDeletePersonPhoto() {
   return useMutation({
     mutationFn: (id: string) => apiClient.delete(`/people/${id}/photo`),
     onSuccess: () => invalidate("people"),
+  })
+}
+
+
+// --- the calendar: one read path, expanded server-side ----------------------
+/**
+ * Everything on the calendar in a window, whatever produced it.
+ *
+ * The browser used to hold an RRULE library and expand 74 series itself, which
+ * meant the calendar page was the only thing in the app that knew when a
+ * recurring meeting happened. The server answers now, from a plain moment, a
+ * wire rule it could not translate, or a rule of ours projected forward — and
+ * this hook cannot tell which, which is the point.
+ */
+export function useOccurrences(
+  range: { start?: string; end?: string },
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: ["moments", "occurrences", range.start ?? "", range.end ?? ""],
+    queryFn: () =>
+      apiClient.get<Occurrence[]>("/occurrences", {
+        since: range.start,
+        until: range.end,
+      }),
+    enabled: enabled && !!range.start && !!range.end,
+    placeholderData: keepPreviousData,
+  })
+}
+
+/** A projection has no id of its own; a slot does. */
+export const occurrenceKey = (o: Occurrence) =>
+  `${o.moment_id ?? o.rule_id}:${o.occurrence_at}`
+
+export interface OccurrenceChanges {
+  start_at?: string
+  end_at?: string | null
+  all_day?: boolean
+  title?: string | null
+  body?: string
+}
+
+/** Edit one occurrence, the following ones, or the whole series. */
+export function useEditOccurrence() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (v: {
+      scope: RecurrenceScope
+      rule_id?: string | null
+      moment_id?: string | null
+      occurrence_at?: string | null
+      changes: OccurrenceChanges
+    }) => apiClient.patch<Occurrence>("/occurrences", v),
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ["moments"] })
+      void qc.invalidateQueries({ queryKey: ["routines"] })
+    },
+  })
+}
+
+export function useDeleteOccurrence() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (v: {
+      scope: RecurrenceScope
+      rule_id?: string | null
+      moment_id?: string | null
+      occurrence_at?: string | null
+    }) => {
+      const q = new URLSearchParams({ scope: v.scope })
+      if (v.rule_id) q.set("rule_id", v.rule_id)
+      if (v.moment_id) q.set("moment_id", v.moment_id)
+      if (v.occurrence_at) q.set("occurrence_at", v.occurrence_at)
+      return apiClient.delete<void>(`/occurrences?${q.toString()}`)
+    },
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ["moments"] })
+      void qc.invalidateQueries({ queryKey: ["routines"] })
+    },
   })
 }

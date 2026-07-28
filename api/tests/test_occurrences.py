@@ -209,3 +209,143 @@ class TestTheWindowIsBounded:
         assert r.status_code == 200
         stamps = [o["start_at"] for o in r.json()]
         assert not stamps or max(stamps) < "2023"
+
+
+class TestScopedEditing:
+    """`this` / `following` / `all`, without the override bookkeeping.
+
+    `routers/calendar.py` needed ~200 lines: exclude the date from the master,
+    create a paired override row, seed its content from the master, re-parent
+    later overrides across a split. None of that is here, because an occurrence
+    that changed is simply a moment — a record rather than an absence plus a
+    restatement.
+    """
+
+    def edit(self, client: TestClient, headers: dict, **body) -> dict:
+        r = client.patch("/occurrences", json=body, headers=headers)
+        assert r.status_code == 200, r.text
+        return r.json()
+
+    def test_this_touches_one_and_leaves_the_rest(
+        self, client: TestClient, auth_headers: dict, require_db: None, cleanup: dict
+    ) -> None:
+        rule = make_rule(client, auth_headers, cleanup)
+        slot = occurrences(client, auth_headers)[1]["occurrence_at"]
+        moved = (datetime.fromisoformat(slot) + timedelta(hours=2)).isoformat()
+        self.edit(
+            client,
+            auth_headers,
+            scope="this",
+            rule_id=rule["id"],
+            occurrence_at=slot,
+            changes={"start_at": moved, "title": f"{MARK} weekly (moved)"},
+        )
+        found = occurrences(client, auth_headers)
+        cleanup["moments"] += [o["moment_id"] for o in found if o["moment_id"]]
+        assert len(found) == 4
+        touched = [o for o in found if o["occurrence_at"] == slot][0]
+        assert touched["start_at"][:16] == moved[:16]
+        assert [o for o in found if o["occurrence_at"] != slot][0]["title"].endswith(
+            "weekly"
+        )
+
+    def test_all_edits_the_rule_itself(
+        self, client: TestClient, auth_headers: dict, require_db: None, cleanup: dict
+    ) -> None:
+        rule = make_rule(client, auth_headers, cleanup)
+        self.edit(
+            client,
+            auth_headers,
+            scope="all",
+            rule_id=rule["id"],
+            changes={"title": f"{MARK} renamed"},
+        )
+        found = occurrences(client, auth_headers)
+        assert len(found) == 4
+        assert {o["title"] for o in found} == {f"{MARK} renamed"}
+
+    def test_following_splits_the_series_in_two(
+        self, client: TestClient, auth_headers: dict, require_db: None, cleanup: dict
+    ) -> None:
+        rule = make_rule(client, auth_headers, cleanup)
+        before = occurrences(client, auth_headers)
+        assert len(before) == 4
+        split = before[2]["occurrence_at"]
+        tail = self.edit(
+            client,
+            auth_headers,
+            scope="following",
+            rule_id=rule["id"],
+            occurrence_at=split,
+            changes={"title": f"{MARK} weekly after"},
+        )
+        cleanup["rules"].append(tail["rule_id"])
+        found = occurrences(client, auth_headers)
+        # Same number of occurrences, now spoken for by two rules.
+        assert len(found) == 4
+        assert len({o["rule_id"] for o in found}) == 2
+        head = [o for o in found if o["occurrence_at"] < split]
+        after = [o for o in found if o["occurrence_at"] >= split]
+        assert len(head) == 2 and len(after) == 2
+        assert {o["title"] for o in after} == {f"{MARK} weekly after"}
+
+
+class TestScopedDeletion:
+    def remove(self, client: TestClient, headers: dict, **params) -> None:
+        r = client.request("DELETE", "/occurrences", params=params, headers=headers)
+        assert r.status_code == 204, r.text
+
+    def test_this_withdraws_rather_than_deletes(
+        self, client: TestClient, auth_headers: dict, require_db: None, cleanup: dict
+    ) -> None:
+        """Abandoning by choice is an act. The EXDATE without an EXDATE."""
+        rule = make_rule(client, auth_headers, cleanup)
+        slot = occurrences(client, auth_headers)[1]["occurrence_at"]
+        self.remove(
+            client, auth_headers, scope="this", rule_id=rule["id"], occurrence_at=slot
+        )
+        found = occurrences(client, auth_headers)
+        assert len(found) == 3
+        assert slot not in [o["occurrence_at"] for o in found]
+
+    def test_following_stops_the_series_there(
+        self, client: TestClient, auth_headers: dict, require_db: None, cleanup: dict
+    ) -> None:
+        rule = make_rule(client, auth_headers, cleanup)
+        slot = occurrences(client, auth_headers)[2]["occurrence_at"]
+        self.remove(
+            client,
+            auth_headers,
+            scope="following",
+            rule_id=rule["id"],
+            occurrence_at=slot,
+        )
+        found = occurrences(client, auth_headers)
+        assert len(found) == 2
+        assert all(o["occurrence_at"] < slot for o in found)
+
+    def test_all_takes_the_series_and_its_exceptions(
+        self, client: TestClient, auth_headers: dict, require_db: None, cleanup: dict
+    ) -> None:
+        rule = make_rule(client, auth_headers, cleanup)
+        slot = occurrences(client, auth_headers)[1]["occurrence_at"]
+        client.patch(
+            "/occurrences",
+            json={
+                "scope": "this",
+                "rule_id": rule["id"],
+                "occurrence_at": slot,
+                "changes": {"title": f"{MARK} exception"},
+            },
+            headers=auth_headers,
+        )
+        self.remove(client, auth_headers, scope="all", rule_id=rule["id"])
+        assert occurrences(client, auth_headers) == []
+        # The exception went with it: it existed only as an amendment to a series
+        # that no longer does.
+        left = client.get(
+            "/moments",
+            params={"kind": "occasion", "limit": "500"},
+            headers=auth_headers,
+        ).json()
+        assert not [m for m in left if MARK in (m.get("title") or "")]

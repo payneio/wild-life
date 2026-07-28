@@ -8131,32 +8131,82 @@
         "title": "Occurrence",
         "type": "object"
       },
-      "OccurrenceEdit": {
+      "OccurrenceChanges": {
+        "description": "What an edit may set. Absent fields are left alone.",
         "properties": {
-          "changes": {
-            "$ref": "#/components/schemas/EventUpdate",
-            "default": {}
-          },
-          "occurrence_date": {
-            "format": "date-time",
-            "title": "Occurrence Date",
-            "type": "string"
-          },
-          "scope": {
-            "enum": [
-              "this",
-              "following",
-              "all"
+          "all_day": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
             ],
-            "title": "Scope",
-            "type": "string"
+            "title": "All Day"
+          },
+          "body": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body"
+          },
+          "end_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End At"
+          },
+          "links": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/MomentLinkRef"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Links"
+          },
+          "start_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start At"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
           }
         },
-        "required": [
-          "scope",
-          "occurrence_date"
-        ],
-        "title": "OccurrenceEdit",
+        "title": "OccurrenceChanges",
         "type": "object"
       },
       "OrganizationCreate": {
@@ -15347,6 +15397,92 @@
         },
         "title": "WhiteboardWrite",
         "type": "object"
+      },
+      "wild_life__routers__calendar__OccurrenceEdit": {
+        "properties": {
+          "changes": {
+            "$ref": "#/components/schemas/EventUpdate",
+            "default": {}
+          },
+          "occurrence_date": {
+            "format": "date-time",
+            "title": "Occurrence Date",
+            "type": "string"
+          },
+          "scope": {
+            "enum": [
+              "this",
+              "following",
+              "all"
+            ],
+            "title": "Scope",
+            "type": "string"
+          }
+        },
+        "required": [
+          "scope",
+          "occurrence_date"
+        ],
+        "title": "OccurrenceEdit",
+        "type": "object"
+      },
+      "wild_life__routers__occurrences__OccurrenceEdit": {
+        "properties": {
+          "changes": {
+            "$ref": "#/components/schemas/OccurrenceChanges",
+            "default": {}
+          },
+          "moment_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moment Id"
+          },
+          "occurrence_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurrence At"
+          },
+          "rule_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Id"
+          },
+          "scope": {
+            "enum": [
+              "this",
+              "following",
+              "all"
+            ],
+            "title": "Scope",
+            "type": "string"
+          }
+        },
+        "required": [
+          "scope"
+        ],
+        "title": "OccurrenceEdit",
+        "type": "object"
       }
     }
   },
@@ -16959,7 +17095,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OccurrenceEdit"
+                "$ref": "#/components/schemas/wild_life__routers__calendar__OccurrenceEdit"
               }
             }
           },
@@ -21027,6 +21163,96 @@
       }
     },
     "/occurrences": {
+      "delete": {
+        "description": "Remove one occurrence, the following ones, or the whole series.",
+        "operationId": "occurrences_delete",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "scope",
+            "required": true,
+            "schema": {
+              "enum": [
+                "this",
+                "following",
+                "all"
+              ],
+              "title": "Scope",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "rule_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Rule Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "moment_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Moment Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "occurrence_at",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Occurrence At"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Occurrence",
+        "tags": [
+          "calendar"
+        ]
+      },
       "get": {
         "description": "Everything happening in a window, stored or computed.",
         "operationId": "occurrences_list",
@@ -21150,6 +21376,46 @@
           }
         },
         "summary": "List Occurrences",
+        "tags": [
+          "calendar"
+        ]
+      },
+      "patch": {
+        "description": "Edit one occurrence, the following ones, or the whole series.",
+        "operationId": "occurrences_edit",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/wild_life__routers__occurrences__OccurrenceEdit"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Occurrence"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Edit Occurrence",
         "tags": [
           "calendar"
         ]

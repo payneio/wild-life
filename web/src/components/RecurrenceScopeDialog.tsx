@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Button, Modal } from "@/components/ui/primitives"
-import type { RecurrenceScope } from "@/services/calendar/recurrence"
+import type { RecurrenceScope } from "@/services/api/types"
 
 const OPTIONS: { value: RecurrenceScope; label: string; hint: string }[] = [
   { value: "this", label: "This event", hint: "Only this occurrence" },

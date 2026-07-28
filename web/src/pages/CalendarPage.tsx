@@ -7,7 +7,6 @@ import dayGridPlugin from "@fullcalendar/daygrid"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
 import listPlugin from "@fullcalendar/list"
-import rrulePlugin from "@fullcalendar/rrule"
 import type {
   DateSelectArg,
   DatesSetArg,
@@ -22,8 +21,13 @@ import { QuickCreate } from "@/components/QuickCreate"
 import { RecurrenceScopeDialog } from "@/components/RecurrenceScopeDialog"
 import { UnscheduledTray } from "@/components/UnscheduledTray"
 import { usePersistentState } from "@/lib/persistentState"
-import { events, tasks } from "@/services/api/hooks"
-import { editOccurrence, type RecurrenceScope } from "@/services/calendar/recurrence"
+import {
+  moments,
+  occurrenceKey,
+  tasks,
+  useEditOccurrence,
+  useOccurrences,
+} from "@/services/api/hooks"
 import {
   SOURCES,
   useCalendarSources,
@@ -37,31 +41,39 @@ import {
   dayOfDate,
   dayOfDate as ymd,
   instantOfDate,
-  rruleDtstart,
   timeOfDate,
   today,
   type CalendarDay,
 } from "@/lib/date"
-import type { EventItem } from "@/services/api/types"
+import type { Occurrence, RecurrenceScope } from "@/services/api/types"
 
 
-function eventToInput(ev: EventItem): EventInput {
-  const base: EventInput = {
-    id: ev.id,
-    title: ev.title,
-    allDay: ev.all_day,
+/**
+ * One occurrence, already expanded.
+ *
+ * There is no `rrule` here and no rrule plugin any more: the server expands
+ * every series (`GET /occurrences`), so this component stopped being the only
+ * thing in the app that knew when a recurring meeting actually happens. A row
+ * carries a `moment_id` when something has happened to it and a `rule_id` when
+ * it is a projection — both, when it is an exception to a series — and the drag
+ * handlers below need exactly that pair to say what they are editing.
+ */
+function occurrenceToInput(o: Occurrence): EventInput {
+  return {
+    id: occurrenceKey(o),
+    title: o.title ?? "(untitled)",
+    start: o.start_at,
+    end: o.end_at ?? undefined,
+    allDay: o.all_day,
     editable: true,
-    extendedProps: { recurring: !!ev.recurrence, kind: "event" },
+    extendedProps: {
+      kind: "occurrence",
+      momentId: o.moment_id,
+      ruleId: o.rule_id,
+      occurrenceAt: o.occurrence_at,
+      recurring: !!o.rule_id,
+    },
   }
-  if (ev.recurrence) {
-    base.rrule = `DTSTART:${rruleDtstart(ev.start_at)}\nRRULE:${ev.recurrence}`
-    if (ev.end_at) base.duration = new Date(ev.end_at).getTime() - new Date(ev.start_at).getTime()
-    if (ev.recurrence_exdates?.length) base.exdate = ev.recurrence_exdates
-  } else {
-    base.start = ev.start_at
-    if (ev.end_at) base.end = ev.end_at
-  }
-  return base
 }
 
 function itemToInput(it: CalendarItem): EventInput {
@@ -81,10 +93,12 @@ function itemToInput(it: CalendarItem): EventInput {
 
 const LAYERS_KEY = "wild_life_calendar_layers"
 
+/** A drag on a recurring occurrence, held until the user says how far it reaches. */
 interface PendingMove {
-  masterId: string
-  occurrenceDate: string
-  changes: Partial<EventItem>
+  ruleId: string
+  momentId: string | null
+  occurrenceAt: string
+  changes: { start_at: string; end_at?: string | null }
   revert: () => void
 }
 
@@ -186,18 +200,9 @@ export function CalendarPage() {
     })
 
   const showEvents = enabled.has("event")
-  const inRange = events.useList(
-    range.start && range.end
-      ? { start_at__gte: range.start, start_at__lte: range.end, limit: "500" }
-      : undefined,
-    { enabled: showEvents && !!range.start },
-  )
-  const recurring = events.useList(
-    { recurrence__isnull: "false", limit: "500" },
-    { enabled: showEvents },
-  )
-  const update = events.useUpdate()
-  const create = events.useCreate()
+  const occurrences = useOccurrences(range, showEvents)
+  const editOcc = useEditOccurrence()
+  const create = moments.useCreate()
   const taskUpd = tasks.useUpdate()
   const { items, reschedule } = useCalendarSources(range, enabled)
 
@@ -205,15 +210,10 @@ export function CalendarPage() {
 
   const fcEvents = useMemo<EventInput[]>(() => {
     const out: EventInput[] = []
-    if (showEvents) {
-      const byId = new Map<string, EventItem>()
-      for (const e of inRange.data ?? []) byId.set(e.id, e)
-      for (const e of recurring.data ?? []) byId.set(e.id, e)
-      for (const e of byId.values()) out.push(eventToInput(e))
-    }
+    if (showEvents) for (const o of occurrences.data ?? []) out.push(occurrenceToInput(o))
     for (const it of items) out.push(itemToInput(it))
     return out
-  }, [showEvents, inRange.data, recurring.data, items])
+  }, [showEvents, occurrences.data, items])
 
   const onDrop = (arg: EventDropArg | EventResizeDoneArg) => {
     const start = arg.event.start
@@ -226,39 +226,54 @@ export function CalendarPage() {
       return
     }
     const end = arg.event.end
-    const changes: Partial<EventItem> = {
+    const props = arg.event.extendedProps
+    const changes = {
       start_at: instantOfDate(start),
       ...(end ? { end_at: instantOfDate(end) } : {}),
     }
-    if (arg.event.extendedProps.recurring) {
+    // A row belonging to a series has to say how far the change reaches; a
+    // one-off has only itself, so there is nothing to ask.
+    if (props.ruleId) {
       setPendingMove({
-        masterId: arg.event.id,
-        occurrenceDate: (arg.oldEvent.start ?? start).toISOString(),
+        ruleId: String(props.ruleId),
+        momentId: props.momentId ? String(props.momentId) : null,
+        occurrenceAt: String(props.occurrenceAt),
         changes,
         revert: arg.revert,
       })
       return
     }
-    update.mutate({ id: arg.event.id, body: changes })
+    editOcc.mutate({ scope: "this", moment_id: String(props.momentId), changes })
   }
 
   const onClick = (arg: EventClickArg) => {
-    if (arg.event.extendedProps.kind === "source") {
-      navigate(String(arg.event.extendedProps.url))
+    const props = arg.event.extendedProps
+    if (props.kind === "source") {
+      navigate(String(props.url))
       return
     }
-    // Open the event's detail drawer in place (deep-linkable). `occ` carries the
-    // clicked occurrence's start so a recurring delete can scope to it.
-    const occ = (arg.event.start ?? new Date()).toISOString()
-    navigate(`/calendar/${arg.event.id}?occ=${encodeURIComponent(occ)}`)
+    // A stored occurrence opens itself. A projection has no row to open — and
+    // creating one just because you looked at it is exactly what "computed,
+    // never materialised" forbids — so it opens the series that produces it.
+    if (props.momentId) {
+      navigate(`/calendar/${props.momentId}?occ=${encodeURIComponent(String(props.occurrenceAt))}`)
+    } else if (props.ruleId) {
+      navigate(`/routines/${props.ruleId}`)
+    }
   }
 
   const applyMove = async (scope: RecurrenceScope) => {
     if (!pendingMove) return
-    const { masterId, occurrenceDate, changes } = pendingMove
+    const { ruleId, momentId, occurrenceAt, changes } = pendingMove
     pendingMove.revert()
     setPendingMove(null)
-    await editOccurrence(masterId, scope, occurrenceDate, changes)
+    await editOcc.mutateAsync({
+      scope,
+      rule_id: ruleId,
+      moment_id: momentId,
+      occurrence_at: occurrenceAt,
+      changes,
+    })
     invalidate()
   }
 
@@ -360,7 +375,7 @@ export function CalendarPage() {
           >
           <FullCalendar
             ref={calRef}
-            plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, rrulePlugin]}
+            plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
             initialView={initialView}
             initialDate={initialDate}
             headerToolbar={false}
@@ -419,10 +434,13 @@ export function CalendarPage() {
           <QuickCreate
             placeholder="What's happening?"
             onCreate={(title) => {
+              // The kind is the surface's to declare, never the user's: dragging
+              // out a range on a calendar is saying "I had somewhere to be".
               create.mutate({
+                kind: "occasion",
                 title,
-                start_at: creating.start,
-                end_at: creating.allDay ? null : creating.end,
+                started_at: creating.start,
+                ended_at: creating.allDay ? null : creating.end,
                 all_day: creating.allDay,
               })
               setCreating(null)

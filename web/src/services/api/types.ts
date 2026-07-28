@@ -109,6 +109,11 @@ export type MomentKind = Moment["kind"]
 /** How a moment involves a thing: participant · place · subject · mention. */
 export type MomentRole = MomentLink["role"]
 export type MomentSource = Moment["source"]
+/** One thing on the calendar, however it came to be there — a stored moment, an
+ *  expanded wire rule, or a projection of one of ours. */
+export type Occurrence = S["Occurrence"]
+export type CalendarRecord = S["CalendarRecordRead"]
+export type RecurrenceScope = "this" | "following" | "all"
 
 // --- health enums -----------------------------------------------------------
 export type MedType = Medication["med_type"]

@@ -26,19 +26,22 @@ nothing. That pairing is what iCal needs ``RECURRENCE-ID`` and ``EXDATE`` for.
 from __future__ import annotations
 
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy import or_, select
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
+from typing import Literal
+from sqlalchemy import delete, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wild_life.db.session import get_session
 from wild_life.models.moments import CalendarRecord, Moment, MomentLink
 from wild_life.models.protocols import Protocol
-from wild_life.models.routines import Routine
+from wild_life.models.routines import Routine, RuleLink
 from wild_life.recurrence import expand
 from wild_life.rules import project
+from wild_life.routers.moments import _reconcile_links as reconcile_links
 from wild_life.schemas.common import MomentKind
 from wild_life.schemas.moments import CalendarRecordRead, MomentLinkRef, Occurrence
 
@@ -238,3 +241,291 @@ async def list_occurrences(
 
     out.sort(key=lambda o: o.start_at)
     return out
+
+
+# --- writing ---------------------------------------------------------------- #
+#
+# The scoped edit, re-expressed. `routers/calendar.py` needed ~200 lines for this
+# because iCal's model made it bookkeeping: exclude the date from the master,
+# create a paired override row, seed its content, re-parent later overrides on a
+# split. None of that is here, because an occurrence that changed is simply a
+# moment — the exception is a record rather than an absence plus a restatement.
+
+
+# The edit vocabulary is the calendar's (`start_at`, `end_at`); the columns are
+# the moment's (`started_at`, `ended_at`). Mapped in one place because `setattr`
+# on a mapped class accepts an unknown name in silence — it sets a plain instance
+# attribute, the flush writes nothing, and the response looks right because it is
+# rendered from the object that just took the value.
+_FIELD = {
+    "start_at": "started_at",
+    "end_at": "ended_at",
+    "all_day": "all_day",
+    "title": "title",
+    "body": "body",
+}
+
+
+def _apply(moment: Moment, changes: "OccurrenceChanges") -> None:
+    for field, value in changes.model_dump(
+        exclude_unset=True, exclude={"links"}
+    ).items():
+        column = _FIELD.get(field)
+        if column is not None:
+            setattr(moment, column, value)
+
+
+class OccurrenceChanges(BaseModel):
+    """What an edit may set. Absent fields are left alone."""
+
+    start_at: datetime | None = None
+    end_at: datetime | None = None
+    all_day: bool | None = None
+    title: str | None = None
+    body: str | None = None
+    links: list[MomentLinkRef] | None = None
+
+
+class OccurrenceEdit(BaseModel):
+    scope: Literal["this", "following", "all"]
+    # Which series, and which of its slots. A moment id alone means a one-off,
+    # where scope is meaningless and ignored.
+    rule_id: UUID | None = None
+    moment_id: UUID | None = None
+    occurrence_at: datetime | None = None
+    changes: OccurrenceChanges = OccurrenceChanges()
+
+
+async def _materialise(
+    session: AsyncSession,
+    rule: Routine,
+    occurrence_at: datetime,
+    changes: OccurrenceChanges,
+    *,
+    withdrawn: bool = False,
+) -> Moment:
+    """Give one projected slot a row, because something happened to it.
+
+    Idempotent on (rule, slot): editing the same occurrence twice corrects the
+    row rather than growing a second one, which the unique index also enforces.
+    """
+    existing = (
+        await session.execute(
+            select(Moment).where(
+                Moment.rule_id == rule.id, Moment.occurrence_at == occurrence_at
+            )
+        )
+    ).scalar_one_or_none()
+    moment = existing or Moment(
+        kind=rule.kind,
+        rule_id=rule.id,
+        occurrence_at=occurrence_at,
+        started_at=occurrence_at,
+        ended_at=(
+            occurrence_at + timedelta(minutes=rule.expected_minutes)
+            if rule.expected_minutes
+            else None
+        ),
+        title=rule.activity or rule.name,
+        body="",
+        source="authored",
+    )
+    if existing is None:
+        session.add(moment)
+    _apply(moment, changes)
+    if withdrawn:
+        moment.withdrawn_at = datetime.now(UTC)
+    await session.flush()
+    if changes.links is not None:
+        await reconcile_links(session, moment.id, changes.links)
+    return moment
+
+
+@router.patch(
+    "/occurrences", response_model=Occurrence, operation_id="occurrences_edit"
+)
+async def edit_occurrence(
+    payload: OccurrenceEdit, session: AsyncSession = Depends(get_session)
+) -> Occurrence:
+    """Edit one occurrence, the following ones, or the whole series."""
+    changes = payload.changes
+
+    # A one-off: there is no series, so there is nothing to scope.
+    if payload.rule_id is None:
+        if payload.moment_id is None:
+            raise HTTPException(400, detail="rule_id or moment_id is required")
+        moment = await session.get(Moment, payload.moment_id)
+        if moment is None:
+            raise HTTPException(404, detail="Not found")
+        _apply(moment, changes)
+        if changes.links is not None:
+            await reconcile_links(session, moment.id, changes.links)
+        await session.flush()
+        await session.refresh(moment)
+        links = await _links_for(session, [moment.id])
+        return _from_moment(moment, None, links[moment.id])
+
+    rule = await session.get(Routine, payload.rule_id)
+    if rule is None:
+        raise HTTPException(404, detail="Not found")
+    protocol = (
+        await session.get(Protocol, rule.protocol_id) if rule.protocol_id else None
+    )
+    at = payload.occurrence_at
+
+    if payload.scope == "this":
+        if at is None:
+            raise HTTPException(400, detail="occurrence_at is required for scope=this")
+        moment = await _materialise(session, rule, at, changes)
+        await session.refresh(moment)
+        links = await _links_for(session, [moment.id])
+        return _from_moment(moment, None, links[moment.id])
+
+    if payload.scope == "all":
+        # The rule *is* the series, so editing it is the whole edit — no walking
+        # of override rows, because there are none to walk.
+        if changes.title is not None:
+            rule.activity = changes.title
+        if changes.start_at is not None:
+            rule.timing = [
+                changes.start_at.astimezone(_zone_of(rule)).strftime("%H:%M")
+            ]
+            if changes.end_at is not None:
+                rule.expected_minutes = int(
+                    (changes.end_at - changes.start_at).total_seconds() // 60
+                )
+        await session.flush()
+        return _first_projection(rule, protocol, at)
+
+    # scope == "following": the series splits into two rules, and the second one
+    # carries the change. iCal expresses this by rewriting UNTIL on the master and
+    # cloning it; the clone here is a rule, not a row per occurrence.
+    if at is None:
+        raise HTTPException(400, detail="occurrence_at is required for scope=following")
+    tail = Routine(
+        kind=rule.kind,
+        activity=changes.title if changes.title is not None else rule.activity,
+        timing=(
+            [changes.start_at.astimezone(_zone_of(rule)).strftime("%H:%M")]
+            if changes.start_at is not None
+            else list(rule.timing or [])
+        ),
+        days_of_week=list(rule.days_of_week or []),
+        interval_days=rule.interval_days,
+        timezone=rule.timezone,
+        expected_minutes=(
+            int((changes.end_at - changes.start_at).total_seconds() // 60)
+            if changes.start_at is not None and changes.end_at is not None
+            else rule.expected_minutes
+        ),
+        start_date=at.date(),
+        end_date=rule.end_date,
+        status=rule.status,
+        protocol_id=rule.protocol_id,
+        area_id=rule.area_id,
+        program_id=rule.program_id,
+    )
+    session.add(tail)
+    await session.flush()
+    for link in (
+        (await session.execute(select(RuleLink).where(RuleLink.rule_id == rule.id)))
+        .scalars()
+        .all()
+    ):
+        session.add(
+            RuleLink(
+                rule_id=tail.id,
+                role=link.role,
+                entity_type=link.entity_type,
+                entity_id=link.entity_id,
+            )
+        )
+    # The head stops the day before the split.
+    rule.end_date = (at - timedelta(days=1)).date()
+    # Exceptions at or after the split belong to the tail now.
+    await session.execute(
+        update(Moment)
+        .where(Moment.rule_id == rule.id, Moment.occurrence_at >= at)
+        .values(rule_id=tail.id)
+    )
+    await session.flush()
+    return _first_projection(tail, protocol, at)
+
+
+def _zone_of(rule: Routine):  # noqa: ANN202 - a tzinfo, via the evaluator's rule
+    from wild_life.rules import _zone
+
+    return _zone(rule)
+
+
+def _first_projection(
+    rule: Routine, protocol: Protocol | None, at: datetime | None
+) -> Occurrence:
+    """The series as it now stands, at or after the edited slot."""
+    day = (at or datetime.now(UTC)).date()
+    found = project(rule, protocol, day, day + timedelta(days=370))
+    if found:
+        one = found[0]
+        return Occurrence(
+            rule_id=rule.id,
+            occurrence_at=one.start,
+            start_at=one.start,
+            end_at=one.end,
+            title=rule.activity or rule.name,
+            kind=rule.kind,
+        )
+    return Occurrence(
+        rule_id=rule.id,
+        occurrence_at=at or datetime.now(UTC),
+        start_at=at or datetime.now(UTC),
+        title=rule.activity or rule.name,
+        kind=rule.kind,
+    )
+
+
+@router.delete("/occurrences", status_code=204, operation_id="occurrences_delete")
+async def delete_occurrence(
+    scope: Literal["this", "following", "all"],
+    rule_id: UUID | None = None,
+    moment_id: UUID | None = None,
+    occurrence_at: datetime | None = None,
+    session: AsyncSession = Depends(get_session),
+) -> None:
+    """Remove one occurrence, the following ones, or the whole series."""
+    if rule_id is None:
+        if moment_id is None:
+            raise HTTPException(400, detail="rule_id or moment_id is required")
+        moment = await session.get(Moment, moment_id)
+        if moment is None:
+            raise HTTPException(404, detail="Not found")
+        await session.delete(moment)
+        return
+
+    rule = await session.get(Routine, rule_id)
+    if rule is None:
+        raise HTTPException(404, detail="Not found")
+
+    if scope == "all":
+        # Materialised exceptions cascade with it: they exist only as amendments
+        # to a series that no longer does.
+        await session.delete(rule)
+        return
+
+    if occurrence_at is None:
+        raise HTTPException(400, detail="occurrence_at is required")
+
+    if scope == "this":
+        # Not a deletion — a withdrawal. Abandoning by choice is an act, and
+        # worth telling apart from a date quietly passing (decision 14).
+        await _materialise(
+            session, rule, occurrence_at, OccurrenceChanges(), withdrawn=True
+        )
+        return
+
+    # "following": stop the rule the day before, and drop exceptions after it.
+    rule.end_date = (occurrence_at - timedelta(days=1)).date()
+    await session.execute(
+        delete(Moment).where(
+            Moment.rule_id == rule.id, Moment.occurrence_at >= occurrence_at
+        )
+    )

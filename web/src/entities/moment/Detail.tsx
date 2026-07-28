@@ -127,7 +127,20 @@ function Provenance() {
  */
 export function MomentDetail({ entity, onClose }: { entity: Entity; onClose: () => void }) {
   return (
-    <Record def={REGISTRY.moment} entity={entity} onClose={onClose}>
+    <Record
+      def={REGISTRY.moment}
+      entity={entity}
+      onClose={onClose}
+      omit={[
+        // A moment's place in a series: which rule, and which projected slot it
+        // stands in for. Written by a scoped edit on the calendar, never by
+        // hand — re-pointing an occurrence at another series would be editing an
+        // identity rather than a fact, and `occurrence_at` must stay the
+        // *original* instant or the slot loses its name.
+        "rule_id",
+        "occurrence_at",
+      ]}
+    >
       <RecordSection>
         <F.Title field="title" placeholder="Untitled" />
       </RecordSection>
