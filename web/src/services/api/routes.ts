@@ -14,6 +14,7 @@ export const ROUTE_BY_TYPE: Partial<Record<EntityType, string>> = {
   routine: "routines",
   outcome: "outcomes",
   metric: "metrics",
+  metric_group: "metric-groups",
   delegation: "delegations",
   note: "notes",
   event: "events",

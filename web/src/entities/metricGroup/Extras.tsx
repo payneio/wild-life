@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react"
 import { ChevronDown, ChevronUp, Plus, X } from "lucide-react"
+import { EntityRef } from "@/components/graph/EntityRef"
 import { EntityRefField } from "@/components/graph/EntityRefField"
 import { Button, EmptyState, Input } from "@/components/ui/primitives"
 import { dayOf, instantToLocalInput, localInputToInstant, nowInstant } from "@/lib/date"
@@ -34,6 +35,23 @@ function useMembers(group: MetricGroup) {
     .map((m) => byId.get(m.metric_id))
     .filter((m): m is Metric => !!m)
   return { ordered, memberIds: (members ?? []).map((m) => m.metric_id) }
+}
+
+/**
+ * A metric's name, linked to its own page — where its full series, reference
+ * band and any outcome bound to it live.
+ *
+ * Deliberately *not* used in `GroupCapture`: a link inside a `<label>` sits on
+ * top of the input's own click target, and following it mid-entry would discard
+ * the numbers already typed. You navigate from the history, not from the form.
+ */
+function MetricName({ metric }: { metric: Metric }) {
+  return (
+    <EntityRef type="metric" id={metric.id}>
+      {metric.name}
+      {metric.unit && <span className="ml-1 text-xs text-slate-400">{metric.unit}</span>}
+    </EntityRef>
+  )
 }
 
 /** Is this reading outside the band the world calls normal? */
@@ -193,8 +211,7 @@ export function GroupReadings({ group }: { group: MetricGroup }) {
             {ordered.map((m) => (
               <tr key={m.id} className="border-b border-slate-50">
                 <td className="py-1 pr-3 text-slate-600">
-                  {m.name}
-                  {m.unit && <span className="ml-1 text-xs text-slate-400">{m.unit}</span>}
+                  <MetricName metric={m} />
                 </td>
                 {list.map((_, i) => {
                   const v = valueAt(i, m.id)
@@ -268,8 +285,7 @@ export function GroupMembers({ group }: { group: MetricGroup }) {
               <li key={m.id} className="group/row flex items-center gap-2 py-1">
                 <span className="w-6 text-right text-xs text-slate-300">{i + 1}</span>
                 <span className="min-w-0 flex-1 truncate text-slate-700">
-                  {m.name}
-                  {m.unit && <span className="ml-1 text-xs text-slate-400">{m.unit}</span>}
+                  <MetricName metric={m} />
                 </span>
                 <div className="flex opacity-0 transition group-hover/row:opacity-100">
                   <button
