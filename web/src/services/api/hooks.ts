@@ -33,6 +33,7 @@ import type {
   MomentKind,
   MomentRole,
   Occurrence,
+  CalendarRecord,
   RecurrenceScope,
   Organization,
   Person,
@@ -403,39 +404,62 @@ export function useEventPeople(id: string | null) {
   })
 }
 
-/** Per-guest invite + RSVP status for a hosted event (the Guests panel). */
-export function useEventGuests(id: string | null) {
+/** Per-guest invite + RSVP status for a hosted occasion (the Guests panel).
+ *  Empty for a moment nothing has been shared about — the honest answer, since
+ *  nobody was told and so nobody has a status. */
+export function useMomentGuests(id: string | null) {
   return useQuery({
-    queryKey: ["events", id, "guests"],
-    queryFn: () => apiClient.get<GuestStatus[]>(`/events/${id}/guests`),
+    queryKey: ["moments", id, "guests"],
+    queryFn: () => apiClient.get<GuestStatus[]>(`/moments/${id}/guests`),
     enabled: !!id,
   })
 }
 
-/** Opt an event into invites and send its pending REQUEST/CANCEL now. */
-export function useSendInvites() {
-  const qc = useQueryClient()
-  const invalidate = useInvalidator()
-  return useMutation({
-    mutationFn: (eventId: string) =>
-      apiClient.post<{ disabled: boolean; requests_sent: number; cancels_sent: number }>(
-        `/events/${eventId}/invites/send`,
-        {},
-      ),
-    onSuccess: (_res, eventId) => {
-      void qc.invalidateQueries({ queryKey: ["events", eventId, "guests"] })
-      invalidate("events")
-    },
+/** What has been shared about a moment, or null — which is the default. */
+export function useCalendarRecord(id: string | null) {
+  return useQuery({
+    queryKey: ["moments", id, "calendar-record"],
+    queryFn: () => apiClient.get<CalendarRecord | null>(`/moments/${id}/calendar`),
+    enabled: !!id,
   })
 }
 
-/** Set my RSVP to a received invite; the reply is emailed immediately. */
+/**
+ * Share a moment, or change what has been shared.
+ *
+ * Creating the projection *is* the sharing: privacy is structural here, so a
+ * moment with no calendar record has nothing that can leave, and there is no
+ * separate switch to forget.
+ */
+export function useShareMoment() {
+  const invalidate = useInvalidator()
+  return useMutation({
+    mutationFn: ({ id, ...body }: { id: string } & Partial<CalendarRecord>) =>
+      apiClient.patch<CalendarRecord>(`/moments/${id}/calendar`, body),
+    onSuccess: () => invalidate("moments"),
+  })
+}
+
+/** Send a shared occasion's pending REQUEST/CANCEL now. */
+export function useSendInvites() {
+  const invalidate = useInvalidator()
+  return useMutation({
+    mutationFn: (momentId: string) =>
+      apiClient.post<{ disabled: boolean; requests_sent: number; cancels_sent: number }>(
+        `/moments/${momentId}/invites/send`,
+        {},
+      ),
+    onSuccess: () => invalidate("moments"),
+  })
+}
+
+/** Set my RSVP to a received invitation; the reply is emailed immediately. */
 export function useSetRsvp() {
   const invalidate = useInvalidator()
   return useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
-      apiClient.post<EventItem>(`/events/${id}/rsvp`, { status }),
-    onSuccess: () => invalidate("events"),
+      apiClient.post<Moment>(`/moments/${id}/rsvp`, { status }),
+    onSuccess: () => invalidate("moments"),
   })
 }
 

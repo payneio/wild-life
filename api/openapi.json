@@ -1070,6 +1070,72 @@
         "title": "CalendarRecordRead",
         "type": "object"
       },
+      "CalendarRecordUpdate": {
+        "description": "What may be changed about a moment's shared projection.\n\nDeliberately small. The meeting itself \u2014 title, when, body \u2014 is the moment's\nand is edited there; this is only what other people have been told, plus the\ntwo switches that decide whether anything leaves at all.",
+        "properties": {
+          "attendees": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attendees"
+          },
+          "cancelled_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancelled At"
+          },
+          "invites_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Invites Enabled"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "organizer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organizer"
+          }
+        },
+        "title": "CalendarRecordUpdate",
+        "type": "object"
+      },
       "ChangeLogRead": {
         "description": "A recorded change to an entity.",
         "properties": {
@@ -16925,98 +16991,6 @@
         ]
       }
     },
-    "/events/{event_id}/guests": {
-      "get": {
-        "description": "Per-guest invite + RSVP status for a hosted event (drives the UI panel).",
-        "operationId": "events_guests",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "event_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Event Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/GuestStatus"
-                  },
-                  "title": "Response Events Guests",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Event Guests",
-        "tags": [
-          "calendar-mail"
-        ]
-      }
-    },
-    "/events/{event_id}/invites/send": {
-      "post": {
-        "description": "Opt an event into invites and send its pending REQUEST/CANCEL now.",
-        "operationId": "events_send_invites",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "event_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Event Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SendInvitesResult"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Send Invites",
-        "tags": [
-          "calendar-mail"
-        ]
-      }
-    },
     "/events/{event_id}/occurrence": {
       "delete": {
         "operationId": "delete_occurrence_events__event_id__occurrence_delete",
@@ -17219,60 +17193,6 @@
         "summary": "Reconcile Attendees",
         "tags": [
           "calendar"
-        ]
-      }
-    },
-    "/events/{event_id}/rsvp": {
-      "post": {
-        "description": "Set my RSVP to a received invite and email the METHOD:REPLY immediately\n(no waiting for the poll). The poll remains the safety net if mail is off.",
-        "operationId": "events_rsvp",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "event_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Event Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RsvpBody"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EventRead"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Set Rsvp",
-        "tags": [
-          "calendar-mail"
         ]
       }
     },
@@ -20524,6 +20444,110 @@
         ]
       }
     },
+    "/moments/{item_id}/calendar": {
+      "get": {
+        "description": "What has been shared about this moment, or null \u2014 which is the default.",
+        "operationId": "moments_calendar_record",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/CalendarRecordRead"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Moments Calendar Record"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Calendar Record",
+        "tags": [
+          "moments"
+        ]
+      },
+      "patch": {
+        "description": "Share a moment, or change what has been shared.\n\nCreates the projection on first call, because giving a moment a guest list is\nwhat makes it shareable \u2014 there is no separate \"enable\" to forget.",
+        "operationId": "moments_share",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalendarRecordUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarRecordRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Calendar Record",
+        "tags": [
+          "moments"
+        ]
+      }
+    },
     "/moments/{item_id}/images": {
       "get": {
         "operationId": "list_moment_images_moments__item_id__images_get",
@@ -20620,6 +20644,152 @@
         "summary": "Upload Moment Image",
         "tags": [
           "moments"
+        ]
+      }
+    },
+    "/moments/{moment_id}/guests": {
+      "get": {
+        "description": "Per-guest invite + RSVP status for a hosted occasion (drives the panel).\n\nEmpty for a moment with no projection, which is the honest answer: nobody was\ntold, so there is nobody to have a status.",
+        "operationId": "moments_guests",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "moment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Moment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GuestStatus"
+                  },
+                  "title": "Response Moments Guests",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Event Guests",
+        "tags": [
+          "calendar-mail"
+        ]
+      }
+    },
+    "/moments/{moment_id}/invites/send": {
+      "post": {
+        "description": "Share a moment and send its pending REQUEST/CANCEL now.\n\n**This is where a private moment becomes shareable**, and the only place\nbesides an inbound invitation where a calendar record is created. Privacy is\nstructural rather than a filter, so it has to be an act: nothing leaves until\nsomeone performs this one.",
+        "operationId": "moments_send_invites",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "moment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Moment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendInvitesResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Send Invites",
+        "tags": [
+          "calendar-mail"
+        ]
+      }
+    },
+    "/moments/{moment_id}/rsvp": {
+      "post": {
+        "description": "Set my RSVP to a received invitation and email the METHOD:REPLY at once\n(no waiting for the poll). The poll remains the safety net if mail is off.",
+        "operationId": "moments_rsvp",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "moment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Moment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RsvpBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MomentRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Rsvp",
+        "tags": [
+          "calendar-mail"
         ]
       }
     },

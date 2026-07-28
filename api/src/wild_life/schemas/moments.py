@@ -113,6 +113,21 @@ class CalendarRecordRead(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class CalendarRecordUpdate(BaseModel):
+    """What may be changed about a moment's shared projection.
+
+    Deliberately small. The meeting itself — title, when, body — is the moment's
+    and is edited there; this is only what other people have been told, plus the
+    two switches that decide whether anything leaves at all.
+    """
+
+    attendees: list[str] | None = None
+    invites_enabled: bool | None = None
+    cancelled_at: datetime | None = None
+    location: str | None = None
+    organizer: str | None = None
+
+
 class Occurrence(BaseModel):
     """One thing on the calendar, however it came to be there.
 

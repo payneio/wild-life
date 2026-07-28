@@ -2,6 +2,12 @@
 
 Bridge is replaced by a FakeTransport via dependency override, and mail is force
 -enabled on the settings object, so nothing touches a real Proton Bridge.
+
+iMIP runs on **moments and their calendar records** now. The meeting is a moment;
+what other people have been told about it — UID, ORGANIZER, SEQUENCE, the guest
+list, the RSVP pair — is its projection. The tests read differently in one
+important way: sharing is an *act*. A moment starts private with no record at
+all, and giving it a guest list is what makes anything sendable.
 """
 
 from collections.abc import Generator
@@ -72,12 +78,84 @@ def fake_mail() -> Generator[FakeTransport, None, None]:
         ) = prev
 
 
-def _event(client: TestClient, h: dict, **body: object) -> dict:
+def _moment(client: TestClient, h: dict, **body: object) -> dict:
+    """A private occasion: a moment, and nothing shared about it."""
+    body.setdefault("kind", "occasion")
     body.setdefault("title", f"{MARK} evt")
-    body.setdefault("start_at", START)
-    r = client.post("/events", headers=h, json=body)
+    body.setdefault("started_at", START)
+    r = client.post("/moments", headers=h, json=body)
     assert r.status_code in (200, 201), r.text
     return r.json()
+
+
+def _share(client: TestClient, h: dict, mid: str, **record: object) -> dict:
+    """Give it a projection — the act that makes it shareable at all."""
+    r = client.patch(f"/moments/{mid}/calendar", headers=h, json=record)
+    assert r.status_code == 200, r.text
+    return r.json()
+
+
+def _event(client: TestClient, h: dict, **body: object) -> dict:
+    """A moment plus whatever of it is shared, as one call, for brevity here."""
+    record = {
+        k: body.pop(k)
+        for k in ("attendees", "organizer", "external_ref", "sequence", "location")
+        if k in body
+    }
+    rsvp = body.pop("rsvp_status", None)
+    if "end_at" in body:
+        body["ended_at"] = body.pop("end_at")
+    made = _moment(client, h, **body)
+    if record or rsvp is not None:
+        _share(client, h, made["id"], **record)
+        if rsvp is not None:
+            # Set directly: the endpoint that would send a REPLY is what several
+            # of these tests are about, so seeding must not itself send one.
+            client.patch(f"/moments/{made['id']}/calendar", headers=h, json={})
+            _seed_rsvp(client, h, made["id"], rsvp)
+    return made
+
+
+def _seed_rsvp(client: TestClient, h: dict, mid: str, value: str) -> None:
+    from sqlalchemy import create_engine, text
+
+    engine = create_engine(settings.sync_database_url, future=True)
+    try:
+        with engine.begin() as conn:
+            conn.execute(
+                text(
+                    "UPDATE wild_life.calendar_records SET rsvp_status = :v "
+                    "WHERE moment_id = :m"
+                ),
+                {"v": value, "m": mid},
+            )
+    finally:
+        engine.dispose()
+
+
+def _record(client: TestClient, h: dict, mid: str) -> dict:
+    return client.get(f"/moments/{mid}/calendar", headers=h).json()
+
+
+def _by_ref(client: TestClient, h: dict, uid: str) -> list[dict]:
+    """Projections carrying this wire UID — how an ingested invitation is found."""
+    from sqlalchemy import create_engine, text
+
+    engine = create_engine(settings.sync_database_url, future=True)
+    try:
+        with engine.connect() as conn:
+            return [
+                {"moment_id": str(r.moment_id), "organizer": r.organizer}
+                for r in conn.execute(
+                    text(
+                        "SELECT moment_id, organizer FROM wild_life.calendar_records "
+                        "WHERE external_ref = :uid"
+                    ),
+                    {"uid": uid},
+                )
+            ]
+    finally:
+        engine.dispose()
 
 
 def _tick(client: TestClient, h: dict) -> dict:
@@ -109,7 +187,7 @@ def test_hosted_invite_lifecycle(
         eid = ev["id"]
 
         # Explicit send → REQUEST to both guests.
-        r = client.post(f"/events/{eid}/invites/send", headers=h)
+        r = client.post(f"/moments/{eid}/invites/send", headers=h)
         assert r.status_code == 200, r.text
         assert r.json()["requests_sent"] == 2
         assert sorted(fake_mail.sent_to_with_method("REQUEST")) == [
@@ -123,18 +201,17 @@ def test_hosted_invite_lifecycle(
         assert res["requests_sent"] == 0
 
         # Add a guest → only the new address is invited.
-        client.patch(
-            f"/events/{eid}",
-            headers=h,
-            json={"attendees": ["alice@x.com", "bob@y.com", "carol@z.com"]},
-        )
+        _share(client, h, eid, attendees=["alice@x.com", "bob@y.com", "carol@z.com"])
         _tick(client, h)
         assert fake_mail.sent_to_with_method("REQUEST") == ["carol@z.com"]
 
         # Edit the time → everyone gets an update (sequence bump).
         fake_mail.sent.clear()
+        # The meeting itself changed, so this edits the *moment*.
         client.patch(
-            f"/events/{eid}", headers=h, json={"start_at": "2026-09-01T17:00:00+00:00"}
+            f"/moments/{eid}",
+            headers=h,
+            json={"started_at": "2026-09-01T17:00:00+00:00"},
         )
         _tick(client, h)
         assert sorted(fake_mail.sent_to_with_method("REQUEST")) == [
@@ -145,17 +222,13 @@ def test_hosted_invite_lifecycle(
 
         # Remove a guest → that guest gets a CANCEL, nobody else.
         fake_mail.sent.clear()
-        client.patch(
-            f"/events/{eid}",
-            headers=h,
-            json={"attendees": ["alice@x.com", "bob@y.com"]},
-        )
+        _share(client, h, eid, attendees=["alice@x.com", "bob@y.com"])
         _tick(client, h)
         assert fake_mail.sent_to_with_method("CANCEL") == ["carol@z.com"]
         assert fake_mail.sent_to_with_method("REQUEST") == []
     finally:
         for i in made:
-            client.delete(f"/events/{i}", headers=h)
+            client.delete(f"/moments/{i}", headers=h)
 
 
 def test_guests_endpoint_reflects_status(
@@ -169,17 +242,17 @@ def test_guests_endpoint_reflects_status(
         eid = ev["id"]
 
         # Before sending: pending.
-        guests = client.get(f"/events/{eid}/guests", headers=h).json()
+        guests = client.get(f"/moments/{eid}/guests", headers=h).json()
         assert guests == [
             {"email": "alice@x.com", "name": None, "invited": False, "partstat": None}
         ]
 
-        client.post(f"/events/{eid}/invites/send", headers=h)
-        guests = client.get(f"/events/{eid}/guests", headers=h).json()
+        client.post(f"/moments/{eid}/invites/send", headers=h)
+        guests = client.get(f"/moments/{eid}/guests", headers=h).json()
         assert guests[0]["invited"] is True and guests[0]["partstat"] is None
 
         # An inbound REPLY from the guest → partstat shows up.
-        ext = client.get(f"/events/{eid}", headers=h).json()["external_ref"]
+        ext = _record(client, h, eid)["external_ref"]
         reply = ics.build_reply(
             uid=ext,
             sequence=0,
@@ -192,11 +265,11 @@ def test_guests_endpoint_reflects_status(
         fake_mail._inbound.append(make_ics_email("alice@x.com", reply, "REPLY"))
         res = _tick(client, h)
         assert res["responses_ingested"] == 1
-        guests = client.get(f"/events/{eid}/guests", headers=h).json()
+        guests = client.get(f"/moments/{eid}/guests", headers=h).json()
         assert guests[0]["partstat"] == "accepted"
     finally:
         for i in made:
-            client.delete(f"/events/{i}", headers=h)
+            client.delete(f"/moments/{i}", headers=h)
 
 
 def test_received_invite_reply_once(
@@ -228,7 +301,7 @@ def test_received_invite_reply_once(
         assert fake_mail.sent_methods() == []
     finally:
         for i in made:
-            client.delete(f"/events/{i}", headers=h)
+            client.delete(f"/moments/{i}", headers=h)
 
 
 def test_rsvp_endpoint_sends_immediately(
@@ -250,10 +323,11 @@ def test_rsvp_endpoint_sends_immediately(
         eid = ev["id"]
 
         # Setting the RSVP emails the REPLY right away — no tick needed.
-        r = client.post(f"/events/{eid}/rsvp", headers=h, json={"status": "accepted"})
+        r = client.post(f"/moments/{eid}/rsvp", headers=h, json={"status": "accepted"})
         assert r.status_code == 200, r.text
-        assert r.json()["rsvp_status"] == "accepted"
-        assert r.json()["rsvp_sent_status"] == "accepted"
+        shared = _record(client, h, eid)
+        assert shared["rsvp_status"] == "accepted"
+        assert shared["rsvp_sent_status"] == "accepted"
         assert fake_mail.sent_to_with_method("REPLY") == ["host@corp.com"]
 
         # A later tick doesn't resend (sent status already matches).
@@ -265,13 +339,13 @@ def test_rsvp_endpoint_sends_immediately(
         made.append(hosted["id"])
         assert (
             client.post(
-                f"/events/{hosted['id']}/rsvp", headers=h, json={"status": "accepted"}
+                f"/moments/{hosted['id']}/rsvp", headers=h, json={"status": "accepted"}
             ).status_code
             == 400
         )
     finally:
         for i in made:
-            client.delete(f"/events/{i}", headers=h)
+            client.delete(f"/moments/{i}", headers=h)
 
 
 def test_inbound_request_and_cancel(
@@ -293,7 +367,7 @@ def test_inbound_request_and_cancel(
         res = _tick(client, h)
         assert res["invites_ingested"] == 1
 
-        got = client.get("/events", headers=h, params={"external_ref__eq": uid}).json()
+        got = _by_ref(client, h, uid)
         assert len(got) == 1 and got[0]["organizer"] == "mailto:host@corp.com"
 
         # A CANCEL for the same UID removes it.
@@ -307,14 +381,10 @@ def test_inbound_request_and_cancel(
         )
         fake_mail._inbound.append(make_ics_email("host@corp.com", cancel, "CANCEL"))
         _tick(client, h)
-        assert (
-            client.get("/events", headers=h, params={"external_ref__eq": uid}).json()
-            == []
-        )
+        assert _by_ref(client, h, uid) == []
     finally:
-        got = client.get("/events", headers=h, params={"external_ref__eq": uid}).json()
-        for e in got:
-            client.delete(f"/events/{e['id']}", headers=h)
+        for e in _by_ref(client, h, uid):
+            client.delete(f"/moments/{e['moment_id']}", headers=h)
 
 
 def test_inbound_html_description_is_stored_as_plain_text(
@@ -341,8 +411,9 @@ def test_inbound_html_description_is_stored_as_plain_text(
         fake_mail._inbound.append(make_ics_email("host@corp.com", req, "REQUEST"))
         assert _tick(client, h)["invites_ingested"] == 1
 
-        got = client.get("/events", headers=h, params={"external_ref__eq": uid}).json()
-        desc = got[0]["description"]
+        got = _by_ref(client, h, uid)
+        moment = client.get(f"/moments/{got[0]['moment_id']}", headers=h).json()
+        desc = moment["body"]
         for markup in ("<a ", "<br>", "&nbsp;"):
             assert markup not in desc
         assert "https://meet.google.com/abc-defg-hij" in desc
@@ -352,7 +423,9 @@ def test_inbound_html_description_is_stored_as_plain_text(
         fake_mail.sent.clear()
         assert (
             client.post(
-                f"/events/{got[0]['id']}/rsvp", headers=h, json={"status": "accepted"}
+                f"/moments/{got[0]['moment_id']}/rsvp",
+                headers=h,
+                json={"status": "accepted"},
             ).status_code
             == 200
         )
@@ -366,7 +439,5 @@ def test_inbound_html_description_is_stored_as_plain_text(
         assert "meet.google.com" not in reply
         assert _tick(client, h)["requests_sent"] == 0
     finally:
-        for e in client.get(
-            "/events", headers=h, params={"external_ref__eq": uid}
-        ).json():
-            client.delete(f"/events/{e['id']}", headers=h)
+        for e in _by_ref(client, h, uid):
+            client.delete(f"/moments/{e['moment_id']}", headers=h)

@@ -115,10 +115,18 @@ class SentInvite(UUIDPrimaryKey, TimestampMixin, Base):
         ),
     )
 
-    event_id: Mapped[uuid.UUID] = mapped_column(
+    event_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("events.id", ondelete="CASCADE"),
-        nullable=False,
+        index=True,
+    )
+    # What has already left the building, keyed to the thing that can leave it.
+    # `event_id` stays until `events` retires; a ledger row that cannot find its
+    # moment must read as "not yet sent" rather than raise inside a loop that
+    # emails people.
+    moment_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("moments.id", ondelete="CASCADE"),
         index=True,
     )
     attendee_email: Mapped[str] = mapped_column(Text, nullable=False)
@@ -137,13 +145,21 @@ class AttendeeResponse(UUIDPrimaryKey, TimestampMixin, Base):
 
     __tablename__ = "attendee_responses"
     __table_args__ = (
-        UniqueConstraint("event_id", "attendee_email", name="uq_attendee_response"),
+        UniqueConstraint("moment_id", "attendee_email", name="uq_attendee_response"),
     )
 
-    event_id: Mapped[uuid.UUID] = mapped_column(
+    event_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("events.id", ondelete="CASCADE"),
-        nullable=False,
+        index=True,
+    )
+    # What has already left the building, keyed to the thing that can leave it.
+    # `event_id` stays until `events` retires; a ledger row that cannot find its
+    # moment must read as "not yet sent" rather than raise inside a loop that
+    # emails people.
+    moment_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("moments.id", ondelete="CASCADE"),
         index=True,
     )
     attendee_email: Mapped[str] = mapped_column(Text, nullable=False)

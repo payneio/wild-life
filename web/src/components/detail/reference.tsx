@@ -3,8 +3,7 @@ import { CheckCircle2, Repeat } from "lucide-react"
 import { summarizeRecurrence } from "@/lib/rrule"
 import { Button } from "@/components/ui/primitives"
 import { EntityRef } from "@/components/graph/EntityRef"
-import { GuestsPanel } from "@/components/calendar/GuestsPanel"
-import { commitments, reviews, useEventPeople, useSetRsvp } from "@/services/api/hooks"
+import { commitments, reviews, useEventPeople } from "@/services/api/hooks"
 import { apiClient } from "@/services/api/client"
 import { showActionToast } from "@/lib/toast"
 import { humanize } from "@/lib/format"
@@ -18,25 +17,14 @@ import type {
 import { AgeTile, DeltaTile, Section, Segmented } from "@/components/detail/kit"
 import { formatDate, formatDateTime } from "@/lib/utils"
 
-// --- Event: when & where (+ RSVP for emailed invitations) -------------------
-const RSVP_OPTIONS: { value: string; label: string }[] = [
-  { value: "needs-action", label: "No reply" },
-  { value: "accepted", label: "Accept" },
-  { value: "tentative", label: "Maybe" },
-  { value: "declined", label: "Decline" },
-]
-
+// --- Event: when & where -----------------------------------------------
 export function EventDetail({ entity }: { entity: Entity }) {
   const e = entity as EventItem
-  const setRsvp = useSetRsvp()
   if (!e.start_at) return null
   const start = new Date(e.start_at)
   const end = e.end_at ? new Date(e.end_at) : null
   const sameDay = end != null && start.toDateString() === end.toDateString()
   const timeOpts = { hour: "numeric", minute: "2-digit" } as const
-  // A received invite (organizer is someone else) shows the RSVP control; an
-  // event I host shows the Guests panel instead.
-  const isInvite = e.received_invite
   return (
     <div className="space-y-4">
       {e.event_type && (
@@ -68,30 +56,10 @@ export function EventDetail({ entity }: { entity: Entity }) {
           </div>
         )}
       </div>
-      {isInvite && (
-        <Section title="Invitation">
-          <div className="mb-2 text-xs text-slate-500">
-            From {e.organizer?.replace(/^mailto:/i, "")}
-          </div>
-          <Segmented
-            options={RSVP_OPTIONS}
-            value={e.rsvp_status ?? "needs-action"}
-            onChange={(v) => setRsvp.mutate({ id: e.id, status: v })}
-          />
-          <div className="mt-2 text-[11px] text-slate-400">
-            {e.rsvp_sent_status === e.rsvp_status && e.rsvp_status !== "needs-action"
-              ? "RSVP sent to the organizer"
-              : e.rsvp_status && e.rsvp_status !== "needs-action"
-                ? "RSVP will be emailed shortly"
-                : "Choose a response to notify the organizer"}
-          </div>
-        </Section>
-      )}
-      {isInvite ? (
-        <EventPeople eventId={e.id} attendees={e.attendees} />
-      ) : (
-        <GuestsPanel event={e} />
-      )}
+      {/* Sharing — the RSVP control and the guest list — lives on the moment,
+          which is what carries the calendar record. This view describes the
+          event row, which the calendar no longer opens. */}
+      <EventPeople eventId={e.id} attendees={e.attendees} />
     </div>
   )
 }

@@ -29,12 +29,14 @@ from starlette.concurrency import run_in_threadpool
 from wild_life.backfill_moments import run as backfill
 from wild_life.config import settings
 from wild_life.db.session import get_session
-from wild_life.models.moments import Moment, MomentImage, MomentLink
+from wild_life.models.moments import CalendarRecord, Moment, MomentImage, MomentLink
 from wild_life.query import apply_query
 from wild_life.schemas.common import EntityType, MomentKind, MomentRole
 from wild_life.routers.notes import MAX_IMAGE_BYTES
 from wild_life.routers.notes import _sniff_image as sniff_image
 from wild_life.schemas.moments import (
+    CalendarRecordRead,
+    CalendarRecordUpdate,
     MomentCreate,
     MomentImageRead,
     MomentLinkRef,
@@ -279,6 +281,54 @@ async def moments_density(
         }
         for r in rows
     ]
+
+
+# --- the shared projection --------------------------------------------------- #
+#
+# Privacy is structural: a moment with no calendar record has nothing to export.
+# So creating one is an *act*, and these two routes are the only place in the
+# application it happens besides an inbound invitation arriving.
+
+
+@router.get(
+    "/{item_id}/calendar",
+    response_model=CalendarRecordRead | None,
+    operation_id="moments_calendar_record",
+)
+async def get_calendar_record(
+    item_id: UUID, session: AsyncSession = Depends(get_session)
+) -> CalendarRecord | None:
+    """What has been shared about this moment, or null — which is the default."""
+    return await session.get(CalendarRecord, item_id)
+
+
+@router.patch(
+    "/{item_id}/calendar",
+    response_model=CalendarRecordRead,
+    operation_id="moments_share",
+)
+async def update_calendar_record(
+    item_id: UUID,
+    payload: CalendarRecordUpdate,
+    session: AsyncSession = Depends(get_session),
+) -> CalendarRecord:
+    """Share a moment, or change what has been shared.
+
+    Creates the projection on first call, because giving a moment a guest list is
+    what makes it shareable — there is no separate "enable" to forget.
+    """
+    moment = await session.get(Moment, item_id)
+    if moment is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not found")
+    record = await session.get(CalendarRecord, item_id)
+    if record is None:
+        record = CalendarRecord(moment_id=item_id, external_ref=f"{item_id}@wild-life")
+        session.add(record)
+    for field, value in payload.model_dump(exclude_unset=True).items():
+        setattr(record, field, value)
+    await session.flush()
+    await session.refresh(record)
+    return record
 
 
 @router.get("/{item_id}", response_model=MomentRead, operation_id="moments_get")

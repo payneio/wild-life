@@ -144,7 +144,8 @@ Three things the run corrected in this document:
 | **Rules** — one cadence expression, freed from `protocol_id` | generalised `Routine` + `rule_links` |
 | **Recurrence** — wire ⇄ our cadence, proved against all 74 real rules | 58 translate · 16 materialised |
 | **Calendar** — reads and writes `/occurrences`; scoped edits; server-side expansion | **on moments + rules** |
-| **iMIP** — invitations, RSVP, guests, the ICS importer | **still on `events`** (see below) |
+| **iMIP** — invitations, RSVP, guests | **on moments + calendar records** |
+| The ICS importer and the Inbox's occasion triage | still on `events` (see below) |
 
 **The sync job is why the mirrored kinds stay current.** Doses, readings,
 completions and imported occasions are still authored through their own surfaces
@@ -178,17 +179,32 @@ Scoped edits (`PATCH /occurrences`) follow from that and are most of a page
 rather than most of a file: `all` edits the rule, `following` splits it in two
 and re-points later exceptions, `this` writes one moment.
 
-### What is still on `events`, and what moving it needs
+### iMIP, and where privacy became structural
 
-The ICS importer, the inbound-invite ingest, the iMIP send path
-(`calendar_mail.py`, 668 lines) and the occasion triage in the Inbox all still
-write `events`. That is deliberate: the send path has an external contract —
-a mistake emails real people — and it is the one part of this migration where
-being wrong is not recoverable by re-running a backfill.
+The send path runs on `(Moment, CalendarRecord)` — `wild_life/occasions.py` pairs
+them. Reads are convenient there; **writes are not**, deliberately:
+`occ.record.sequence = n` says out loud that a sequence number is something we
+tell other systems, and `occ.moment.title = t` that a title is ours. Collapsing
+the two into one mutable surface is how they got confused in the first place.
 
-Moving it needs, in order: `CalendarRecordRead`/`Update` schemas, a read path
-that returns the record alongside its moment, and the scoped-edit routes in
-`routers/calendar.py` re-expressed against `(moment, calendar_record)` pairs.
+The payoff is that **privacy stopped being a filter**. A moment with no calendar
+record has nothing to export, `Occasion` cannot be constructed for one, and every
+send path takes an `Occasion`. So the question is never "did the export query say
+WHERE correctly" but "which moments were given a record" — and there are exactly
+two places that happens: `PATCH /moments/{id}/calendar` (adding a guest list *is*
+the sharing) and an inbound invitation arriving. `tests/test_export_privacy.py`
+pins the default; `tests/test_calendar_mail_tick.py` exercises the lifecycle.
+
+Both iMIP ledgers re-key onto the moment. They record what has already left the
+building, so they have to hang off the thing that can leave it.
+
+### What is still on `events`
+
+The ICS importer (`scripts/import_ics.py`) and the Inbox's occasion triage. Both
+write `events`, and the 5-minute mirror carries them into moments. Moving them is
+the last step, and the smaller one: the importer POSTs a payload that is already
+almost a moment plus a record, and the triage writes a subject the moment can
+carry directly.
 
 ### `notes.mood` is dropped, and would be a Metric if it ever comes back
 

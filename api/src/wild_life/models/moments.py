@@ -256,6 +256,17 @@ class CalendarRecord(Base):
     invites_enabled: Mapped[bool] = mapped_column(
         Boolean, server_default="false", nullable=False
     )
+    # iCalendar's LOCATION: a *string*, and therefore wire form. Where it
+    # actually is, is a `place` link on the moment; this is what the sender wrote
+    # and what a replay has to echo back, which we cannot always resolve.
+    location: Mapped[str | None] = mapped_column(Text)
+    # The TZID a DTSTART arrived with.
+    timezone: Mapped[str | None] = mapped_column(Text)
+    # The material snapshot of the last send — title, time, place — whose change
+    # warrants a SEQUENCE bump and a resend to everyone. A fact about what was
+    # transmitted, so it lives beside the sequence it guards. Deliberately not
+    # the attendee list: adding a guest must not re-notify the others.
+    invite_signature: Mapped[str | None] = mapped_column(Text)
     # Wire recurrence, stored losslessly and expanded on demand.
     recurrence: Mapped[str | None] = mapped_column(Text)
     recurrence_exdates: Mapped[list[str]] = mapped_column(

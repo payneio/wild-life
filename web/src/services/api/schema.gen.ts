@@ -359,46 +359,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/events/{event_id}/guests": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Event Guests
-         * @description Per-guest invite + RSVP status for a hosted event (drives the UI panel).
-         */
-        get: operations["events_guests"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/events/{event_id}/invites/send": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Send Invites
-         * @description Opt an event into invites and send its pending REQUEST/CANCEL now.
-         */
-        post: operations["events_send_invites"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/events/{event_id}/occurrence": {
         parameters: {
             query?: never;
@@ -449,27 +409,6 @@ export interface paths {
         put?: never;
         /** Reconcile Attendees */
         post: operations["events_reconcile_attendees"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/events/{event_id}/rsvp": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Set Rsvp
-         * @description Set my RSVP to a received invite and email the METHOD:REPLY immediately
-         *     (no waiting for the poll). The poll remains the safety net if mail is off.
-         */
-        post: operations["events_rsvp"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1334,6 +1273,33 @@ export interface paths {
         patch: operations["moments_update"];
         trace?: never;
     };
+    "/moments/{item_id}/calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Calendar Record
+         * @description What has been shared about this moment, or null — which is the default.
+         */
+        get: operations["moments_calendar_record"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update Calendar Record
+         * @description Share a moment, or change what has been shared.
+         *
+         *     Creates the projection on first call, because giving a moment a guest list is
+         *     what makes it shareable — there is no separate "enable" to forget.
+         */
+        patch: operations["moments_share"];
+        trace?: never;
+    };
     "/moments/{item_id}/images": {
         parameters: {
             query?: never;
@@ -1349,6 +1315,75 @@ export interface paths {
          * @description Attach an image; reference it in the body as ``![alt](moment-image:<id>)``.
          */
         post: operations["upload_moment_image_moments__item_id__images_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/moments/{moment_id}/guests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Event Guests
+         * @description Per-guest invite + RSVP status for a hosted occasion (drives the panel).
+         *
+         *     Empty for a moment with no projection, which is the honest answer: nobody was
+         *     told, so there is nobody to have a status.
+         */
+        get: operations["moments_guests"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/moments/{moment_id}/invites/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send Invites
+         * @description Share a moment and send its pending REQUEST/CANCEL now.
+         *
+         *     **This is where a private moment becomes shareable**, and the only place
+         *     besides an inbound invitation where a calendar record is created. Privacy is
+         *     structural rather than a filter, so it has to be an act: nothing leaves until
+         *     someone performs this one.
+         */
+        post: operations["moments_send_invites"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/moments/{moment_id}/rsvp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set Rsvp
+         * @description Set my RSVP to a received invitation and email the METHOD:REPLY at once
+         *     (no waiting for the poll). The poll remains the safety net if mail is off.
+         */
+        post: operations["moments_rsvp"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2858,6 +2893,26 @@ export interface components {
             rsvp_status?: string | null;
             /** Sequence */
             sequence?: number | null;
+        };
+        /**
+         * CalendarRecordUpdate
+         * @description What may be changed about a moment's shared projection.
+         *
+         *     Deliberately small. The meeting itself — title, when, body — is the moment's
+         *     and is edited there; this is only what other people have been told, plus the
+         *     two switches that decide whether anything leaves at all.
+         */
+        CalendarRecordUpdate: {
+            /** Attendees */
+            attendees?: string[] | null;
+            /** Cancelled At */
+            cancelled_at?: Instant | null;
+            /** Invites Enabled */
+            invites_enabled?: boolean | null;
+            /** Location */
+            location?: string | null;
+            /** Organizer */
+            organizer?: string | null;
         };
         /**
          * ChangeLogRead
@@ -7670,68 +7725,6 @@ export interface operations {
             };
         };
     };
-    events_guests: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                event_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GuestStatus"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    events_send_invites: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                event_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SendInvitesResult"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     delete_occurrence_events__event_id__occurrence_delete: {
         parameters: {
             query: {
@@ -7852,41 +7845,6 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    events_rsvp: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                event_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RsvpBody"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EventRead"];
                 };
             };
             /** @description Validation Error */
@@ -9974,6 +9932,72 @@ export interface operations {
             };
         };
     };
+    moments_calendar_record: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarRecordRead"] | null;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    moments_share: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalendarRecordUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarRecordRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_moment_images_moments__item_id__images_get: {
         parameters: {
             query?: never;
@@ -10027,6 +10051,103 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MomentImageRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    moments_guests: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                moment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuestStatus"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    moments_send_invites: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                moment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SendInvitesResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    moments_rsvp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                moment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RsvpBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MomentRead"];
                 };
             };
             /** @description Validation Error */

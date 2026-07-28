@@ -1,7 +1,11 @@
+import { useState } from "react"
 import { Link } from "react-router-dom"
 import { X } from "lucide-react"
 import { Record, RecordSection } from "@/components/record/Record"
 import { HomePicker } from "@/components/graph/HomePicker"
+import { GuestsPanel } from "@/components/calendar/GuestsPanel"
+import { Segmented } from "@/components/detail/kit"
+import { useCalendarRecord, useSetRsvp, useShareMoment } from "@/services/api/hooks"
 import { MentionChip } from "@/components/MentionChip"
 import { useFields } from "@/components/record/context"
 import { recordFields } from "@/components/record/typed"
@@ -115,6 +119,102 @@ function Provenance() {
   )
 }
 
+const RSVP_OPTIONS = [
+  { value: "needs-action", label: "No reply" },
+  { value: "accepted", label: "Accept" },
+  { value: "tentative", label: "Maybe" },
+  { value: "declined", label: "Decline" },
+]
+
+/**
+ * What has been shared about this moment, and with whom.
+ *
+ * **Absent until something has been.** Privacy is structural: a moment with no
+ * calendar record has nothing that can leave this system, so there is no panel
+ * to look at and no switch to have left in the wrong position. Adding a guest is
+ * what creates the record, which is why sharing reads as an act rather than a
+ * setting.
+ */
+function Sharing({ momentId }: { momentId: string }) {
+  const record = useCalendarRecord(momentId).data
+  const share = useShareMoment()
+  const setRsvp = useSetRsvp()
+  const [adding, setAdding] = useState("")
+
+  const attendees = record?.attendees ?? []
+  // Someone else convened it, so the question is what I am replying.
+  const invited = !!record?.organizer
+
+  const add = () => {
+    const email = adding.trim().toLowerCase()
+    if (!email.includes("@")) return
+    share.mutate({ id: momentId, attendees: [...attendees, email] })
+    setAdding("")
+  }
+
+  return (
+    <RecordSection title="Shared" columns={false}>
+      {invited ? (
+        <div className="space-y-2">
+          <p className="text-xs text-slate-500">
+            From {record!.organizer?.replace(/^mailto:/i, "")}
+          </p>
+          <Segmented
+            options={RSVP_OPTIONS}
+            value={record!.rsvp_status ?? "needs-action"}
+            onChange={(v) => setRsvp.mutate({ id: momentId, status: v })}
+          />
+          <p className="text-[11px] text-slate-400">
+            {record!.rsvp_sent_status === record!.rsvp_status &&
+            record!.rsvp_status !== "needs-action"
+              ? "Reply sent to the organizer"
+              : record!.rsvp_status && record!.rsvp_status !== "needs-action"
+                ? "Reply will be emailed shortly"
+                : "Choose a response to notify the organizer"}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {attendees.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {attendees.map((email) => (
+                <span
+                  key={email}
+                  className="flex items-center gap-1 rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-600"
+                >
+                  {email}
+                  <button
+                    type="button"
+                    className="text-slate-400 transition hover:text-red-600"
+                    title="Remove, and send them a cancellation"
+                    onClick={() =>
+                      share.mutate({
+                        id: momentId,
+                        attendees: attendees.filter((a) => a !== email),
+                      })
+                    }
+                  >
+                    <X size={11} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          <input
+            value={adding}
+            onChange={(e) => setAdding(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && add()}
+            onBlur={add}
+            placeholder="Invite by email…"
+            className="w-full rounded-lg border border-slate-300 bg-surface px-3 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+          />
+          <GuestsPanel momentId={momentId} />
+        </div>
+      )}
+    </RecordSection>
+  )
+}
+
 /**
  * A moment: something that happened, or that you intend to happen.
  *
@@ -167,6 +267,10 @@ export function MomentDetail({ entity, onClose }: { entity: Entity; onClose: () 
         <F.DateTime field="window_end" label="No later than" />
         <F.Number field="expected_minutes" label="Expected minutes" />
       </RecordSection>
+
+      {/* Only for an occasion: sharing a reflection with a guest list is not a
+          thing, and offering it would suggest otherwise. */}
+      {(entity as Moment).kind === "occasion" && <Sharing momentId={entity.id} />}
 
       {/* Deciding not to do something is an act and is recorded. Letting a date
           pass is a silence, and *that* is derived — there is nothing to store

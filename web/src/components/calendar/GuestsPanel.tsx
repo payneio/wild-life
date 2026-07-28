@@ -2,10 +2,10 @@ import { useState } from "react"
 import { Check, Clock, Mail, Send, X } from "lucide-react"
 import { Button, Modal } from "@/components/ui/primitives"
 import { Section } from "@/components/detail/kit"
-import { useEventGuests, useSendInvites } from "@/services/api/hooks"
+import { useCalendarRecord, useMomentGuests, useSendInvites } from "@/services/api/hooks"
 import { showActionToast } from "@/lib/toast"
 import { cn } from "@/lib/utils"
-import type { EventItem, GuestStatus } from "@/services/api/types"
+import type { GuestStatus } from "@/services/api/types"
 
 const PARTSTAT_LABEL: Record<string, string> = {
   accepted: "Accepted",
@@ -44,17 +44,22 @@ function StatusPill({ g }: { g: GuestStatus }) {
 }
 
 /**
- * Guests panel for a hosted event. Shows each guest's invite/RSVP status and a
- * deliberate Send action. Sending is async (a cron/tick delivers), so statuses
- * are shown truthfully — Pending until the ledger records the send, then Invited,
+ * Guests panel for a hosted occasion. Shows each guest's invite/RSVP status and a
+ * deliberate Send action. Sending is async (a tick delivers), so statuses are
+ * shown truthfully — Pending until the ledger records the send, then Invited,
  * then the guest's reply.
+ *
+ * Absent until the moment has a guest list, which is not a styling choice: a
+ * moment with no calendar record has nothing that can leave this system, and a
+ * panel offering to send would be describing a capability it does not have.
  */
-export function GuestsPanel({ event }: { event: EventItem }) {
-  const guests = useEventGuests(event.id).data ?? []
+export function GuestsPanel({ momentId }: { momentId: string }) {
+  const guests = useMomentGuests(momentId).data ?? []
+  const record = useCalendarRecord(momentId).data
   const send = useSendInvites()
   const [confirm, setConfirm] = useState(false)
 
-  if (event.attendees.length === 0) return null
+  if (!record || (record.attendees ?? []).length === 0) return null
 
   const pending = guests.filter((g) => !g.invited)
   const invited = guests.filter((g) => g.invited)
@@ -67,7 +72,7 @@ export function GuestsPanel({ event }: { event: EventItem }) {
 
   const doSend = () => {
     setConfirm(false)
-    send.mutate(event.id, {
+    send.mutate(momentId, {
       onSuccess: (res) => {
         if (res.disabled) {
           showActionToast("Mail is off — invitations will send once it's enabled")
@@ -122,7 +127,7 @@ export function GuestsPanel({ event }: { event: EventItem }) {
         <Modal title={label} onClose={() => setConfirm(false)}>
           <p className="text-sm text-slate-600">
             {invited.length === 0
-              ? `Email an invitation to ${event.attendees.length} guest${event.attendees.length === 1 ? "" : "s"}?`
+              ? `Email an invitation to ${(record.attendees ?? []).length} guest${(record.attendees ?? []).length === 1 ? "" : "s"}?`
               : `Send an updated invitation to your guests${hasUninvited ? ` and invite ${pending.length} new one${pending.length === 1 ? "" : "s"}` : ""}?`}
           </p>
           <div className="mt-4 flex justify-end gap-2">
