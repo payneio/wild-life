@@ -95,31 +95,44 @@ Note: `insurance_plans` has no effective dates today, only `status`. If validity
 dates are added later they follow the `affiliations` rule, with status derived
 from the interval rather than stored beside it.
 
-## Expected volumes
+## What the backfill produced
 
-Measured 2026-07-28, so Phase 3's parity checks have numbers to gate on rather
-than assertions:
+Run 2026-07-28 (`wild-life-backfill-moments`), against live data:
 
-| source | rows | becomes |
+| source | rows | became |
 | --- | --- | --- |
-| `notes` | 847 | 253 `reflection` · 593 `observation` · 1 `capture` |
-| `note_mentions` | 1,015 | `mention` links |
-| `events` | 1,332 | 1,315 `occasion` · 17 `observation` |
-| `entity_links` `attendee` | 443 | 118 `participant` links (325 self-edges dropped) |
+| `notes` | 848 | 253 `reflection` · 593 `observation` · 2 `capture` |
+| `note_mentions` | 1,015 | 1,000 `mention` links — 15 self-mentions dropped |
+| `events` | 1,332 | 1,315 `occasion` · 17 `observation` · 1,282 calendar records |
+| `entity_links` `attendee` | 443 | 118 `participant` links — 325 self-edges dropped |
 | `entity_links` `diagnosed_by` | 4 | unchanged — a standing-thing edge, not involvement |
-| `tasks.completed_at` | 411 | `completion` |
-| `tasks.scheduled_date` | 402 | `work` intentions |
-| `metric_entries` | 325 | `measurement` + reading payload |
-| `group_readings` | 58 | retire into the moments their entries share |
-| `routine_instances` | 59 | 37 `dose` · 22 `activity` |
+| `tasks.completed_at` | 411 | 411 `completion` |
+| `tasks.scheduled_date` | 402 | 402 `work` intentions |
+| `metric_entries` | 325 | 325 reading payloads across 86 `measurement` moments |
+| `group_readings` | 58 | 58 of those moments; the rest are 28 standalone readings |
+| `routine_instances` | 59 | 38 `dose` · 21 `activity` |
+| `decisions.decided_on` | 8 | 8 `decision` |
+| `requests.resolved_at` | 1 | 1 `completion` |
 | `location_visits` | 0 | `visit` (ingestion began 2026-07-27) |
 
-Total moments after backfill: roughly 3,000.
+**3,147 moments · 2,969 links · 325 readings · 38 doses · 1,282 calendar records.**
+`change_log` was 27,894 before and after: every write is a Core statement, which
+the audit listener never sees, so the backfill neither logged 8,000 rows nor
+notified every open SSE stream once per row.
 
-## What this leaves for Phase 2
+Three things the run corrected in this document:
 
-The additive schema, in the shape the plan records. Two details settled here that
-the plan states only in passing: `moment_links` needs a surrogate `id` because
-payload hangs off it and `entity_links`'s primary key is currently its five-column
-tuple; and `group_readings` retires into the moment rather than migrating, since
-the moment *is* the act its docstring already describes.
+- **`delegations` has no rows.** The `exchange` mapping is written and exercises
+  nothing; folding `Delegation` into `Request` migrates no data.
+- **Doses are 38, not 37.** A routine instance takes its medication from the
+  instance *or* its routine, and only the second was counted here before.
+- **Self-mentions go too.** 15 journal entries mention their own author. The
+  frame rule was stated for participants and roots; it applies to every role, and
+  the mention reconciler needs the same rule in Phase 4 or they return on save.
+
+## What this leaves for Phase 4
+
+Reads. Nothing consumes the spine yet — every surface still reads `notes` and
+`events`, and every write still goes to them, so the backfill is one-way and a
+note written this afternoon has no moment until it is re-run. That is why
+`tests/test_moments_backfill.py` asserts invariants rather than counts.

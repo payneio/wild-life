@@ -53,6 +53,7 @@ class Moment(UUIDPrimaryKey, TimestampMixin, Base):
         # The unfulfilled-intention query: a window that has passed with nothing
         # having happened in it.
         Index("ix_moments_window_end", "window_end"),
+        Index("uq_moments_source_ref", "source_ref", unique=True),
     )
 
     # MomentKind. Written by the surface that creates the moment, never asked of
@@ -85,6 +86,11 @@ class Moment(UUIDPrimaryKey, TimestampMixin, Base):
 
     withdrawn_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     withdrawal_reason: Mapped[str | None] = mapped_column(Text)
+
+    # The row this was backfilled from — "note:<uuid>", "task:<uuid>:completion".
+    # Unique, which is what makes the backfill idempotent, and null for anything
+    # authored after the inversion. Droppable once nothing has two homes.
+    source_ref: Mapped[str | None] = mapped_column(Text)
 
 
 class MomentLink(UUIDPrimaryKey, Base):
