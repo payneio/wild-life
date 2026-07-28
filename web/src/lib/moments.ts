@@ -45,6 +45,23 @@ export const KIND_LABEL: Record<MomentKind, string> = {
   decision: "Decision",
 }
 
+/** How to say a kind when there is more than one of it. English, not an `s`. */
+export const KIND_PLURAL: Record<MomentKind, string> = {
+  capture: "captures",
+  reflection: "reflections",
+  observation: "notes",
+  occasion: "occasions",
+  exchange: "exchanges",
+  visit: "visits",
+  measurement: "measurements",
+  dose: "doses",
+  activity: "activities",
+  work: "work sessions",
+  completion: "completed",
+  withdrawal: "withdrawn",
+  decision: "decisions",
+}
+
 /** Badge colouring, grouped by what the act is about rather than per kind —
  *  thirteen distinct colours would be a legend nobody can hold. */
 export const KIND_CLASS: Record<MomentKind, string> = {
@@ -242,4 +259,44 @@ export function groupMomentsByDay(
     g.moments.push(m)
   }
   return groups
+}
+
+/**
+ * The standing thing a moment belongs to — its program, or failing that its area.
+ *
+ * Almost nothing says so directly: of 1,554 subject links, 61 point at a program
+ * and 88 at an area, while **1,211 point at a task**. So a theme is *derived*
+ * the way a breadcrumb is, by walking the subject's ancestry — task → project →
+ * program → area — using the `parent` each object already declares. That is not
+ * inventing a claim: it is what the hierarchy means, and `refOf` has always
+ * resolved a display parent this way rather than storing a second copy.
+ *
+ * A moment can therefore show a thread it never named, which is the point: the
+ * threads running through a life are mostly implicit, and drawing them is the
+ * difference between a list of events and a shape.
+ */
+export const THEME_TYPES: readonly EntityType[] = ["program", "area"]
+
+export interface Theme {
+  type: EntityType
+  id: string
+  label: string
+}
+
+/** A stable colour per theme, so a thread keeps its identity down the page. */
+const THEME_COLORS = [
+  "#0f766e",
+  "#9b4d3f",
+  "#4c4a7d",
+  "#57534e",
+  "#7a6a2f",
+  "#6d3a5d",
+  "#2f5d7a",
+  "#3f6b3a",
+]
+
+export function themeColor(id: string): string {
+  let h = 0
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0
+  return THEME_COLORS[h % THEME_COLORS.length]
 }

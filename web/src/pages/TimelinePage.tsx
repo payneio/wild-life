@@ -10,13 +10,17 @@ import {
   FAMILY_OF,
   describeMoment,
   KIND_LABEL,
+  KIND_PLURAL,
   routeForMoment,
   subjectOf,
+  themeColor,
+  type Theme,
   WEIGHT_OF,
   whenOf,
   type KindFamily,
 } from "@/lib/moments"
 import { useEntityResolver } from "@/services/api/mentions"
+import { useThemeOf } from "@/lib/useThemes"
 import { routeFor } from "@/services/api/routes"
 import type { EntityType, Moment, MomentKind } from "@/services/api/types"
 
@@ -31,8 +35,6 @@ const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July",
   "August", "September", "October", "November", "December"]
 
-/** The standing things a life is organised around — what a year can be *about*. */
-const THEME_TYPES = new Set<EntityType>(["area", "program", "project", "person"])
 
 type Totals = Record<KindFamily, number>
 const zero = (): Totals => ({ writing: 0, places: 0, body: 0, work: 0 })
@@ -73,7 +75,7 @@ function useYears(years: number[]) {
  *  Six supplements and two readings are a *pattern*, not eight events, and eight
  *  rows of them buries the conversation you had that afternoon. The count is the
  *  honest summary; the detail is one tap away for the day you actually want it. */
-function SmallCluster({ moments }: { moments: Moment[] }) {
+function SmallCluster({ moments, spine }: { moments: Moment[]; spine: Spine }) {
   const [open, setOpen] = useState(false)
   const resolve = useEntityResolver()
   const byKind = useMemo(() => {
@@ -88,7 +90,8 @@ function SmallCluster({ moments }: { moments: Moment[] }) {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="group flex w-full items-center gap-2 rounded-lg py-1 text-left transition hover:bg-slate-100/60"
+        className={`group flex w-full items-center gap-2 rounded-r-lg border-l-2 py-1 pl-2 text-left transition hover:bg-slate-100/60 ${spine.dim}`}
+        style={{ borderColor: spine.color }}
       >
         <span className="flex shrink-0 items-center gap-0.5">
           {moments.slice(0, 10).map((m) => (
@@ -104,7 +107,7 @@ function SmallCluster({ moments }: { moments: Moment[] }) {
         </span>
         <span className="min-w-0 flex-1 truncate text-xs text-slate-400">
           {byKind
-            .map(([k, n]) => `${n} ${KIND_LABEL[k].toLowerCase()}${n === 1 ? "" : "s"}`)
+            .map(([k, n]) => `${n} ${n === 1 ? KIND_LABEL[k].toLowerCase() : KIND_PLURAL[k]}`)
             .join(" · ")}
         </span>
         <ChevronDown
@@ -118,10 +121,10 @@ function SmallCluster({ moments }: { moments: Moment[] }) {
             <li key={m.id}>
               <Link
                 to={routeForMoment(m)}
-                className="flex items-baseline gap-2 py-0.5 text-xs text-slate-500 hover:text-slate-800"
+                className="flex items-center gap-2 py-0.5 text-xs text-slate-500 hover:text-slate-800"
               >
                 <span
-                  className="h-1.5 w-1.5 shrink-0 translate-y-1 rounded-full"
+                  className="h-1.5 w-1.5 shrink-0 rounded-full"
                   style={{ background: colorOf(m.kind) }}
                 />
                 <span className="truncate">{describeMoment(m, resolve)}</span>
@@ -135,15 +138,16 @@ function SmallCluster({ moments }: { moments: Moment[] }) {
 }
 
 /** Something that closed. A line — it has an outcome, not content. */
-function MediumRow({ moment }: { moment: Moment }) {
+function MediumRow({ moment, spine }: { moment: Moment; spine: Spine }) {
   const resolve = useEntityResolver()
   return (
     <Link
       to={routeForMoment(moment)}
-      className="group flex items-baseline gap-2.5 rounded-lg py-1 transition hover:bg-slate-100/60"
+      className={`group flex items-center gap-2.5 rounded-r-lg border-l-2 py-1 pl-2 transition hover:bg-slate-100/60 ${spine.dim}`}
+      style={{ borderColor: spine.color }}
     >
       <span
-        className="h-2 w-2 shrink-0 translate-y-1 rounded-[2px]"
+        className="h-2 w-2 shrink-0 rounded-[2px]"
         style={{ background: colorOf(moment.kind) }}
       />
       <span className="min-w-0 flex-1 truncate text-sm text-slate-600 group-hover:text-slate-900">
@@ -155,7 +159,7 @@ function MediumRow({ moment }: { moment: Moment }) {
 
 /** Time you spent somewhere, or words you wrote. The only things with a body
  *  worth reading in place, so the only things that get room. */
-function LargeBlock({ moment }: { moment: Moment }) {
+function LargeBlock({ moment, spine }: { moment: Moment; spine: Spine }) {
   const resolve = useEntityResolver()
   const subject = subjectOf(moment)
   const when = whenOf(moment)
@@ -167,8 +171,8 @@ function LargeBlock({ moment }: { moment: Moment }) {
 
   return (
     <div
-      className="my-1 rounded-lg border-l-2 bg-surface/60 py-1.5 pl-3 transition hover:bg-surface"
-      style={{ borderColor: colorOf(moment.kind) }}
+      className={`my-1 rounded-r-lg border-l-2 bg-surface/60 py-1.5 pl-3 transition hover:bg-surface ${spine.dim}`}
+      style={{ borderColor: spine.color }}
     >
       <Link to={routeForMoment(moment)} className="block">
         <div className="flex items-baseline gap-2">
@@ -210,9 +214,48 @@ function SubjectChip({
   return to ? <Link to={to}>{chip}</Link> : chip
 }
 
+/**
+ * The left edge of every row: which thread it belongs to, and whether it is the
+ * one you are looking at.
+ *
+ * A run of moments in the same program draws a continuous coloured edge down the
+ * page — the thread made visible, without connector lines. Lines from a side
+ * rail were the other option and are the wrong tool here: they have to be
+ * positioned against rows of variable height, recomputed on every scroll and
+ * every cluster you open, and on a 390px phone there is no column to run them
+ * down. The ribbon says the same thing and cannot come unaligned.
+ *
+ * Where a moment belongs to no program the edge carries its family colour, so
+ * the encoding degrades to what it replaced rather than to nothing.
+ */
+interface Spine {
+  color: string
+  dim: string
+}
+
+function spineFor(
+  moment: Moment,
+  theme: Theme | undefined,
+  focus: Theme | null,
+): Spine {
+  const color = theme ? themeColor(theme.id) : colorOf(moment.kind)
+  const dim = focus && theme?.id !== focus.id ? "opacity-25" : ""
+  return { color, dim }
+}
+
 // --- a day ------------------------------------------------------------------
 
-function DayGroup({ day, moments }: { day: string; moments: Moment[] }) {
+function DayGroup({
+  day,
+  moments,
+  themeOf,
+  focus,
+}: {
+  day: string
+  moments: Moment[]
+  themeOf: (m: Moment) => Theme | undefined
+  focus: Theme | null
+}) {
   const date = new Date(`${day}T12:00:00Z`)
   const small = moments.filter((m) => WEIGHT_OF[m.kind] === "small")
   const rest = moments.filter((m) => WEIGHT_OF[m.kind] !== "small")
@@ -227,15 +270,20 @@ function DayGroup({ day, moments }: { day: string; moments: Moment[] }) {
           {DAYS[date.getUTCDay()]}
         </div>
       </div>
-      <div className="min-w-0 border-l border-slate-100 pl-3">
+      <div className="min-w-0">
         {rest.map((m) =>
           WEIGHT_OF[m.kind] === "large" ? (
-            <LargeBlock key={m.id} moment={m} />
+            <LargeBlock key={m.id} moment={m} spine={spineFor(m, themeOf(m), focus)} />
           ) : (
-            <MediumRow key={m.id} moment={m} />
+            <MediumRow key={m.id} moment={m} spine={spineFor(m, themeOf(m), focus)} />
           ),
         )}
-        {small.length > 0 && <SmallCluster moments={small} />}
+        {small.length > 0 && (
+          <SmallCluster
+            moments={small}
+            spine={spineFor(small[0], themeOf(small[0]), focus)}
+          />
+        )}
       </div>
     </div>
   )
@@ -247,12 +295,16 @@ function YearHeading({
   year,
   totals,
   max,
-  subjects,
+  themes,
+  focus,
+  onFocus,
 }: {
   year: number
   totals: Totals
   max: number
-  subjects: { label: string; n: number }[]
+  themes: Theme[]
+  focus: Theme | null
+  onFocus: (t: Theme | null) => void
 }) {
   const total = sum(totals)
   return (
@@ -278,16 +330,28 @@ function YearHeading({
           <span style={{ flexGrow: Math.max(0, max - total), flexBasis: 0 }} />
         </div>
       )}
-      {subjects.length > 0 && (
+      {themes.length > 0 && (
         <div className="mt-1.5 flex flex-wrap gap-1">
-          {subjects.map((s) => (
-            <span
-              key={s.label}
-              className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-500"
-            >
-              {s.label}
-            </span>
-          ))}
+          {themes.map((t) => {
+            const on = focus?.id === t.id
+            return (
+              <button
+                key={t.id}
+                type="button"
+                aria-pressed={on}
+                onClick={() => onFocus(on ? null : t)}
+                className={`flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] transition ${
+                  on ? "bg-slate-200 text-slate-700" : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                }`}
+              >
+                <span
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{ background: themeColor(t.id) }}
+                />
+                {t.label}
+              </button>
+            )
+          })}
         </div>
       )}
     </div>
@@ -333,7 +397,10 @@ function groupDays(moments: Moment[]): { day: string; moments: Moment[] }[] {
  */
 export function TimelinePage() {
   const { data, isLoading } = useDensity()
-  const resolve = useEntityResolver()
+  const themeOf = useThemeOf()
+  // One thread at a time, held across the whole scroll rather than per year:
+  // following a program through five years is the question this answers.
+  const [focus, setFocus] = useState<Theme | null>(null)
   const [shown, setShown] = useState<Set<KindFamily>>(
     () => new Set(FAMILIES.map((f) => f.key)),
   )
@@ -503,18 +570,19 @@ export function TimelinePage() {
         // machinery rather than themes of a year. Listing those gave 2026 a
         // summary reading "prucalopride · Drink water 3x/day · Blood Pressure",
         // which is true and tells you nothing.
-        const subjects = (() => {
-          const counts = new Map<string, number>()
+        const themes = (() => {
+          const counts = new Map<string, { theme: Theme; n: number }>()
           for (const m of rows) {
-            const s = subjectOf(m)
-            if (!s || !THEME_TYPES.has(s.entity_type)) continue
-            const label = resolve(s.entity_type, s.entity_id)
-            if (label) counts.set(label, (counts.get(label) ?? 0) + 1)
+            const t = themeOf(m)
+            if (!t) continue
+            const seen = counts.get(t.id)
+            if (seen) seen.n += 1
+            else counts.set(t.id, { theme: t, n: 1 })
           }
-          return [...counts.entries()]
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 5)
-            .map(([label, n]) => ({ label, n }))
+          return [...counts.values()]
+            .sort((a, b) => b.n - a.n)
+            .slice(0, 6)
+            .map((x) => x.theme)
         })()
 
         return (
@@ -524,7 +592,9 @@ export function TimelinePage() {
                 year={year}
                 totals={byYear.get(year) ?? zero()}
                 max={max}
-                subjects={subjects}
+                themes={themes}
+                focus={focus}
+                onFocus={setFocus}
               />
             </div>
             {stream?.isLoading ? (
@@ -545,7 +615,12 @@ export function TimelinePage() {
                           {MONTHS[Number(g.day.slice(5, 7)) - 1]}
                         </div>
                       )}
-                      <DayGroup day={g.day} moments={g.moments} />
+                          <DayGroup
+                        day={g.day}
+                        moments={g.moments}
+                        themeOf={themeOf}
+                        focus={focus}
+                      />
                     </div>
                   )
                 })}
