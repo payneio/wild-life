@@ -50,6 +50,7 @@ from wild_life.models.mixins import TimestampMixin, UUIDPrimaryKey
 
 class Routine(UUIDPrimaryKey, TimestampMixin, Base):
     __tablename__ = "routines"
+    __table_args__ = (Index("uq_routines_source_ref", "source_ref", unique=True),)
 
     # Label: an activity/habit's free text; null for medication routines (the label
     # comes from the linked medication). ``name`` is the legacy label, folded into
@@ -92,6 +93,10 @@ class Routine(UUIDPrimaryKey, TimestampMixin, Base):
         Integer, server_default="1", nullable=False
     )
     sort_order: Mapped[int] = mapped_column(Integer, server_default="0", nullable=False)
+    # How long a generated occurrence runs. Decision 12 puts expected duration on
+    # the intention, and a generated occurrence is one — a dose takes no time, a
+    # meeting does, and "9am" without "for an hour" cannot be drawn.
+    expected_minutes: Mapped[int | None] = mapped_column(Integer)
 
     # Context (standalone routines file under an area/program; med/protocol routines
     # derive liveness from their parent instead).
@@ -111,6 +116,11 @@ class Routine(UUIDPrimaryKey, TimestampMixin, Base):
     end_date: Mapped[date | None] = mapped_column(Date)
     # Why this routine exists, and who prescribed it.
     rationale: Mapped[str | None] = mapped_column(Text)
+
+    # The row this rule was backfilled from — "event:<uuid>:rule". Unique, which
+    # is what makes the occasion-rule backfill idempotent, and null for anything
+    # authored here. The same device, for the same reason, as `Moment.source_ref`.
+    source_ref: Mapped[str | None] = mapped_column(Text)
 
     # Legacy free-text cadence — superseded by the structured cadence above, kept
     # until the best-effort migration lands, then dropped.

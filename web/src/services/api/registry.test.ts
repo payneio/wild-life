@@ -44,3 +44,37 @@ describe("every fk-children panel filters on a field the target actually has", (
     },
   )
 })
+
+/**
+ * The same silence, from the other direction.
+ *
+ * `listParams` scopes an object to the rows of a shared table it actually *is*.
+ * `routines` holds every rule — doses, activities, and 58 recurring calendar
+ * series — and the mention picker lists a registry object by calling its crud
+ * with no params. Before this it offered every synced meeting as a "Routine".
+ *
+ * A wrong field here fails the same silent way a relation panel does: the API's
+ * query layer ignores an unknown param and returns the whole table, so the
+ * picker looks populated rather than broken.
+ */
+describe("every listParams filter names a field the object actually has", () => {
+  const scoped = Object.values(REGISTRY).filter((d) => d.listParams)
+
+  it("has scopes to check", () => {
+    expect(scoped.length).toBeGreaterThan(0)
+  })
+
+  it.each(scoped.map((d) => d.key))("%s", (key) => {
+    const def = REGISTRY[key]
+    const fixture = FIXTURES[key] as unknown as Record<string, unknown> | undefined
+    expect(fixture, `no fixture for "${key}"`).toBeDefined()
+    for (const param of Object.keys(def.listParams!)) {
+      if (param === "limit" || param === "offset" || param === "sort") continue
+      const field = param.split("__")[0]
+      expect(
+        Object.prototype.hasOwnProperty.call(fixture!, field),
+        `${key}.listParams filters on "${field}", which ${key} does not carry`,
+      ).toBe(true)
+    }
+  })
+})

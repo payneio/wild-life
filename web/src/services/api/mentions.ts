@@ -58,7 +58,11 @@ function mentionSources(): Source[] {
     .map((d) => ({
       type: d.entityType as EntityType,
       label: d.label,
-      useList: d.crud.useList,
+      // Scoped to the rows this object *is* — one table can back several (see
+      // `listParams`). A caller passing its own params has already said what it
+      // wants and is left alone.
+      useList: (params?: any, options?: { staleTime?: number }) =>
+        d.crud.useList(params ?? d.listParams, options),
       title: d.title,
       parent: d.parent,
       context: d.context,

@@ -138,6 +138,20 @@ export interface EntityDef {
   detail: ComponentType<{ entity: Entity; onClose: () => void; onDelete?: () => void }>
   /** Related collections rendered as generic add/link/create panels. */
   relations?: RelationSpec[]
+  /**
+   * Which rows of a shared table this object *is*.
+   *
+   * One table can back several objects — `routines` holds every rule, and a
+   * `dose` rule, an `activity` and an `occasion` are not the same thing to a
+   * reader. Without this the picker offered 58 synced meeting series as
+   * "Routine". Applied wherever the registry lists an object generically (the
+   * mention sources, and so the resolver and every picker); a surface that
+   * passes its own params is already saying what it wants.
+   *
+   * Declared here rather than defaulted on the server: a hidden filter on
+   * `/routines` would make the endpoint lie about what it holds.
+   */
+  listParams?: Record<string, string>
   /** An object's own capture surface, for when a title alone can't make one.
    *  A component like `detail`, not a config flag: an event needs a *when*, and
    *  what control that takes is the object's business. Rendered by a related
@@ -230,7 +244,9 @@ export const REGISTRY: Record<string, EntityDef> = {
     { mode: "fk-children", label: "Outcomes measured by this", type: "outcome", fkField: "metric_id" },
   ] },
   metricGroup: { key: "metricGroup", label: "Metric group", crud: metricGroups, fields: METRIC_GROUP_FIELDS, title: (e) => e.name, parent: (e) => (e.entity_type && e.entity_id ? { type: e.entity_type, id: e.entity_id } : undefined), entityType: "metric_group", titleField: "name", quickCreate: true, detail: MetricGroupRecord },
-  routine: { key: "routine", label: "Routine", crud: routines, fields: ROUTINE_FIELDS, title: (e) => e.activity ?? e.name ?? "Routine", parent: (e) => refOf(e, ["protocol_id", "protocol"], ["program_id", "program"], ["area_id", "area"]), entityType: "routine", titleField: "activity", quickCreate: true, detail: RoutineRecord },
+  // The rule table also holds `occasion` rules (recurring calendar series), which
+  // are not routines to a reader and get their own surface in the calendar step.
+  routine: { key: "routine", label: "Routine", crud: routines, listParams: { kind__in: "dose,activity", limit: "200" }, fields: ROUTINE_FIELDS, title: (e) => e.activity ?? e.name ?? "Routine", parent: (e) => refOf(e, ["protocol_id", "protocol"], ["program_id", "program"], ["area_id", "area"]), entityType: "routine", titleField: "activity", quickCreate: true, detail: RoutineRecord },
   program: { key: "program", label: "Program", crud: programs, fields: PROGRAM_FIELDS, title: (e) => e.name, parent: (e) => refOf(e, ["area_id", "area"]), entityType: "program", titleField: "name", quickCreate: true, detail: ProgramRecord, relations: [
     { mode: "fk-children", label: "Projects", type: "project", fkField: "program_id" },
     { mode: "soft-backref", label: "Metrics", type: "metric" },

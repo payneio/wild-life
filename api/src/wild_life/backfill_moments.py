@@ -36,6 +36,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Connection
 
 from wild_life.config import settings
+from wild_life.recurrence import translate
 
 # A day-precision moment needs *some* instant. Noon UTC keeps a date from
 # sliding across the date line in either direction when rendered locally, which
@@ -154,6 +155,53 @@ class Backfill:
             ).one()
             ids.append(got[0])
         return ids
+
+    def rule(self, source_ref: str, **cols: Any) -> uuid.UUID | None:
+        """Upsert one rule, returning its id (None on a dry run).
+
+        The same shape as :meth:`moment`, and idempotent for the same reason: the
+        row it was built from names it, so a re-run corrects in place rather than
+        duplicating.
+        """
+        if self.dry_run:
+            return None
+        names = list(cols)
+        assigns = ", ".join(f"{n} = EXCLUDED.{n}" for n in names)
+        row = self.conn.execute(
+            text(f"""
+                INSERT INTO wild_life.routines ({", ".join(names)}, source_ref)
+                VALUES ({", ".join(f":{n}" for n in names)}, :source_ref)
+                ON CONFLICT (source_ref) DO UPDATE SET {assigns}
+                RETURNING id
+            """),
+            {**cols, "source_ref": source_ref},
+        ).one()
+        return row[0]
+
+    def rule_links(
+        self,
+        rule_id: uuid.UUID | None,
+        edges: Iterable[tuple[str, str, uuid.UUID]],
+    ) -> None:
+        """Replace a rule's links with `edges` of (role, entity_type, entity_id)."""
+        if self.dry_run or rule_id is None:
+            return
+        self.conn.execute(
+            text("DELETE FROM wild_life.rule_links WHERE rule_id = :r"),
+            {"r": rule_id},
+        )
+        for role, entity_type, entity_id in edges:
+            if entity_id is None:
+                continue
+            self.conn.execute(
+                text("""
+                    INSERT INTO wild_life.rule_links
+                        (rule_id, role, entity_type, entity_id)
+                    VALUES (:r, :role, :et, :eid)
+                    ON CONFLICT ON CONSTRAINT uq_rule_links_edge DO NOTHING
+                """),
+                {"r": rule_id, "role": role, "et": entity_type, "eid": entity_id},
+            )
 
     def count(self, key: str, n: int = 1) -> None:
         self.tally[key] = self.tally.get(key, 0) + n
@@ -403,6 +451,81 @@ class Backfill:
                 )
             if shares:
                 self.count("calendar records")
+
+    def occasion_rules(self) -> None:
+        """Recurring events become **rules**, alongside the moments they already are.
+
+        Additive on purpose. The calendar still reads `events` and the existing
+        occasion moments still mirror them, so nothing changes shape here — this
+        proves the model against real data before anything depends on it, the way
+        the moment spine was proved first.
+
+        Two paths, and which one a series takes is decided by
+        ``recurrence.translate`` (decision 8):
+
+        - **translated** — the wire rule maps onto our cadence, so the series
+          becomes one rule and its occurrences are *computed*. 58 of 74.
+        - **materialised** — it does not (YEARLY, MONTHLY-by-weekday, COUNT), so
+          the occurrences we were given stand as they are and no rule is written.
+          16 of 74. Nothing is lost: the wire form is on the calendar record
+          verbatim, which is what an export replays.
+
+        A note on the slot. ``timing`` holds the series' time of day, in UTC, as
+        "HH:MM" — a clock time where a dose rule holds a named slot, which is the
+        same idea ("when in the day") resolved one step further. The original
+        TZID is not ours to keep: it was dropped at import long before this, so
+        a series pinned to 9am local drifts an hour across a DST boundary. That
+        is the behaviour today too — the calendar expands from the same UTC
+        instant — so this preserves it rather than introducing it, and the wire
+        form on the calendar record remains the truth for anyone replaying it.
+        """
+        attendees: dict[uuid.UUID, list[uuid.UUID]] = {}
+        for a in self.rows("""
+            SELECT source_id, target_id FROM wild_life.entity_links
+            WHERE source_type = 'event' AND target_type = 'person'
+              AND relation = 'attendee'
+        """):
+            if self._is_self("person", a.target_id):
+                continue
+            attendees.setdefault(a.source_id, []).append(a.target_id)
+
+        for e in self.rows(f"""
+            SELECT id, title, description, start_at, end_at, recurrence,
+                   entity_type, entity_id, location_id
+            FROM wild_life.events
+            WHERE recurrence IS NOT NULL {self._changed()}
+        """):
+            cadence = translate(e.recurrence, e.start_at)
+            if cadence is None:
+                self.count("recurring events materialised as given")
+                continue
+            minutes = (
+                int((e.end_at - e.start_at).total_seconds() // 60)
+                if e.end_at and e.start_at
+                else None
+            )
+            rid = self.rule(
+                f"event:{e.id}:rule",
+                kind="occasion",
+                activity=e.title,
+                rationale=e.description,
+                timing=[e.start_at.strftime("%H:%M")],
+                days_of_week=cadence.days_of_week,
+                interval_days=cadence.interval_days,
+                start_date=e.start_at.date(),
+                end_date=cadence.end_date,
+                expected_minutes=minutes,
+                status="active",
+            )
+            edges: list[tuple[str, str, uuid.UUID]] = []
+            if e.entity_type and not self._is_self(e.entity_type, e.entity_id):
+                edges.append(("subject", e.entity_type, e.entity_id))
+            if e.location_id:
+                edges.append(("place", "location", e.location_id))
+            edges += [("participant", "person", p) for p in attendees.get(e.id, [])]
+            self.rule_links(rid, edges)
+            self.count("event→occasion rule")
+            self.count("rule links", len(edges))
 
     def routine_instances(self) -> None:
         """A logged protocol step: a dose if it names a medication, else activity.
@@ -690,6 +813,7 @@ def run(dry_run: bool, since: datetime | None = None) -> dict[str, int]:
             b = Backfill(conn, dry_run=dry_run, since=since)
             b.notes()
             b.events()
+            b.occasion_rules()
             b.routine_instances()
             b.readings()
             b.visits()
