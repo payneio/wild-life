@@ -12,7 +12,6 @@ import {
   COMMIT_STATUS,
   HEALTH_CATEGORY,
   DELEGATION_STATUS,
-  EVENT_TYPE,
   MEASUREMENT_FREQUENCIES,
   MED_TYPE,
   MOMENT_KIND,
@@ -41,21 +40,6 @@ export const PROGRAM_FIELDS: FieldSpec[] = [
   { name: "reporting_cadence", label: "Reporting cadence" },
 ]
 
-export const EVENT_FIELDS: FieldSpec[] = [
-  { name: "title", label: "Title", full: true },
-  { name: "event_type", label: "Type", type: "select", options: EVENT_TYPE },
-  { name: "description", label: "Description", type: "textarea", full: true },
-  { name: "start_at", label: "Start", type: "datetime" },
-  { name: "end_at", label: "End", type: "datetime" },
-  { name: "all_day", label: "All day", type: "checkbox" },
-  { name: "location", label: "Location" },
-  { name: "attendees", label: "Attendees", type: "attendees", full: true },
-  { name: "recurrence", label: "Repeats", type: "recurrence", full: true },
-]
-
-// List configuration only — which columns are searchable and which make useful
-// filter dropdowns. `kind` is a filter here and never a control: reading a
-// stream by act is a query, writing one is the creating surface's business.
 export const MOMENT_FIELDS: FieldSpec[] = [
   { name: "title", label: "Title", full: true },
   { name: "kind", label: "Kind", type: "select", options: MOMENT_KIND },

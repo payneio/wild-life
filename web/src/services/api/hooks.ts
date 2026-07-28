@@ -12,7 +12,6 @@ import type {
   Decision,
   Delegation,
   EntityType,
-  EventItem,
   GuestStatus,
   Outcome,
   InsurancePlan,
@@ -66,7 +65,6 @@ export const outcomes = createCrud<Outcome>("outcomes")
 export const metrics = createCrud<Metric>("metrics")
 export const metricEntries = createCrud<MetricEntry>("metric-entries")
 export const metricGroups = createCrud<MetricGroup>("metric-groups")
-export const events = createCrud<EventItem>("events")
 /** The spine. A life is a series of moments; everything above is their subject. */
 export const moments = createCrud<Moment>("moments")
 
@@ -386,20 +384,24 @@ export function useMomentsMentioning(type: EntityType | null, id: string | null)
 // explicit invalidate in their mutations; a real fix needs invalidation to
 // accept a set of resources, not one prefix.
 
-/** Events a person is linked to (as an attendee) — the people-graph payoff. */
-export function usePersonEvents(id: string | null) {
+/**
+ * Every moment a person was actually *at* — the people-graph payoff.
+ *
+ * `role=participant`, which is why the 325 self-edges had to go: when everything
+ * listed Paul, "every moment with Melissa" was unanswerable. Not a subject link:
+ * a meeting *with* someone and a note *about* them are different relations, and
+ * flattening them is what the role vocabulary exists to prevent.
+ */
+export function usePersonOccasions(id: string | null) {
   return useQuery({
-    queryKey: ["people", id, "events"],
-    queryFn: () => apiClient.get<EventItem[]>(`/people/${id}/events`),
-    enabled: !!id,
-  })
-}
-
-/** People linked to an event (matched attendees). */
-export function useEventPeople(id: string | null) {
-  return useQuery({
-    queryKey: ["events", id, "people"],
-    queryFn: () => apiClient.get<{ id: string; name: string }[]>(`/events/${id}/people`),
+    queryKey: ["moments", "with-person", id],
+    queryFn: () =>
+      apiClient.get<Moment[]>("/moments", {
+        linked_type: "person",
+        linked_id: id ?? undefined,
+        role: "participant",
+        limit: "200",
+      }),
     enabled: !!id,
   })
 }

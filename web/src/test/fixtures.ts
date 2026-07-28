@@ -6,7 +6,6 @@ import type {
   Decision,
   Delegation,
   Entity,
-  EventItem,
   Outcome,
   InsurancePlan,
   Location,
@@ -388,34 +387,6 @@ export const MOMENT: Moment = {
   links: [],
 }
 
-export const EVENT: EventItem = {
-  ...BASE,
-  title: "Cabinet install",
-  event_type: "appointment",
-  description: null,
-  location: "Home",
-  location_id: null,
-  start_at: "2026-08-10T16:00:00Z" as Instant,
-  end_at: "2026-08-10T19:00:00Z" as Instant,
-  all_day: false,
-  attendees: [],
-  recurrence: null,
-  recurrence_exdates: [],
-  // The TZID a recurring DTSTART arrived with; nothing to record for a one-off.
-  timezone: null,
-  recurrence_id: null,
-  recurrence_parent_id: null,
-  entity_type: null,
-  entity_id: null,
-  external_ref: null,
-  organizer: null,
-  sequence: null,
-  rsvp_status: null,
-  rsvp_sent_status: null,
-  invites_enabled: false,
-  cancelled_at: null,
-  received_invite: false,
-}
 
 /** Shapes of one object whose layout is conditional, so coverage can check all
  *  of them. An Outcome renders different fields per kind — a standard has no
@@ -481,7 +452,6 @@ export const FIXTURES: Record<string, Entity> = {
   routine: ROUTINE,
   delegation: DELEGATION,
   moment: MOMENT,
-  event: EVENT,
   medication: MEDICATION,
   allergy: ALLERGY,
   insurancePlan: INSURANCE_PLAN,

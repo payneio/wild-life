@@ -257,18 +257,3 @@ export const RESOURCE_TYPE = [
   "location",
   "reference",
 ] as const
-export const EVENT_TYPE = [
-  "meeting",
-  "appointment",
-  "call",
-  "lab",
-  "procedure",
-  "surgery",
-  "imaging",
-  "test",
-  "vaccination",
-  "injury",
-  "symptom",
-  "note",
-  "other",
-] as const

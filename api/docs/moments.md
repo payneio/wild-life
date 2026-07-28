@@ -200,22 +200,30 @@ building, so they have to hang off the thing that can leave it.
 
 ### What is left of `events`
 
-Nothing writes it. The importer POSTs a moment then shares it; the invite ingest
-does the same; the calendar, the Inbox and iMIP all read and write the spine. The
-table and its 1,332 rows stay as the thing the backfill was derived from and the
-thing `wild-life-reverse-moments` can write back to.
+Nothing reads it and nothing writes it. The table and its 1,332 rows stay as what
+the backfill was derived from and what `wild-life-reverse-moments` writes back to
+— the way out, not a dependency.
 
-Two threads remain, and both are retirement rather than migration:
+The retirement removed more than the registry entry. Three live readers were
+still on it and were therefore **already broken**, since the table froze: nudges
+counted zero meetings for any day made since, the reminder tick would never fire
+for a calendar entry created after the cut-over, and the dashboard's unfiled
+figure could only go stale. Reading a frozen table is worse than reading none,
+because it answers.
 
-- **`event` is still in the registry**, so the mention resolver lists it and the
-  Area/Project "Events" relation panels still render — historical rows that now
-  duplicate what the Log band shows. Removing the entry retires
-  `entities/event/`, the `EventCapture`, and those panels.
-- **The mirror still runs.** It is a no-op for anything new, since the source
-  tables are frozen. It no longer overwrites edits: `moment()` declines the
-  conflict when the moment has been touched more recently than its source row,
-  which matters now that the calendar edits moments directly and a full run would
-  otherwise revert a title corrected there.
+`reminders.py` carried the **fourth** recurrence expander — after `Routine`'s
+cadence, `Event`'s RRULE and FullCalendar's — with its own parsing, its own
+EXDATE comparison and its own fallback. The occurrence endpoint's body is now
+callable (`routers/occurrences.collect`) and everything that needs to know when
+something happens asks it. That was the point of the whole migration, stated in
+one function.
+
+Gone with it: `entities/event/`, `EventCapture`, the Event record and its
+when/where block, the Area/Project "Events" panels (an object's dated history is
+the Log band), `EVENT_FIELDS`, `EVENT_TYPE`, `EventItem`, the `events` crud and
+the `event` registry entry. A person's page now reads `role=participant` — every
+moment they were actually *at*, which is the payoff of deleting the 325 self-edges
+and was unanswerable before.
 
 ### `notes.mood` is dropped, and would be a Metric if it ever comes back
 

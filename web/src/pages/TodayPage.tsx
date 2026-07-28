@@ -5,13 +5,12 @@ import { TodayRhythms } from "@/components/TodayRhythms"
 import { ComingUp } from "@/components/ComingUp"
 import { TaskRow } from "@/pages/TasksPage"
 import { Card, EmptyState } from "@/components/ui/primitives"
-import { isToday, PRIORITY_RANK, todayISO } from "@/lib/format"
-import { dayOf } from "@/lib/date"
+import { PRIORITY_RANK, todayISO } from "@/lib/format"
 import { formatDateTime } from "@/lib/utils"
 import {
-  events,
   tasks,
   useCreateMomentWithImages,
+  useOccurrences,
   useReviewDashboard,
 } from "@/services/api/hooks"
 
@@ -31,14 +30,19 @@ function SectionTitle({ children, to }: { children: string; to?: string }) {
 export function TodayPage() {
   const today = todayISO()
   const { data: taskData } = tasks.useList({ queue: "personal", include_closed: "false" })
-  const { data: eventData } = events.useList()
+  // Through the same expansion the calendar draws: a recurring meeting today is
+  // computed, not stored, so listing rows would report an empty day.
+  const { data: todaysEvents } = useOccurrences({
+    start: `${today}T00:00:00.000Z`,
+    end: `${today}T23:59:59.999Z`,
+  })
   const { data: dash } = useReviewDashboard()
   const submitReflection = useCreateMomentWithImages()
 
   const todays = (taskData ?? [])
     .filter((t) => (t.scheduled_date && t.scheduled_date <= today) || (t.due_date && t.due_date <= today))
     .sort((a, b) => PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority])
-  const todaysEvents = (eventData ?? []).filter((e) => isToday(dayOf(e.start_at)))
+
 
   return (
     <div className="space-y-6">
@@ -87,17 +91,17 @@ export function TodayPage() {
 
           <TodayRhythms />
 
-          {todaysEvents.length > 0 && (
+          {(todaysEvents ?? []).length > 0 && (
             <section>
               <SectionTitle to="/calendar">Today's events</SectionTitle>
               <Card className="divide-y divide-slate-50">
-                {todaysEvents.map((e) => (
+                {(todaysEvents ?? []).map((e) => (
                   <Link
-                    key={e.id}
-                    to={`/calendar/${e.id}`}
+                    key={`${e.moment_id ?? e.rule_id}:${e.occurrence_at}`}
+                    to={e.moment_id ? `/calendar/${e.moment_id}` : `/routines/${e.rule_id}`}
                     className="flex items-center justify-between px-4 py-2 text-sm transition hover:bg-slate-50"
                   >
-                    <span className="font-medium">{e.title}</span>
+                    <span className="font-medium">{e.title ?? "Untitled"}</span>
                     <span className="text-xs text-slate-400">{formatDateTime(e.start_at)}</span>
                   </Link>
                 ))}

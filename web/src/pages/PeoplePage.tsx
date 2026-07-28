@@ -21,6 +21,7 @@ import {
 } from "lucide-react"
 import { AffiliationsEditor } from "@/components/AffiliationsEditor"
 import { Backlinks } from "@/components/Backlinks"
+import { KIND_LABEL, whenOf } from "@/lib/moments"
 import { MergeDialog } from "@/components/MergeDialog"
 import { Avatar } from "@/components/AuthedImage"
 import { PersonForm } from "@/components/PersonForm"
@@ -47,7 +48,7 @@ import {
   people,
   tasks,
   useDeletePersonPhoto,
-  usePersonEvents,
+  usePersonOccasions,
   useUploadPersonPhoto,
   requests,
 } from "@/services/api/hooks"
@@ -515,24 +516,26 @@ function PersonDetail({
   )
 }
 
-// --- a person's events (attendee links) ------------------------------------
+// --- everything this person was at (participant links) ---------------------
 function PersonEventsSection({ personId }: { personId: string }) {
   const navigate = useNavigate()
-  const events = usePersonEvents(personId).data ?? []
+  const events = usePersonOccasions(personId).data ?? []
   if (events.length === 0) return null
   return (
-    <Section title={`Meetings & events · ${events.length}`}>
+    <Section title={`Together · ${events.length}`}>
       <ul className="max-h-72 space-y-1 overflow-y-auto pr-1">
         {events.slice(0, 50).map((e) => (
           <li key={e.id}>
             <button
               type="button"
-              onClick={() => navigate(`/calendar/${e.id}`)}
+              onClick={() => navigate(`/moments/${e.id}`)}
               className="flex w-full items-center gap-2 rounded-lg border border-slate-100 bg-surface px-3 py-2 text-left transition hover:border-slate-300"
             >
-              <span className="min-w-0 flex-1 truncate text-sm text-slate-700">{e.title}</span>
-              {e.start_at && (
-                <span className="shrink-0 text-xs text-slate-400">{formatDate(e.start_at)}</span>
+              <span className="min-w-0 flex-1 truncate text-sm text-slate-700">
+                {e.title || KIND_LABEL[e.kind]}
+              </span>
+              {whenOf(e) && (
+                <span className="shrink-0 text-xs text-slate-400">{formatDate(whenOf(e)!)}</span>
               )}
             </button>
           </li>

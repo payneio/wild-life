@@ -1,7 +1,7 @@
 import { useMemo } from "react"
 import { Link } from "react-router-dom"
 import { Card } from "@/components/ui/primitives"
-import { events } from "@/services/api/hooks"
+import { useOccurrences } from "@/services/api/hooks"
 import { SOURCES, useCalendarSources } from "@/services/calendar/sources"
 import { cn } from "@/lib/utils"
 import { localDay, ymd } from "@/lib/format"
@@ -40,10 +40,8 @@ export function ComingUp() {
   const range = { start: `${today}T00:00:00.000Z`, end: `${isoDay(HORIZON_DAYS)}T23:59:59.000Z` }
   const allKeys = useMemo(() => new Set(SOURCES.map((s) => s.key)), [])
   const { items } = useCalendarSources(range, allKeys)
-  const upcomingEvents = events.useList(
-    { start_at__gte: range.start, start_at__lte: range.end, limit: "100" },
-    { enabled: true },
-  )
+  // Occasions, expanded server-side — a recurring meeting next week is computed.
+  const upcomingEvents = useOccurrences(range)
 
   const rows = useMemo<Row[]>(() => {
     const out: Row[] = items.map((it) => ({
@@ -55,11 +53,11 @@ export function ComingUp() {
     }))
     for (const e of upcomingEvents.data ?? []) {
       out.push({
-        key: `event:${e.id}`,
+        key: `occasion:${e.moment_id ?? e.rule_id}:${e.occurrence_at}`,
         date: localDay(e.start_at),
-        title: e.title,
+        title: e.title ?? "Untitled",
         color: EVENT_COLOR,
-        url: `/calendar/${e.id}`,
+        url: e.moment_id ? `/calendar/${e.moment_id}` : `/routines/${e.rule_id}`,
       })
     }
     return out

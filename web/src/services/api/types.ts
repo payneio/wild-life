@@ -46,7 +46,6 @@ export type MetricGroup = S["MetricGroupRead"]
 export type GroupMember = S["GroupMemberRead"]
 export type GroupReading = S["GroupReadingRead"]
 export type MetricEntry = S["MetricEntryRead"]
-export type EventItem = S["EventRead"]
 export type Moment = S["MomentRead"]
 export type MomentImage = S["MomentImageRead"]
 /** One thing a moment involves, and the manner of the involvement. */

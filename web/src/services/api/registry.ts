@@ -21,8 +21,6 @@ import { OutcomeRecord } from "@/entities/outcome/Detail"
 import { RoutineDetail as RoutineRecord } from "@/entities/routine/Detail"
 import { DelegationDetail as DelegationRecord } from "@/entities/delegation/Detail"
 import { MomentDetail as MomentRecord } from "@/entities/moment/Detail"
-import { EventDetail as EventRecord } from "@/entities/event/Detail"
-import { EventCapture } from "@/entities/event/Capture"
 import type { createCrud } from "@/services/api/crud"
 import type { Entity, EntityType } from "@/services/api/types"
 import {
@@ -31,7 +29,6 @@ import {
   commitments,
   decisions,
   delegations,
-  events,
   outcomes,
   insurancePlans,
   locations,
@@ -153,10 +150,10 @@ export interface EntityDef {
    */
   listParams?: Record<string, string>
   /** An object's own capture surface, for when a title alone can't make one.
-   *  A component like `detail`, not a config flag: an event needs a *when*, and
-   *  what control that takes is the object's business. Rendered by a related
-   *  panel above the list; absent means the generic title-only quick-create in
-   *  the picker is enough. */
+   *  A component like `detail`, not a config flag. Nothing declares one now that
+   *  Event has retired — an occasion is created on the calendar, where the drag
+   *  already says when — but the seam stays because the reason it existed is
+   *  still true of any object a title cannot make. */
   capture?: ComponentType<{ root: { type: EntityType; id: string } }>
   /** If set, the detail shows a polymorphic "primary context" picker (writes the
    *  entity_type/entity_id soft-poly pair) under this label — e.g. "Rooted to"
@@ -199,7 +196,6 @@ import {
   COMMITMENT_FIELDS,
   DECISION_FIELDS,
   DELEGATION_FIELDS,
-  EVENT_FIELDS,
   OUTCOME_FIELDS,
   INSURANCE_FIELDS,
   LOCATION_FIELDS,
@@ -228,10 +224,8 @@ export const REGISTRY: Record<string, EntityDef> = {
     { mode: "soft-backref", label: "Outcomes", type: "outcome", defaults: { kind: "standard" } },
     { mode: "fk-children", label: "Routines", type: "routine", fkField: "area_id" },
     { mode: "soft-backref", label: "Metrics", type: "metric" },
-    { mode: "soft-backref", label: "Events", type: "event", hideWhenEmpty: true },
   ] },
   project: { key: "project", label: "Project", crud: projects, fields: PROJECT_FIELDS, title: (e) => e.name, parent: (e) => ({ type: "program", id: e.program_id }), entityType: "project", titleField: "name", quickCreate: true, detail: ProjectRecord, relations: [
-    { mode: "soft-backref", label: "Events", type: "event", hideWhenEmpty: true },
     { mode: "soft-backref", label: "Resources", type: "resource" },
     { mode: "soft-backref", label: "Decisions", type: "decision" },
     { mode: "soft-backref", label: "Done when", type: "outcome", defaults: { kind: "deliverable" } },
@@ -279,8 +273,6 @@ export const REGISTRY: Record<string, EntityDef> = {
   // read off a privileged column — which is what lets one moment concern the
   // program and the medication both.
   moment: { key: "moment", label: "Moment", crud: moments, fields: MOMENT_FIELDS, title: (e) => e.title || "(untitled)", entityType: "moment", titleField: "title", detail: MomentRecord },
-  event: { key: "event", label: "Event", crud: events, fields: EVENT_FIELDS, title: (e) => e.title, entityType: "event", titleField: "title", detail: EventRecord, capture: EventCapture, relations: [
-  ] },
   commitment: { key: "commitment", label: "Commitment", crud: commitments, fields: COMMITMENT_FIELDS, title: (e) => e.description, entityType: "commitment", titleField: "description", quickCreate: true, detail: CommitmentRecord, relations: [
   ] },
   request: { key: "request", label: "Request", crud: requests, fields: REQUEST_FIELDS, title: (e) => e.subject, entityType: "request", titleField: "subject", quickCreate: true, detail: RequestRecord, relations: [
