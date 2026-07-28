@@ -7,13 +7,15 @@ rather than eight hand-written projections.
 """
 
 from collections import defaultdict
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import delete, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.concurrency import run_in_threadpool
 
+from wild_life.backfill_moments import run as backfill
 from wild_life.config import settings
 from wild_life.db.session import get_session
 from wild_life.models.moments import Moment, MomentLink
@@ -211,3 +213,27 @@ async def delete_moment(
     if moment is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not found")
     await session.delete(moment)
+
+
+@router.post("/sync", operation_id="moments_sync")
+async def sync(full: bool = False, hours: float = 2.0) -> dict[str, int]:
+    """Mirror the tables that still write their own rows into the spine.
+
+    Doses, readings and task completions are authored through their own surfaces
+    and land in `routine_instances`, `metric_entries` and `tasks`. Until those
+    surfaces move too, a moment for them exists only because this ran — so a dose
+    logged at noon would otherwise be missing from the timeline until someone
+    remembered to backfill.
+
+    Same shape as `locations/tick`, and for the same reason its docstring gives:
+    a rolling replay is what lets the live path stay simple. The window is
+    generous rather than exact, because re-upserting a handful of rows is free
+    and a stored high-water mark is a thing that can be wrong.
+
+    `full=true` re-reads everything; that belongs nightly rather than every few
+    minutes.
+    """
+    since = None if full else datetime.now(UTC) - timedelta(hours=hours)
+    # The backfill is synchronous (it is also a CLI), so it runs off the event
+    # loop rather than blocking every other request for the length of a scan.
+    return await run_in_threadpool(backfill, dry_run=False, since=since)

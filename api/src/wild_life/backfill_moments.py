@@ -29,7 +29,7 @@ from __future__ import annotations
 import argparse
 import uuid
 from collections.abc import Iterable
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from typing import Any
 
 from sqlalchemy import create_engine, text
@@ -54,9 +54,15 @@ def _instant(d: date | datetime | None) -> datetime | None:
 class Backfill:
     """One transaction's worth of work, with a tally per source."""
 
-    def __init__(self, conn: Connection, *, dry_run: bool) -> None:
+    def __init__(
+        self, conn: Connection, *, dry_run: bool, since: datetime | None = None
+    ) -> None:
         self.conn = conn
         self.dry_run = dry_run
+        # Incremental watermark. The tick passes a generous overlap rather than
+        # an exact high-water mark: re-upserting a handful of rows is free, and
+        # a watermark that has to be stored is a watermark that can be wrong.
+        self.since = since
         self.tally: dict[str, int] = {}
 
     # --- primitives ---------------------------------------------------------
@@ -153,7 +159,15 @@ class Backfill:
         self.tally[key] = self.tally.get(key, 0) + n
 
     def rows(self, sql: str, **params: Any) -> list[Any]:
+        if self.since is not None and ":since" in sql:
+            params["since"] = self.since
         return list(self.conn.execute(text(sql), params))
+
+    def _changed(self, alias: str = "") -> str:
+        """`AND <alias>updated_at > :since`, or nothing on a full run."""
+        if self.since is None:
+            return ""
+        return f" AND {alias}updated_at > :since"
 
     def _is_self(self, entity_type: str, entity_id: uuid.UUID) -> bool:
         """Whether a link points at the frame rather than at something in it."""
@@ -175,9 +189,9 @@ class Backfill:
         ):
             mentions.setdefault(m.note_id, []).append((m.target_type, m.target_id))
 
-        for n in self.rows("""
+        for n in self.rows(f"""
             SELECT id, title, body, entry_date, entity_type, entity_id, created_at
-            FROM wild_life.notes
+            FROM wild_life.notes WHERE true {self._changed()}
         """):
             rooted_at_self = self._is_self(n.entity_type, n.entity_id)
             if rooted_at_self:
@@ -222,24 +236,30 @@ class Backfill:
         than somewhere you had to be, so those become observations.
         """
         attendee_links: dict[uuid.UUID, list[uuid.UUID]] = {}
+        self_edges: dict[uuid.UUID, int] = {}
         for a in self.rows("""
             SELECT source_id, target_id FROM wild_life.entity_links
             WHERE source_type = 'event' AND target_type = 'person'
               AND relation = 'attendee'
         """):
             if self._is_self("person", a.target_id):
-                self.count("self-participant edges dropped")
+                # Counted against the event that carries it, so an incremental
+                # run reports the edges it actually dropped rather than every
+                # edge in the table.
+                self_edges[a.source_id] = self_edges.get(a.source_id, 0) + 1
                 continue
             attendee_links.setdefault(a.source_id, []).append(a.target_id)
 
-        for e in self.rows("""
+        for e in self.rows(
+            """
             SELECT id, title, event_type, description, location, location_id,
                    start_at, end_at, all_day, attendees, recurrence,
                    recurrence_exdates, recurrence_parent_id, recurrence_id,
                    entity_type, entity_id, external_ref, organizer, sequence,
                    rsvp_status, rsvp_sent_status, invites_enabled, cancelled_at
-            FROM wild_life.events
-        """):
+            FROM wild_life.events WHERE true {changed}
+        """.format(changed=self._changed())
+        ):
             kind = (
                 "observation"
                 if e.event_type in ("note", "symptom", "injury")
@@ -266,6 +286,8 @@ class Backfill:
             self.links(mid, edges)
             self.count(f"event→{kind}")
             self.count("links", len(edges))
+            if self_edges.get(e.id):
+                self.count("self-participant edges dropped", self_edges[e.id])
 
             # The projection: only what has to round-trip. A moment with no
             # calendar record has nothing that can leave the system.
@@ -326,13 +348,16 @@ class Backfill:
         (`scheduled_date`) and occurrence (`completed_at`) on one row, with
         `skipped` for the intention that had no occurrence.
         """
-        for i in self.rows("""
+        for i in self.rows(
+            """
             SELECT ri.id, ri.routine_id, ri.medication_id, ri.scheduled_date,
                    ri.completed_at, ri.status, ri.amount, ri.unit, ri.slot,
                    r.medication_id AS routine_medication_id, r.activity
             FROM wild_life.routine_instances ri
             LEFT JOIN wild_life.routines r ON r.id = ri.routine_id
-        """):
+            WHERE true {changed}
+        """.format(changed=self._changed("ri."))
+        ):
             med = i.medication_id or i.routine_medication_id
             kind = "dose" if med else "activity"
             window = _instant(i.scheduled_date)
@@ -371,20 +396,39 @@ class Backfill:
         occasion its entries share, which is what `MetricGroup`'s docstring says
         it always was. A standalone entry is its own act.
         """
+        # An incremental run must load *every* entry of any panel it touches, not
+        # just the changed one: `links()` rewrites a moment's links wholesale, so
+        # a lipid panel where one value was corrected would otherwise come out
+        # with one metric linked and four dropped.
+        affected = """
+            SELECT id, recorded_at, context FROM wild_life.group_readings gr
+            WHERE true {changed}
+               OR EXISTS (
+                   SELECT 1 FROM wild_life.metric_entries e
+                   WHERE e.group_reading_id = gr.id {entry_changed}
+               )
+        """.format(changed=self._changed("gr."), entry_changed=self._changed("e."))
+        readings = self.rows(affected)
+        group_ids = [gr.id for gr in readings]
+
         grouped: dict[uuid.UUID, list[Any]] = {}
-        loose: list[Any] = []
-        for m in self.rows("""
+        if group_ids:
+            for m in self.rows(
+                "SELECT id, metric_id, recorded_at, value, context, group_reading_id "
+                "FROM wild_life.metric_entries WHERE group_reading_id = ANY(:ids)",
+                ids=group_ids,
+            ):
+                grouped.setdefault(m.group_reading_id, []).append(m)
+
+        loose = self.rows(
+            """
             SELECT id, metric_id, recorded_at, value, context, group_reading_id
             FROM wild_life.metric_entries
-        """):
-            if m.group_reading_id:
-                grouped.setdefault(m.group_reading_id, []).append(m)
-            else:
-                loose.append(m)
+            WHERE group_reading_id IS NULL {changed}
+        """.format(changed=self._changed())
+        )
 
-        for gr in self.rows(
-            "SELECT id, recorded_at, context FROM wild_life.group_readings"
-        ):
+        for gr in readings:
             entries = grouped.get(gr.id, [])
             mid = self.moment(
                 f"group_reading:{gr.id}",
@@ -431,10 +475,12 @@ class Backfill:
         `source: derived` is the flag a rebuild must respect: hand-entered visits
         ("I was at Mom's, no phone") are authored and must survive one.
         """
-        for v in self.rows("""
+        for v in self.rows(
+            """
             SELECT id, location_id, entered_at, exited_at, source
-            FROM wild_life.location_visits
-        """):
+            FROM wild_life.location_visits WHERE true {changed}
+        """.format(changed=self._changed())
+        ):
             mid = self.moment(
                 f"location_visit:{v.id}",
                 kind="visit",
@@ -453,12 +499,15 @@ class Backfill:
         Tuesday is an intention with a window. `estimated_minutes` becomes the
         expected duration, so the delta against what happened is recoverable.
         """
-        for t in self.rows("""
+        for t in self.rows(
+            """
             SELECT id, title, completed_at, scheduled_date, scheduled_time,
                    estimated_minutes
             FROM wild_life.tasks
-            WHERE completed_at IS NOT NULL OR scheduled_date IS NOT NULL
-        """):
+            WHERE (completed_at IS NOT NULL OR scheduled_date IS NOT NULL)
+            {changed}
+        """.format(changed=self._changed())
+        ):
             if t.completed_at is not None:
                 mid = self.moment(
                     f"task:{t.id}:completion",
@@ -506,12 +555,14 @@ class Backfill:
             ("delivered_date", "delivered"),
             ("last_contact_date", "contacted"),
         )
-        for d in self.rows("""
+        for d in self.rows(
+            """
             SELECT id, requested_outcome, delegator_id, responsible_id,
                    date_delegated, accepted_date, delivered_date, last_contact_date,
                    latest_update
-            FROM wild_life.delegations
-        """):
+            FROM wild_life.delegations WHERE true {changed}
+        """.format(changed=self._changed())
+        ):
             for column, stage in stages:
                 when = getattr(d, column)
                 if when is None:
@@ -544,7 +595,7 @@ class Backfill:
         for entity, table, column, label, kind in sources:
             for r in self.rows(
                 f"SELECT id, {column} AS when_, {label} AS label "  # noqa: S608
-                f"FROM wild_life.{table} WHERE {column} IS NOT NULL"
+                f"FROM wild_life.{table} WHERE {column} IS NOT NULL" + self._changed()
             ):
                 mid = self.moment(
                     f"{entity}:{r.id}:{kind}",
@@ -558,7 +609,7 @@ class Backfill:
                 self.count("links", 1)
 
 
-def run(dry_run: bool) -> dict[str, int]:
+def run(dry_run: bool, since: datetime | None = None) -> dict[str, int]:
     # Refuse rather than proceed: without the self person, every journal entry
     # becomes an `observation` subject-linked to Paul — 253 reflections misfiled,
     # and 253 links asserting "I was present" that the model says must not exist.
@@ -571,19 +622,22 @@ def run(dry_run: bool) -> dict[str, int]:
             "yourself. Set it and re-run."
         )
     engine = create_engine(settings.sync_database_url, future=True)
-    with engine.begin() as conn:
-        b = Backfill(conn, dry_run=dry_run)
-        b.notes()
-        b.events()
-        b.routine_instances()
-        b.readings()
-        b.visits()
-        b.task_moments()
-        b.exchanges()
-        b.finishes()
-        if dry_run:
-            conn.rollback()
-        return b.tally
+    try:
+        with engine.begin() as conn:
+            b = Backfill(conn, dry_run=dry_run, since=since)
+            b.notes()
+            b.events()
+            b.routine_instances()
+            b.readings()
+            b.visits()
+            b.task_moments()
+            b.exchanges()
+            b.finishes()
+            if dry_run:
+                conn.rollback()
+            return b.tally
+    finally:
+        engine.dispose()
 
 
 def main() -> None:
@@ -593,8 +647,19 @@ def main() -> None:
         action="store_true",
         help="read and tally without writing anything",
     )
+    parser.add_argument(
+        "--since-hours",
+        type=float,
+        default=None,
+        help="only rows touched in the last N hours (default: everything)",
+    )
     args = parser.parse_args()
-    tally = run(dry_run=args.check)
+    since = (
+        datetime.now(timezone.utc) - timedelta(hours=args.since_hours)
+        if args.since_hours is not None
+        else None
+    )
+    tally = run(dry_run=args.check, since=since)
     width = max(len(k) for k in tally) if tally else 0
     for key in sorted(tally):
         print(f"{key.ljust(width)}  {tally[key]:>6}")
