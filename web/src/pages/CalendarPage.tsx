@@ -32,10 +32,13 @@ import {
 import { cn } from "@/lib/utils"
 import {
   addDays,
+  compareDays,
+  dayOfDate,
   dayOfDate as ymd,
   instantOfDate,
   rruleDtstart,
   timeOfDate,
+  today,
   type CalendarDay,
 } from "@/lib/date"
 import type { EventItem } from "@/services/api/types"
@@ -77,13 +80,29 @@ function itemToInput(it: CalendarItem): EventInput {
 
 const LAYERS_KEY = "wild_life_calendar_layers"
 
-type ViewType = "dayGridMonth" | "timeGridWeek" | "timeGridDay" | "listMonth"
+type ViewType = "dayGridMonth" | "timeGridWeek" | "timeGridDay" | "agenda"
 const VIEWS: { value: ViewType; label: string }[] = [
   { value: "dayGridMonth", label: "Month" },
   { value: "timeGridWeek", label: "Week" },
   { value: "timeGridDay", label: "Day" },
-  { value: "listMonth", label: "Agenda" },
+  { value: "agenda", label: "Agenda" },
 ]
+
+/**
+ * The agenda is a *rolling* 30 days from the day you're on — not FullCalendar's
+ * `listMonth`, which lists the calendar month containing that day.
+ *
+ * A month-shaped list answers "what happened in July", which is a question a
+ * grid already answers better. What you open an agenda for is "what's coming",
+ * and on the 27th a list starting on the 1st is three quarters spent. Anchoring
+ * on the day also gives Today something to do: in `listMonth` it moved the date
+ * inside the same month, so the list never changed.
+ */
+const AGENDA_DAYS = 30
+
+/** Persisted view names from before the rolling agenda. */
+const asView = (v: string): ViewType =>
+  v === "listMonth" || v === "listWeek" || v === "listDay" ? "agenda" : (v as ViewType)
 
 interface PendingMove {
   masterId: string
@@ -118,12 +137,37 @@ export function CalendarPage() {
   // Remember where you left the calendar (view + focused date) across visits.
   const [calView, setCalView] = usePersistentState("calendar:view", "dayGridMonth")
   const [calDate, setCalDate] = usePersistentState<string | null>("calendar:date", null)
+  const initialView = asView(calView)
+  // Where you left it, honoured — except an agenda left behind, which is a
+  // forward-looking list and would open in the past. Then today is where you
+  // left off. Read once; FullCalendar owns the date from mount on.
+  const [initialDate] = useState<string | undefined>(() =>
+    calDate &&
+    !(initialView === "agenda" && compareDays(dayOfDate(new Date(calDate)), today()) < 0)
+      ? calDate
+      : undefined,
+  )
 
   // Drive FullCalendar from our own header/gestures instead of its toolbar.
   const calRef = useRef<FullCalendar>(null)
   const cal = () => calRef.current?.getApi()
   const [title, setTitle] = useState("")
-  const [viewType, setViewType] = useState<ViewType>(calView as ViewType)
+  const [viewType, setViewType] = useState<ViewType>(initialView)
+  const [showsToday, setShowsToday] = useState(true)
+
+  /**
+   * The day a view switch should land on.
+   *
+   * FullCalendar carries `currentStart` across a switch, which for a month is
+   * the 1st — so Month → Agenda on the 27th opened three weeks back. If the view
+   * you're leaving is showing today, today is the day you meant.
+   */
+  const focusDate = (): Date | undefined => {
+    const view = cal()?.view
+    if (!view) return undefined
+    const now = new Date()
+    return now >= view.activeStart && now < view.activeEnd ? now : view.currentStart
+  }
   const swipe = useRef<{ x: number; y: number } | null>(null)
   const gridRef = useRef<HTMLDivElement>(null)
 
@@ -294,16 +338,24 @@ export function CalendarPage() {
                 </button>
               </div>
               <h2 className="truncate text-lg font-semibold text-slate-900">{title}</h2>
+              {/* Disabled while today is already on screen: a control that
+                  can't change anything shouldn't look like it might. */}
               <Button
                 variant="secondary"
                 size="sm"
                 className="ml-1 shrink-0"
+                disabled={showsToday}
+                title={showsToday ? "Already showing today" : "Jump to today"}
                 onClick={() => cal()?.today()}
               >
                 Today
               </Button>
             </div>
-            <Segmented options={VIEWS} value={viewType} onChange={(v) => cal()?.changeView(v)} />
+            <Segmented
+              options={VIEWS}
+              value={viewType}
+              onChange={(v) => cal()?.changeView(v, focusDate())}
+            />
           </div>
 
           {/* Swipe horizontally to page the calendar; guards skip event drags,
@@ -332,9 +384,20 @@ export function CalendarPage() {
           <FullCalendar
             ref={calRef}
             plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, rrulePlugin]}
-            initialView={calView}
-            initialDate={calDate ?? undefined}
+            initialView={initialView}
+            initialDate={initialDate}
             headerToolbar={false}
+            views={{
+              agenda: {
+                type: "list",
+                duration: { days: AGENDA_DAYS },
+                // The weekday reads on the row itself, so the repeat FullCalendar
+                // puts on the right of every heading is just noise.
+                listDayFormat: { weekday: "long", month: "short", day: "numeric" },
+                listDaySideFormat: false,
+              },
+            }}
+            noEventsText="Nothing scheduled in these 30 days."
             // Fill the viewport and let weeks share the height evenly, instead of
             // sizing to content (which left short/tall rows and dead space).
             height="calc(100vh - 12rem)"
@@ -351,6 +414,8 @@ export function CalendarPage() {
               setCalDate(arg.view.currentStart.toISOString())
               setTitle(arg.view.title)
               setViewType(arg.view.type as ViewType)
+              const now = new Date()
+              setShowsToday(now >= arg.view.activeStart && now < arg.view.activeEnd)
             }}
             eventClick={onClick}
             select={(arg: DateSelectArg) =>
