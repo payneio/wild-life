@@ -1,19 +1,19 @@
-"""The daily regimen — what you do/take today — derived from Routines.
+"""The daily regimen — what you take or do today.
 
-A Routine is the single stored unit (a med dose, supplement, or activity) and is
-always a **step of a protocol**; the *regimen* is the derived set of routine steps
-due in a time window. Liveness is one rule — a step is in force iff its **protocol**
-is **not paused** and today is inside the protocol's window. Scheduling lives only in
-protocols; anything taken off-schedule is an ad-hoc intake ("log a dose"), not a routine.
+**A filtered call into the rule evaluator**, and nothing more. "What is expected
+on day D" is one question across doses, activities, occasions and work; the
+regimen is that question restricted to the clinical kinds and rendered for the
+health surfaces. Cadence, liveness and slots all live in ``rules.py`` now, so
+there is one place where a cadence can be wrong.
 
-On top of that each routine carries an FHIR-style cadence (``days_of_week`` +
-``interval_days``). Deduped per (medication, slot) so a drug shared by two live
-protocols shows once.
+What stays here is what is genuinely the regimen's own: which kinds it shows,
+the display categories (`medication` / `supplement` / `activity`), and the dedupe
+per (medication, slot) so a drug shared by two live protocols appears once.
 """
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,40 +21,30 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from wild_life.models.health import Medication
 from wild_life.models.protocols import Protocol
 from wild_life.models.routines import Routine
+from wild_life.rules import expected_days as _rule_expected_days
+from wild_life.rules import expected_on, is_due
 from wild_life.schemas.health import RegimenEntry
 
-_WEEKDAYS = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
+__all__ = ["compute_regimen", "expected_days", "is_due"]
+
+# The kinds of rule the regimen is about. An `occasion` rule is equally a rule and
+# equally evaluated by `rules.py`, and equally not something the health surfaces
+# show — which is the point of filtering by kind rather than by which FK is set.
+REGIMEN_KINDS = frozenset({"dose", "activity"})
 
 
-def _in_window(start: date | None, end: date | None, day: date) -> bool:
-    return (start is None or start <= day) and (end is None or end >= day)
+def _display_kind(routine: Routine, med: Medication | None) -> str:
+    """The category the health UI groups by — not the MomentKind the rule generates.
 
-
-def is_due(routine: Routine, anchor: date | None, day: date) -> bool:
-    """Whether the routine's cadence lands on ``day`` (FHIR Timing subset)."""
-    if routine.days_of_week and _WEEKDAYS[day.weekday()] not in routine.days_of_week:
-        return False
-    interval = routine.interval_days or 1
-    if interval > 1:
-        base = anchor or day
-        if (day - base).days % interval != 0:
-            return False
-    return True
-
-
-def _kind(routine: Routine, med: Medication | None) -> str:
+    Kept distinct on purpose. `rules.kind` says what act a generated moment *is*
+    (`dose`, `activity`); this says how to present it, since a supplement reads
+    differently from a prescription. Conflating them would put a display concern
+    inside the vocabulary that carries the timeline, which is how `note_type` and
+    `event_type` both started.
+    """
     if med is not None:
         return "supplement" if med.med_type == "supplement" else "medication"
     return "activity" if routine.protocol_id is not None else "routine"
-
-
-def _live_anchor(proto: Protocol | None, day: date) -> tuple[bool, date | None]:
-    """(is_live_today, cadence_anchor). Every routine is a protocol step, so liveness
-    is the protocol's: live iff not paused and today is in its window."""
-    if proto is None:  # defensive — protocol_id is NOT NULL
-        return False, None
-    live = not proto.paused and _in_window(proto.start_date, proto.end_date, day)
-    return live, proto.start_date
 
 
 async def compute_regimen(session: AsyncSession, day: date) -> list[RegimenEntry]:
@@ -70,23 +60,22 @@ async def compute_regimen(session: AsyncSession, day: date) -> list[RegimenEntry
 
     seen: dict[tuple, RegimenEntry] = {}
     for routine, med, proto in rows:
-        live, anchor = _live_anchor(proto, day)
-        if not live:
+        if routine.kind not in REGIMEN_KINDS:
             continue
-        if anchor is None:
-            anchor = routine.created_at.date()
-        if not is_due(routine, anchor, day):
+        # Liveness, cadence and slots in one call — including the slotless habit,
+        # which still expects one checkable occurrence.
+        slots = expected_on(routine, proto, day)
+        if not slots:
             continue
         label = med.name if med is not None else (routine.activity or routine.name)
-        # A slotless habit still gets one checkable occurrence.
-        for slot in routine.timing or [""]:
+        for slot in slots:
             key = (med.id, slot) if med is not None else (routine.id, slot)
             if key in seen:  # first live source wins the attribution
                 continue
             seen[key] = RegimenEntry(
                 routine_id=routine.id,
                 label=label or "Routine",
-                kind=_kind(routine, med),
+                kind=_display_kind(routine, med),
                 slot=slot,
                 medication_id=med.id if med is not None else None,
                 amount=float(routine.amount) if routine.amount is not None else None,
@@ -98,11 +87,9 @@ async def compute_regimen(session: AsyncSession, day: date) -> list[RegimenEntry
 
 
 def expected_days(routine: Routine, anchor: date | None, start: date, end: date) -> int:
-    """How many days in [start, end] the routine's cadence is due (for adherence)."""
-    total = 0
-    d = start
-    while d <= end:
-        if is_due(routine, anchor, d):
-            total += 1
-        d += timedelta(days=1)
-    return total
+    """How many days in [start, end] the cadence is due (for adherence).
+
+    Re-exported rather than reimplemented: adherence and the regimen disagreeing
+    about what "due" means is the failure mode worth spending an indirection on.
+    """
+    return _rule_expected_days(routine, anchor, start, end)

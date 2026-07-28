@@ -12782,6 +12782,32 @@
             "title": "Interval Days",
             "type": "integer"
           },
+          "kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "capture",
+                  "reflection",
+                  "observation",
+                  "occasion",
+                  "exchange",
+                  "visit",
+                  "measurement",
+                  "dose",
+                  "activity",
+                  "work",
+                  "completion",
+                  "withdrawal",
+                  "decision"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
           "medication_id": {
             "anyOf": [
               {
@@ -12837,9 +12863,16 @@
             "title": "Program Id"
           },
           "protocol_id": {
-            "format": "uuid",
-            "title": "Protocol Id",
-            "type": "string"
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Protocol Id"
           },
           "rationale": {
             "anyOf": [
@@ -12922,9 +12955,6 @@
             "title": "Unit"
           }
         },
-        "required": [
-          "protocol_id"
-        ],
         "title": "RoutineCreate",
         "type": "object"
       },
@@ -13363,6 +13393,25 @@
             "title": "Interval Days",
             "type": "integer"
           },
+          "kind": {
+            "enum": [
+              "capture",
+              "reflection",
+              "observation",
+              "occasion",
+              "exchange",
+              "visit",
+              "measurement",
+              "dose",
+              "activity",
+              "work",
+              "completion",
+              "withdrawal",
+              "decision"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
           "medication_id": {
             "anyOf": [
               {
@@ -13417,9 +13466,16 @@
             "title": "Program Id"
           },
           "protocol_id": {
-            "format": "uuid",
-            "title": "Protocol Id",
-            "type": "string"
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Protocol Id"
           },
           "rationale": {
             "anyOf": [
@@ -13512,6 +13568,7 @@
           "activity",
           "medication_id",
           "protocol_id",
+          "kind",
           "amount",
           "unit",
           "timing",
@@ -13625,6 +13682,32 @@
               }
             ],
             "title": "Interval Days"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "capture",
+                  "reflection",
+                  "observation",
+                  "occasion",
+                  "exchange",
+                  "visit",
+                  "measurement",
+                  "dose",
+                  "activity",
+                  "work",
+                  "completion",
+                  "withdrawal",
+                  "decision"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
           },
           "medication_id": {
             "anyOf": [

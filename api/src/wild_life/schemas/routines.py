@@ -1,11 +1,16 @@
-"""Schemas for Routine (the unified regimen unit) and RoutineInstance."""
+"""Schemas for Routine — **the rule** — and its completable instances."""
 
 import uuid
 from datetime import date, datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
-from wild_life.schemas.common import Entity, RoutineInstanceStatus, RoutineStatus
+from wild_life.schemas.common import (
+    Entity,
+    MomentKind,
+    RoutineInstanceStatus,
+    RoutineStatus,
+)
 from wild_life.schemas.health import Weekday
 
 
@@ -13,7 +18,15 @@ class RoutineCreate(BaseModel):
     name: str | None = None  # legacy label; prefer ``activity`` / the linked med
     activity: str | None = None  # non-medication step, e.g. "walk after dinner"
     medication_id: uuid.UUID | None = None
-    protocol_id: uuid.UUID  # every routine is a protocol step
+    # A container a rule may belong to, not what makes it a rule. Optional since
+    # the generalisation: a weekly habit used to have to invent a protocol.
+    protocol_id: uuid.UUID | None = None
+    # What the rule generates. *Derived*, not asked — the same law the moment
+    # vocabulary runs on: a rule with a medication generates doses, and any
+    # surface creating another kind (the calendar, a task) states it outright.
+    # Defaulting to "activity" instead would have quietly made every dose rule
+    # created through the API generate the wrong act.
+    kind: MomentKind | None = None
     amount: float | None = None
     unit: str | None = None
     timing: list[str] = []
@@ -33,12 +46,25 @@ class RoutineCreate(BaseModel):
     preferred_time: str | None = None
     tracking_method: str | None = None
 
+    @model_validator(mode="after")
+    def _kind_follows_the_medication(self) -> "RoutineCreate":
+        """Fill the kind from what the rule is *of*, unless it was stated.
+
+        One place, so a dose rule cannot be created generating activities. An
+        explicit kind always wins — that is how an `occasion` or `work` rule,
+        which has no medication and nothing else to infer from, gets written.
+        """
+        if self.kind is None:
+            self.kind = "dose" if self.medication_id is not None else "activity"
+        return self
+
 
 class RoutineUpdate(BaseModel):
     name: str | None = None
     activity: str | None = None
     medication_id: uuid.UUID | None = None
     protocol_id: uuid.UUID | None = None
+    kind: MomentKind | None = None
     amount: float | None = None
     unit: str | None = None
     timing: list[str] | None = None
@@ -62,7 +88,8 @@ class RoutineRead(Entity):
     name: str | None
     activity: str | None
     medication_id: uuid.UUID | None
-    protocol_id: uuid.UUID
+    protocol_id: uuid.UUID | None
+    kind: MomentKind
     amount: float | None
     unit: str | None
     timing: list[str]

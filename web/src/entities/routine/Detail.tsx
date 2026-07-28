@@ -10,10 +10,17 @@ const F = recordFields<Routine>()
 
 
 /**
- * Every routine is a protocol step. `timing` and `days_of_week` are the first
- * multi-selects to render as real controls in the detail editor — the generic
- * one had no case for them, so they arrived as a text box and saved a
- * comma-joined string back into an array column.
+ * A routine is **the rule**: one cadence expression for anything that recurs.
+ *
+ * It is no longer required to be a protocol step — a weekly habit had to pose as
+ * a clinical one, and its liveness could only ever be the protocol's. A protocol
+ * is now a container that *narrows* a rule, which is why `protocol_id` stopped
+ * being `required` here: the generated type went nullable and the compiler said
+ * so, rather than a convention having to be remembered.
+ *
+ * `timing` and `days_of_week` are the first multi-selects to render as real
+ * controls in the detail editor — the generic one had no case for them, so they
+ * arrived as a text box and saved a comma-joined string back into an array column.
  */
 export function RoutineDetail({ entity, onClose }: { entity: Entity; onClose: () => void }) {
   return (
@@ -24,6 +31,11 @@ export function RoutineDetail({ entity, onClose }: { entity: Entity; onClose: ()
       omit={[
         // Ordering within a protocol, set by drag in the protocol's step list.
         "sort_order",
+        // What act this rule generates. Derived from what it is *of* (a rule
+        // with a medication generates doses) and stated by the surface for the
+        // kinds that have nothing to infer from. Never a control, for the same
+        // reason a moment's kind never is — see `schemas/routines.py`.
+        "kind",
       ]}
     >
       <RecordSection>
@@ -52,7 +64,7 @@ export function RoutineDetail({ entity, onClose }: { entity: Entity; onClose: ()
       </RecordSection>
 
       <RecordSection title="Context">
-        <F.Ref field="protocol_id" label="Protocol" lookup="protocol" required />
+        <F.Ref field="protocol_id" label="Protocol" lookup="protocol" />
         <F.Ref field="area_id" label="Area" lookup="area" />
         <F.Ref field="program_id" label="Program" lookup="program" />
         <F.Ref field="responsible_id" label="Responsible" lookup="people" />

@@ -317,7 +317,10 @@ export const ROUTINE: Routine = {
   status: "active",
   area_id: null,
   program_id: null,
-  // Non-nullable: every routine is a step of some protocol.
+  // Follows what the rule is *of*: no medication, so it generates activities.
+  kind: "activity",
+  // Optional since the generalisation — a rule may stand on its own, and a
+  // protocol is a container that narrows it rather than what makes it a rule.
   protocol_id: "22222222-2222-2222-2222-222222222222",
   medication_id: null,
   responsible_id: null,

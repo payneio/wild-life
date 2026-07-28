@@ -1,12 +1,29 @@
-"""Routine — the unified 'regimen' unit — and its completable instances.
+"""Routine — **the rule**: one cadence expression for everything that recurs.
 
-A Routine is a recurring thing you do or take on a cadence: a medication dose, a
-supplement, a behavioral activity, or a standalone habit. It may take a
-``Medication`` (``medication_id``), be a pure ``activity``, and/or belong to a
-``Protocol`` bundle (``protocol_id``). The regimen (``regimen.py``) is the derived
-set of routines due in a time window. Cadence follows the HL7 FHIR Timing subset
-(``timing``/``days_of_week``/``interval_days``/``as_needed``), the same model dose
-lines use.
+A rule says *what is expected, of what, how often* — and nothing about whether it
+happened. It generates moments of one ``kind``: a `dose` of a medication, an
+`activity`, an `occasion` on the calendar, a session of `work`. The evaluator
+(``rules.py``) answers "what is expected on day D" for all of them, and the
+regimen (``regimen.py``) is that question filtered to the clinical kinds.
+
+This is the generalisation decision 9 asked for. Two things it removes:
+
+- **``protocol_id`` is nullable.** Every routine used to be a step of a protocol,
+  so a weekly habit had to pose as a clinical one, and liveness could only ever be
+  the protocol's. A rule now carries its own window and status, and a protocol —
+  when there is one — narrows it further.
+- **The cadence monopoly.** There were three expressions of "when does this
+  recur": this FHIR Timing subset, ``Event.recurrence`` as an RRULE string, and
+  ``Task.recurrence`` as free text, none of which could answer the question
+  together. That is the same shape as the nine tables that each invented a word
+  for "when", and adding a fourth is what leaving the calendar on the wire form
+  would have been.
+
+Cadence still follows the HL7 FHIR Timing subset (``timing``/``days_of_week``/
+``interval_days``), with **slots first-class** — ``timing`` is the list of times
+of day a rule expects, and one occurrence is due per slot. An RRULE we cannot
+translate is materialised as the occurrences we were given, never paraphrased;
+the wire form itself lives on ``calendar_records`` (decision 8).
 """
 
 import uuid
@@ -21,6 +38,7 @@ from sqlalchemy import (
     Integer,
     Numeric,
     Text,
+    UniqueConstraint,
     text,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, UUID
@@ -45,12 +63,21 @@ class Routine(UUIDPrimaryKey, TimestampMixin, Base):
         ForeignKey("medications.id", ondelete="SET NULL"),
         index=True,
     )
-    # Every routine is a step of a protocol (the one container for anything recurring).
-    protocol_id: Mapped[uuid.UUID] = mapped_column(
+    # A protocol is a *container* a rule may belong to, not the thing that makes
+    # it a rule. Nullable since the generalisation: a weekly habit is a rule with
+    # no protocol, and used to have to invent one.
+    protocol_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("protocols.id", ondelete="CASCADE"),
-        nullable=False,
         index=True,
+    )
+    # The MomentKind this rule generates — `dose`, `activity`, `occasion`, `work`.
+    # Stored rather than inferred from which FK is filled: an occasion rule has no
+    # medication and no protocol, so the old `medication_id is not None` test
+    # cannot name it, and a rule that cannot say what it generates cannot be
+    # evaluated alongside the others.
+    kind: Mapped[str] = mapped_column(
+        Text, server_default="activity", nullable=False, index=True
     )
     # The prescribed dose = ``amount`` + ``unit`` — usually a measure ("500" + "mg",
     # "5" + "ml", "2" + "puffs"), not a pill count.
@@ -153,3 +180,38 @@ class RoutineInstance(UUIDPrimaryKey, TimestampMixin, Base):
             postgresql_where=text("ad_hoc = false"),
         ),
     )
+
+
+class RuleLink(UUIDPrimaryKey, Base):
+    """What a rule's generated moments involve, and in what manner.
+
+    The same four closed roles as :class:`~wild_life.models.moments.MomentLink`,
+    and deliberately the same shape: a rule declares the involvement, and each
+    moment it generates copies it. One vocabulary for "what does this concern",
+    whether the thing concerned has happened yet.
+
+    Typed FKs could not carry this. An occasion rule concerns whatever the meeting
+    is about (`subject`), everyone expected at it (`participant`, plural) and where
+    it happens (`place`) — and ``medication_id``/``area_id``/``program_id`` can
+    express none of those. The existing FKs stay for now because the regimen reads
+    them; they are the rule's *filing*, while this is its *subject matter*.
+    """
+
+    __tablename__ = "rule_links"
+    __table_args__ = (
+        UniqueConstraint(
+            "rule_id", "role", "entity_type", "entity_id", name="uq_rule_links_edge"
+        ),
+        Index("ix_rule_links_target", "entity_type", "entity_id"),
+    )
+
+    rule_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("routines.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    # MomentRole — participant / place / subject / mention.
+    role: Mapped[str] = mapped_column(Text, nullable=False)
+    entity_type: Mapped[str] = mapped_column(Text, nullable=False)
+    entity_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)

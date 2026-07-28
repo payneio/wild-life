@@ -5768,6 +5768,8 @@ export interface components {
              * @default 1
              */
             interval_days: number;
+            /** Kind */
+            kind?: ("capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "work" | "completion" | "withdrawal" | "decision") | null;
             /** Medication Id */
             medication_id?: string | null;
             /** Name */
@@ -5781,11 +5783,8 @@ export interface components {
             preferred_time?: string | null;
             /** Program Id */
             program_id?: string | null;
-            /**
-             * Protocol Id
-             * Format: uuid
-             */
-            protocol_id: string;
+            /** Protocol Id */
+            protocol_id?: string | null;
             /** Rationale */
             rationale?: string | null;
             /** Responsible Id */
@@ -5942,6 +5941,11 @@ export interface components {
             id: string;
             /** Interval Days */
             interval_days: number;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "work" | "completion" | "withdrawal" | "decision";
             /** Medication Id */
             medication_id: string | null;
             /** Name */
@@ -5952,11 +5956,8 @@ export interface components {
             preferred_time: string | null;
             /** Program Id */
             program_id: string | null;
-            /**
-             * Protocol Id
-             * Format: uuid
-             */
-            protocol_id: string;
+            /** Protocol Id */
+            protocol_id: string | null;
             /** Rationale */
             rationale: string | null;
             /** Responsible Id */
@@ -5998,6 +5999,8 @@ export interface components {
             frequency?: string | null;
             /** Interval Days */
             interval_days?: number | null;
+            /** Kind */
+            kind?: ("capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "work" | "completion" | "withdrawal" | "decision") | null;
             /** Medication Id */
             medication_id?: string | null;
             /** Name */
