@@ -5,11 +5,10 @@ import {
   DECISION_FIELDS,
   REQUEST_FIELDS,
   RESOURCE_FIELDS,
-  TAG_FIELDS,
 } from "@/services/api/fields"
 import { Badge } from "@/components/ui/primitives"
-import { commitments, decisions, requests, resources, tags } from "@/services/api/hooks"
-import type { Commitment, Decision, Request, Resource, Tag } from "@/services/api/types"
+import { commitments, decisions, requests, resources } from "@/services/api/hooks"
+import type { Commitment, Decision, Request, Resource } from "@/services/api/types"
 
 export function CommitmentsPage() {
   const fields = COMMITMENT_FIELDS
@@ -97,23 +96,3 @@ export function DecisionsPage() {
   )
 }
 
-export function TagsPage() {
-  const fields = TAG_FIELDS
-  const columns: Column<Tag>[] = [
-    {
-      key: "name",
-      label: "Tag",
-      render: (r) => <Badge color={r.color}>{r.name}</Badge>,
-    },
-    { key: "color", label: "Color", render: (r) => r.color || "—" },
-  ]
-  return (
-    <SimpleEntityPage
-      title="Tags"
-      subtitle="Lightweight labels"
-      crud={tags}
-      fields={fields}
-      columns={columns}
-    />
-  )
-}

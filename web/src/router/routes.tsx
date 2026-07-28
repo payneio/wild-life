@@ -27,7 +27,6 @@ import {
   CommitmentsPage,
   DecisionsPage,
   ResourcesPage,
-  TagsPage,
   RequestsPage,
 } from "@/pages/simple"
 import {
@@ -112,8 +111,6 @@ export const router = createBrowserRouter([
       { path: "decisions/:id", element: <RecordPage entityKey="decision" backTo="/decisions" backLabel="Decisions" /> },
       { path: "resources", element: <ResourcesPage /> },
       { path: "resources/:id", element: <RecordPage entityKey="resource" backTo="/resources" backLabel="Resources" /> },
-      { path: "tags", element: <TagsPage /> },
-      { path: "tags/:id", element: <RecordPage entityKey="tag" backTo="/tags" backLabel="Tags" /> },
       { path: "history", element: <HistoryPage /> },
       { path: "duplicates", element: <DuplicatesPage /> },
       { path: "settings", element: <SettingsPage /> },

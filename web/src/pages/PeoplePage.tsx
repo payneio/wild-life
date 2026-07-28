@@ -3,7 +3,6 @@ import { useMemo, useRef, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { DetailDrawer } from "@/components/DetailDrawer"
-import { TagField } from "@/components/TagField"
 import {
   Cake,
   Copy,
@@ -46,7 +45,6 @@ import {
   commitments,
   delegations,
   people,
-  tags,
   tasks,
   useDeletePersonPhoto,
   usePersonEvents,
@@ -398,7 +396,6 @@ function PersonDetail({
             {person.preferred_contact && <span>prefers {person.preferred_contact}</span>}
           </div>
           <div className="mt-2">
-            <TagField entityType="person" entityId={person.id} />
           </div>
         </div>
         <div className="flex gap-1">
@@ -583,35 +580,16 @@ export function PeoplePage() {
   const create = people.useCreate()
   const update = people.useUpdate()
   const remove = people.useRemove()
-  const { data: allTags } = tags.useList()
   const getOne = people.useGet(id)
 
   const [search, setSearch] = usePersistentState("people:q", "")
   const [relFilter, setRelFilter] = usePersistentState("people:rel", "")
-  const [tagFilter, setTagFilter] = usePersistentState("people:tag", "")
   const [sort, setSort] = usePersistentState<"name" | "updated">("people:sort", "name")
   const [editing, setEditing] = useState<Person | null>(null)
   const [creating, setCreating] = useState(false)
 
   const rows = useMemo(() => data ?? [], [data])
 
-  const { data: tagEntities } = useQuery({
-    queryKey: ["tag-entities", tagFilter],
-    queryFn: () =>
-      apiClient.get<{ entity_type: string; entity_id: string }[]>(
-        `/tags/${tagFilter}/entities`,
-      ),
-    enabled: !!tagFilter,
-  })
-  const tagPersonIds = useMemo(
-    () =>
-      new Set(
-        (tagEntities ?? [])
-          .filter((e) => e.entity_type === "person")
-          .map((e) => e.entity_id),
-      ),
-    [tagEntities],
-  )
 
   const relationships = useMemo(
     () =>
@@ -623,7 +601,6 @@ export function PeoplePage() {
     const q = search.trim().toLowerCase()
     const out = rows.filter((p) => {
       if (relFilter && p.relationship !== relFilter) return false
-      if (tagFilter && !tagPersonIds.has(p.id)) return false
       if (!q) return true
       // Phones are matched on digits alone, so "2063996403", "206-399-6403" and
       // "(206) 399" all find the same person — you type the number, not the
@@ -643,7 +620,7 @@ export function PeoplePage() {
         ? a.name.localeCompare(b.name)
         : b.updated_at.localeCompare(a.updated_at),
     )
-  }, [rows, search, relFilter, tagFilter, tagPersonIds, sort])
+  }, [rows, search, relFilter, sort])
 
   const selected = rows.find((p) => p.id === id) ?? getOne.data ?? null
 
@@ -709,18 +686,6 @@ export function PeoplePage() {
                 {relationships.map((r) => (
                   <option key={r} value={r}>
                     {r}
-                  </option>
-                ))}
-              </Select>
-              <Select
-                className="text-xs"
-                value={tagFilter}
-                onChange={(e) => setTagFilter(e.target.value)}
-              >
-                <option value="">All tags</option>
-                {(allTags ?? []).map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
                   </option>
                 ))}
               </Select>

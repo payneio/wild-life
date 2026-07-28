@@ -39,7 +39,6 @@ import type {
   Routine,
   RoutineInstance,
   SeriesPoint,
-  Tag,
   Task,
   Request,
 } from "@/services/api/types"
@@ -84,7 +83,6 @@ export const delegations = createCrud<Delegation>("delegations")
 export const reviews = createCrud<Review>("reviews")
 export const resources = createCrud<Resource>("resources")
 export const decisions = createCrud<Decision>("decisions")
-export const tags = createCrud<Tag>("tags")
 
 // --- health domain ---
 export const medications = createCrud<Medication>("medications")
@@ -187,7 +185,6 @@ export function useSaveWhiteboard() {
 // --- a log's year/month navigation ---
 /** Which log to read: an object's notes, or the self person's (the journal). */
 export interface NoteScope {
-  tag?: string
   entity_type?: string
   entity_id?: string
 }
@@ -200,10 +197,9 @@ export interface CalendarBucket {
 
 export function useNotesCalendar(params?: NoteScope) {
   return useQuery({
-    queryKey: ["notes", "calendar", params?.tag ?? "", params?.entity_type ?? "", params?.entity_id ?? ""],
+    queryKey: ["notes", "calendar", params?.entity_type ?? "", params?.entity_id ?? ""],
     queryFn: () =>
       apiClient.get<CalendarBucket[]>("/notes/calendar", {
-        tag: params?.tag,
         entity_type: params?.entity_type,
         entity_id: params?.entity_id,
       }),
@@ -214,10 +210,9 @@ export function useNotesCalendar(params?: NoteScope) {
  * search. `keepPreviousData` avoids flashing while the query key changes. */
 export function useNoteCorpus(params: NoteScope, enabled: boolean) {
   return useQuery({
-    queryKey: ["notes", "corpus", params.tag ?? "", params.entity_type ?? "", params.entity_id ?? ""],
+    queryKey: ["notes", "corpus", params.entity_type ?? "", params.entity_id ?? ""],
     queryFn: () =>
       apiClient.get<Note[]>("/notes", {
-        tag: params.tag,
         entity_type: params.entity_type,
         entity_id: params.entity_id,
       }),
@@ -589,42 +584,6 @@ export function useOutcomeEvaluation(outcomeId: string | null) {
     queryKey: ["outcomes", outcomeId, "evaluation"],
     queryFn: () => apiClient.get<Evaluation>(`/outcomes/${outcomeId}/evaluation`),
     enabled: !!outcomeId,
-  })
-}
-
-// --- tags attached to any entity (soft polymorphic) ---
-export function useEntityTags(entityType: string, entityId: string | null) {
-  return useQuery({
-    queryKey: ["entity-tags", entityType, entityId],
-    queryFn: () =>
-      apiClient.get<Tag[]>("/entity-tags", {
-        entity_type: entityType,
-        entity_id: entityId ?? undefined,
-      }),
-    enabled: !!entityId,
-  })
-}
-
-export function useAttachTag() {
-  const invalidate = useInvalidator()
-  return useMutation({
-    mutationFn: (v: { tagId: string; entityType: string; entityId: string }) =>
-      apiClient.post(`/tags/${v.tagId}/attach`, {
-        entity_type: v.entityType,
-        entity_id: v.entityId,
-      }),
-    onSuccess: () => invalidate("entity-tags", "tag-entities", "tags"),
-  })
-}
-
-export function useDetachTag() {
-  const invalidate = useInvalidator()
-  return useMutation({
-    mutationFn: (v: { tagId: string; entityType: string; entityId: string }) =>
-      apiClient.delete(
-        `/tags/${v.tagId}/attach?entity_type=${v.entityType}&entity_id=${v.entityId}`,
-      ),
-    onSuccess: () => invalidate("entity-tags", "tag-entities", "tags"),
   })
 }
 

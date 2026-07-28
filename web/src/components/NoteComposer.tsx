@@ -27,7 +27,7 @@ const BODY_CLS =
 
 /**
  * The journal composer: a minimal body box with inline @-mentions, a collapsible
- * details panel (title/date/mood/tags/about), a linked-entity chips row, and
+ * details panel (title/date/mood/about), a linked-entity chips row, and
  * ⌘/Ctrl+Enter to save. Used both as the always-on composer at the top of the
  * Notes stream and for inline entry editing.
  */
@@ -69,7 +69,6 @@ export function NoteComposer({
   const [rootTouched, setRootTouched] = useState(false)
   const [entryDate, setEntryDate] = useState(initial?.entry_date ?? todayISO())
   const [mood, setMood] = useState(initial?.mood ?? "")
-  const [tags, setTags] = useState((initial?.tags ?? []).join(", "))
   const [body, setBody] = useState(initial?.body ?? "")
   const [details, setDetails] = useState(false)
   const [preview, setPreview] = useState(false)
@@ -169,7 +168,6 @@ export function NoteComposer({
         title: title || null,
         entry_date: entryDate || null,
         mood: mood || null,
-        tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
         body,
         links: mergeLinks(body, manual).map((r) => ({ target_type: r.type, target_id: r.id })),
         // Omitted unless chosen — see `rootTouched` above.
@@ -184,8 +182,7 @@ export function NoteComposer({
       setManual([])
       setTitle("")
       setMood("")
-      setTags("")
-      setPending([])
+        setPending([])
       setDetails(false)
       setPreview(false)
       setRoot(defaultRoot)
@@ -310,9 +307,6 @@ export function NoteComposer({
           <Field label="Mood">
             <Input value={mood} onChange={(e) => setMood(e.target.value)} />
           </Field>
-          <Field label="Tags">
-            <Input value={tags} placeholder="comma, separated" onChange={(e) => setTags(e.target.value)} />
-          </Field>
         </div>
       )}
 
@@ -320,7 +314,7 @@ export function NoteComposer({
         <div className="flex items-center gap-1 text-slate-400">
           <button
             type="button"
-            title="Details (title, date, mood, tags, what it's about)"
+            title="Details (title, date, mood, what it's about)"
             className={`rounded p-1 hover:bg-slate-100 hover:text-slate-600 ${details ? "bg-slate-100 text-slate-600" : ""}`}
             onClick={() => setDetails((v) => !v)}
           >

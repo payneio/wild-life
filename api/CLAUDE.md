@@ -34,12 +34,12 @@ postgres. All tables live in an isolated Postgres schema **`wild_life`**.
   Project), `tasks`, `people` (Person), `routines` (Routine/Instance),
   `goals` (Goal + GoalProject link), `metrics` (Metric/Entry), `calendar` (Event),
   `notes` (Note), `tracking` (Commitment/WaitingItem/Delegation), `reviews`,
-  `knowledge` (Resource/Decision), `tags` (Tag + EntityTag). `mixins.py` gives uuid
+  `knowledge` (Resource/Decision). `mixins.py` gives uuid
   PK + tz-aware created/updated. **All datetime columns use `DateTime(timezone=True)`**
   — asyncpg rejects tz-aware values into naive columns. Statuses are Text columns
   validated by `Literal`s in `schemas/common.py`. Cross-entity links to
   area/program/project are typed FKs; `entity_type`/`entity_id` are *soft*
-  polymorphic links (no FK) used by notes/resources/decisions/tags/delegations.
+  polymorphic links (no FK) used by notes/resources/decisions/delegations.
 - `schemas/` — Pydantic v2 Create/Update/Read per module (Read = `from_attributes`);
   shared enums + `Entity` base in `common.py`.
 - `routers/crud.py` — generic CRUD-router factory; most routers compose one per
@@ -47,7 +47,7 @@ postgres. All tables live in an isolated Postgres schema **`wild_life`**.
   next-occurrence, completed_at), `routines` (`/routines/{id}/complete` logs an
   instance), `goals` (project links + `/computed-progress`), `reviews`
   (`GET /review-dashboard` — the neglect/drift/overdue/ownership detector),
-  `tags` (`/attach`, `/entity-tags`), `notes`/`people`/`metrics` (filters + nested).
+  `notes`/`people`/`metrics` (filters + nested).
 - `main.py` — wires auth + CORS middleware and includes every router.
 
 Full product spec (entities, statuses, rules) provided by the user; the primary

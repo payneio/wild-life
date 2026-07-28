@@ -21,7 +21,6 @@ import type {
   Resource,
   Review,
   Routine,
-  Tag,
   Task,
 } from "@/services/api/types"
 
@@ -67,11 +66,6 @@ export const TASK: Task = {
   claimed_at: null,
 }
 
-export const TAG: Tag = {
-  ...BASE,
-  name: "deep-work",
-  color: "#4f46e5",
-}
 
 export const RESOURCE: Resource = {
   ...BASE,
@@ -360,7 +354,6 @@ export const NOTE: Note = {
   body: "Walked through the cabinet options.",
   entry_date: "2026-07-21" as CalendarDay,
   mood: null,
-  tags: [{ id: "t1", name: "remodel", color: null }],
   links: [],
   entity_type: null,
   entity_id: null,
@@ -452,7 +445,6 @@ export const FIXTURES: Record<string, Entity> = {
   protocol: PROTOCOL,
   metric: METRIC,
   task: TASK,
-  tag: TAG,
   resource: RESOURCE,
   location: LOCATION,
   decision: DECISION,

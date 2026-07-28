@@ -55,7 +55,7 @@ const TERMINAL_PHASES: ReadonlySet<LifecyclePhase> = new Set(["done", "cancelled
  * Is this row finished — completed, cancelled, archived, dropped, resolved?
  *
  * Status-only, deliberately. A type with no status column (person, event, note,
- * location, resource, metric, medication, protocol, decision, review, tag) always
+ * location, resource, metric, medication, protocol, decision, review) always
  * reports `false`, as does an unknown status: absence of a terminal status is not
  * evidence of one. Lifecycle facts stored as timestamps instead of a status —
  * `Event.cancelled_at`, `Review.completed_at` — are invisible here; those surfaces

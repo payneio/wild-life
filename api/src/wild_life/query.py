@@ -158,7 +158,7 @@ _OPS = {
     "contains",
     "startswith",
 }
-_RESERVED = {"q", "sort", "limit", "offset", "tag", "tag__all", "tag__any"}
+_RESERVED = {"q", "sort", "limit", "offset"}
 
 
 def _coerce(col: Any, val: str) -> Any:

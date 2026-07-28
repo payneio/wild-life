@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { Check, GitMerge, NotebookPen, RotateCcw, Trash2 } from "lucide-react"
 import { Backlinks } from "@/components/Backlinks"
-import { TagField } from "@/components/TagField"
 import { Log } from "@/components/Log"
 import { Section } from "@/components/detail/kit"
 import { MergeDialog } from "@/components/MergeDialog"
@@ -79,12 +78,11 @@ export function Record({
     [row, save, saveMany, register],
   )
 
-  // Two keys are bound by chrome rather than by a field primitive, so register
-  // them here — they *are* covered, just not by an `<F.…>`. Declared before
-  // `useCoverage` so they land before coverage is compared.
+  // `involves` is bound by the action-bar control rather than a field primitive,
+  // so register it here — it *is* covered, just not by an `<F.…>`. Declared
+  // before `useCoverage` so it lands before coverage is compared.
   useEffect(() => {
     if (optionalPanels(def).length > 0) registry.current.add("involves")
-    if (def.entityType) registry.current.add("tags")
   })
   useCoverage(row, registry, omit, def.key, onCoverage)
 
@@ -152,10 +150,6 @@ export function Record({
       </div>
 
       {/* The entity's own layout */}
-      {/* Tags apply to any object, so Record offers them rather than each entity
-          declaring one — the same reason the Log is a band. */}
-      {def.entityType && <TagField entityType={def.entityType} entityId={entity.id} />}
-
       <RecordContext.Provider value={ctx}>{children}</RecordContext.Provider>
 
 

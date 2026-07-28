@@ -6,7 +6,7 @@ import { ListToolbar } from "@/components/ListToolbar"
 import { MentionChip } from "@/components/MentionChip"
 import { MentionText } from "@/components/MentionText"
 import { NoteComposer } from "@/components/NoteComposer"
-import { Badge, Card, EmptyState } from "@/components/ui/primitives"
+import { Card, EmptyState } from "@/components/ui/primitives"
 import { useListFilter, type FilterDef, type ListConfig } from "@/lib/listFilter"
 import type { Body } from "@/services/api/crud"
 import { notes, useCreateNoteWithImages, useNoteCorpus, useNotesCalendar } from "@/services/api/hooks"
@@ -100,7 +100,7 @@ const JournalEntry = memo(function JournalEntry({
 
       <MentionText>{note.body || "_Empty note._"}</MentionText>
 
-      {(note.tags.length > 0 || note.links.length > 0) && (
+      {note.links.length > 0 && (
         <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
           {note.links
             .filter((l) => !(l.target_type === note.entity_type && l.target_id === note.entity_id))
@@ -112,11 +112,6 @@ const JournalEntry = memo(function JournalEntry({
                 label={resolve(l.target_type, l.target_id) ?? "…"}
               />
             ))}
-          {note.tags.map((t) => (
-            <Badge key={t.id} color={t.color}>
-              {t.name}
-            </Badge>
-          ))}
         </div>
       )}
 

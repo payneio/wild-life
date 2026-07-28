@@ -1,7 +1,6 @@
 import type { ComponentType } from "react"
 import type { FieldSpec } from "@/services/api/fieldSpec"
 import { TaskDetail as TaskRecord } from "@/entities/task/Detail"
-import { TagDetail as TagRecord } from "@/entities/tag/Detail"
 import { ResourceDetail as ResourceRecord } from "@/entities/resource/Detail"
 import { LocationDetail as LocationRecord } from "@/entities/location/Detail"
 import { DecisionDetail as DecisionRecord } from "@/entities/decision/Detail"
@@ -45,7 +44,6 @@ import {
   resources,
   reviews,
   routines,
-  tags,
   tasks,
   requests,
 } from "@/services/api/hooks"
@@ -199,7 +197,6 @@ import {
   RESOURCE_FIELDS,
   REVIEW_FIELDS,
   ROUTINE_FIELDS,
-  TAG_FIELDS,
   TASK_FIELDS,
   REQUEST_FIELDS,
 } from "@/services/api/fields"
@@ -263,7 +260,6 @@ export const REGISTRY: Record<string, EntityDef> = {
   decision: { key: "decision", label: "Decision", crud: decisions, fields: DECISION_FIELDS, title: (e) => e.question, entityType: "decision", titleField: "question", quickCreate: true, detail: DecisionRecord, relations: [
   ] },
   resource: { key: "resource", label: "Resource", crud: resources, fields: RESOURCE_FIELDS, title: (e) => e.title, context: (e) => e.resource_type ?? undefined, entityType: "resource", titleField: "title", quickCreate: true, detail: ResourceRecord },
-  tag: { key: "tag", label: "Tag", crud: tags, fields: TAG_FIELDS, title: (e) => e.name, titleField: "name", quickCreate: true, detail: TagRecord },
   // Brand beats program in the picker — two rows named "ibuprofen" are told
   // apart by the box they came in — so it keeps a `context` of its own.
   medication: { key: "medication", label: "Medication", crud: medications, fields: MEDICATION_FIELDS, title: (e) => e.name, context: (e) => e.brand ?? undefined, parent: (e) => refOf(e, ["program_id", "program"]), entityType: "medication", titleField: "name", quickCreate: true, detail: MedicationRecord },

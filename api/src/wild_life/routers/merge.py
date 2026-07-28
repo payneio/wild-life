@@ -102,7 +102,6 @@ SOFT_POLY = [
         "target_type",
         "target_id",
     ),
-    (Base.metadata.tables["wild_life.entity_tags"], "entity_type", "entity_id"),
     (Commitment.__table__, "entity_type", "entity_id"),
     (Request.__table__, "entity_type", "entity_id"),
     (Delegation.__table__, "entity_type", "entity_id"),

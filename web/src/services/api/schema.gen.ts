@@ -320,23 +320,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/entity-tags": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Tags For Entity */
-        get: operations["tags_for_entity_entity_tags_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/events": {
         parameters: {
             query?: never;
@@ -2032,78 +2015,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/tags": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List All */
-        get: operations["tags_list"];
-        put?: never;
-        /** Create */
-        post: operations["tags_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/tags/{item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get One */
-        get: operations["tags_get"];
-        put?: never;
-        post?: never;
-        /** Delete */
-        delete: operations["tags_delete"];
-        options?: never;
-        head?: never;
-        /** Update */
-        patch: operations["tags_update"];
-        trace?: never;
-    };
-    "/tags/{tag_id}/attach": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Attach Tag */
-        post: operations["attach_tag_tags__tag_id__attach_post"];
-        /** Detach Tag */
-        delete: operations["detach_tag_tags__tag_id__attach_delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/tags/{tag_id}/entities": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Tag Entities */
-        get: operations["list_tag_entities_tags__tag_id__entities_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/tasks": {
         parameters: {
             query?: never;
@@ -3025,37 +2936,6 @@ export interface components {
              * @enum {string}
              */
             target_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
-        };
-        /** EntityTagCreate */
-        EntityTagCreate: {
-            /**
-             * Entity Id
-             * Format: uuid
-             */
-            entity_id: string;
-            /**
-             * Entity Type
-             * @enum {string}
-             */
-            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
-        };
-        /** EntityTagRead */
-        EntityTagRead: {
-            /**
-             * Entity Id
-             * Format: uuid
-             */
-            entity_id: string;
-            /**
-             * Entity Type
-             * @enum {string}
-             */
-            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
-            /**
-             * Tag Id
-             * Format: uuid
-             */
-            tag_id: string;
         };
         /**
          * Evaluation
@@ -3988,11 +3868,6 @@ export interface components {
             links: components["schemas"]["EntityRef"][];
             /** Mood */
             mood: string | null;
-            /**
-             * Tags
-             * @default []
-             */
-            tags: components["schemas"]["TagRef"][];
             /** Title */
             title: string | null;
             /**
@@ -5514,61 +5389,6 @@ export interface components {
             /** Value */
             value: number;
         };
-        /** TagCreate */
-        TagCreate: {
-            /** Color */
-            color?: string | null;
-            /** Name */
-            name: string;
-        };
-        /** TagRead */
-        TagRead: {
-            /** Color */
-            color: string | null;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: Instant;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Name */
-            name: string;
-            /**
-             * Updated At
-             * Format: date-time
-             */
-            updated_at: Instant;
-        };
-        /**
-         * TagRef
-         * @description A tag on a note, projected into the read model.
-         *
-         *     Read-only: tags are `EntityTag` rows and are written through `/tags/attach`.
-         *     They ride along here for the same reason `links` does — a log renders
-         *     hundreds of notes at once, and a per-row lookup would be hundreds of queries.
-         */
-        TagRef: {
-            /** Color */
-            color?: string | null;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Name */
-            name: string;
-        };
-        /** TagUpdate */
-        TagUpdate: {
-            /** Color */
-            color?: string | null;
-            /** Name */
-            name?: string | null;
-        };
         /** TaskCreate */
         TaskCreate: {
             /**
@@ -6868,38 +6688,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DerivationInfo"][];
-                };
-            };
-        };
-    };
-    tags_for_entity_entity_tags_get: {
-        parameters: {
-            query: {
-                entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
-                entity_id: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TagRead"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -8636,7 +8424,6 @@ export interface operations {
                 linked_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
                 linked_id?: string | null;
                 year?: number | null;
-                tag?: string | null;
             };
             header?: never;
             path?: never;
@@ -8700,7 +8487,6 @@ export interface operations {
     notes_calendar: {
         parameters: {
             query?: {
-                tag?: string | null;
                 entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
                 entity_id?: string | null;
             };
@@ -11331,252 +11117,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
-                };
-            };
-        };
-    };
-    tags_list: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TagRead"][];
-                };
-            };
-        };
-    };
-    tags_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TagCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TagRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    tags_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TagRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    tags_delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    tags_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TagUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TagRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    attach_tag_tags__tag_id__attach_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                tag_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["EntityTagCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EntityTagRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    detach_tag_tags__tag_id__attach_delete: {
-        parameters: {
-            query: {
-                entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
-                entity_id: string;
-            };
-            header?: never;
-            path: {
-                tag_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_tag_entities_tags__tag_id__entities_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                tag_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EntityTagRead"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

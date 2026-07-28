@@ -50,7 +50,6 @@ from wild_life.routers import (
     routines,
     search,
     stream,
-    tags,
     tasks,
     tracking,
     whiteboard,
@@ -189,7 +188,6 @@ app.include_router(tracking.router)
 app.include_router(requests.router)
 app.include_router(reviews.router)
 app.include_router(knowledge.router)
-app.include_router(tags.router)
 app.include_router(health_routes.router)
 app.include_router(protocols.router)
 app.include_router(history.router)

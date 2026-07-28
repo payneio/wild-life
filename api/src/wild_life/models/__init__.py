@@ -29,7 +29,6 @@ from wild_life.models.push import PushSubscription, SentNudge, SentReminder
 from wild_life.models.requests import Request
 from wild_life.models.reviews import Review
 from wild_life.models.routines import Routine, RoutineInstance
-from wild_life.models.tags import EntityTag, Tag
 from wild_life.models.tasks import Task
 from wild_life.models.tracking import Commitment, Delegation
 from wild_life.models.whiteboard import Whiteboard
@@ -73,8 +72,6 @@ __all__ = [
     "Review",
     "Resource",
     "Decision",
-    "Tag",
-    "EntityTag",
     "EntityLink",
     "ChangeLog",
     "ApiToken",

@@ -15,19 +15,6 @@ class EntityRef(BaseModel):
     target_id: uuid.UUID
 
 
-class TagRef(BaseModel):
-    """A tag on a note, projected into the read model.
-
-    Read-only: tags are `EntityTag` rows and are written through `/tags/attach`.
-    They ride along here for the same reason `links` does — a log renders
-    hundreds of notes at once, and a per-row lookup would be hundreds of queries.
-    """
-
-    id: uuid.UUID
-    name: str
-    color: str | None = None
-
-
 class NoteCreate(BaseModel):
     title: str | None = None
     body: str = ""
@@ -56,7 +43,6 @@ class NoteRead(Entity):
     entity_type: EntityType | None
     entity_id: uuid.UUID | None
     links: list[EntityRef] = []
-    tags: list[TagRef] = []
 
 
 class NoteImageRead(Entity):
