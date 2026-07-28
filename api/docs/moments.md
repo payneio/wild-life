@@ -90,6 +90,7 @@ Deliberately absent:
 | `tasks.claimed_by_id`/`claimed_at` | unchanged — a cooperative lock, infrastructure, not an ask |
 | `change_log`, `created_at`/`updated_at`, `geocode_cache.fetched_at`, `api_tokens.revoked_at` | unchanged — the system spine and infrastructure timestamps are not life |
 | `whiteboard` | unchanged — no date, no subject, one buffer |
+| `notes.mood` | dropped — 235 values, all from the 2026-07-15 import, 95 distinct free-text strings. A Metric if ever wanted; see below |
 
 Note: `insurance_plans` has no effective dates today, only `status`. If validity
 dates are added later they follow the `affiliations` rule, with status derived
@@ -167,19 +168,24 @@ Moving it needs, in order: `CalendarRecordRead`/`Update` schemas, a read path
 that returns the record alongside its moment, and the scoped-edit routes in
 `routers/calendar.py` re-expressed against `(moment, calendar_record)` pairs.
 
-### The one column the mapping never decided: `notes.mood`
+### `notes.mood` is dropped, and would be a Metric if it ever comes back
 
-235 of 848 notes carry a `mood`, and it appears in neither table above — not as
-something that becomes a moment, and not as something that becomes anything
-else. It was not dropped on purpose; it was missed.
+It appears in neither mapping table above because it becomes nothing. The
+measurement settles it: **all 235 values were written by the 2026-07-15 import
+and none by hand**, across 95 distinct free-text strings for 235 rows. That is
+the tag finding again, in a different column — a vocabulary nobody chose,
+maintained by nobody, read by nothing.
 
-The data is safe (nothing writes `notes` any more, and nothing has dropped it),
-but after the cut-over it is invisible and unwritable, because `moments` has no
-column for it and the composer offers no control. **Phase 5 must not drop
-`notes` until this is settled.** The question is whether mood is a field on a
-moment at all: it is meaningless on a `dose` or a `completion`, which is an
-argument that it belongs to `reflection` specifically, and a facet that only one
-kind carries is the shape `note_type` had.
+It is also the shape `note_type` had. Mood is meaningless on a `dose` or a
+`completion`, so a mood column on `moments` would be a facet only one kind
+carries, hand-set, and therefore unset — the `Event.event_type` failure with a
+different name.
+
+If mood is wanted later it is a **Metric**, not a column: a named measurable
+thing with a scale and a cadence, whose readings are `measurement` moments
+carrying a reading payload. That is the existing spine, it gives series and
+outcomes for free, and it puts mood beside weight and sleep where a thing you
+track over time belongs. Do not add the column back.
 
 ## What the frontend cut-over did
 
