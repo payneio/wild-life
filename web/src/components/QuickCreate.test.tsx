@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { fireEvent, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 import { QuickCreate } from "@/components/QuickCreate"
@@ -45,6 +45,52 @@ describe("QuickCreate", () => {
     await user.type(input, "Draft the brief{Enter}")
     expect(onCreate).toHaveBeenCalled()
     expect(input).toHaveValue("Draft the brief")
+  })
+
+  it("commits when the keyboard submits instead of sending Enter", async () => {
+    const user = userEvent.setup()
+    const onCreate = vi.fn()
+    render(<QuickCreate placeholder="Add…" onCreate={onCreate} />)
+
+    const input = screen.getByPlaceholderText("Add…")
+    await user.type(input, "Rifaximin")
+
+    // What a phone keyboard with autocorrect on actually sends for return: a
+    // composition keydown, not Enter. Nothing to hang a commit on — which is why
+    // capture on mobile did nothing at all before this was a form.
+    fireEvent.keyDown(input, { key: "Unidentified", keyCode: 229, which: 229 })
+    expect(onCreate).not.toHaveBeenCalled()
+
+    fireEvent.submit(input.closest("form")!)
+    expect(onCreate).toHaveBeenCalledWith("Rifaximin")
+    expect(input).toHaveValue("")
+  })
+
+  it("offers a button to commit with, once there is something to commit", async () => {
+    const user = userEvent.setup()
+    const onCreate = vi.fn()
+    render(<QuickCreate placeholder="Add…" onCreate={onCreate} />)
+
+    // No text, nothing to press — the field alone is the whole affordance.
+    expect(screen.queryByRole("button", { name: "Add" })).toBeNull()
+
+    const input = screen.getByPlaceholderText("Add…")
+    await user.type(input, "Rifaximin")
+    await user.click(screen.getByRole("button", { name: "Add" }))
+    expect(onCreate).toHaveBeenCalledWith("Rifaximin")
+    expect(screen.queryByRole("button", { name: "Add" })).toBeNull()
+  })
+
+  it("leaves a composing IME alone", async () => {
+    const user = userEvent.setup()
+    const onCreate = vi.fn()
+    render(<QuickCreate placeholder="Add…" onCreate={onCreate} />)
+
+    const input = screen.getByPlaceholderText("Add…")
+    await user.type(input, "にほん")
+    // Enter here picks a candidate; it is not a commit of the row.
+    fireEvent.keyDown(input, { key: "Enter", isComposing: true })
+    expect(onCreate).not.toHaveBeenCalled()
   })
 
   it("discards the draft on Escape", async () => {
