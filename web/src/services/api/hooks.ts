@@ -1,7 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { apiClient } from "@/services/api/client"
 import { createCrud, type Body } from "@/services/api/crud"
-import { finalizePendingImages, type PendingImage } from "@/services/api/noteImages"
+import { finalizePendingImages, type PendingImage } from "@/services/api/momentImages"
 import type {
   Affiliation,
   Allergy,
@@ -29,7 +29,9 @@ import type {
   GroupMember,
   GroupReading,
   MetricEntry,
-  Note,
+  Moment,
+  MomentKind,
+  MomentRole,
   Organization,
   Person,
   Program,
@@ -62,23 +64,24 @@ export const metrics = createCrud<Metric>("metrics")
 export const metricEntries = createCrud<MetricEntry>("metric-entries")
 export const metricGroups = createCrud<MetricGroup>("metric-groups")
 export const events = createCrud<EventItem>("events")
-export const notes = createCrud<Note>("notes")
+/** The spine. A life is a series of moments; everything above is their subject. */
+export const moments = createCrud<Moment>("moments")
 
 /**
- * Create a note, then upload any images that were attached while composing (a
- * new note has no id to attach to yet) and rewrite their body tokens to the real
- * refs. Returns a `(body, pending) => Promise<Note>` submit handler.
+ * Create a moment, then upload any images that were attached while composing (a
+ * new moment has no id to attach to yet) and rewrite their body tokens to the
+ * real refs. Returns a `(body, pending) => Promise<Moment>` submit handler.
  */
-export function useCreateNoteWithImages() {
-  const create = notes.useCreate()
-  const update = notes.useUpdate()
-  return async (body: Body, pending: PendingImage[]): Promise<Note> => {
-    const note = await create.mutateAsync(body)
+export function useCreateMomentWithImages() {
+  const create = moments.useCreate()
+  const update = moments.useUpdate()
+  return async (body: Body, pending: PendingImage[]): Promise<Moment> => {
+    const moment = await create.mutateAsync(body)
     if (pending.length) {
-      const finalBody = await finalizePendingImages(note.id, String(body.body ?? ""), pending)
-      await update.mutateAsync({ id: note.id, body: { body: finalBody } })
+      const finalBody = await finalizePendingImages(moment.id, String(body.body ?? ""), pending)
+      await update.mutateAsync({ id: moment.id, body: { body: finalBody } })
     }
-    return note
+    return moment
   }
 }
 export const commitments = createCrud<Commitment>("commitments")
@@ -241,12 +244,46 @@ export function useSetGroupMembers() {
   })
 }
 
-// --- a log's year/month navigation ---
-/** Which log to read: an object's notes, or the self person's (the journal). */
-export interface NoteScope {
-  entity_type?: string
-  entity_id?: string
+// --- a log's scope, and its year/month navigation ---
+/**
+ * Which stream a log shows.
+ *
+ * **The timeline of X is the moments linked to X**, so one shape answers a
+ * program's band, a person's history and a medication's dose log. `kind` narrows
+ * it to one act — the Journal is `reflection`, the Inbox is `capture` — which is
+ * what lets a surface be defined by what it *is* rather than by what it lacks.
+ */
+export interface MomentScope {
+  kind?: MomentKind
+  linked_type?: string
+  linked_id?: string
+  /** Which involvements count. Repeatable server-side; see `TIMELINE_ROLES`. */
+  role?: MomentRole[]
 }
+
+/**
+ * The involvements that put a moment on a thing's **timeline**.
+ *
+ * `subject` is what it was about, `participant` who was there, `place` where. A
+ * `mention` is the writing merely naming the thing, and belongs in the backlinks
+ * panel instead — showing it in both is what once made 18 of 20 "mentioned in"
+ * rows duplicate the list directly above them. Mirrors `TIMELINE_ROLES` in
+ * `routers/moments.py`.
+ */
+export const TIMELINE_ROLES: MomentRole[] = ["subject", "participant", "place"]
+
+const scopeParams = (s: MomentScope) => ({
+  kind: s.kind,
+  linked_type: s.linked_type,
+  linked_id: s.linked_id,
+  role: s.role,
+})
+const scopeKey = (s: MomentScope) => [
+  s.kind ?? "",
+  s.linked_type ?? "",
+  s.linked_id ?? "",
+  (s.role ?? []).join(","),
+]
 
 export interface CalendarBucket {
   year: number
@@ -254,27 +291,41 @@ export interface CalendarBucket {
   count: number
 }
 
-export function useNotesCalendar(params?: NoteScope) {
+/** Per-(year, month) counts for the stream's navigation rail. Scoped exactly the
+ *  way the list is — a rail that disagrees with its stream is worse than none. */
+export function useMomentsCalendar(scope: MomentScope, enabled = true) {
   return useQuery({
-    queryKey: ["notes", "calendar", params?.entity_type ?? "", params?.entity_id ?? ""],
-    queryFn: () =>
-      apiClient.get<CalendarBucket[]>("/notes/calendar", {
-        entity_type: params?.entity_type,
-        entity_id: params?.entity_id,
-      }),
+    queryKey: ["moments", "calendar", ...scopeKey(scope)],
+    queryFn: () => apiClient.get<CalendarBucket[]>("/moments/calendar", scopeParams(scope)),
+    enabled,
   })
 }
 
-/** All scoped notes (every year), fetched once for instant client-side journal
- * search. `keepPreviousData` avoids flashing while the query key changes. */
-export function useNoteCorpus(params: NoteScope, enabled: boolean) {
+/** One year of a scoped stream. `since`/`until` rather than a `year` param: the
+ *  API places a moment by occurrence *or* window, and a single column couldn't. */
+export function useMomentYear(scope: MomentScope, year: number | null, enabled = true) {
   return useQuery({
-    queryKey: ["notes", "corpus", params.entity_type ?? "", params.entity_id ?? ""],
+    queryKey: ["moments", "year", ...scopeKey(scope), year],
     queryFn: () =>
-      apiClient.get<Note[]>("/notes", {
-        entity_type: params.entity_type,
-        entity_id: params.entity_id,
+      apiClient.get<Moment[]>("/moments", {
+        ...scopeParams(scope),
+        ...(year === null
+          ? {}
+          : { since: `${year}-01-01T00:00:00Z`, until: `${year}-12-31T23:59:59Z` }),
+        limit: "500",
       }),
+    enabled,
+    placeholderData: keepPreviousData,
+  })
+}
+
+/** The whole scoped corpus, fetched once for instant client-side search.
+ *  `keepPreviousData` avoids flashing while the query key changes. */
+export function useMomentCorpus(scope: MomentScope, enabled: boolean) {
+  return useQuery({
+    queryKey: ["moments", "corpus", ...scopeKey(scope)],
+    queryFn: () =>
+      apiClient.get<Moment[]>("/moments", { ...scopeParams(scope), limit: "2000" }),
     enabled,
     placeholderData: keepPreviousData,
     staleTime: 60_000,
@@ -304,14 +355,22 @@ export function useSearch(q: string, opts?: { types?: string; limit?: number }) 
   })
 }
 
-// --- notes that mention a given entity (backlinks) ---
-export function useNotesLinkedTo(type: EntityType | null, id: string | null) {
+/**
+ * Moments that *mention* an entity — the backlinks panel.
+ *
+ * `role=mention` does server-side what the panel used to do by hand: a moment
+ * whose subject is this entity already sits in its Log, and listing it again as
+ * a backlink is what made 18 of 20 "mentioned in" rows duplicates. Roles are the
+ * closed vocabulary that makes the distinction expressible at all.
+ */
+export function useMomentsMentioning(type: EntityType | null, id: string | null) {
   return useQuery({
-    queryKey: ["notes", "linked", type, id],
+    queryKey: ["moments", "mentioning", type, id],
     queryFn: () =>
-      apiClient.get<Note[]>("/notes", {
+      apiClient.get<Moment[]>("/moments", {
         linked_type: type ?? undefined,
         linked_id: id ?? undefined,
+        role: "mention",
       }),
     enabled: !!type && !!id,
   })

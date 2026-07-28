@@ -60,7 +60,12 @@ class ReviewDashboard(BaseModel):
     """Everything a periodic review should catch, grouped by what's wrong."""
 
     generated_for: date
-    unrooted_notes_count: int
+    # The inbox, in one number. `capture` is the kind a surface writes when it
+    # genuinely cannot know what you were writing — the inbox is that state, not
+    # a lack — so this counts acts awaiting resolution rather than rows missing a
+    # column. Kept in lockstep with `InboxPage.tsx`; `tests/test_moments.py`
+    # binds the two.
+    unresolved_captures_count: int
     unrooted_events_count: int
     overdue_tasks: list[DashRow]
     due_today: list[DashRow]

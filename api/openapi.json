@@ -12393,6 +12393,10 @@
             "title": "Unclear Ownership",
             "type": "array"
           },
+          "unresolved_captures_count": {
+            "title": "Unresolved Captures Count",
+            "type": "integer"
+          },
           "unreviewed_deliverables": {
             "items": {
               "$ref": "#/components/schemas/DashRow"
@@ -12402,10 +12406,6 @@
           },
           "unrooted_events_count": {
             "title": "Unrooted Events Count",
-            "type": "integer"
-          },
-          "unrooted_notes_count": {
-            "title": "Unrooted Notes Count",
             "type": "integer"
           },
           "waiting_without_blocker": {
@@ -12418,7 +12418,7 @@
         },
         "required": [
           "generated_for",
-          "unrooted_notes_count",
+          "unresolved_captures_count",
           "unrooted_events_count",
           "overdue_tasks",
           "due_today",
@@ -19214,7 +19214,7 @@
     },
     "/moments": {
       "get": {
-        "description": "Moments, newest first.\n\n``linked_type``/``linked_id`` is the timeline of a thing; add ``role`` to ask\na narrower question (\"moments *with* Melissa\" rather than \"moments involving\nher at all\"). ``unfulfilled`` is the derived lapse \u2014 a window that has passed\nwith nothing having happened in it and no decision to drop it \u2014 which is a\nquery rather than a stored state precisely so it can never go stale.",
+        "description": "Moments, newest first.\n\n``linked_type``/``linked_id`` is the timeline of a thing; add ``role`` to ask\na narrower question (\"moments *with* Melissa\" rather than \"moments involving\nher at all\"). It is repeatable, because the useful questions are about sets\nof roles rather than one: a record's Log asks for ``TIMELINE_ROLES`` and its\nbacklinks panel asks for ``mention``, which is the same distinction the role\nvocabulary was defined to make. ``unfulfilled`` is the derived lapse \u2014 a\nwindow that has passed with nothing having happened in it and no decision to\ndrop it \u2014 which is a query rather than a stored state precisely so it can\nnever go stale.",
         "operationId": "moments_list",
         "parameters": [
           {
@@ -19315,13 +19315,16 @@
             "schema": {
               "anyOf": [
                 {
-                  "enum": [
-                    "participant",
-                    "place",
-                    "subject",
-                    "mention"
-                  ],
-                  "type": "string"
+                  "items": {
+                    "enum": [
+                      "participant",
+                      "place",
+                      "subject",
+                      "mention"
+                    ],
+                    "type": "string"
+                  },
+                  "type": "array"
                 },
                 {
                   "type": "null"
@@ -19454,7 +19457,7 @@
     },
     "/moments/calendar": {
       "get": {
-        "description": "Per-(year, month) counts for a stream's navigation rail.\n\nScoped exactly the way the list is, so the rail counts the rows the stream\nshows. A rail that disagrees with its stream is worse than no rail.",
+        "description": "Per-(year, month) counts for a stream's navigation rail.\n\nScoped exactly the way the list is \u2014 ``role`` included, which is why it is\nhere at all \u2014 so the rail counts the rows the stream shows. A rail that\ndisagrees with its stream is worse than no rail: it offers a month that\nscrolls nowhere.",
         "operationId": "moments_calendar",
         "parameters": [
           {
@@ -19546,6 +19549,31 @@
                 }
               ],
               "title": "Linked Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "role",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "enum": [
+                      "participant",
+                      "place",
+                      "subject",
+                      "mention"
+                    ],
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Role"
             }
           }
         ],

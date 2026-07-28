@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom"
-import { NoteComposer } from "@/components/NoteComposer"
+import { MomentComposer } from "@/components/MomentComposer"
 import { ReviewDashboardView } from "@/components/ReviewDashboard"
 import { TodayRhythms } from "@/components/TodayRhythms"
 import { ComingUp } from "@/components/ComingUp"
@@ -11,7 +11,7 @@ import { formatDateTime } from "@/lib/utils"
 import {
   events,
   tasks,
-  useCreateNoteWithImages,
+  useCreateMomentWithImages,
   useReviewDashboard,
 } from "@/services/api/hooks"
 
@@ -33,7 +33,7 @@ export function TodayPage() {
   const { data: taskData } = tasks.useList({ queue: "personal", include_closed: "false" })
   const { data: eventData } = events.useList()
   const { data: dash } = useReviewDashboard()
-  const submitNote = useCreateNoteWithImages()
+  const submitReflection = useCreateMomentWithImages()
 
   const todays = (taskData ?? [])
     .filter((t) => (t.scheduled_date && t.scheduled_date <= today) || (t.due_date && t.due_date <= today))
@@ -58,11 +58,16 @@ export function TodayPage() {
           <section>
             <SectionTitle to="/notes">Journal</SectionTitle>
             <Card className="p-3">
-              <NoteComposer
+              {/* The Journal's own act, written here: a reflection, not a
+                  capture — you are on the Journal card and have said so by
+                  being here. Quick capture (⌘⇧N) is the surface that can't
+                  know, and its unresolved kind is the inbox. */}
+              <MomentComposer
                 mode="create"
+                kind="reflection"
                 compact
                 placeholder="Jot an entry for today…"
-                onSubmit={(b, pending) => submitNote(b, pending)}
+                onSubmit={(b, pending) => submitReflection(b, pending)}
               />
             </Card>
           </section>

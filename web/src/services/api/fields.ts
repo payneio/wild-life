@@ -15,6 +15,7 @@ import {
   EVENT_TYPE,
   MEASUREMENT_FREQUENCIES,
   MED_TYPE,
+  MOMENT_KIND,
   ORG_STATUS,
   PLAN_TYPE,
   PRIORITIES,
@@ -52,10 +53,13 @@ export const EVENT_FIELDS: FieldSpec[] = [
   { name: "recurrence", label: "Repeats", type: "recurrence", full: true },
 ]
 
-export const NOTE_FIELDS: FieldSpec[] = [
+// List configuration only — which columns are searchable and which make useful
+// filter dropdowns. `kind` is a filter here and never a control: reading a
+// stream by act is a query, writing one is the creating surface's business.
+export const MOMENT_FIELDS: FieldSpec[] = [
   { name: "title", label: "Title", full: true },
-  { name: "entry_date", label: "Date", type: "date" },
-  { name: "mood", label: "Mood" },
+  { name: "kind", label: "Kind", type: "select", options: MOMENT_KIND },
+  { name: "started_at", label: "Started", type: "date" },
   { name: "body", label: "Body", type: "textarea", full: true },
 ]
 

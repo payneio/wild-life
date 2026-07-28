@@ -16,6 +16,7 @@ from fastapi import (
     Depends,
     File,
     HTTPException,
+    Query,
     Request,
     UploadFile,
     status,
@@ -47,6 +48,25 @@ router = APIRouter(prefix="/moments", tags=["moments"])
 # to. One expression, because a timeline shows both and a planned lunch has no
 # occurrence to sort by.
 _WHEN = func.coalesce(Moment.started_at, Moment.window_start)
+
+
+# The roles that put a moment on a thing's *timeline*, as opposed to in its
+# backlinks. `subject` is what a moment is about, `participant` who was there and
+# `place` where — all three are involvement. A `mention` is the writing merely
+# naming the thing, which belongs in "Mentioned in": listing it in both is what
+# once made 18 of 20 backlink rows duplicate the list directly above them.
+TIMELINE_ROLES: list[MomentRole] = ["subject", "participant", "place"]
+
+
+def _linked(linked_type: EntityType, linked_id: UUID, roles: list[str] | None):
+    """The subquery for "moments involving this thing", optionally by role."""
+    edge = select(MomentLink.moment_id).where(
+        MomentLink.entity_type == linked_type,
+        MomentLink.entity_id == linked_id,
+    )
+    if roles:
+        edge = edge.where(MomentLink.role.in_(roles))
+    return edge
 
 
 def _is_self(link: MomentLinkRef) -> bool:
@@ -140,7 +160,7 @@ async def list_moments(
     kind: MomentKind | None = None,
     linked_type: EntityType | None = None,
     linked_id: UUID | None = None,
-    role: MomentRole | None = None,
+    role: list[MomentRole] | None = Query(None),
     since: datetime | None = None,
     until: datetime | None = None,
     unfulfilled: bool | None = None,
@@ -149,21 +169,19 @@ async def list_moments(
 
     ``linked_type``/``linked_id`` is the timeline of a thing; add ``role`` to ask
     a narrower question ("moments *with* Melissa" rather than "moments involving
-    her at all"). ``unfulfilled`` is the derived lapse — a window that has passed
-    with nothing having happened in it and no decision to drop it — which is a
-    query rather than a stored state precisely so it can never go stale.
+    her at all"). It is repeatable, because the useful questions are about sets
+    of roles rather than one: a record's Log asks for ``TIMELINE_ROLES`` and its
+    backlinks panel asks for ``mention``, which is the same distinction the role
+    vocabulary was defined to make. ``unfulfilled`` is the derived lapse — a
+    window that has passed with nothing having happened in it and no decision to
+    drop it — which is a query rather than a stored state precisely so it can
+    never go stale.
     """
     stmt = select(Moment)
     if kind is not None:
         stmt = stmt.where(Moment.kind == kind)
     if linked_type is not None and linked_id is not None:
-        edge = select(MomentLink.moment_id).where(
-            MomentLink.entity_type == linked_type,
-            MomentLink.entity_id == linked_id,
-        )
-        if role is not None:
-            edge = edge.where(MomentLink.role == role)
-        stmt = stmt.where(Moment.id.in_(edge))
+        stmt = stmt.where(Moment.id.in_(_linked(linked_type, linked_id, role)))
     if since is not None:
         stmt = stmt.where(or_(Moment.started_at >= since, Moment.window_end >= since))
     if until is not None:
@@ -198,11 +216,14 @@ async def moments_calendar(
     kind: MomentKind | None = None,
     linked_type: EntityType | None = None,
     linked_id: UUID | None = None,
+    role: list[MomentRole] | None = Query(None),
 ) -> list[dict]:
     """Per-(year, month) counts for a stream's navigation rail.
 
-    Scoped exactly the way the list is, so the rail counts the rows the stream
-    shows. A rail that disagrees with its stream is worse than no rail.
+    Scoped exactly the way the list is — ``role`` included, which is why it is
+    here at all — so the rail counts the rows the stream shows. A rail that
+    disagrees with its stream is worse than no rail: it offers a month that
+    scrolls nowhere.
     """
     year = func.extract("year", _WHEN)
     month = func.extract("month", _WHEN)
@@ -212,14 +233,7 @@ async def moments_calendar(
     if kind is not None:
         stmt = stmt.where(Moment.kind == kind)
     if linked_type is not None and linked_id is not None:
-        stmt = stmt.where(
-            Moment.id.in_(
-                select(MomentLink.moment_id).where(
-                    MomentLink.entity_type == linked_type,
-                    MomentLink.entity_id == linked_id,
-                )
-            )
-        )
+        stmt = stmt.where(Moment.id.in_(_linked(linked_type, linked_id, role)))
     stmt = stmt.group_by(year, month).order_by(year.desc(), month.desc())
     rows = (await session.execute(stmt)).all()
     return [

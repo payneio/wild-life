@@ -20,7 +20,7 @@ import { ProjectDetail as ProjectRecord } from "@/entities/project/Detail"
 import { OutcomeRecord } from "@/entities/outcome/Detail"
 import { RoutineDetail as RoutineRecord } from "@/entities/routine/Detail"
 import { DelegationDetail as DelegationRecord } from "@/entities/delegation/Detail"
-import { NoteDetail as NoteRecord } from "@/entities/note/Detail"
+import { MomentDetail as MomentRecord } from "@/entities/moment/Detail"
 import { EventDetail as EventRecord } from "@/entities/event/Detail"
 import { EventCapture } from "@/entities/event/Capture"
 import type { createCrud } from "@/services/api/crud"
@@ -38,7 +38,7 @@ import {
   medications,
   metrics,
   metricGroups,
-  notes,
+  moments,
   organizations,
   programs,
   projects,
@@ -192,7 +192,7 @@ import {
   MEDICATION_FIELDS,
   METRIC_FIELDS,
   METRIC_GROUP_FIELDS,
-  NOTE_FIELDS,
+  MOMENT_FIELDS,
   ORGANIZATION_FIELDS,
   PROGRAM_FIELDS,
   PROJECT_FIELDS,
@@ -258,7 +258,11 @@ export const REGISTRY: Record<string, EntityDef> = {
   ] },
   location: { key: "location", label: "Location", crud: locations, fields: LOCATION_FIELDS, title: (e) => e.name, context: (e) => e.city ?? undefined, entityType: "location", titleField: "name", quickCreate: true, detail: LocationRecord },
   protocol: { key: "protocol", label: "Protocol", crud: protocols, fields: PROTOCOL_FIELDS, title: (e) => e.name, parent: (e) => refOf(e, ["program_id", "program"]), entityType: "protocol", titleField: "name", quickCreate: true, detail: ProtocolRecord },
-  note: { key: "note", label: "Note", crud: notes, fields: NOTE_FIELDS, title: (e) => e.title || "(untitled)", entityType: "note", titleField: "title", detail: NoteRecord },
+  // The spine. Deliberately has no `parent`: involvement replaces rootedness, so
+  // the display parent is *derived* tightest-first from the links rather than
+  // read off a privileged column — which is what lets one moment concern the
+  // program and the medication both.
+  moment: { key: "moment", label: "Moment", crud: moments, fields: MOMENT_FIELDS, title: (e) => e.title || "(untitled)", entityType: "moment", titleField: "title", detail: MomentRecord },
   event: { key: "event", label: "Event", crud: events, fields: EVENT_FIELDS, title: (e) => e.title, entityType: "event", titleField: "title", detail: EventRecord, capture: EventCapture, relations: [
   ] },
   commitment: { key: "commitment", label: "Commitment", crud: commitments, fields: COMMITMENT_FIELDS, title: (e) => e.description, entityType: "commitment", titleField: "description", quickCreate: true, detail: CommitmentRecord, relations: [

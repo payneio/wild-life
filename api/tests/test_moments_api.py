@@ -277,3 +277,164 @@ class TestEditing:
         # A single-field PATCH is how every editor in this app saves; it must not
         # silently strip what it did not mention.
         assert len(updated["links"]) == 1
+
+
+class TestTheInboxPredicate:
+    """The inbox is a state, not a lack.
+
+    `capture` is the kind a surface writes when it genuinely could not know what
+    you were writing — quick capture is the only one that may. Defining the
+    surface by absence instead is what once counted a 29-year archive as a
+    backlog: writing turned inward has no subject to be filed under, so every
+    reflection looked unfiled.
+
+    The predicate lives in two places — `InboxPage.tsx` and
+    `unresolved_captures_count` in `routers/reviews.py` — and nothing but this
+    binds them.
+    """
+
+    def test_is_exactly_the_unresolved_kind(
+        self, client: TestClient, auth_headers: dict, require_db: None, cleanup: list
+    ) -> None:
+        captured = _make(client, auth_headers, cleanup, kind="capture")
+        reflected = _make(client, auth_headers, cleanup, kind="reflection")
+
+        r = client.get("/moments", params={"kind": "capture"}, headers=auth_headers)
+        assert r.status_code == 200
+        ids = {m["id"] for m in r.json()}
+        assert captured["id"] in ids
+        # The mistake this replaces: a reflection has no subject and is not an
+        # inbox item for that reason.
+        assert reflected["id"] not in ids
+
+    def test_dashboard_count_agrees_with_the_list(
+        self, client: TestClient, auth_headers: dict, require_db: None, cleanup: list
+    ) -> None:
+        """Two independent expressions of one definition; nothing else binds them."""
+        _make(client, auth_headers, cleanup, kind="capture")
+        listed = client.get(
+            "/moments",
+            params={"kind": "capture", "limit": "2000"},
+            headers=auth_headers,
+        )
+        assert listed.status_code == 200
+        dash = client.get("/review-dashboard", headers=auth_headers)
+        assert dash.status_code == 200
+        assert dash.json()["unresolved_captures_count"] == len(listed.json())
+
+    def test_resolving_one_files_it_and_names_the_act(
+        self, client: TestClient, auth_headers: dict, require_db: None, cleanup: list
+    ) -> None:
+        """Triage is one write: naming what it concerns settles both the subject
+        and the kind, which is the only place in the app a person decides one."""
+        area = client.get("/areas?limit=1", headers=auth_headers).json()[0]
+        captured = _make(client, auth_headers, cleanup, kind="capture")
+
+        r = client.patch(
+            f"/moments/{captured['id']}",
+            json={
+                "kind": "observation",
+                "links": [
+                    {"role": "subject", "entity_type": "area", "entity_id": area["id"]}
+                ],
+            },
+            headers=auth_headers,
+        )
+        assert r.status_code == 200, r.text
+        assert r.json()["kind"] == "observation"
+
+        still = client.get("/moments", params={"kind": "capture"}, headers=auth_headers)
+        assert captured["id"] not in {m["id"] for m in still.json()}
+
+
+class TestTheJournalIsAKind:
+    def test_it_is_reflection_and_carries_no_subject(
+        self, client: TestClient, auth_headers: dict, require_db: None, cleanup: list
+    ) -> None:
+        """Defined positively, and *not* as the self person's log.
+
+        The self is the frame, not a subject. Rooting the journal at Paul meant
+        253 links asserting he was present at his own life, which is exactly the
+        noise that made "every moment with Melissa" unanswerable.
+        """
+        # With the occurrence the composer always writes: prose is day-precision,
+        # and a moment with neither occurrence nor window sorts `nullslast`,
+        # which past 200 rows is off the end of the page.
+        reflected = _make(
+            client,
+            auth_headers,
+            cleanup,
+            kind="reflection",
+            started_at=datetime.now(UTC).isoformat(),
+            all_day=True,
+        )
+        assert reflected["links"] == []
+
+        r = client.get("/moments", params={"kind": "reflection"}, headers=auth_headers)
+        assert r.status_code == 200
+        assert reflected["id"] in {m["id"] for m in r.json()}
+
+    def test_the_rail_counts_what_the_stream_shows(
+        self, client: TestClient, auth_headers: dict, require_db: None, cleanup: list
+    ) -> None:
+        """A rail scoped differently from its stream offers a month that scrolls
+        nowhere."""
+        when = datetime.now(UTC)
+        _make(
+            client,
+            auth_headers,
+            cleanup,
+            kind="reflection",
+            started_at=when.isoformat(),
+            all_day=True,
+        )
+        r = client.get(
+            "/moments/calendar", params={"kind": "reflection"}, headers=auth_headers
+        )
+        assert r.status_code == 200
+        buckets = r.json()
+        assert all({"year", "month", "count"} <= set(b) for b in buckets)
+        assert any(b["year"] == when.year and b["month"] == when.month for b in buckets)
+
+
+class TestBacklinksAreARole:
+    def test_mention_excludes_what_the_log_already_shows(
+        self, client: TestClient, auth_headers: dict, require_db: None, cleanup: list
+    ) -> None:
+        """`subject` puts a moment on a thing's timeline; `mention` puts it in
+        that thing's backlinks.
+
+        The panel used to re-derive this by dropping rows whose root matched,
+        which on one area left 18 of 20 "mentioned in" entries duplicating the
+        list right above them. With roles it is two queries, so the two surfaces
+        cannot drift — `Backlinks.tsx` asks for this one.
+        """
+        area = client.get("/areas?limit=1", headers=auth_headers).json()[0]
+        about = _make(
+            client,
+            auth_headers,
+            cleanup,
+            links=[{"role": "subject", "entity_type": "area", "entity_id": area["id"]}],
+        )
+        touching = _make(
+            client,
+            auth_headers,
+            cleanup,
+            links=[{"role": "mention", "entity_type": "area", "entity_id": area["id"]}],
+        )
+
+        params = {"linked_type": "area", "linked_id": area["id"]}
+        involving = {
+            m["id"]
+            for m in client.get("/moments", params=params, headers=auth_headers).json()
+        }
+        assert {about["id"], touching["id"]} <= involving
+
+        mentions = {
+            m["id"]
+            for m in client.get(
+                "/moments", params={**params, "role": "mention"}, headers=auth_headers
+            ).json()
+        }
+        assert touching["id"] in mentions
+        assert about["id"] not in mentions

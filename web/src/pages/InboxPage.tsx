@@ -4,76 +4,78 @@ import { HomePicker } from "@/components/graph/HomePicker"
 import { Card } from "@/components/ui/primitives"
 import { Section } from "@/components/detail/kit"
 import { showActionToast } from "@/lib/toast"
-import type { Body, createCrud } from "@/services/api/crud"
-import { events, notes } from "@/services/api/hooks"
+import { formatDate } from "@/lib/utils"
+import { whenOf } from "@/lib/moments"
+import type { Body } from "@/services/api/crud"
+import { events, moments } from "@/services/api/hooks"
 import { useEntityResolver } from "@/services/api/mentions"
-import type { Entity, EntityType, EventItem, Note } from "@/services/api/types"
+import type { EntityType, EventItem, Moment, MomentLink } from "@/services/api/types"
 
 const norm = (t: string) => t.trim().toLowerCase()
 
 /**
- * Triage surface for items captured without saying what they are about.
+ * Triage for what was captured without saying what it is.
  *
- * That is now the whole definition, and it is finally true. It used to over-count
- * badly: a journal entry had no legitimate subject to be rooted to, so 254 years'
- * worth of reflective writing sat here looking like a backlog. Giving the self
- * Person a log fixed the premise rather than patching the query — every note has
- * a subject, so an unrooted one is exactly a note you never named one for.
+ * The inbox is a **state, not a lack**: a `capture` is a moment whose kind the
+ * creating surface could not resolve, because you typed something and never said
+ * what it was about. That is now the whole definition, and it is finally
+ * positive. Defining the surface by absence is what once put a 29-year archive
+ * in a triage queue — every reflection looked unfiled because reflections have
+ * no subject to be filed under, which is a fact about the writing, not a
+ * backlog.
  *
- * Assign a home (any entity) and it leaves immediately, with an Undo.
+ * Naming what a capture concerns resolves both at once: it gains a `subject`
+ * link and becomes an `observation`. That is the one place in the app a kind is
+ * decided by a person, and it is decided by the filing gesture rather than
+ * asked as a question.
  */
 
-/** Optimistic rooting: hide filed rows instantly (the list is server-filtered, so
+/** Optimistic triage: hide filed rows instantly (the list is server-filtered, so
  *  the cache-merge alone wouldn't remove them), confirm with a toast, offer Undo. */
-function useRooter<T extends Entity>(crud: ReturnType<typeof createCrud<T>>, noun: string) {
-  const update = crud.useUpdate()
+function useResolver() {
+  const update = moments.useUpdate()
   const resolve = useEntityResolver()
   const [hidden, setHidden] = useState<Set<string>>(new Set())
 
-  const rootMany = (ids: string[], type: EntityType, entityId: string) => {
-    if (ids.length === 0) return
-    for (const id of ids) update.mutate({ id, body: { entity_type: type, entity_id: entityId } as Body })
-    setHidden((s) => new Set([...s, ...ids]))
+  const fileMany = (rows: Moment[], type: EntityType, entityId: string) => {
+    if (rows.length === 0) return
+    for (const m of rows) {
+      // Links reconcile wholesale, so the mentions the writing already carries
+      // are sent back with the new subject or they would be deleted by the save.
+      const kept = m.links.filter((l) => l.role !== "subject")
+      const links: MomentLink[] = [
+        { role: "subject", entity_type: type, entity_id: entityId },
+        ...kept,
+      ]
+      update.mutate({ id: m.id, body: { kind: "observation", links } as Body })
+    }
+    setHidden((s) => new Set([...s, ...rows.map((m) => m.id)]))
     const label = resolve(type, entityId) ?? type
-    const what = ids.length > 1 ? `${ids.length} ${noun}s` : `${noun}`
+    const what = rows.length > 1 ? `${rows.length} captures` : "capture"
     showActionToast(`Filed ${what} in ${label}`, {
       label: "Undo",
       onClick: () => {
-        for (const id of ids) update.mutate({ id, body: { entity_type: null, entity_id: null } as Body })
+        for (const m of rows)
+          update.mutate({ id: m.id, body: { kind: "capture", links: m.links } as Body })
         setHidden((s) => {
           const n = new Set(s)
-          for (const id of ids) n.delete(id)
+          for (const m of rows) n.delete(m.id)
           return n
         })
       },
     })
   }
-  return { hidden, rootMany }
+  return { hidden, fileMany }
 }
 
-function TriageSection<T extends Entity>({
-  title,
-  items,
-  crud,
-  noun,
-  labelFor,
-  dateFor,
-  emptyMsg,
-}: {
-  title: string
-  items: T[]
-  crud: ReturnType<typeof createCrud<T>>
-  noun: string
-  labelFor: (i: T) => string
-  dateFor: (i: T) => string | null
-  emptyMsg: string
-}) {
-  const { hidden, rootMany } = useRooter(crud, noun)
+function CaptureTriage() {
+  const { hidden, fileMany } = useResolver()
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [limit, setLimit] = useState(100)
-  const visible = items.filter((i) => !hidden.has(i.id))
+  const rows = (moments.useList({ kind: "capture", limit: "500" }).data ?? []) as Moment[]
+  const visible = rows.filter((m) => !hidden.has(m.id))
   const shown = visible.slice(0, limit)
-  const allSelected = visible.length > 0 && visible.every((i) => selected.has(i.id))
+  const allSelected = visible.length > 0 && visible.every((m) => selected.has(m.id))
 
   const toggle = (id: string) =>
     setSelected((s) => {
@@ -86,12 +88,12 @@ function TriageSection<T extends Entity>({
   return (
     <Card className="p-4">
       <Section
-        title={`${title} · ${visible.length}`}
+        title={`Captures · ${visible.length}`}
         action={
           visible.length > 0 ? (
             <button
               type="button"
-              onClick={() => setSelected(allSelected ? new Set() : new Set(visible.map((i) => i.id)))}
+              onClick={() => setSelected(allSelected ? new Set() : new Set(visible.map((m) => m.id)))}
               className="rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
             >
               {allSelected ? "Clear" : "Select all"}
@@ -100,25 +102,30 @@ function TriageSection<T extends Entity>({
         }
       >
         {visible.length === 0 ? (
-          <p className="py-4 text-sm text-slate-400">{emptyMsg}</p>
+          <p className="py-4 text-sm text-slate-400">Nothing unresolved — inbox zero. ✨</p>
         ) : (
           <>
             <ul className="divide-y divide-slate-100">
-              {shown.map((it) => (
-                <li key={it.id} className="flex items-center gap-3 py-2">
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 shrink-0"
-                    checked={selected.has(it.id)}
-                    onChange={() => toggle(it.id)}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm text-slate-800">{labelFor(it) || "(empty)"}</div>
-                    {dateFor(it) && <div className="text-xs text-slate-400">{dateFor(it)}</div>}
-                  </div>
-                  <HomePicker onPick={(type, id) => rootMany([it.id], type, id)} />
-                </li>
-              ))}
+              {shown.map((m) => {
+                const when = whenOf(m)
+                return (
+                  <li key={m.id} className="flex items-center gap-3 py-2">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 shrink-0"
+                      checked={selected.has(m.id)}
+                      onChange={() => toggle(m.id)}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm text-slate-800">
+                        {m.title || m.body?.slice(0, 90) || "(empty)"}
+                      </div>
+                      {when && <div className="text-xs text-slate-400">{formatDate(when)}</div>}
+                    </div>
+                    <HomePicker onPick={(type, id) => fileMany([m], type, id)} />
+                  </li>
+                )
+              })}
             </ul>
             {visible.length > shown.length && (
               <button
@@ -135,7 +142,7 @@ function TriageSection<T extends Entity>({
                 <HomePicker
                   label="File all in…"
                   onPick={(type, id) => {
-                    rootMany([...selected].filter((id) => !hidden.has(id)), type, id)
+                    fileMany(visible.filter((m) => selected.has(m.id)), type, id)
                     setSelected(new Set())
                   }}
                 />
@@ -149,10 +156,6 @@ function TriageSection<T extends Entity>({
 }
 
 export function InboxPage() {
-  // Keep in lockstep with `unrooted_notes_count` in routers/reviews.py — two
-  // expressions of one definition, and nothing but a test binds them.
-  const noteRows = (notes.useList({ entity_type__isnull: "true" }).data ?? []) as Note[]
-
   return (
     <div className="mx-auto max-w-3xl space-y-5">
       <div>
@@ -160,20 +163,12 @@ export function InboxPage() {
           <InboxIcon size={20} className="text-slate-400" /> Inbox
         </h1>
         <p className="text-sm text-slate-500">
-          Captured without saying what it's about — file each in the area, project, or person
-          it concerns, so it shows up in the right place and in reviews.
+          Captured without saying what it's about — name the area, project, or person it
+          concerns, and it becomes an observation filed there.
         </p>
       </div>
 
-      <TriageSection<Note>
-        title="Notes"
-        items={noteRows}
-        crud={notes}
-        noun="note"
-        labelFor={(n) => n.title || n.body?.slice(0, 90) || ""}
-        dateFor={(n) => n.entry_date}
-        emptyMsg="Nothing unfiled — inbox zero. ✨"
-      />
+      <CaptureTriage />
 
       <EventTriage />
     </div>
@@ -181,16 +176,43 @@ export function InboxPage() {
 }
 
 // --- Events: grouped by title, file a whole group at once -------------------
+//
+// Still event-shaped, and deliberately. An occasion is mirrored from `events` by
+// `POST /moments/sync` every five minutes, links and all — so filing the *moment*
+// would be reverted by the next tick that read its source row. The calendar is
+// the surface that owns an event's filing until `calendar_records` has a read
+// path of its own, so triage writes there.
+//
 // Synced calendars repeat the same meeting as many rows ("Therapy w/ Jessica"
 // ×24). Grouping by title turns 1,000+ rows into a handful of decisions, and a
 // home you've already assigned to that title is suggested for the rest.
 function EventTriage() {
   const resolve = useEntityResolver()
-  const { hidden, rootMany } = useRooter(events, "event")
+  const update = events.useUpdate()
+  const [hidden, setHidden] = useState<Set<string>>(new Set())
   const [showSynced, setShowSynced] = useState(false)
   const [glimit, setGlimit] = useState(150)
   const unrootedData = events.useList({ entity_type__isnull: "true" }).data
   const rootedData = events.useList({ entity_type__isnull: "false" }).data
+
+  const rootMany = (ids: string[], type: EntityType, entityId: string) => {
+    if (ids.length === 0) return
+    for (const id of ids) update.mutate({ id, body: { entity_type: type, entity_id: entityId } as Body })
+    setHidden((s) => new Set([...s, ...ids]))
+    const label = resolve(type, entityId) ?? type
+    const what = ids.length > 1 ? `${ids.length} events` : "event"
+    showActionToast(`Filed ${what} in ${label}`, {
+      label: "Undo",
+      onClick: () => {
+        for (const id of ids) update.mutate({ id, body: { entity_type: null, entity_id: null } as Body })
+        setHidden((s) => {
+          const n = new Set(s)
+          for (const id of ids) n.delete(id)
+          return n
+        })
+      },
+    })
+  }
 
   // Learn a title → home map from what's already rooted.
   const learned = useMemo(() => {
@@ -229,7 +251,7 @@ function EventTriage() {
   return (
     <Card className="p-4">
       <Section
-        title={`Events · ${countLabel}`}
+        title={`Occasions with no subject · ${countLabel}`}
         action={
           <div className="flex items-center gap-1">
             {withSuggestion.length > 0 && (
@@ -255,7 +277,7 @@ function EventTriage() {
       >
         {groups.length === 0 ? (
           <p className="py-4 text-sm text-slate-400">
-            {syncedHidden > 0 ? "No un-synced events to triage." : "Nothing unfiled. ✨"}
+            {syncedHidden > 0 ? "No un-synced occasions to triage." : "Nothing unfiled. ✨"}
           </p>
         ) : (
           <ul className="divide-y divide-slate-100">

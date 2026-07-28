@@ -132,10 +132,6 @@ Three things the run corrected in this document:
 
 ## Where the migration stands
 
-Everything below the frontend is done and running. Nothing consumes the spine
-yet: every surface still reads and writes `notes` and `events`, so the app
-behaves exactly as it did.
-
 | piece | state |
 | --- | --- |
 | Schema (`moments`, links, payloads, `calendar_records`, `dependencies`, `moment_images`) | applied |
@@ -143,41 +139,89 @@ behaves exactly as it did.
 | Reverse — `wild-life-reverse-moments` | tested; names by kind what it cannot bring back |
 | `/moments` — CRUD, timeline-by-any-end, `unfulfilled`, rail, images | live |
 | `POST /moments/sync` + wildpc job | every 5 minutes, 2-hour window |
+| **Prose surfaces** — Journal, Inbox, every record's Log, both composers | **on moments** |
+| **Calendar** — layers, drag, recurrence scope, RSVP | **still on `events`** (see below) |
 
-**The sync job is why doses stay current.** Doses, readings and completions are
-still authored through their own surfaces into `routine_instances`,
-`metric_entries` and `tasks`; the tick mirrors them. It goes away when those
-surfaces move.
+**The sync job is why the mirrored kinds stay current.** Doses, readings,
+completions and occasions are still authored through their own surfaces into
+`routine_instances`, `metric_entries`, `tasks` and `events`; the tick mirrors
+them, so a record's Log shows them within five minutes of the act. It goes away
+one kind at a time as those surfaces move.
 
-## What the frontend cut-over involves
+### Why the calendar did not move with the rest
 
-All of it lands together: a reflection written on a program page has to appear in
-the Journal, so the surfaces that share the data move in one commit.
+`CalendarRecord` is a model with no schema and no router: nothing serves
+recurrence, `external_ref`, `organizer`, `sequence` or the RSVP pair. The
+calendar reads all five — RRULE expansion, the this/following/all scope dialog,
+invite sending — so pointing it at `/moments` would mean losing them, not
+porting them. It keeps writing `events`, and the tick mirrors each one into an
+`occasion` so the timelines stay whole.
 
-- `components/Log.tsx` (486 lines) — the band, used by `record/Record.tsx` *and*
-  `pages/JournalRoute.tsx`. Reads `/moments?linked_type&linked_id`; the journal
-  is `kind=reflection` rather than "rooted at the self person".
-- `detail/planning.tsx` — `ProgramTimeline` folds into that one band.
-- `pages/InboxPage.tsx` (304 lines) — the inbox becomes `kind=capture`. Its
-  predicate also lives in `unrooted_notes_count` (`routers/reviews.py`), bound
-  only by `tests/test_notes.py`; the three move together or not at all.
-- `notes/FloatingNoteWindow.tsx`, `pages/TodayPage.tsx`, `components/NoteComposer.tsx`
-  — every other place that creates a note.
-- `entities/event/Capture.tsx` and the Log composer become one capture.
-- `services/calendar/sources.ts` + `pages/CalendarPage.tsx` — layers read moments
-  by kind; drag, resize and the recurrence-scope dialog are event-shaped today.
-- `services/api/registry.ts` + `hooks.ts` — gain the moment, lose the note/event
-  pair. `entities/coverage.test.tsx` will demand a fixture and a detail layout.
+**What that costs, concretely:** an occasion's filing is owned by the event row,
+so the Inbox triages occasions through `/events` and a subject set on the *moment*
+would be reverted by the next tick that re-read its source. Same for editing an
+occasion's title or body — which is why the Log renders non-prose kinds read-only
+and links through to the surface that owns them.
 
-Four things already learned the hard way, worth not rediscovering:
+Moving it needs, in order: `CalendarRecordRead`/`Update` schemas, a read path
+that returns the record alongside its moment, and the scoped-edit routes in
+`routers/calendar.py` re-expressed against `(moment, calendar_record)` pairs.
+
+### The one column the mapping never decided: `notes.mood`
+
+235 of 848 notes carry a `mood`, and it appears in neither table above — not as
+something that becomes a moment, and not as something that becomes anything
+else. It was not dropped on purpose; it was missed.
+
+The data is safe (nothing writes `notes` any more, and nothing has dropped it),
+but after the cut-over it is invisible and unwritable, because `moments` has no
+column for it and the composer offers no control. **Phase 5 must not drop
+`notes` until this is settled.** The question is whether mood is a field on a
+moment at all: it is meaningless on a `dose` or a `completion`, which is an
+argument that it belongs to `reflection` specifically, and a facet that only one
+kind carries is the shape `note_type` had.
+
+## What the frontend cut-over did
+
+All of it landed together, because a record's Log and the Journal are the same
+component over the same store: the surfaces that share data had to move in one
+commit or writing in one place would have gone missing from the other.
+
+| surface | before | after |
+| --- | --- | --- |
+| `components/Log.tsx` | notes rooted at one entity | `/moments?linked_type&linked_id` — every kind involving the thing, prose editable and mirrors read-only |
+| `pages/JournalRoute.tsx` | the self Person's log | `kind=reflection`, no subject, no identity needed |
+| `pages/InboxPage.tsx` | `entity_type IS NULL` | `kind=capture`; filing writes the subject *and* resolves the kind in one PATCH |
+| `components/MomentComposer.tsx` | `NoteComposer` | takes `kind` as a prop; About writes a `subject` link, mentions write `mention` |
+| `detail/planning.tsx` | `ProgramTimeline` | deleted — it is the Log band now |
+| `components/Backlinks.tsx` | every linked note, minus the root, client-side | `role=mention`, server-side |
+| `services/calendar/sources.ts` | notes by `entry_date` | reflections by `started_at` |
+| `services/api/registry.ts` | `note` | `moment`, with `entities/moment/Detail.tsx` and a fixture |
+
+`event` stays in the registry, and `entities/event/Capture.tsx` with it, for the
+reason in *Why the calendar did not move* above.
+
+Things learned the hard way, worth not rediscovering:
 
 - **The self-link rule belongs in the reconciler**, and it is already there
   (`routers/moments.py`). The composer may legitimately send a mention of the
   writer; it is dropped on the way in, not rejected.
-- **`kind` is written by the surface, never asked.** Quick capture is the only
-  one that may write `capture`, and that is what makes the inbox a state rather
-  than a lack.
-- **Images changed reference form**: bodies now say `![alt](moment-image:<id>)`
-  and are served from `/moment-images/<id>`.
+- **`kind` is written by the surface, never asked.** Quick capture (⌘⇧N with no
+  owner) is the only surface that writes `capture`; the same window opened *from*
+  a record writes `observation`. That is what makes the inbox a state rather than
+  a lack. `web/src/components/Log.test.tsx` pins it.
+- **`PATCH /moments` reconciles links wholesale.** Any writer that sends `links`
+  must send back the ones it does not own, or it deletes them. The composer
+  carries `participant` and `place` through untouched; the Inbox carries mentions
+  through when it files a capture.
+- **Images changed reference form**: bodies say `![alt](moment-image:<id>)` and
+  are served from `/moment-images/<id>`.
+- **A moment with no occurrence and no window sorts `nullslast`**, so past 200
+  rows it is off the end of the page. Every composer writes `started_at`
+  (all-day, noon-anchored) for exactly this reason.
 - **Run the backfill immediately before the cut**, so anything written that day
   has a moment. After the cut, `wild-life-reverse-moments` is the way back.
+- The scripts need `WILD_LIFE_DATABASE_URL`, `WILD_LIFE_SELF_PERSON_ID` (now
+  guarded — it refuses rather than misfiling 253 reflections) and
+  `WILD_LIFE_DATA_DIR=/data/castle/wild-life-api`. The data dir is *not* guarded:
+  without it the image pass wrote 13 rows with no bytes behind them.

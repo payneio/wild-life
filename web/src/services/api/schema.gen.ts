@@ -1214,9 +1214,13 @@ export interface paths {
          *
          *     ``linked_type``/``linked_id`` is the timeline of a thing; add ``role`` to ask
          *     a narrower question ("moments *with* Melissa" rather than "moments involving
-         *     her at all"). ``unfulfilled`` is the derived lapse — a window that has passed
-         *     with nothing having happened in it and no decision to drop it — which is a
-         *     query rather than a stored state precisely so it can never go stale.
+         *     her at all"). It is repeatable, because the useful questions are about sets
+         *     of roles rather than one: a record's Log asks for ``TIMELINE_ROLES`` and its
+         *     backlinks panel asks for ``mention``, which is the same distinction the role
+         *     vocabulary was defined to make. ``unfulfilled`` is the derived lapse — a
+         *     window that has passed with nothing having happened in it and no decision to
+         *     drop it — which is a query rather than a stored state precisely so it can
+         *     never go stale.
          */
         get: operations["moments_list"];
         put?: never;
@@ -1239,8 +1243,10 @@ export interface paths {
          * Moments Calendar
          * @description Per-(year, month) counts for a stream's navigation rail.
          *
-         *     Scoped exactly the way the list is, so the rail counts the rows the stream
-         *     shows. A rail that disagrees with its stream is worse than no rail.
+         *     Scoped exactly the way the list is — ``role`` included, which is why it is
+         *     here at all — so the rail counts the rows the stream shows. A rail that
+         *     disagrees with its stream is worse than no rail: it offers a month that
+         *     scrolls nowhere.
          */
         get: operations["moments_calendar"];
         put?: never;
@@ -5671,12 +5677,12 @@ export interface components {
             stale_projects: components["schemas"]["DashRow"][];
             /** Unclear Ownership */
             unclear_ownership: components["schemas"]["DashRow"][];
+            /** Unresolved Captures Count */
+            unresolved_captures_count: number;
             /** Unreviewed Deliverables */
             unreviewed_deliverables: components["schemas"]["DashRow"][];
             /** Unrooted Events Count */
             unrooted_events_count: number;
-            /** Unrooted Notes Count */
-            unrooted_notes_count: number;
             /** Waiting Without Blocker */
             waiting_without_blocker: components["schemas"]["DashRow"][];
         };
@@ -9493,7 +9499,7 @@ export interface operations {
                 kind?: ("capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "work" | "completion" | "withdrawal" | "decision") | null;
                 linked_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
                 linked_id?: string | null;
-                role?: ("participant" | "place" | "subject" | "mention") | null;
+                role?: ("participant" | "place" | "subject" | "mention")[] | null;
                 since?: Instant | null;
                 until?: Instant | null;
                 unfulfilled?: boolean | null;
@@ -9563,6 +9569,7 @@ export interface operations {
                 kind?: ("capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "work" | "completion" | "withdrawal" | "decision") | null;
                 linked_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
                 linked_id?: string | null;
+                role?: ("participant" | "place" | "subject" | "mention")[] | null;
             };
             header?: never;
             path?: never;

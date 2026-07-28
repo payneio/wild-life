@@ -6,7 +6,7 @@ import { MentionChip } from "@/components/MentionChip"
 import type { EntityType } from "@/services/api/types"
 
 const MENTION_HREF = /^(\w+):([0-9a-fA-F-]{36})$/
-const NOTE_IMAGE = /^note-image:([0-9a-fA-F-]{36})$/
+const MOMENT_IMAGE = /^moment-image:([0-9a-fA-F-]{36})$/
 const IMG_CLS = "my-2 max-h-96 max-w-full rounded-lg border border-slate-200"
 
 const SAFE_SCHEME = /^(https?|mailto|tel):/i
@@ -15,7 +15,7 @@ const SAFE_SCHEME = /^(https?|mailto|tel):/i
  * Which hrefs survive to the DOM.
  *
  * react-markdown's default transform drops any scheme it doesn't know, which
- * would take our `person:<uuid>` mentions and `note-image:<uuid>` with it — so
+ * would take our `person:<uuid>` mentions and `moment-image:<uuid>` with it — so
  * this used to be a passthrough. A passthrough is fine for text you wrote, and
  * not fine here: event descriptions are authored by whoever emailed you the
  * invite, and `[Join](javascript:…)` would render as a clickable link. So
@@ -23,8 +23,8 @@ const SAFE_SCHEME = /^(https?|mailto|tel):/i
  * and anything relative. Everything else renders as inert text.
  */
 function safeUrl(url: string): string {
-  if (MENTION_HREF.test(url) || NOTE_IMAGE.test(url)) return url
-  if (url.startsWith("note-image:pending")) return url
+  if (MENTION_HREF.test(url) || MOMENT_IMAGE.test(url)) return url
+  if (url.startsWith("moment-image:pending")) return url
   if (SAFE_SCHEME.test(url)) return url
   return /^[a-z][a-z0-9+.-]*:/i.test(url) ? "" : url // bare scheme → drop; relative → keep
 }
@@ -80,9 +80,9 @@ const COMPONENTS: Components = {
   ),
   img: ({ src, alt }) => {
     const s = typeof src === "string" ? src : ""
-    const m = s.match(NOTE_IMAGE)
+    const m = s.match(MOMENT_IMAGE)
     if (m) return <AuthImage imageId={m[1]} alt={typeof alt === "string" ? alt : undefined} />
-    if (s.startsWith("note-image:pending"))
+    if (s.startsWith("moment-image:pending"))
       return <span className="my-2 inline-block rounded bg-slate-100 px-2 py-1 text-xs text-slate-400">🖼 image (uploads on save)</span>
     return <img src={s} alt={alt ?? ""} className={IMG_CLS} />
   },

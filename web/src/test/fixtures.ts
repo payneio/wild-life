@@ -13,7 +13,7 @@ import type {
   Medication,
   Metric,
   MetricGroup,
-  Note,
+  Moment,
   Organization,
   Program,
   Project,
@@ -359,15 +359,22 @@ export const DELEGATION: Delegation = {
   entity_id: null,
 }
 
-export const NOTE: Note = {
+export const MOMENT: Moment = {
   ...BASE,
+  kind: "observation",
   title: "Contractor call",
   body: "Walked through the cabinet options.",
-  entry_date: "2026-07-21" as CalendarDay,
-  mood: null,
+  started_at: "2026-07-21T12:00:00Z" as Instant,
+  ended_at: null,
+  all_day: true,
+  window_start: null,
+  window_end: null,
+  expected_minutes: null,
+  source: "authored",
+  withdrawn_at: null,
+  withdrawal_reason: null,
+  source_ref: null,
   links: [],
-  entity_type: null,
-  entity_id: null,
 }
 
 export const EVENT: EventItem = {
@@ -460,7 +467,7 @@ export const FIXTURES: Record<string, Entity> = {
   outcome: OUTCOME,
   routine: ROUTINE,
   delegation: DELEGATION,
-  note: NOTE,
+  moment: MOMENT,
   event: EVENT,
   medication: MEDICATION,
   allergy: ALLERGY,

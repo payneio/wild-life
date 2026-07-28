@@ -47,8 +47,10 @@ export type GroupMember = S["GroupMemberRead"]
 export type GroupReading = S["GroupReadingRead"]
 export type MetricEntry = S["MetricEntryRead"]
 export type EventItem = S["EventRead"]
-export type Note = S["NoteRead"]
-export type NoteImage = S["NoteImageRead"]
+export type Moment = S["MomentRead"]
+export type MomentImage = S["MomentImageRead"]
+/** One thing a moment involves, and the manner of the involvement. */
+export type MomentLink = S["MomentLinkRef"]
 export type Commitment = S["CommitmentRead"]
 export type Request = S["RequestRead"]
 export type Delegation = S["DelegationRead"]
@@ -65,8 +67,6 @@ export type ContactMethod = S["ContactMethod"]
 export type ImportantDate = S["ImportantDate"]
 export type GuestStatus = S["GuestStatus"]
 export type RegimenEntry = S["RegimenEntry"]
-/** A note's outbound mention (soft-polymorphic target). */
-export type NoteLink = S["EntityRef"]
 
 /** Who the current token acts as — see `useSelfPersonId`. */
 export type Identity = S["IdentityRead"]
@@ -98,7 +98,17 @@ export type RequestStatus = Request["status"]
 export type DelegationStatus = Delegation["status"]
 export type OrgStatus = Organization["status"]
 export type ReviewType = Review["review_type"]
-export type EntityType = NonNullable<Note["entity_type"]>
+// Read off a moment link, which is now the canonical soft-polymorphic reference
+// in the model: every involvement flows through one, so the union cannot name a
+// type the spine can't point at.
+export type EntityType = MomentLink["entity_type"]
+
+// --- moments ----------------------------------------------------------------
+/** The act a moment *is* — never its subject, its target type, or its tense. */
+export type MomentKind = Moment["kind"]
+/** How a moment involves a thing: participant · place · subject · mention. */
+export type MomentRole = MomentLink["role"]
+export type MomentSource = Moment["source"]
 
 // --- health enums -----------------------------------------------------------
 export type MedType = Medication["med_type"]

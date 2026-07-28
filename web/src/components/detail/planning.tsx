@@ -1,10 +1,7 @@
-import { useRef, useState } from "react"
-import { Check, Plus } from "lucide-react"
+import { useState } from "react"
+import { Check } from "lucide-react"
 import { Button, Input } from "@/components/ui/primitives"
-import { EntityPicker } from "@/components/graph/EntityPicker"
-import { EventCapture } from "@/entities/event/Capture"
 import {
-  events,
   projects,
   tasks,
   useCompleteRoutine,
@@ -27,11 +24,10 @@ import {
   Sparkline,
   StatTile,
   Timeline,
-  type TimelineItem,
 } from "@/components/detail/kit"
 import { TaskBoard } from "@/components/detail/TaskBoard"
 import { daysFromToday } from "@/components/detail/dates"
-import { formatBand, formatInstant, humanize, localDay, todayISO, ymd } from "@/lib/format"
+import { formatBand, formatInstant, localDay, todayISO, ymd } from "@/lib/format"
 
 // Task's detail surface moved to `entities/task/Detail.tsx` — it composes the
 // `Record` primitives directly instead of inserting a fragment below the generic
@@ -136,86 +132,6 @@ export function ProgramDetail({ entity }: { entity: Entity }) {
       {/* The navigable, addable Projects list is rendered by the generic
           RelatedPanel from `program.relations`. */}
     </div>
-  )
-}
-
-/**
- * A program's dated history: the events filed under it, plus its own start and
- * end. Events are *temporal* (ui-architecture §5), so they earn this rendering
- * instead of the generic list — and having earned it, they must not also keep
- * the generic one. They did: the same 21 events rendered twice on the IMO page,
- * once here and once in an `Events · 21` panel five panels further down, which
- * is also where the only way to record one had been sitting unfound.
- *
- * So this is a **band**, not a declared relation, for the reason the Log is one:
- * a panel that can be absent can be forgotten, and "where do I record what
- * happened?" has to be answerable by navigation alone. It renders on every
- * program, empty or not, which is what lets the first event be recorded at all.
- * Filing an event elsewhere, or removing it from here, is done on the event —
- * its `About` field is the same two columns this writes.
- */
-export function ProgramTimeline({ entity }: { entity: Entity }) {
-  const prog = entity as Program
-  const evts = events.useList({ entity_type: "program", entity_id: prog.id }).data ?? []
-  const update = events.useUpdate()
-  const [linking, setLinking] = useState(false)
-  const linkRef = useRef<HTMLButtonElement>(null)
-
-  const items: TimelineItem[] = []
-  for (const e of evts)
-    items.push({
-      key: `e${e.id}`,
-      date: e.start_at ? e.start_at.slice(0, 10) : null,
-      title: e.title,
-      meta: e.event_type ? humanize(e.event_type) : "",
-      to: `/calendar/${e.id}`,
-      tone: "accent",
-    })
-  if (prog.start_date) items.push({ key: "start", date: prog.start_date, title: "Started" })
-  if (prog.ended_date)
-    items.push({ key: "ended", date: prog.ended_date, title: "Ended", tone: "good" })
-  items.sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""))
-
-  return (
-    <Section
-      title="Timeline"
-      action={
-        // Recording something new is the common case and gets the field; an
-        // event that already exists (scheduled on the calendar, then filed here)
-        // is the rarer one and gets the picker the generic panel used to offer.
-        <button
-          ref={linkRef}
-          type="button"
-          onClick={() => setLinking(true)}
-          className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
-        >
-          <Plus size={13} /> Link
-        </button>
-      }
-    >
-      <EventCapture root={{ type: "program", id: prog.id }} />
-      {items.length === 0 ? (
-        <p className="text-sm text-slate-400">Nothing recorded yet.</p>
-      ) : (
-        <Timeline items={items} />
-      )}
-      {linking && (
-        <EntityPicker
-          getAnchor={() => linkRef.current}
-          type="event"
-          intent="assign"
-          placeholder="Link an event…"
-          onClose={() => setLinking(false)}
-          onSelect={(sel) => {
-            update.mutate({
-              id: sel.id,
-              body: { entity_type: "program", entity_id: prog.id },
-            })
-            setLinking(false)
-          }}
-        />
-      )}
-    </Section>
   )
 }
 

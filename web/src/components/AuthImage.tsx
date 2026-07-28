@@ -4,7 +4,7 @@ import { apiClient } from "@/services/api/client"
 const IMG_CLS = "my-2 max-h-96 max-w-full rounded-lg border border-slate-200"
 
 /**
- * Render a bearer-protected note image. `<img src>` can't send the auth header,
+ * Render a bearer-protected moment image. `<img src>` can't send the auth header,
  * so we fetch the bytes as a Blob and show an object URL. Retries a few times on
  * 404 to ride out the brief post-upload commit-visibility window.
  */
@@ -19,7 +19,7 @@ export function AuthImage({ imageId, alt }: { imageId: string; alt?: string }) {
     async function load() {
       for (let attempt = 0; attempt < 4; attempt++) {
         try {
-          const blob = await apiClient.getBlob(`/note-images/${imageId}`)
+          const blob = await apiClient.getBlob(`/moment-images/${imageId}`)
           if (cancelled) return
           objectUrl = URL.createObjectURL(blob)
           setUrl(objectUrl)

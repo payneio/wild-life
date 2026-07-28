@@ -13,7 +13,7 @@ from wild_life.identity import Identity, current_identity
 from wild_life.models.calendar import Event
 from wild_life.models.core import Area, Program, Project
 from wild_life.models.outcomes import Outcome
-from wild_life.models.notes import Note
+from wild_life.models.moments import Moment
 from wild_life.models.health import Medication
 from wild_life.models.protocols import Protocol
 from wild_life.models.metrics import Metric, MetricEntry
@@ -449,13 +449,18 @@ async def review_dashboard(
                 }
             )
 
-    # Inbox: captured without saying what it is about. Every note has a subject
-    # now — a journal entry's is the self Person — so an unrooted note is one you
-    # wrote without naming one, and nothing else. Events exclude externally-synced
+    # Inbox: captured without saying what it is. A `capture` is a moment whose
+    # kind the creating surface could not resolve, which is the whole definition
+    # — positive, rather than "a note with no root". Defining it by absence is
+    # what once counted 253 reflections as a backlog, because writing turned
+    # inward has no subject to be filed under. Events exclude externally-synced
     # meetings (external_ref), which are noise here.
-    unrooted_notes_count = (
+    #
+    # Keep in lockstep with `InboxPage.tsx`: two expressions of one definition,
+    # bound only by `tests/test_moments.py`.
+    unresolved_captures_count = (
         await session.execute(
-            select(func.count()).select_from(Note).where(Note.entity_type.is_(None))
+            select(func.count()).select_from(Moment).where(Moment.kind == "capture")
         )
     ).scalar_one()
     unrooted_events_count = (
@@ -468,7 +473,7 @@ async def review_dashboard(
 
     return {
         "generated_for": today.isoformat(),
-        "unrooted_notes_count": unrooted_notes_count,
+        "unresolved_captures_count": unresolved_captures_count,
         "unrooted_events_count": unrooted_events_count,
         "conditions_without_protocol": conditions_without_protocol,
         "metrics_overdue": metrics_overdue,

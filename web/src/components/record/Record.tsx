@@ -109,7 +109,7 @@ export function Record({
             {taskDone ? "Reopen" : "Complete"}
           </Button>
         )}
-        {def.entityType && def.entityType !== "note" && (
+        {def.entityType && def.entityType !== "moment" && (
           <Button
             variant="ghost"
             size="sm"
@@ -171,11 +171,17 @@ export function Record({
       {/* The log is a band, not a relation. Being declarable meant being
           forgettable: nine objects had no Notes panel and grew a `notes` column
           instead, which is how dated events ended up in a field. Every object
-          that can be a note's subject has one, in the same place, always.
-          `note` is excluded because a note about a note is a mention. */}
-      {def.entityType && def.entityType !== "note" && (
+          that can be a moment's subject has one, in the same place, always.
+          `moment` is excluded because a moment about a moment is a mention.
+
+          It is now the object's whole dated history, not just its writing —
+          which is what let `ProgramTimeline` go. A program showed events here
+          and the Log there with nothing to say which you should add to; that
+          unexplainable choice was the modelling defect this inversion fixes,
+          surfacing as a UX one. */}
+      {def.entityType && def.entityType !== "moment" && (
         <Section title="Log">
-          <Log rootType={def.entityType} rootId={entity.id} base="/notes" />
+          <Log subject={{ type: def.entityType, id: entity.id }} base="/moments" />
         </Section>
       )}
 

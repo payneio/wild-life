@@ -244,10 +244,10 @@ function NavItem({ item, onNavigate }: { item: Item; onNavigate?: () => void }) 
   )
 }
 
-/** Pending-triage count on the Inbox nav item (notes + non-synced events). */
+/** Pending-triage count on the Inbox nav item (captures + non-synced events). */
 function InboxBadge() {
   const { data } = useReviewDashboard()
-  const n = (data?.unrooted_notes_count ?? 0) + (data?.unrooted_events_count ?? 0)
+  const n = (data?.unresolved_captures_count ?? 0) + (data?.unrooted_events_count ?? 0)
   if (!n) return null
   return (
     <span className="ml-auto rounded-full bg-indigo-100 px-1.5 py-0.5 text-[11px] font-semibold text-indigo-700">

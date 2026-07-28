@@ -7,12 +7,14 @@ import {
   commitments,
   delegations,
   outcomes,
-  notes,
+  moments,
   people,
   projects,
   requests,
   tasks,
 } from "@/services/api/hooks"
+import { localInputToInstant } from "@/lib/date"
+import { whenOf } from "@/lib/moments"
 
 export interface SourceMeta {
   key: string
@@ -26,7 +28,7 @@ export const SOURCES: SourceMeta[] = [
   { key: "commitment", label: "Commitments", color: "#f59e0b" },
   { key: "request", label: "Requests", color: "#eab308" },
   { key: "delegation", label: "Delegations", color: "#8b5cf6" },
-  { key: "note", label: "Journal", color: "#64748b" },
+  { key: "reflection", label: "Journal", color: "#64748b" },
   { key: "birthday", label: "Birthdays", color: "#ec4899" },
   { key: "project", label: "Projects", color: "#0ea5e9" },
 ]
@@ -75,7 +77,13 @@ export function useCalendarSources(range: Range, enabled: Set<string>) {
     between("expected_completion_date"),
     on("delegation"),
   )
-  const noteQ = notes.useList(between("entry_date"), on("note"))
+  // The Journal layer is `reflection` and nothing else. Observations live on the
+  // record they are about, and drawing all prose here would put 593 of them on a
+  // calendar that is meant to answer "what is my week".
+  const reflectionQ = moments.useList(
+    from ? { kind: "reflection", since: from, until: to, limit: "500" } : undefined,
+    on("reflection"),
+  )
   const projectQ = projects.useList(between("start_date"), on("project"))
   const peopleQ = people.useList(undefined, on("birthday")) // filtered client-side
 
@@ -84,7 +92,7 @@ export function useCalendarSources(range: Range, enabled: Set<string>) {
   const commitUpd = commitments.useUpdate()
   const reqUpd = requests.useUpdate()
   const delegUpd = delegations.useUpdate()
-  const noteUpd = notes.useUpdate()
+  const momentUpd = moments.useUpdate()
 
   const items: CalendarItem[] = []
   const push = (
@@ -145,8 +153,9 @@ export function useCalendarSources(range: Range, enabled: Set<string>) {
     for (const w of reqQ.data ?? []) push("request", w.id, `⏳ ${w.subject}`, w.follow_up_date, "follow_up_date")
   if (enabled.has("delegation"))
     for (const d of delegQ.data ?? []) push("delegation", d.id, `→ ${d.requested_outcome}`, d.expected_completion_date, "expected_completion_date")
-  if (enabled.has("note"))
-    for (const n of noteQ.data ?? []) push("note", n.id, n.title ?? "Note", n.entry_date, "entry_date")
+  if (enabled.has("reflection"))
+    for (const m of reflectionQ.data ?? [])
+      push("reflection", m.id, m.title || m.body?.slice(0, 60) || "Reflection", whenOf(m), "started_at")
   if (enabled.has("project"))
     for (const p of projectQ.data ?? []) push("project", p.id, p.name, p.start_date, "start_date", false, p.target_date ?? undefined)
   if (enabled.has("birthday") && from) {
@@ -168,7 +177,7 @@ export function useCalendarSources(range: Range, enabled: Set<string>) {
     commitment: commitUpd,
     request: reqUpd,
     delegation: delegUpd,
-    note: noteUpd,
+    reflection: momentUpd,
     project: null,
     birthday: null,
   }
@@ -179,6 +188,11 @@ export function useCalendarSources(range: Range, enabled: Set<string>) {
     const body: Record<string, unknown> = { [item.field]: newDate }
     // Tasks carry an optional time-of-day; a timed drag sets it, an all-day drag clears it.
     if (item.sourceKey === "task") body.scheduled_time = newTime ?? null
+    // A moment is placed by an instant, not a day. Noon, for the reason the
+    // backfill anchors there: midnight slides across the date line when rendered
+    // back in a local zone, and a reflection is day-precision anyway.
+    if (item.sourceKey === "reflection")
+      body.started_at = localInputToInstant(`${newDate}T${newTime ?? "12:00"}`)
     upd.mutate({ id: item.rowId, body })
   }
 
@@ -191,7 +205,7 @@ const URL_FOR: Record<string, (id: string) => string> = {
   commitment: (id) => `/commitments/${id}`,
   request: (id) => `/requests/${id}`,
   delegation: (id) => `/delegations/${id}`,
-  note: (id) => `/notes/${id}`,
+  reflection: (id) => `/notes/${id}`,
   project: (id) => `/projects/${id}`,
   birthday: (id) => `/people/${id.split("-").slice(0, 5).join("-")}`,
 }

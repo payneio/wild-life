@@ -22,6 +22,7 @@ import type {
   OutcomeStatus,
   MeasurementFrequency,
   MedType,
+  MomentKind,
   OrgStatus,
   PlanStatus,
   PlanType,
@@ -36,6 +37,25 @@ import type {
 } from "@/services/api/types"
 
 export const PRIORITIES = ["low", "medium", "high", "urgent"] as const satisfies readonly Priority[]
+
+// The closed set of acts. Here for the list *filter* only — nothing offers this
+// as a control, because kind is written by the creating surface and never asked
+// (see `KIND_LABEL` in lib/moments.ts for how each reads out loud).
+export const MOMENT_KIND = [
+  "capture",
+  "reflection",
+  "observation",
+  "occasion",
+  "exchange",
+  "visit",
+  "measurement",
+  "dose",
+  "activity",
+  "work",
+  "completion",
+  "withdrawal",
+  "decision",
+] as const satisfies readonly MomentKind[]
 
 
 export const AREA_STATUS = [

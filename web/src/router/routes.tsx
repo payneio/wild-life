@@ -92,11 +92,14 @@ export const router = createBrowserRouter([
       { path: "insurance/:id", element: <RecordPage entityKey="insurancePlan" backTo="/insurance" backLabel="Insurance" /> },
       { path: "allergies", element: <AllergiesPage /> },
       { path: "allergies/:id", element: <RecordPage entityKey="allergy" backTo="/allergies" backLabel="Allergies" /> },
-      // The Journal is a log like any other — the self Person's. It self-renders
-      // its detail from the :id param like People, and `/notes/:id` stays the
-      // permalink space for *any* note whatever its subject, since mention chips
-      // and Backlinks route here.
+      // The Journal is a log like any other, scoped to `reflection`. It
+      // self-renders its focused entry from the :id param like People, so
+      // `/notes/:id` stays a live permalink for anything already written down
+      // (bookmarks, push notifications, older mention chips).
       { path: "notes", element: <JournalRoute />, children: [{ path: ":id", element: <></> }] },
+      // A moment is addressable wherever it appears — Backlinks, mention chips
+      // and a record's Log all route here, whatever act the moment is.
+      { path: "moments/:id", element: <RecordPage entityKey="moment" backTo="/notes" backLabel="Journal" /> },
       // The whiteboard is one buffer, not a collection — no list, no detail, no id.
       { path: "whiteboard", element: <WhiteboardPage /> },
       {

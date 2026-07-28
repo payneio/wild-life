@@ -1,14 +1,15 @@
 import { useRef } from "react"
 import { createPortal } from "react-dom"
 import { ChevronDown, ChevronUp, GripHorizontal, NotebookPen, X } from "lucide-react"
-import { NoteComposer } from "@/components/NoteComposer"
+import { MomentComposer } from "@/components/MomentComposer"
 import { EntityRef } from "@/components/graph/EntityRef"
 import { cn } from "@/lib/utils"
 import { usePersistentState } from "@/lib/persistentState"
 import { useFloatingNote } from "@/notes/floatingNoteContext"
 import type { Body } from "@/services/api/crud"
-import { notes, useCreateNoteWithImages } from "@/services/api/hooks"
+import { moments, useCreateMomentWithImages } from "@/services/api/hooks"
 import { useEntityResolver } from "@/services/api/mentions"
+import { subjectOf } from "@/lib/moments"
 import type { EntityType } from "@/services/api/types"
 
 const isDesktop = () =>
@@ -23,9 +24,9 @@ const isDesktop = () =>
  */
 export function FloatingNoteWindow() {
   const { target, noteId, minimized, setActiveNoteId, close, setMinimized } = useFloatingNote()
-  const submitCreate = useCreateNoteWithImages()
-  const update = notes.useUpdate()
-  const existing = notes.useGet(noteId ?? undefined)
+  const submitCreate = useCreateMomentWithImages()
+  const update = moments.useUpdate()
+  const existing = moments.useGet(noteId ?? undefined)
   const resolve = useEntityResolver()
 
   // Desktop drag: track the pointer offset within the header and move the window.
@@ -62,22 +63,23 @@ export function FloatingNoteWindow() {
 
   if (!target) return null
 
-  // The note's base entity — from the saved note, or the pending owner while
-  // still composing — shown as a link so you can jump back to it.
-  const rootType =
-    (existing.data?.entity_type as EntityType | null | undefined) ?? target.owner?.type ?? null
-  const rootId = existing.data?.entity_id ?? target.owner?.id ?? null
-  // The root says what kind of note this is, so the heading reads it rather than
-  // a genre column: writing from an event is writing meeting notes.
+  // What the writing is about — from the saved moment's subject link, or the
+  // pending owner while still composing — shown as a link so you can jump back.
+  const saved = existing.data ? subjectOf(existing.data) : undefined
+  const rootType: EntityType | null = saved?.entity_type ?? target.owner?.type ?? null
+  const rootId = saved?.entity_id ?? target.owner?.id ?? null
+  // The subject says what this writing is, so the heading reads it rather than a
+  // genre column: writing from an event is writing meeting notes.
   const heading = rootType === "event" ? "Meeting notes" : "Note"
 
   let body
   if (noteId) {
     // Edit mode — keep typing into the note we created (or reopened).
     body = existing.data ? (
-      <NoteComposer
+      <MomentComposer
         key={noteId}
         mode="edit"
+        kind={existing.data.kind}
         initial={existing.data}
         onSubmit={(b: Body) => update.mutate({ id: noteId, body: b })}
       />
@@ -99,17 +101,22 @@ export function FloatingNoteWindow() {
     // Create mode — first save creates the note (rooted to the target owner),
     // then we flip to edit mode on it.
     body = (
-      <NoteComposer
+      <MomentComposer
         key="new"
         mode="create"
         autoFocus
         createLabel="Save"
         placeholder="Take notes…"
-        // Seeded rather than overridden: the composer now owns both, so spreading
-        // the target *after* the body would silently discard a choice the user
-        // just made in it. Quick capture (⌘⇧N) passes neither, so it writes a
-        // `note` with no home — which is exactly what the inbox is for.
-        defaultRoot={target.owner ?? null}
+        // The two acts this one window can be, told apart by what the gesture
+        // already knew. Opened *from* a record, it is an observation about that
+        // record. Opened bare (⌘⇧N), the surface genuinely cannot know what you
+        // are writing — and that unresolved kind *is* the inbox, a state rather
+        // than a lack.
+        kind={target.owner ? "observation" : "capture"}
+        // Seeded rather than overridden: the composer owns the subject, so
+        // spreading the target *after* the body would silently discard a choice
+        // the user just made in it.
+        defaultSubject={target.owner ?? null}
         onSubmit={(b, pending) => {
           void submitCreate(b, pending).then((n) => setActiveNoteId(n.id))
         }}
