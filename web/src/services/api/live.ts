@@ -28,6 +28,7 @@ export const appEventHandlers: Record<string, (e: Envelope) => void> = {}
  */
 export const DERIVED_FROM: Record<string, readonly string[]> = {
   "metric-entries": ["outcomes"],
+  "group_readings": ["group-readings", "metric-entries", "outcomes"],
 }
 
 /**

@@ -1,14 +1,15 @@
-import { DateText, RefName, StatusBadge } from "@/components/cells"
+import { DateText, RefName, RootName, StatusBadge } from "@/components/cells"
 import { SimpleEntityPage, type Column } from "@/components/SimpleEntityPage"
 import {
   COMMITMENT_FIELDS,
   DECISION_FIELDS,
+  METRIC_GROUP_FIELDS,
   REQUEST_FIELDS,
   RESOURCE_FIELDS,
 } from "@/services/api/fields"
 import { Badge } from "@/components/ui/primitives"
-import { commitments, decisions, requests, resources } from "@/services/api/hooks"
-import type { Commitment, Decision, Request, Resource } from "@/services/api/types"
+import { commitments, decisions, metricGroups, requests, resources } from "@/services/api/hooks"
+import type { Commitment, Decision, MetricGroup, Request, Resource } from "@/services/api/types"
 
 export function CommitmentsPage() {
   const fields = COMMITMENT_FIELDS
@@ -45,6 +46,24 @@ export function RequestsPage() {
       crud={requests}
       fields={fields}
       columns={columns}
+    />
+  )
+}
+
+export function MetricGroupsPage() {
+  const columns: Column<MetricGroup>[] = [
+    { key: "name", label: "Group", render: (r) => <span className="font-medium">{r.name}</span> },
+    { key: "root", label: "Measures", render: (r) => <RootName type={r.entity_type} id={r.entity_id} /> },
+  ]
+  return (
+    <SimpleEntityPage
+      title="Metric groups"
+      subtitle="Numbers you read together — a panel, a cuff, a monthly look at every balance"
+      crud={metricGroups}
+      fields={METRIC_GROUP_FIELDS}
+      columns={columns}
+      newLabel="New group"
+      emptyText="No groups yet."
     />
   )
 }

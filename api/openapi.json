@@ -1088,6 +1088,7 @@
                   "routine",
                   "outcome",
                   "metric",
+                  "metric_group",
                   "event",
                   "note",
                   "person",
@@ -1249,6 +1250,7 @@
                   "routine",
                   "outcome",
                   "metric",
+                  "metric_group",
                   "event",
                   "note",
                   "person",
@@ -1434,6 +1436,7 @@
                   "routine",
                   "outcome",
                   "metric",
+                  "metric_group",
                   "event",
                   "note",
                   "person",
@@ -1616,6 +1619,7 @@
                   "routine",
                   "outcome",
                   "metric",
+                  "metric_group",
                   "event",
                   "note",
                   "person",
@@ -1762,6 +1766,7 @@
                   "routine",
                   "outcome",
                   "metric",
+                  "metric_group",
                   "event",
                   "note",
                   "person",
@@ -1925,6 +1930,7 @@
                   "routine",
                   "outcome",
                   "metric",
+                  "metric_group",
                   "event",
                   "note",
                   "person",
@@ -2112,6 +2118,7 @@
                   "routine",
                   "outcome",
                   "metric",
+                  "metric_group",
                   "event",
                   "note",
                   "person",
@@ -2358,6 +2365,7 @@
                   "routine",
                   "outcome",
                   "metric",
+                  "metric_group",
                   "event",
                   "note",
                   "person",
@@ -2634,6 +2642,7 @@
                   "routine",
                   "outcome",
                   "metric",
+                  "metric_group",
                   "event",
                   "note",
                   "person",
@@ -2806,7 +2815,9 @@
           "key": {
             "enum": [
               "task_throughput",
-              "routine_adherence"
+              "routine_adherence",
+              "ratio",
+              "percent"
             ],
             "title": "Key",
             "type": "string"
@@ -2939,6 +2950,7 @@
               "routine",
               "outcome",
               "metric",
+              "metric_group",
               "event",
               "note",
               "person",
@@ -3185,6 +3197,7 @@
                   "routine",
                   "outcome",
                   "metric",
+                  "metric_group",
                   "event",
                   "note",
                   "person",
@@ -3435,6 +3448,7 @@
                   "routine",
                   "outcome",
                   "metric",
+                  "metric_group",
                   "event",
                   "note",
                   "person",
@@ -3725,6 +3739,7 @@
                   "routine",
                   "outcome",
                   "metric",
+                  "metric_group",
                   "event",
                   "note",
                   "person",
@@ -3913,6 +3928,208 @@
           }
         },
         "title": "EventUpdate",
+        "type": "object"
+      },
+      "GroupMemberCreate": {
+        "properties": {
+          "group_id": {
+            "format": "uuid",
+            "title": "Group Id",
+            "type": "string"
+          },
+          "metric_id": {
+            "format": "uuid",
+            "title": "Metric Id",
+            "type": "string"
+          },
+          "position": {
+            "default": 0,
+            "title": "Position",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "group_id",
+          "metric_id"
+        ],
+        "title": "GroupMemberCreate",
+        "type": "object"
+      },
+      "GroupMemberRead": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "group_id": {
+            "format": "uuid",
+            "title": "Group Id",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "metric_id": {
+            "format": "uuid",
+            "title": "Metric Id",
+            "type": "string"
+          },
+          "position": {
+            "title": "Position",
+            "type": "integer"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "created_at",
+          "updated_at",
+          "group_id",
+          "metric_id",
+          "position"
+        ],
+        "title": "GroupMemberRead",
+        "type": "object"
+      },
+      "GroupMemberUpdate": {
+        "properties": {
+          "position": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position"
+          }
+        },
+        "title": "GroupMemberUpdate",
+        "type": "object"
+      },
+      "GroupReadingCreate": {
+        "description": "One act of measuring, with everything it produced.\n\nThe values ride along rather than being posted one at a time, because they\nshare a moment and a context and a half-written draw is not a state worth\nbeing able to reach.",
+        "properties": {
+          "context": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context"
+          },
+          "event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Id"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "values": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ReadingValue"
+            },
+            "title": "Values",
+            "type": "array"
+          }
+        },
+        "required": [
+          "recorded_at"
+        ],
+        "title": "GroupReadingCreate",
+        "type": "object"
+      },
+      "GroupReadingRead": {
+        "properties": {
+          "context": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "entries": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ReadingEntry"
+            },
+            "title": "Entries",
+            "type": "array"
+          },
+          "event_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Id"
+          },
+          "group_id": {
+            "format": "uuid",
+            "title": "Group Id",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "created_at",
+          "updated_at",
+          "group_id",
+          "recorded_at",
+          "context",
+          "event_id"
+        ],
+        "title": "GroupReadingRead",
         "type": "object"
       },
       "GuestStatus": {
@@ -5531,6 +5748,24 @@
         "title": "MedicationUpdate",
         "type": "object"
       },
+      "MemberOrder": {
+        "description": "The whole ordered membership, rewritten in one call.\n\nAnchors would be over-engineering here: a group is ten rows with one writer,\nso the client can send the list it just dragged into shape and the server\nrenumbers. `ranking.py`'s fractional indexing exists for the opposite case.",
+        "properties": {
+          "metric_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Metric Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "metric_ids"
+        ],
+        "title": "MemberOrder",
+        "type": "object"
+      },
       "MergeRequest": {
         "properties": {
           "fill_fields": {
@@ -5557,6 +5792,7 @@
               "routine",
               "outcome",
               "metric",
+              "metric_group",
               "event",
               "note",
               "person",
@@ -5599,12 +5835,26 @@
             ],
             "title": "Data Source"
           },
+          "denominator_metric_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Denominator Metric Id"
+          },
           "derivation": {
             "anyOf": [
               {
                 "enum": [
                   "task_throughput",
-                  "routine_adherence"
+                  "routine_adherence",
+                  "ratio",
+                  "percent"
                 ],
                 "type": "string"
               },
@@ -5628,6 +5878,7 @@
               "routine",
               "outcome",
               "metric",
+              "metric_group",
               "event",
               "note",
               "person",
@@ -5669,6 +5920,18 @@
           "name": {
             "title": "Name",
             "type": "string"
+          },
+          "numerator_metric_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Numerator Metric Id"
           },
           "reference_max": {
             "anyOf": [
@@ -5863,6 +6126,224 @@
         "title": "MetricEntryUpdate",
         "type": "object"
       },
+      "MetricGroupCreate": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "entity_id": {
+            "format": "uuid",
+            "title": "Entity Id",
+            "type": "string"
+          },
+          "entity_type": {
+            "enum": [
+              "area",
+              "program",
+              "project",
+              "task",
+              "routine",
+              "outcome",
+              "metric",
+              "metric_group",
+              "event",
+              "note",
+              "person",
+              "organization",
+              "location",
+              "commitment",
+              "request",
+              "delegation",
+              "review",
+              "resource",
+              "decision",
+              "medication",
+              "protocol",
+              "protocol_item",
+              "insurance_plan",
+              "allergy"
+            ],
+            "title": "Entity Type",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "entity_type",
+          "entity_id"
+        ],
+        "title": "MetricGroupCreate",
+        "type": "object"
+      },
+      "MetricGroupRead": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "entity_id": {
+            "format": "uuid",
+            "title": "Entity Id",
+            "type": "string"
+          },
+          "entity_type": {
+            "enum": [
+              "area",
+              "program",
+              "project",
+              "task",
+              "routine",
+              "outcome",
+              "metric",
+              "metric_group",
+              "event",
+              "note",
+              "person",
+              "organization",
+              "location",
+              "commitment",
+              "request",
+              "delegation",
+              "review",
+              "resource",
+              "decision",
+              "medication",
+              "protocol",
+              "protocol_item",
+              "insurance_plan",
+              "allergy"
+            ],
+            "title": "Entity Type",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "created_at",
+          "updated_at",
+          "name",
+          "entity_type",
+          "entity_id",
+          "description"
+        ],
+        "title": "MetricGroupRead",
+        "type": "object"
+      },
+      "MetricGroupUpdate": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "entity_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Id"
+          },
+          "entity_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "area",
+                  "program",
+                  "project",
+                  "task",
+                  "routine",
+                  "outcome",
+                  "metric",
+                  "metric_group",
+                  "event",
+                  "note",
+                  "person",
+                  "organization",
+                  "location",
+                  "commitment",
+                  "request",
+                  "delegation",
+                  "review",
+                  "resource",
+                  "decision",
+                  "medication",
+                  "protocol",
+                  "protocol_item",
+                  "insurance_plan",
+                  "allergy"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Type"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "title": "MetricGroupUpdate",
+        "type": "object"
+      },
       "MetricRead": {
         "properties": {
           "created_at": {
@@ -5881,12 +6362,26 @@
             ],
             "title": "Data Source"
           },
+          "denominator_metric_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Denominator Metric Id"
+          },
           "derivation": {
             "anyOf": [
               {
                 "enum": [
                   "task_throughput",
-                  "routine_adherence"
+                  "routine_adherence",
+                  "ratio",
+                  "percent"
                 ],
                 "type": "string"
               },
@@ -5910,6 +6405,7 @@
               "routine",
               "outcome",
               "metric",
+              "metric_group",
               "event",
               "note",
               "person",
@@ -5956,6 +6452,18 @@
           "name": {
             "title": "Name",
             "type": "string"
+          },
+          "numerator_metric_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Numerator Metric Id"
           },
           "reference_max": {
             "anyOf": [
@@ -6029,7 +6537,9 @@
           "reference_max",
           "measurement_frequency",
           "data_source",
-          "scale"
+          "scale",
+          "numerator_metric_id",
+          "denominator_metric_id"
         ],
         "title": "MetricRead",
         "type": "object"
@@ -6047,12 +6557,26 @@
             ],
             "title": "Data Source"
           },
+          "denominator_metric_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Denominator Metric Id"
+          },
           "derivation": {
             "anyOf": [
               {
                 "enum": [
                   "task_throughput",
-                  "routine_adherence"
+                  "routine_adherence",
+                  "ratio",
+                  "percent"
                 ],
                 "type": "string"
               },
@@ -6085,6 +6609,7 @@
                   "routine",
                   "outcome",
                   "metric",
+                  "metric_group",
                   "event",
                   "note",
                   "person",
@@ -6138,6 +6663,18 @@
               }
             ],
             "title": "Name"
+          },
+          "numerator_metric_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Numerator Metric Id"
           },
           "reference_max": {
             "anyOf": [
@@ -6232,6 +6769,7 @@
                   "routine",
                   "outcome",
                   "metric",
+                  "metric_group",
                   "event",
                   "note",
                   "person",
@@ -6398,6 +6936,7 @@
                   "routine",
                   "outcome",
                   "metric",
+                  "metric_group",
                   "event",
                   "note",
                   "person",
@@ -6526,6 +7065,7 @@
                   "routine",
                   "outcome",
                   "metric",
+                  "metric_group",
                   "event",
                   "note",
                   "person",
@@ -7219,6 +7759,7 @@
               "routine",
               "outcome",
               "metric",
+              "metric_group",
               "event",
               "note",
               "person",
@@ -7374,6 +7915,7 @@
               "routine",
               "outcome",
               "metric",
+              "metric_group",
               "event",
               "note",
               "person",
@@ -7553,6 +8095,7 @@
                   "routine",
                   "outcome",
                   "metric",
+                  "metric_group",
                   "event",
                   "note",
                   "person",
@@ -8439,6 +8982,7 @@
                 "routine",
                 "outcome",
                 "metric",
+                "metric_group",
                 "event",
                 "note",
                 "person",
@@ -8621,6 +9165,7 @@
                 "routine",
                 "outcome",
                 "metric",
+                "metric_group",
                 "event",
                 "note",
                 "person",
@@ -8813,6 +9358,7 @@
                     "routine",
                     "outcome",
                     "metric",
+                    "metric_group",
                     "event",
                     "note",
                     "person",
@@ -9840,6 +10386,45 @@
         "title": "PushSubscriptionCreate",
         "type": "object"
       },
+      "ReadingEntry": {
+        "description": "One value inside a reading, flattened for the table view.",
+        "properties": {
+          "metric_id": {
+            "format": "uuid",
+            "title": "Metric Id",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "metric_id",
+          "value"
+        ],
+        "title": "ReadingEntry",
+        "type": "object"
+      },
+      "ReadingValue": {
+        "properties": {
+          "metric_id": {
+            "format": "uuid",
+            "title": "Metric Id",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "metric_id",
+          "value"
+        ],
+        "title": "ReadingValue",
+        "type": "object"
+      },
       "RegimenEntry": {
         "description": "One routine due today \u2014 a med dose, supplement, activity, or habit.\n\nDerived from the active Routines (see ``regimen.py``). ``routine_id`` is the\nunit to complete; ``kind`` labels what it is; ``source_protocol_*`` names the\ngoverning protocol (null for a standalone routine). Deduped per (medication,\nslot) for meds, or (routine, slot) otherwise.",
         "properties": {
@@ -10008,6 +10593,7 @@
                   "routine",
                   "outcome",
                   "metric",
+                  "metric_group",
                   "event",
                   "note",
                   "person",
@@ -10198,6 +10784,7 @@
                   "routine",
                   "outcome",
                   "metric",
+                  "metric_group",
                   "event",
                   "note",
                   "person",
@@ -10437,6 +11024,7 @@
                   "routine",
                   "outcome",
                   "metric",
+                  "metric_group",
                   "event",
                   "note",
                   "person",
@@ -10626,6 +11214,7 @@
                   "routine",
                   "outcome",
                   "metric",
+                  "metric_group",
                   "event",
                   "note",
                   "person",
@@ -10725,6 +11314,7 @@
                   "routine",
                   "outcome",
                   "metric",
+                  "metric_group",
                   "event",
                   "note",
                   "person",
@@ -10837,6 +11427,7 @@
                   "routine",
                   "outcome",
                   "metric",
+                  "metric_group",
                   "event",
                   "note",
                   "person",
@@ -15526,6 +16117,198 @@
         ]
       }
     },
+    "/group-members": {
+      "get": {
+        "operationId": "group_members_list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GroupMemberRead"
+                  },
+                  "title": "Response Group Members List",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List All",
+        "tags": [
+          "metric-groups"
+        ]
+      },
+      "post": {
+        "operationId": "group_members_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GroupMemberCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupMemberRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create",
+        "tags": [
+          "metric-groups"
+        ]
+      }
+    },
+    "/group-members/{item_id}": {
+      "delete": {
+        "operationId": "group_members_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete",
+        "tags": [
+          "metric-groups"
+        ]
+      },
+      "get": {
+        "operationId": "group_members_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupMemberRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get One",
+        "tags": [
+          "metric-groups"
+        ]
+      },
+      "patch": {
+        "operationId": "group_members_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GroupMemberUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupMemberRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update",
+        "tags": [
+          "metric-groups"
+        ]
+      }
+    },
     "/health": {
       "get": {
         "description": "Health check endpoint (unauthenticated \u2014 used by castle readiness).",
@@ -16761,6 +17544,7 @@
                     "routine",
                     "outcome",
                     "metric",
+                    "metric_group",
                     "event",
                     "note",
                     "person",
@@ -17054,6 +17838,356 @@
         "summary": "Update",
         "tags": [
           "metrics"
+        ]
+      }
+    },
+    "/metric-groups": {
+      "get": {
+        "operationId": "metric_groups_list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MetricGroupRead"
+                  },
+                  "title": "Response Metric Groups List",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List All",
+        "tags": [
+          "metric-groups"
+        ]
+      },
+      "post": {
+        "operationId": "metric_groups_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MetricGroupCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetricGroupRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create",
+        "tags": [
+          "metric-groups"
+        ]
+      }
+    },
+    "/metric-groups/{group_id}/members": {
+      "put": {
+        "description": "Replace the membership with exactly this ordered list.\n\nThe whole list rather than a move-one endpoint: a group is ten rows with one\nwriter, so renumbering is cheaper than the fractional indexing `ranking.py`\nneeds for a board someone drags all day.",
+        "operationId": "metric_groups_set_members",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Group Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MemberOrder"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GroupMemberRead"
+                  },
+                  "title": "Response Metric Groups Set Members",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Members",
+        "tags": [
+          "metric-groups"
+        ]
+      }
+    },
+    "/metric-groups/{group_id}/readings": {
+      "get": {
+        "description": "Every reading of this group, newest first, with its values.\n\nEntries are batch-loaded rather than fetched per reading \u2014 the table renders\nall of them at once, so an N+1 here would be one query per draw.",
+        "operationId": "metric_groups_readings",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Group Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GroupReadingRead"
+                  },
+                  "title": "Response Metric Groups Readings",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Readings",
+        "tags": [
+          "metric-groups"
+        ]
+      },
+      "post": {
+        "description": "Record one act of measuring, and everything it produced.\n\nOne request rather than one per value: the numbers share a moment, and\nposting them separately is what produced five timestamps that ought to have\nbeen one. Nothing here requires the group's full membership \u2014 a metabolic\npanel has come back with one of fourteen \u2014 so whatever was measured is what\ngets written.",
+        "operationId": "metric_groups_record",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Group Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GroupReadingCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupReadingRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Record Reading",
+        "tags": [
+          "metric-groups"
+        ]
+      }
+    },
+    "/metric-groups/{item_id}": {
+      "delete": {
+        "operationId": "metric_groups_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete",
+        "tags": [
+          "metric-groups"
+        ]
+      },
+      "get": {
+        "operationId": "metric_groups_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetricGroupRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get One",
+        "tags": [
+          "metric-groups"
+        ]
+      },
+      "patch": {
+        "operationId": "metric_groups_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MetricGroupUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetricGroupRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update",
+        "tags": [
+          "metric-groups"
         ]
       }
     },
@@ -17439,6 +18573,7 @@
                     "routine",
                     "outcome",
                     "metric",
+                    "metric_group",
                     "event",
                     "note",
                     "person",
@@ -17497,6 +18632,7 @@
                     "routine",
                     "outcome",
                     "metric",
+                    "metric_group",
                     "event",
                     "note",
                     "person",
@@ -17648,6 +18784,7 @@
                     "routine",
                     "outcome",
                     "metric",
+                    "metric_group",
                     "event",
                     "note",
                     "person",

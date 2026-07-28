@@ -25,6 +25,9 @@ import type {
   PromoteResult,
   Medication,
   Metric,
+  MetricGroup,
+  GroupMember,
+  GroupReading,
   MetricEntry,
   Note,
   Organization,
@@ -57,6 +60,7 @@ export const routineInstances = createCrud<RoutineInstance>("routine-instances")
 export const outcomes = createCrud<Outcome>("outcomes")
 export const metrics = createCrud<Metric>("metrics")
 export const metricEntries = createCrud<MetricEntry>("metric-entries")
+export const metricGroups = createCrud<MetricGroup>("metric-groups")
 export const events = createCrud<EventItem>("events")
 export const notes = createCrud<Note>("notes")
 
@@ -179,6 +183,61 @@ export function useSaveWhiteboard() {
     // No SSE fan-out reaches this (it is unaudited by design), so seed the cache
     // from the response rather than waiting for an invalidation that never comes.
     onSuccess: (board) => qc.setQueryData(["whiteboard"], board),
+  })
+}
+
+/** Every reading of a group, newest first, with its values.
+ *  Keyed under "group-readings" because that is the table whose changes should
+ *  refresh it — recording a reading fires that, not ["metric-groups"]. */
+export function useGroupReadings(groupId: string | null) {
+  return useQuery({
+    queryKey: ["group-readings", "by-group", groupId],
+    queryFn: () => apiClient.get<GroupReading[]>(`/metric-groups/${groupId}/readings`),
+    enabled: !!groupId,
+  })
+}
+
+/** The metrics in a group, in the order the form should ask for them. */
+export function useGroupMembers(groupId: string | null) {
+  return useQuery({
+    queryKey: ["group-members", "by-group", groupId],
+    queryFn: () =>
+      apiClient.get<GroupMember[]>("/group-members", {
+        group_id: groupId ?? undefined,
+        sort: "position",
+        limit: "200",
+      }),
+    enabled: !!groupId,
+  })
+}
+
+/** Record one act of measuring: one moment, one context, N values. */
+export function useRecordReading() {
+  const invalidate = useInvalidator()
+  return useMutation({
+    mutationFn: (v: {
+      groupId: string
+      recorded_at: string
+      context?: string | null
+      values: { metric_id: string; value: number }[]
+    }) =>
+      apiClient.post(`/metric-groups/${v.groupId}/readings`, {
+        recorded_at: v.recorded_at,
+        context: v.context ?? null,
+        values: v.values,
+      }),
+    // The entries land in metric-entries, which is what charts and outcomes read.
+    onSuccess: () => invalidate("group-readings", "metric-entries", "outcomes"),
+  })
+}
+
+/** Replace a group's membership with exactly this ordered list. */
+export function useSetGroupMembers() {
+  const invalidate = useInvalidator()
+  return useMutation({
+    mutationFn: (v: { groupId: string; metricIds: string[] }) =>
+      apiClient.put(`/metric-groups/${v.groupId}/members`, { metric_ids: v.metricIds }),
+    onSuccess: () => invalidate("group-members"),
   })
 }
 

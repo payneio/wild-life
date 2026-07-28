@@ -265,15 +265,19 @@ export const OUTCOME_FIELDS: FieldSpec[] = [
   { name: "description", label: "Description", type: "textarea", full: true },
 ]
 
+export const METRIC_GROUP_FIELDS: FieldSpec[] = [
+  { name: "name", label: "Name" },
+  { name: "description", label: "Description", type: "textarea", full: true },
+]
+
 export const METRIC_FIELDS: FieldSpec[] = [
   { name: "name", label: "Name" },
   { name: "unit", label: "Unit" },
-  { name: "area_id", label: "Area", type: "entity", lookup: "area" },
   { name: "reference_min", label: "Normal from", type: "number" },
   { name: "reference_max", label: "Normal to", type: "number" },
   { name: "measurement_frequency", label: "Reading cadence", type: "select", options: MEASUREMENT_FREQUENCIES },
   { name: "data_source", label: "Data source" },
-  { name: "notes", label: "Notes", type: "textarea", full: true },
+  { name: "scale", label: "How to read it", type: "textarea", full: true },
 ]
 
 export const ROUTINE_FIELDS: FieldSpec[] = [

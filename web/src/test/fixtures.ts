@@ -12,6 +12,7 @@ import type {
   Location,
   Medication,
   Metric,
+  MetricGroup,
   Note,
   Organization,
   Program,
@@ -265,6 +266,16 @@ export const METRIC: Metric = {
   measurement_frequency: "daily",
   data_source: "Watch",
   scale: null,
+  numerator_metric_id: null,
+  denominator_metric_id: null,
+}
+
+export const METRIC_GROUP: MetricGroup = {
+  ...BASE,
+  name: "Lipid panel",
+  entity_type: "program",
+  entity_id: "00000000-0000-0000-0000-0000000000aa",
+  description: "Cholesterol and triglycerides, drawn together.",
 }
 
 export const PROJECT: Project = {
@@ -403,6 +414,18 @@ export const VARIANTS: Record<string, Entity[]> = {
       unit: "tasks/week",
       measurement_frequency: null,
     } satisfies Metric,
+    // A ratio reads two other metrics, so it renders operand pickers that no
+    // other shape does.
+    {
+      ...METRIC,
+      name: "Cholesterol / HDL",
+      source: "derived",
+      derivation: "ratio",
+      unit: null,
+      measurement_frequency: null,
+      numerator_metric_id: "00000000-0000-0000-0000-0000000000b1",
+      denominator_metric_id: "00000000-0000-0000-0000-0000000000b2",
+    } satisfies Metric,
   ],
   // A condition is a program, so a program has a clinical shape too — the
   // Clinical section only renders once the program says it is one.
@@ -444,6 +467,7 @@ export const FIXTURES: Record<string, Entity> = {
   insurancePlan: INSURANCE_PLAN,
   protocol: PROTOCOL,
   metric: METRIC,
+  metricGroup: METRIC_GROUP,
   task: TASK,
   resource: RESOURCE,
   location: LOCATION,

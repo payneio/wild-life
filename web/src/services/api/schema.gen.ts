@@ -495,6 +495,43 @@ export interface paths {
         patch: operations["events_update"];
         trace?: never;
     };
+    "/group-members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List All */
+        get: operations["group_members_list"];
+        put?: never;
+        /** Create */
+        post: operations["group_members_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/group-members/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get One */
+        get: operations["group_members_get"];
+        put?: never;
+        post?: never;
+        /** Delete */
+        delete: operations["group_members_delete"];
+        options?: never;
+        head?: never;
+        /** Update */
+        patch: operations["group_members_update"];
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -972,6 +1009,100 @@ export interface paths {
         head?: never;
         /** Update */
         patch: operations["metric_entries_update"];
+        trace?: never;
+    };
+    "/metric-groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List All */
+        get: operations["metric_groups_list"];
+        put?: never;
+        /** Create */
+        post: operations["metric_groups_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/metric-groups/{group_id}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Members
+         * @description Replace the membership with exactly this ordered list.
+         *
+         *     The whole list rather than a move-one endpoint: a group is ten rows with one
+         *     writer, so renumbering is cheaper than the fractional indexing `ranking.py`
+         *     needs for a board someone drags all day.
+         */
+        put: operations["metric_groups_set_members"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/metric-groups/{group_id}/readings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Readings
+         * @description Every reading of this group, newest first, with its values.
+         *
+         *     Entries are batch-loaded rather than fetched per reading — the table renders
+         *     all of them at once, so an N+1 here would be one query per draw.
+         */
+        get: operations["metric_groups_readings"];
+        put?: never;
+        /**
+         * Record Reading
+         * @description Record one act of measuring, and everything it produced.
+         *
+         *     One request rather than one per value: the numbers share a moment, and
+         *     posting them separately is what produced five timestamps that ought to have
+         *     been one. Nothing here requires the group's full membership — a metabolic
+         *     panel has come back with one of fourteen — so whatever was measured is what
+         *     gets written.
+         */
+        post: operations["metric_groups_record"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/metric-groups/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get One */
+        get: operations["metric_groups_get"];
+        put?: never;
+        post?: never;
+        /** Delete */
+        delete: operations["metric_groups_delete"];
+        options?: never;
+        head?: never;
+        /** Update */
+        patch: operations["metric_groups_update"];
         trace?: never;
     };
     "/metrics": {
@@ -2527,7 +2658,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Evidence */
             evidence?: string | null;
             /** Owner Id */
@@ -2561,7 +2692,7 @@ export interface components {
             /** Entity Id */
             entity_id: string | null;
             /** Entity Type */
-            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Evidence */
             evidence: string | null;
             /**
@@ -2599,7 +2730,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Evidence */
             evidence?: string | null;
             /** Owner Id */
@@ -2648,7 +2779,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Options Considered */
             options_considered?: string | null;
             /** Owner Id */
@@ -2676,7 +2807,7 @@ export interface components {
             /** Entity Id */
             entity_id: string | null;
             /** Entity Type */
-            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /**
              * Id
              * Format: uuid
@@ -2709,7 +2840,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Options Considered */
             options_considered?: string | null;
             /** Owner Id */
@@ -2743,7 +2874,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /**
              * Escalation Level
              * @default 0
@@ -2800,7 +2931,7 @@ export interface components {
             /** Entity Id */
             entity_id: string | null;
             /** Entity Type */
-            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Escalation Level */
             escalation_level: number;
             /** Expected Completion Date */
@@ -2857,7 +2988,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Escalation Level */
             escalation_level?: number | null;
             /** Expected Completion Date */
@@ -2887,7 +3018,7 @@ export interface components {
              * Key
              * @enum {string}
              */
-            key: "task_throughput" | "routine_adherence";
+            key: "task_throughput" | "routine_adherence" | "ratio" | "percent";
             /** Label */
             label: string;
             /** Unit */
@@ -2935,7 +3066,7 @@ export interface components {
              * Target Type
              * @enum {string}
              */
-            target_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
+            target_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
         };
         /**
          * Evaluation
@@ -2994,7 +3125,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Event Type */
             event_type?: string | null;
             /** External Ref */
@@ -3050,7 +3181,7 @@ export interface components {
             /** Entity Id */
             entity_id: string | null;
             /** Entity Type */
-            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Event Type */
             event_type: string | null;
             /** External Ref */
@@ -3114,7 +3245,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Event Type */
             event_type?: string | null;
             /** External Ref */
@@ -3143,6 +3274,120 @@ export interface components {
             start_at?: Instant | null;
             /** Title */
             title?: string | null;
+        };
+        /** GroupMemberCreate */
+        GroupMemberCreate: {
+            /**
+             * Group Id
+             * Format: uuid
+             */
+            group_id: string;
+            /**
+             * Metric Id
+             * Format: uuid
+             */
+            metric_id: string;
+            /**
+             * Position
+             * @default 0
+             */
+            position: number;
+        };
+        /** GroupMemberRead */
+        GroupMemberRead: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: Instant;
+            /**
+             * Group Id
+             * Format: uuid
+             */
+            group_id: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Metric Id
+             * Format: uuid
+             */
+            metric_id: string;
+            /** Position */
+            position: number;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: Instant;
+        };
+        /** GroupMemberUpdate */
+        GroupMemberUpdate: {
+            /** Position */
+            position?: number | null;
+        };
+        /**
+         * GroupReadingCreate
+         * @description One act of measuring, with everything it produced.
+         *
+         *     The values ride along rather than being posted one at a time, because they
+         *     share a moment and a context and a half-written draw is not a state worth
+         *     being able to reach.
+         */
+        GroupReadingCreate: {
+            /** Context */
+            context?: string | null;
+            /** Event Id */
+            event_id?: string | null;
+            /**
+             * Recorded At
+             * Format: date-time
+             */
+            recorded_at: Instant;
+            /**
+             * Values
+             * @default []
+             */
+            values: components["schemas"]["ReadingValue"][];
+        };
+        /** GroupReadingRead */
+        GroupReadingRead: {
+            /** Context */
+            context: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: Instant;
+            /**
+             * Entries
+             * @default []
+             */
+            entries: components["schemas"]["ReadingEntry"][];
+            /** Event Id */
+            event_id: string | null;
+            /**
+             * Group Id
+             * Format: uuid
+             */
+            group_id: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Recorded At
+             * Format: date-time
+             */
+            recorded_at: Instant;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: Instant;
         };
         /**
          * GuestStatus
@@ -3599,6 +3844,18 @@ export interface components {
             /** Reason */
             reason?: string | null;
         };
+        /**
+         * MemberOrder
+         * @description The whole ordered membership, rewritten in one call.
+         *
+         *     Anchors would be over-engineering here: a group is ten rows with one writer,
+         *     so the client can send the list it just dragged into shape and the server
+         *     renumbers. `ranking.py`'s fractional indexing exists for the opposite case.
+         */
+        MemberOrder: {
+            /** Metric Ids */
+            metric_ids: string[];
+        };
         /** MergeRequest */
         MergeRequest: {
             /**
@@ -3620,14 +3877,16 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
+            type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
         };
         /** MetricCreate */
         MetricCreate: {
             /** Data Source */
             data_source?: string | null;
+            /** Denominator Metric Id */
+            denominator_metric_id?: string | null;
             /** Derivation */
-            derivation?: ("task_throughput" | "routine_adherence") | null;
+            derivation?: ("task_throughput" | "routine_adherence" | "ratio" | "percent") | null;
             /**
              * Entity Id
              * Format: uuid
@@ -3637,11 +3896,13 @@ export interface components {
              * Entity Type
              * @enum {string}
              */
-            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
+            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
             /** Measurement Frequency */
             measurement_frequency?: ("daily" | "weekly" | "monthly" | "quarterly" | "yearly") | null;
             /** Name */
             name: string;
+            /** Numerator Metric Id */
+            numerator_metric_id?: string | null;
             /** Reference Max */
             reference_max?: number | null;
             /** Reference Min */
@@ -3715,17 +3976,10 @@ export interface components {
             /** Value */
             value?: number | null;
         };
-        /** MetricRead */
-        MetricRead: {
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: Instant;
-            /** Data Source */
-            data_source: string | null;
-            /** Derivation */
-            derivation: ("task_throughput" | "routine_adherence") | null;
+        /** MetricGroupCreate */
+        MetricGroupCreate: {
+            /** Description */
+            description?: string | null;
             /**
              * Entity Id
              * Format: uuid
@@ -3735,7 +3989,76 @@ export interface components {
              * Entity Type
              * @enum {string}
              */
-            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
+            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
+            /** Name */
+            name: string;
+        };
+        /** MetricGroupRead */
+        MetricGroupRead: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: Instant;
+            /** Description */
+            description: string | null;
+            /**
+             * Entity Id
+             * Format: uuid
+             */
+            entity_id: string;
+            /**
+             * Entity Type
+             * @enum {string}
+             */
+            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: Instant;
+        };
+        /** MetricGroupUpdate */
+        MetricGroupUpdate: {
+            /** Description */
+            description?: string | null;
+            /** Entity Id */
+            entity_id?: string | null;
+            /** Entity Type */
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            /** Name */
+            name?: string | null;
+        };
+        /** MetricRead */
+        MetricRead: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: Instant;
+            /** Data Source */
+            data_source: string | null;
+            /** Denominator Metric Id */
+            denominator_metric_id: string | null;
+            /** Derivation */
+            derivation: ("task_throughput" | "routine_adherence" | "ratio" | "percent") | null;
+            /**
+             * Entity Id
+             * Format: uuid
+             */
+            entity_id: string;
+            /**
+             * Entity Type
+             * @enum {string}
+             */
+            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
             /**
              * Id
              * Format: uuid
@@ -3745,6 +4068,8 @@ export interface components {
             measurement_frequency: ("daily" | "weekly" | "monthly" | "quarterly" | "yearly") | null;
             /** Name */
             name: string;
+            /** Numerator Metric Id */
+            numerator_metric_id: string | null;
             /** Reference Max */
             reference_max: number | null;
             /** Reference Min */
@@ -3768,16 +4093,20 @@ export interface components {
         MetricUpdate: {
             /** Data Source */
             data_source?: string | null;
+            /** Denominator Metric Id */
+            denominator_metric_id?: string | null;
             /** Derivation */
-            derivation?: ("task_throughput" | "routine_adherence") | null;
+            derivation?: ("task_throughput" | "routine_adherence" | "ratio" | "percent") | null;
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Measurement Frequency */
             measurement_frequency?: ("daily" | "weekly" | "monthly" | "quarterly" | "yearly") | null;
             /** Name */
             name?: string | null;
+            /** Numerator Metric Id */
+            numerator_metric_id?: string | null;
             /** Reference Max */
             reference_max?: number | null;
             /** Reference Min */
@@ -3799,7 +4128,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Entry Date */
             entry_date?: CalendarDay | null;
             /**
@@ -3853,7 +4182,7 @@ export interface components {
             /** Entity Id */
             entity_id: string | null;
             /** Entity Type */
-            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Entry Date */
             entry_date: CalendarDay | null;
             /**
@@ -3883,7 +4212,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Entry Date */
             entry_date?: CalendarDay | null;
             /** Links */
@@ -4040,7 +4369,7 @@ export interface components {
              * Entity Type
              * @enum {string}
              */
-            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
+            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
             /**
              * Kind
              * @enum {string}
@@ -4085,7 +4414,7 @@ export interface components {
              * Entity Type
              * @enum {string}
              */
-            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
+            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy";
             /**
              * Id
              * Format: uuid
@@ -4128,7 +4457,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Kind */
             kind?: ("standard" | "target" | "deliverable") | null;
             /** Metric Id */
@@ -4364,7 +4693,7 @@ export interface components {
              * Involves
              * @default []
              */
-            involves: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy")[];
+            involves: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy")[];
             /** Name */
             name: string;
             /** Purpose */
@@ -4405,7 +4734,7 @@ export interface components {
              */
             id: string;
             /** Involves */
-            involves: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy")[];
+            involves: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy")[];
             /** Name */
             name: string;
             /** Purpose */
@@ -4440,7 +4769,7 @@ export interface components {
             /** Ended Date */
             ended_date?: CalendarDay | null;
             /** Involves */
-            involves?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy")[] | null;
+            involves?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy")[] | null;
             /** Name */
             name?: string | null;
             /** Purpose */
@@ -4693,6 +5022,29 @@ export interface components {
             label?: string | null;
         };
         /**
+         * ReadingEntry
+         * @description One value inside a reading, flattened for the table view.
+         */
+        ReadingEntry: {
+            /**
+             * Metric Id
+             * Format: uuid
+             */
+            metric_id: string;
+            /** Value */
+            value: number;
+        };
+        /** ReadingValue */
+        ReadingValue: {
+            /**
+             * Metric Id
+             * Format: uuid
+             */
+            metric_id: string;
+            /** Value */
+            value: number;
+        };
+        /**
          * RegimenEntry
          * @description One routine due today — a med dose, supplement, activity, or habit.
          *
@@ -4744,7 +5096,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** External Label */
             external_label?: string | null;
             /** Follow Up Date */
@@ -4788,7 +5140,7 @@ export interface components {
             /** Entity Id */
             entity_id: string | null;
             /** Entity Type */
-            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** External Label */
             external_label: string | null;
             /** Follow Up Date */
@@ -4842,7 +5194,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** External Label */
             external_label?: string | null;
             /** Follow Up Date */
@@ -4871,7 +5223,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Resource Type */
             resource_type?: string | null;
             /** Title */
@@ -4891,7 +5243,7 @@ export interface components {
             /** Entity Id */
             entity_id: string | null;
             /** Entity Type */
-            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /**
              * Id
              * Format: uuid
@@ -4916,7 +5268,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             /** Resource Type */
             resource_type?: string | null;
             /** Title */
@@ -7103,6 +7455,154 @@ export interface operations {
             };
         };
     };
+    group_members_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupMemberRead"][];
+                };
+            };
+        };
+    };
+    group_members_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GroupMemberCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupMemberRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    group_members_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupMemberRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    group_members_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    group_members_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GroupMemberUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupMemberRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     health_health_get: {
         parameters: {
             query?: never;
@@ -7933,7 +8433,7 @@ export interface operations {
     merge_duplicates: {
         parameters: {
             query?: {
-                type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+                type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
             };
             header?: never;
             path?: never;
@@ -8133,6 +8633,255 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MetricEntryRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    metric_groups_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetricGroupRead"][];
+                };
+            };
+        };
+    };
+    metric_groups_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MetricGroupCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetricGroupRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    metric_groups_set_members: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemberOrder"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupMemberRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    metric_groups_readings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupReadingRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    metric_groups_record: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GroupReadingCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupReadingRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    metric_groups_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetricGroupRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    metric_groups_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    metric_groups_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MetricGroupUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetricGroupRead"];
                 };
             };
             /** @description Validation Error */
@@ -8419,9 +9168,9 @@ export interface operations {
     notes_list: {
         parameters: {
             query?: {
-                entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+                entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
                 entity_id?: string | null;
-                linked_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+                linked_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
                 linked_id?: string | null;
                 year?: number | null;
             };
@@ -8487,7 +9236,7 @@ export interface operations {
     notes_calendar: {
         parameters: {
             query?: {
-                entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
+                entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy") | null;
                 entity_id?: string | null;
             };
             header?: never;

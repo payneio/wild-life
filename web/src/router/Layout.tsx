@@ -16,6 +16,7 @@ import {
   Hourglass,
   Inbox,
   Layers,
+  LayoutList,
   Bot,
   LayoutGrid,
   LineChart,
@@ -84,6 +85,7 @@ const WORK: Item[] = [
 const MEASURE: Item[] = [
   { to: "/outcomes", label: "Outcomes", icon: Target },
   { to: "/metrics", label: "Metrics", icon: LineChart },
+  { to: "/metric-groups", label: "Metric groups", icon: LayoutList },
   { to: "/reviews", label: "Review", icon: ClipboardCheck },
 ]
 

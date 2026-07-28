@@ -15,6 +15,7 @@ import { AllergyDetail as AllergyRecord } from "@/entities/allergy/Detail"
 import { InsurancePlanDetail as InsurancePlanRecord } from "@/entities/insurancePlan/Detail"
 import { ProtocolDetail as ProtocolRecord } from "@/entities/protocol/Detail"
 import { MetricDetail as MetricRecord } from "@/entities/metric/Detail"
+import { MetricGroupDetail as MetricGroupRecord } from "@/entities/metricGroup/Detail"
 import { ProjectDetail as ProjectRecord } from "@/entities/project/Detail"
 import { OutcomeRecord } from "@/entities/outcome/Detail"
 import { RoutineDetail as RoutineRecord } from "@/entities/routine/Detail"
@@ -36,6 +37,7 @@ import {
   locations,
   medications,
   metrics,
+  metricGroups,
   notes,
   organizations,
   programs,
@@ -189,6 +191,7 @@ import {
   LOCATION_FIELDS,
   MEDICATION_FIELDS,
   METRIC_FIELDS,
+  METRIC_GROUP_FIELDS,
   NOTE_FIELDS,
   ORGANIZATION_FIELDS,
   PROGRAM_FIELDS,
@@ -226,6 +229,7 @@ export const REGISTRY: Record<string, EntityDef> = {
   metric: { key: "metric", label: "Metric", crud: metrics, fields: METRIC_FIELDS, title: (e) => e.name, parent: (e) => (e.entity_type && e.entity_id ? { type: e.entity_type, id: e.entity_id } : undefined), entityType: "metric", titleField: "name", quickCreate: true, detail: MetricRecord, relations: [
     { mode: "fk-children", label: "Outcomes measured by this", type: "outcome", fkField: "metric_id" },
   ] },
+  metricGroup: { key: "metricGroup", label: "Metric group", crud: metricGroups, fields: METRIC_GROUP_FIELDS, title: (e) => e.name, parent: (e) => (e.entity_type && e.entity_id ? { type: e.entity_type, id: e.entity_id } : undefined), entityType: "metric_group", titleField: "name", quickCreate: true, detail: MetricGroupRecord },
   routine: { key: "routine", label: "Routine", crud: routines, fields: ROUTINE_FIELDS, title: (e) => e.activity ?? e.name ?? "Routine", parent: (e) => refOf(e, ["protocol_id", "protocol"], ["program_id", "program"], ["area_id", "area"]), entityType: "routine", titleField: "activity", quickCreate: true, detail: RoutineRecord },
   program: { key: "program", label: "Program", crud: programs, fields: PROGRAM_FIELDS, title: (e) => e.name, parent: (e) => refOf(e, ["area_id", "area"]), entityType: "program", titleField: "name", quickCreate: true, detail: ProgramRecord, relations: [
     { mode: "fk-children", label: "Projects", type: "project", fkField: "program_id" },

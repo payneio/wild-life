@@ -26,6 +26,7 @@ import { SettingsPage } from "@/pages/SettingsPage"
 import {
   CommitmentsPage,
   DecisionsPage,
+  MetricGroupsPage,
   ResourcesPage,
   RequestsPage,
 } from "@/pages/simple"
@@ -80,6 +81,8 @@ export const router = createBrowserRouter([
       { path: "places", element: <PlacesPage /> },
       { path: "locations/:id", element: <RecordPage entityKey="location" backTo="/locations" backLabel="Locations" /> },
       { path: "metrics", element: <MetricsPage /> },
+      { path: "metric-groups", element: <MetricGroupsPage /> },
+      { path: "metric-groups/:id", element: <RecordPage entityKey="metricGroup" backTo="/metric-groups" backLabel="Metric groups" /> },
       { path: "metrics/:id", element: <RecordPage entityKey="metric" backTo="/metrics" backLabel="Metrics" /> },
       { path: "medications", element: <MedicationsPage /> },
       { path: "medications/:id", element: <RecordPage entityKey="medication" backTo="/medications" backLabel="Medications" /> },
