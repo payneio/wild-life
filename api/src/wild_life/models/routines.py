@@ -92,6 +92,17 @@ class Routine(UUIDPrimaryKey, TimestampMixin, Base):
     interval_days: Mapped[int] = mapped_column(
         Integer, server_default="1", nullable=False
     )
+    # --- the monthly and yearly half of the cadence -------------------------
+    # Which months this applies in (1-12); empty means every month.
+    months: Mapped[list[int]] = mapped_column(
+        ARRAY(Integer), server_default="{}", nullable=False
+    )
+    # The date within them — "every 25 December" is months=[12], day 25.
+    day_of_month: Mapped[int | None] = mapped_column(Integer)
+    # With `days_of_week`, the nth such weekday of the month; -1 is the last.
+    # "First Saturday" is week_of_month=1, days_of_week=['sat'].
+    week_of_month: Mapped[int | None] = mapped_column(Integer)
+
     sort_order: Mapped[int] = mapped_column(Integer, server_default="0", nullable=False)
     # The zone this rule's `timing` slots are wall times in. "Every Tuesday at
     # 09:00" is meaningless without saying where: stored as a UTC instant it

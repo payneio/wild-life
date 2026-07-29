@@ -43,6 +43,9 @@ def days_from_cadence(cadence: Cadence, start: date, end: date) -> set[date]:
     class _Rule:
         days_of_week = cadence.days_of_week
         interval_days = cadence.interval_days
+        months = cadence.months
+        day_of_month = cadence.day_of_month
+        week_of_month = cadence.week_of_month
 
     stop = min(end, cadence.end_date) if cadence.end_date else end
     out: set[date] = set()
@@ -127,6 +130,72 @@ class TestWhatTranslates:
         agree("FREQ=WEEKLY;BYDAY=WE;WKST=SU", datetime(2026, 7, 29, 9, tzinfo=UTC))
 
 
+class TestTheCalendarFamily:
+    """Positions in a calendar rather than strides through days.
+
+    Twelve of the seventy-four real series are these — nine `FREQ=YEARLY`, every
+    one of them a birthday, and three first-Saturday/second-Tuesday film nights —
+    and until the cadence learned months and weeks they had no expression here
+    and survived only as wire form.
+    """
+
+    def test_a_bare_yearly_takes_its_date_from_the_start(self) -> None:
+        """What the nine birthdays are: the rule string says only FREQ=YEARLY,
+        and the month and day live in DTSTART."""
+        start = datetime(2026, 3, 14, 9, 0, tzinfo=UTC)
+        assert translate("FREQ=YEARLY", start) == Cadence(
+            [], 1, None, months=[3], day_of_month=14
+        )
+        agree("FREQ=YEARLY", start, horizon_days=1500)
+
+    def test_wkst_does_not_disturb_it(self) -> None:
+        agree("FREQ=YEARLY;WKST=TU", datetime(2026, 3, 14, 9, 0, tzinfo=UTC), 1500)
+
+    def test_the_first_saturday_of_the_month(self) -> None:
+        agree("FREQ=MONTHLY;BYDAY=1SA", datetime(2026, 8, 1, 18, 0, tzinfo=UTC), 400)
+
+    def test_the_second_tuesday_of_the_month(self) -> None:
+        agree("FREQ=MONTHLY;BYDAY=2TU", datetime(2026, 8, 11, 18, 0, tzinfo=UTC), 400)
+
+    def test_the_last_friday_of_the_month(self) -> None:
+        agree("FREQ=MONTHLY;BYDAY=-1FR", datetime(2026, 8, 28, 18, 0, tzinfo=UTC), 400)
+
+    def test_a_date_each_month(self) -> None:
+        agree(
+            "FREQ=MONTHLY;BYMONTHDAY=25", datetime(2026, 8, 25, 9, 0, tzinfo=UTC), 400
+        )
+
+    def test_a_date_each_year(self) -> None:
+        """A holiday: every 25 December."""
+        agree(
+            "FREQ=YEARLY;BYMONTH=12;BYMONTHDAY=25",
+            datetime(2026, 12, 25, 9, 0, tzinfo=UTC),
+            1500,
+        )
+
+    def test_the_fourth_thursday_of_november(self) -> None:
+        """Both selectors at once, which is what most moveable holidays are."""
+        agree(
+            "FREQ=YEARLY;BYMONTH=11;BYDAY=4TH",
+            datetime(2026, 11, 26, 9, 0, tzinfo=UTC),
+            1500,
+        )
+
+    def test_they_round_trip_outward(self) -> None:
+        start = datetime(2026, 11, 26, 9, 0, tzinfo=UTC)
+        for rrule in (
+            "FREQ=YEARLY;BYMONTH=11;BYDAY=4TH",
+            "FREQ=YEARLY;BYMONTH=12;BYMONTHDAY=25",
+            "FREQ=MONTHLY;BYDAY=1SA",
+            "FREQ=MONTHLY;BYMONTHDAY=25",
+        ):
+            cadence = translate(rrule, start)
+            assert cadence is not None, rrule
+            wire = to_rrule(cadence, start)
+            assert wire is not None, rrule
+            assert translate(wire, start) == cadence, rrule
+
+
 class TestWhatIsRefusedByName:
     """A translation that quietly approximates is worse than none: the calendar
     would then disagree with the sender about what was scheduled."""
@@ -134,16 +203,18 @@ class TestWhatIsRefusedByName:
     @pytest.mark.parametrize(
         "rrule",
         [
-            "FREQ=YEARLY",
-            "FREQ=YEARLY;WKST=TU",
-            "FREQ=MONTHLY;BYDAY=1SA",
-            "FREQ=MONTHLY;UNTIL=20251014T072959Z;BYDAY=2TU",
             "FREQ=DAILY;COUNT=2",
             "FREQ=WEEKLY;COUNT=5",
             "FREQ=WEEKLY;COUNT=3;INTERVAL=2;BYDAY=WE",
             "FREQ=WEEKLY;INTERVAL=2;BYDAY=TU,TH",
             "FREQ=DAILY;BYDAY=MO,TU",
             "FREQ=WEEKLY;BYMONTH=3;BYDAY=TU",
+            # Two different weeks; our cadence has room for one position.
+            "FREQ=MONTHLY;BYDAY=1SA,3SU",
+            # A stride through months is not a position in one.
+            "FREQ=MONTHLY;INTERVAL=2;BYMONTHDAY=1",
+            # Two dates is two cadences.
+            "FREQ=MONTHLY;BYMONTHDAY=1,15",
             "FREQ=WEEKLY;BYSETPOS=-1;BYDAY=TU",
             "",
         ],
@@ -258,7 +329,8 @@ class TestTheRulesThatWereWritten:
                         text("""
                         SELECT r.days_of_week, r.interval_days, r.start_date,
                                r.end_date, r.timing, r.expected_minutes, r.kind,
-                               r.timezone, e.recurrence, e.start_at
+                               r.timezone, r.months, r.day_of_month,
+                               r.week_of_month, e.recurrence, e.start_at
                         FROM wild_life.routines r
                         JOIN wild_life.events e
                           ON r.source_ref = 'event:' || e.id || '\\:rule'
@@ -275,7 +347,14 @@ class TestTheRulesThatWereWritten:
             horizon = dtstart + timedelta(days=730)
             wire = {o.date() for o in expand(rrule, dtstart, until=horizon)}
             stored = days_from_cadence(
-                Cadence(list(row.days_of_week), row.interval_days, row.end_date),
+                Cadence(
+                    list(row.days_of_week),
+                    row.interval_days,
+                    row.end_date,
+                    months=list(row.months or []),
+                    day_of_month=row.day_of_month,
+                    week_of_month=row.week_of_month,
+                ),
                 row.start_date,
                 horizon.date(),
             )

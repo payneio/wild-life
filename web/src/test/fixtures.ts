@@ -322,6 +322,10 @@ export const ROUTINE: Routine = {
   // that says when in the day (an occasion) needs one.
   timezone: null,
   expected_minutes: null,
+  // The calendar family of the cadence — empty for a striding rule like this.
+  months: [],
+  day_of_month: null,
+  week_of_month: null,
   // Optional since the generalisation — a rule may stand on its own, and a
   // protocol is a container that narrows it rather than what makes it a rule.
   protocol_id: "22222222-2222-2222-2222-222222222222",

@@ -6069,6 +6069,8 @@ export interface components {
             amount?: number | null;
             /** Area Id */
             area_id?: string | null;
+            /** Day Of Month */
+            day_of_month?: number | null;
             /**
              * Days Of Week
              * @default []
@@ -6089,6 +6091,11 @@ export interface components {
             kind?: ("capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "work" | "completion" | "withdrawal" | "decision") | null;
             /** Medication Id */
             medication_id?: string | null;
+            /**
+             * Months
+             * @default []
+             */
+            months: number[];
             /** Name */
             name?: string | null;
             /**
@@ -6130,6 +6137,8 @@ export interface components {
             tracking_method?: string | null;
             /** Unit */
             unit?: string | null;
+            /** Week Of Month */
+            week_of_month?: number | null;
         };
         /** RoutineInstanceCreate */
         RoutineInstanceCreate: {
@@ -6247,6 +6256,8 @@ export interface components {
              * Format: date-time
              */
             created_at: Instant;
+            /** Day Of Month */
+            day_of_month: number | null;
             /** Days Of Week */
             days_of_week: string[];
             /** End Date */
@@ -6269,6 +6280,8 @@ export interface components {
             kind: "capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "work" | "completion" | "withdrawal" | "decision";
             /** Medication Id */
             medication_id: string | null;
+            /** Months */
+            months: number[];
             /** Name */
             name: string | null;
             /** Preferred Days */
@@ -6305,6 +6318,8 @@ export interface components {
              * Format: date-time
              */
             updated_at: Instant;
+            /** Week Of Month */
+            week_of_month: number | null;
         };
         /** RoutineUpdate */
         RoutineUpdate: {
@@ -6314,6 +6329,8 @@ export interface components {
             amount?: number | null;
             /** Area Id */
             area_id?: string | null;
+            /** Day Of Month */
+            day_of_month?: number | null;
             /** Days Of Week */
             days_of_week?: ("mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun")[] | null;
             /** End Date */
@@ -6328,6 +6345,8 @@ export interface components {
             kind?: ("capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "work" | "completion" | "withdrawal" | "decision") | null;
             /** Medication Id */
             medication_id?: string | null;
+            /** Months */
+            months?: number[] | null;
             /** Name */
             name?: string | null;
             /** Preferred Days */
@@ -6356,6 +6375,8 @@ export interface components {
             tracking_method?: string | null;
             /** Unit */
             unit?: string | null;
+            /** Week Of Month */
+            week_of_month?: number | null;
         };
         /**
          * RsvpBody

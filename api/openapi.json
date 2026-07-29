@@ -13331,6 +13331,17 @@
             ],
             "title": "Area Id"
           },
+          "day_of_month": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Day Of Month"
+          },
           "days_of_week": {
             "default": [],
             "items": {
@@ -13424,6 +13435,14 @@
               }
             ],
             "title": "Medication Id"
+          },
+          "months": {
+            "default": [],
+            "items": {
+              "type": "integer"
+            },
+            "title": "Months",
+            "type": "array"
           },
           "name": {
             "anyOf": [
@@ -13569,6 +13588,17 @@
               }
             ],
             "title": "Unit"
+          },
+          "week_of_month": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Week Of Month"
           }
         },
         "title": "RoutineCreate",
@@ -13970,6 +14000,17 @@
             "title": "Created At",
             "type": "string"
           },
+          "day_of_month": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Day Of Month"
+          },
           "days_of_week": {
             "items": {
               "type": "string"
@@ -14050,6 +14091,13 @@
               }
             ],
             "title": "Medication Id"
+          },
+          "months": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Months",
+            "type": "array"
           },
           "name": {
             "anyOf": [
@@ -14196,6 +14244,17 @@
             "format": "date-time",
             "title": "Updated At",
             "type": "string"
+          },
+          "week_of_month": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Week Of Month"
           }
         },
         "required": [
@@ -14212,6 +14271,9 @@
           "timing",
           "days_of_week",
           "interval_days",
+          "months",
+          "day_of_month",
+          "week_of_month",
           "timezone",
           "expected_minutes",
           "sort_order",
@@ -14265,6 +14327,17 @@
               }
             ],
             "title": "Area Id"
+          },
+          "day_of_month": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Day Of Month"
           },
           "days_of_week": {
             "anyOf": [
@@ -14371,6 +14444,20 @@
               }
             ],
             "title": "Medication Id"
+          },
+          "months": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Months"
           },
           "name": {
             "anyOf": [
@@ -14540,6 +14627,17 @@
               }
             ],
             "title": "Unit"
+          },
+          "week_of_month": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Week Of Month"
           }
         },
         "title": "RoutineUpdate",

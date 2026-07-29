@@ -22,8 +22,7 @@ import { RecurrenceScopeDialog } from "@/components/RecurrenceScopeDialog"
 import { UnscheduledTray } from "@/components/UnscheduledTray"
 import { usePersistentState } from "@/lib/persistentState"
 import { RepeatPicker } from "@/components/RepeatPicker"
-import { NO_REPEAT, type Repeat } from "@/lib/repeat"
-import { WEEKDAYS } from "@/lib/slots"
+import { cadenceFor, NO_REPEAT, type Repeat } from "@/lib/repeat"
 import {
   moments,
   occurrenceKey,
@@ -441,11 +440,12 @@ export function CalendarPage() {
             placeholder="What's happening?"
             onCreate={(title) => {
               const start = new Date(creating.start)
-              if (repeat.everyWeeks > 0) {
+              const cadence = cadenceFor(repeat, start)
+              if (cadence) {
                 // A series is a **rule**, not a row: its occurrences are
                 // computed, and one becomes a moment only when something
-                // happens to it. So repeating does not create fifty-two
-                // meetings — it creates the reason there are fifty-two.
+                // happens to it. Repeating does not create fifty-two meetings —
+                // it creates the reason there are fifty-two.
                 const minutes = creating.allDay
                   ? null
                   : Math.round(
@@ -459,10 +459,7 @@ export function CalendarPage() {
                       start.getMinutes(),
                     ).padStart(2, "0")}`,
                   ],
-                  days_of_week: repeat.days.length
-                    ? repeat.days
-                    : [WEEKDAYS[(start.getDay() + 6) % 7]],
-                  interval_days: repeat.everyWeeks === 1 ? 1 : repeat.everyWeeks * 7,
+                  ...cadence,
                   start_date: dayOfDate(start),
                   end_date: repeat.until || null,
                   expected_minutes: minutes,
@@ -488,7 +485,11 @@ export function CalendarPage() {
           {/* Below rather than beside: `extra` is an inline slot for one small
               control, and a block in it squeezed the title field to nothing. */}
           <div className="mt-3">
-            <RepeatPicker value={repeat} onChange={setRepeat} />
+            <RepeatPicker
+              value={repeat}
+              onChange={setRepeat}
+              start={new Date(creating.start)}
+            />
           </div>
         </Modal>
       )}

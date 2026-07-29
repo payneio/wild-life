@@ -32,6 +32,9 @@ class RoutineCreate(BaseModel):
     timing: list[str] = []
     days_of_week: list[Weekday] = []
     interval_days: int = 1
+    months: list[int] = []
+    day_of_month: int | None = None
+    week_of_month: int | None = None
     # The zone a rule's slots are wall times in; null = expand in UTC.
     timezone: str | None = None
     # How long a generated occurrence runs (occasion rules; a dose takes none).
@@ -74,6 +77,9 @@ class RoutineUpdate(BaseModel):
     timing: list[str] | None = None
     days_of_week: list[Weekday] | None = None
     interval_days: int | None = None
+    months: list[int] | None = None
+    day_of_month: int | None = None
+    week_of_month: int | None = None
     timezone: str | None = None
     expected_minutes: int | None = None
     sort_order: int | None = None
@@ -101,6 +107,9 @@ class RoutineRead(Entity):
     timing: list[str]
     days_of_week: list[str]
     interval_days: int
+    months: list[int]
+    day_of_month: int | None
+    week_of_month: int | None
     timezone: str | None
     expected_minutes: int | None
     sort_order: int

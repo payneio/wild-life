@@ -32,7 +32,7 @@ What is deliberately refused, measured against all 74 recurring events:
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, date, datetime, timedelta
 
 from dateutil.rrule import rrulestr
@@ -53,7 +53,7 @@ _OURS = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
 # Parts we understand. Anything else in the rule means we do not understand the
 # rule — listing what we accept, rather than what we reject, is what keeps a new
 # iCal part from being silently ignored.
-_KNOWN_PARTS = {"FREQ", "INTERVAL", "BYDAY", "UNTIL", "WKST"}
+_KNOWN_PARTS = {"FREQ", "INTERVAL", "BYDAY", "BYMONTH", "BYMONTHDAY", "UNTIL", "WKST"}
 
 
 @dataclass(frozen=True)
@@ -63,6 +63,10 @@ class Cadence:
     days_of_week: list[str]
     interval_days: int
     end_date: date | None
+    # The calendar family — which months, which date, which week (see `rules.is_due`).
+    months: list[int] = field(default_factory=list)
+    day_of_month: int | None = None
+    week_of_month: int | None = None
 
 
 def _parts(rrule: str) -> dict[str, str]:
@@ -118,7 +122,7 @@ def translate(rrule: str, dtstart: datetime) -> Cadence | None:
     if set(parts) - _KNOWN_PARTS:
         return None
     freq = parts.get("FREQ", "").upper()
-    if freq not in ("DAILY", "WEEKLY"):
+    if freq not in ("DAILY", "WEEKLY", "MONTHLY", "YEARLY"):
         return None
 
     try:
@@ -130,11 +134,70 @@ def translate(rrule: str, dtstart: datetime) -> Cadence | None:
 
     byday_raw = parts.get("BYDAY", "")
     byday = [d.strip().upper() for d in byday_raw.split(",") if d.strip()]
-    # An ordinal ("1SA", "-1FR") selects a week within a month; we cannot say it.
-    if any(d not in _ICAL_DAYS for d in byday):
+    # An ordinal ("1SA", "-1FR") selects a week within the month — sayable now.
+    week_of_month: int | None = None
+    plain: list[str] = []
+    for token in byday:
+        code, ordinal = token[-2:], token[:-2]
+        if code not in _ICAL_DAYS:
+            return None
+        if ordinal:
+            try:
+                nth = int(ordinal)
+            except ValueError:
+                return None
+            # Only one ordinal, and only the same one across every day: "1SA,2SU"
+            # names two different weeks and our cadence has room for one.
+            if week_of_month is not None and week_of_month != nth:
+                return None
+            if nth not in (1, 2, 3, 4, 5, -1):
+                return None
+            week_of_month = nth
+        plain.append(code)
+    byday = plain
+
+    try:
+        months = (
+            [int(m) for m in parts["BYMONTH"].split(",")] if "BYMONTH" in parts else []
+        )
+        month_day = int(parts["BYMONTHDAY"]) if "BYMONTHDAY" in parts else None
+    except ValueError:
+        return None
+    # One date, not a list: "the 1st and the 15th" is two cadences.
+    if "BYMONTHDAY" in parts and "," in parts["BYMONTHDAY"]:
         return None
 
     end_date = _until_date(parts["UNTIL"], dtstart) if "UNTIL" in parts else None
+
+    if freq in ("MONTHLY", "YEARLY"):
+        # An interval other than 1 means "every other month/year", which our
+        # selectors cannot say — they name positions, not strides.
+        if interval != 1:
+            return None
+        if freq == "YEARLY" and not months:
+            # A bare FREQ=YEARLY recurs on its start's month and day: the rule
+            # string does not carry them, DTSTART does. This is what the nine
+            # birthdays are.
+            months = [dtstart.month]
+            if month_day is None and not byday:
+                month_day = dtstart.day
+        if byday and week_of_month is None:
+            # "Monthly on a Saturday" without saying which is not a cadence.
+            return None
+        if not byday and month_day is None:
+            month_day = dtstart.day
+        return Cadence(
+            days_of_week=[_ICAL_DAYS[d] for d in byday],
+            interval_days=1,
+            end_date=end_date,
+            months=months,
+            day_of_month=month_day,
+            week_of_month=week_of_month,
+        )
+
+    # DAILY/WEEKLY take no calendar selectors.
+    if months or month_day is not None or week_of_month is not None:
+        return None
 
     if freq == "DAILY":
         # BYDAY on a DAILY rule is a filter ("every day, but only weekdays").
@@ -234,6 +297,33 @@ def to_rrule(cadence: Cadence, dtstart: datetime) -> str | None:
         if ours in (cadence.days_of_week or [])
     ]
     parts: list[str] = []
+
+    selects = (
+        bool(cadence.months)
+        or cadence.day_of_month is not None
+        or cadence.week_of_month is not None
+    )
+    if selects:
+        # The calendar family: a position, not a stride. Yearly when it names
+        # months, monthly otherwise.
+        parts.append("FREQ=YEARLY" if cadence.months else "FREQ=MONTHLY")
+        if cadence.months:
+            parts.append(f"BYMONTH={','.join(str(m) for m in cadence.months)}")
+        if cadence.week_of_month is not None:
+            if not days:
+                return None
+            parts.append(
+                f"BYDAY={','.join(f'{cadence.week_of_month}{d}' for d in days)}"
+            )
+        elif cadence.day_of_month is not None:
+            parts.append(f"BYMONTHDAY={cadence.day_of_month}")
+        else:
+            return None
+        if cadence.end_date is not None:
+            zone = dtstart.tzinfo or UTC
+            last = datetime.combine(cadence.end_date, dtstart.time(), tzinfo=zone)
+            parts.append(f"UNTIL={last.astimezone(UTC).strftime('%Y%m%dT%H%M%SZ')}")
+        return ";".join(parts)
 
     if cadence.days_of_week:
         # A weekday filter is FREQ=WEEKLY. With a stride of 1 the filter does all

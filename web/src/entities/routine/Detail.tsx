@@ -10,6 +10,10 @@ import type { Entity, Routine } from "@/services/api/types"
 
 const F = recordFields<Routine>()
 
+/** Months as the column stores them. Numbers, because that is what a cadence
+ *  holds; the series heading says it in words. */
+const MONTH_NUMBERS = ["1","2","3","4","5","6","7","8","9","10","11","12"] as const
+
 /**
  * A recurring occasion: the series behind everything the calendar draws for it.
  *
@@ -55,6 +59,12 @@ function SeriesDetail({ entity, onClose }: { entity: Entity; onClose: () => void
       <RecordSection title="Cadence">
         <F.MultiSelect field="days_of_week" label="Days" options={WEEKDAYS} />
         <F.Number field="interval_days" label="Every N days" />
+        {/* The calendar family: a position rather than a stride. Empty months
+            means every month; `week_of_month` with a weekday is "the nth such",
+            and −1 is the last. A birthday is months=[6], day 17. */}
+        <F.MultiSelect field="months" label="Months" options={MONTH_NUMBERS} />
+        <F.Number field="day_of_month" label="Day of the month" />
+        <F.Number field="week_of_month" label="Which week (−1 = last)" />
         <F.MultiSelect field="timing" label="Times of day" options={SLOTS} />
         <F.Number field="expected_minutes" label="Runs for (minutes)" />
       </RecordSection>
@@ -114,6 +124,13 @@ export function RoutineDetail({ entity, onClose }: { entity: Entity; onClose: ()
         // kinds that have nothing to infer from. Never a control, for the same
         // reason a moment's kind never is — see `schemas/routines.py`.
         "kind",
+        // The calendar family of the cadence — which months, which date, which
+        // week. A dose is taken on a stride ("every other day"), never on a
+        // position in the calendar ("the first Saturday"), so offering these
+        // here would suggest a regimen can be scheduled in a way it cannot.
+        "months",
+        "day_of_month",
+        "week_of_month",
         // Both belong to `occasion` rules, which this surface is scoped away
         // from (`listParams`): a dose takes no time and has no wall-clock slot
         // to hold in a zone. They are edited where a recurring series is —

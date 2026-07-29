@@ -70,12 +70,48 @@ def anchor_for(rule: Routine, protocol: Protocol | None) -> date:
     return rule.created_at.date()
 
 
+def nth_weekday_of_month(day: date) -> int:
+    """Which occurrence of its own weekday within the month ``day`` is."""
+    return (day.day - 1) // 7 + 1
+
+
+def is_last_weekday_of_month(day: date) -> bool:
+    return (day + timedelta(days=7)).month != day.month
+
+
 def is_due(rule: Routine, anchor: date | None, day: date) -> bool:
-    """Whether the rule's cadence lands on ``day`` (FHIR Timing subset)."""
+    """Whether the rule's cadence lands on ``day``.
+
+    Two families, and a rule is in one or the other. The **day/week** family
+    strides — every day, every 3 days, these weekdays — and is what the FHIR
+    Timing subset says. The **calendar** family selects — these months, this
+    date, the nth such weekday — which is what a birthday and a first-Saturday
+    film night are, and what our cadence could not say until now.
+
+    The stride is deliberately ignored once a calendar selector is present:
+    "every 3 days, on the first Saturday" is two cadences arguing, and honouring
+    both would silently produce a series that lands almost nowhere.
+    """
+    if rule.months and day.month not in rule.months:
+        return False
+    if rule.day_of_month is not None and day.day != rule.day_of_month:
+        return False
     if rule.days_of_week and _WEEKDAYS[day.weekday()] not in rule.days_of_week:
         return False
+    if rule.week_of_month is not None:
+        if rule.week_of_month == -1:
+            if not is_last_weekday_of_month(day):
+                return False
+        elif nth_weekday_of_month(day) != rule.week_of_month:
+            return False
+
+    selects = (
+        bool(rule.months)
+        or rule.day_of_month is not None
+        or rule.week_of_month is not None
+    )
     interval = rule.interval_days or 1
-    if interval > 1:
+    if interval > 1 and not selects:
         base = anchor or day
         if (day - base).days % interval != 0:
             return False

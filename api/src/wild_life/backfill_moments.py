@@ -129,8 +129,10 @@ class Backfill:
                     title = EXCLUDED.title,
                     body = EXCLUDED.body,
                     source = EXCLUDED.source
-                WHERE :changed_at IS NULL
-                   OR wild_life.moments.updated_at <= :changed_at
+                -- Cast required: compared only against NULL, Postgres cannot
+                -- infer the parameter's type and refuses the statement outright.
+                WHERE CAST(:changed_at AS timestamptz) IS NULL
+                   OR wild_life.moments.updated_at <= CAST(:changed_at AS timestamptz)
                 RETURNING id
             """),
             {
@@ -558,6 +560,9 @@ class Backfill:
                 timezone=e.timezone,
                 days_of_week=cadence.days_of_week,
                 interval_days=cadence.interval_days,
+                months=cadence.months,
+                day_of_month=cadence.day_of_month,
+                week_of_month=cadence.week_of_month,
                 start_date=local_start.date(),
                 end_date=cadence.end_date,
                 expected_minutes=minutes,
