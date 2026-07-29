@@ -53,6 +53,51 @@ Deliberately absent:
 - **`lapsed`** — derived, never written (`window_end < now AND started_at IS NULL
   AND withdrawn_at IS NULL`).
 
+## The shape, after the inversion
+
+```
+                       ┌────────────────────┐
+                       │      routines      │   THE RULE — one cadence for
+                       │     (the rule)     │   everything that recurs
+                       └─────┬────────┬─────┘
+                     rule_id │        │ rule_id
+             ┌───────────────┘        └────────────┐
+             ▼                                     ▼
+     ┌───────────────────┐                  ┌──────────────┐
+     │      moments      │                  │  rule_links  │
+     │    (the spine)    │                  └──────────────┘
+     └──┬────┬────┬───┬──┘
+        │    │    │   └──────────────────────────┐
+        │    │    └───────────────┐              │
+        ▼    ▼                    ▼              ▼
+ ┌─────────────┐ ┌──────────────────┐ ┌────────────────┐ ┌──────────────────┐
+ │ moment_links│ │ calendar_records │ │ moment_images  │ │  sent_invites    │
+ │             │ │ (the projection) │ │                │ │ attendee_responses│
+ └──────┬──────┘ └──────────────────┘ └────────────────┘ └──────────────────┘
+   link_id │
+     ┌─────┴──────┐
+     ▼            ▼
+┌──────────────┐ ┌─────────────┐
+│moment_readings│ │moment_doses │
+└──────────────┘ └─────────────┘
+```
+
+Five things the diagram is making a point about:
+
+- **`moments.rule_id` means two things, told apart by `occurrence_at`.** Null →
+  the *anchor*, the series' representative row that a projection hangs off. Set →
+  a *materialised occurrence*, one slot something happened to. Untouched
+  occurrences are not rows at all.
+- **Payload keys on the link, not the moment.** A lipid panel is one act with
+  five metrics at five values, so `value` belongs to the *pairing*.
+- **`moment_links` has no foreign key on its target.** Four closed roles
+  (participant · place · subject · mention) over a soft `entity_type`/`entity_id`,
+  because a moment may concern anything.
+- **`calendar_records` is 1:1 with a moment and optional**, which is the whole of
+  the privacy model: no record, nothing to export.
+- **The two iMIP ledgers hang off the moment**, because they record what has
+  already left the building.
+
 ## Migration mapping
 
 ### Becomes moments
@@ -224,6 +269,39 @@ the Log band), `EVENT_FIELDS`, `EVENT_TYPE`, `EventItem`, the `events` crud and
 the `event` registry entry. A person's page now reads `role=participant` — every
 moment they were actually *at*, which is the payoff of deleting the 325 self-edges
 and was unanswerable before.
+
+
+### Birthdays: two mechanisms, and how they should become one
+
+Measured 2026-07-29: **2 people carry `people.birthday`; 9 birthdays exist as
+yearly occasion rules** imported from the calendar. The two sets barely overlap,
+and the calendar layer in `services/calendar/sources.ts` computes its own from
+the first while knowing nothing of the second.
+
+The unification is not a name match. `Casey's birthday` matches two Caseys,
+`Melissa Birthday?` matches two Melissas, and `Mom's birthday`, `My Love's
+Birthday`, `Dylan`, `Hayley` and `Darry` match nobody. Guessing here would file a
+birthday onto the wrong person silently, which is worse than leaving it unfiled.
+
+So:
+
+1. **One mechanism: the rule.** The `birthday` layer in `sources.ts` goes.
+   Birthdays arrive through `/occurrences` like everything else, and therefore
+   appear on the timeline, in Coming Up, in reminders and on the person's page
+   without any of those being taught about birthdays.
+2. **`people.birthday` stays as the fact.** It is a date of birth — it carries a
+   *year*, which is what gives an age, and a yearly rule has no year. It is not a
+   schedule and should not be replaced by one.
+3. **A derived rule is generated from it**, `source_ref = person:<uuid>:birthday`,
+   `kind=occasion`, `months=[m]`, `day_of_month=d`, with a `subject` link to the
+   person. The same device, and the same idempotence, as every other mirror.
+4. **The nine imported series are filed by hand**, using the occasion triage the
+   Inbox already has — a `subject` link to a person is exactly what it writes.
+
+The open question worth deciding before building step 4: whether filing a
+birthday series onto a person should *set* `people.birthday`. It would be
+inferring a fact from a schedule, and the year is missing, so the honest answer
+is to offer it rather than do it.
 
 ### `notes.mood` is dropped, and would be a Metric if it ever comes back
 
