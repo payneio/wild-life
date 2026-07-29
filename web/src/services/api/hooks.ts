@@ -690,7 +690,7 @@ export interface DoseLog {
   slot?: string
   scheduled_date?: string // LOCAL day of the intake (dayOf(taken_at))
   completed_at?: string // actual time taken
-  notes?: string | null
+  context?: string | null // why this one went the way it did
 }
 
 /** Log an intake — always inserts a new event (extra / PRN / backdated / un-prescribed). */

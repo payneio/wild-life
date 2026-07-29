@@ -16,11 +16,15 @@ const isDesktop = () =>
   typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches
 
 /**
- * The persistent pop-out note. Portaled to `body` (so it escapes page clipping
- * and stays fixed across navigation), draggable by its header on desktop, and
- * collapsible to a header pill. Hosts the shared `NoteComposer`: a fresh note is
- * created on first save, after which the window flips to edit mode on the same
- * note so you keep typing into it.
+ * The persistent pop-out capture. Portaled to `body` (so it escapes page
+ * clipping and stays fixed across navigation), draggable by its header on
+ * desktop, and collapsible to a header pill. Hosts the shared `MomentComposer`:
+ * a fresh moment is created on first save, after which the window flips to edit
+ * mode on the same one so you keep typing into it.
+ *
+ * Its one job is the thought that arrives while you are doing something else —
+ * which is why it survives navigation and why it never roots itself to the page
+ * you happen to be on.
  */
 export function FloatingNoteWindow() {
   const { target, noteId, minimized, setActiveNoteId, close, setMinimized } = useFloatingNote()
@@ -63,14 +67,12 @@ export function FloatingNoteWindow() {
 
   if (!target) return null
 
-  // What the writing is about — from the saved moment's subject link, or the
-  // pending owner while still composing — shown as a link so you can jump back.
+  // What the writing turned out to be about — filed in the composer's own About
+  // picker, since nothing seeds a subject here any more. Shown as a link so you
+  // can jump to the thing you just filed it under.
   const saved = existing.data ? subjectOf(existing.data) : undefined
-  const rootType: EntityType | null = saved?.entity_type ?? target.owner?.type ?? null
-  const rootId = saved?.entity_id ?? target.owner?.id ?? null
-  // The subject says what this writing is, so the heading reads it rather than a
-  // genre column: writing from an event is writing meeting notes.
-  const heading = rootType === "event" ? "Meeting notes" : "Note"
+  const rootType: EntityType | null = saved?.entity_type ?? null
+  const rootId = saved?.entity_id ?? null
 
   let body
   if (noteId) {
@@ -98,8 +100,7 @@ export function FloatingNoteWindow() {
       <p className="px-1 py-6 text-center text-sm text-slate-400">Loading…</p>
     )
   } else {
-    // Create mode — first save creates the note (rooted to the target owner),
-    // then we flip to edit mode on it.
+    // Create mode — first save creates the note, then we flip to edit mode on it.
     body = (
       <MomentComposer
         key="new"
@@ -107,16 +108,12 @@ export function FloatingNoteWindow() {
         autoFocus
         createLabel="Save"
         placeholder="Take notes…"
-        // The two acts this one window can be, told apart by what the gesture
-        // already knew. Opened *from* a record, it is an observation about that
-        // record. Opened bare (⌘⇧N), the surface genuinely cannot know what you
-        // are writing — and that unresolved kind *is* the inbox, a state rather
-        // than a lack.
-        kind={target.owner ? "observation" : "capture"}
-        // Seeded rather than overridden: the composer owns the subject, so
-        // spreading the target *after* the body would silently discard a choice
-        // the user just made in it.
-        defaultSubject={target.owner ?? null}
+        // Always a capture: the dock is what you reach for when you have a
+        // thought and no page for it, so the surface genuinely cannot know what
+        // you are writing — and that unresolved kind *is* the inbox, a state
+        // rather than a lack. Filing it is the composer's About picker, or
+        // triage later.
+        kind="capture"
         onSubmit={(b, pending) => {
           void submitCreate(b, pending).then((n) => setActiveNoteId(n.id))
         }}
@@ -140,7 +137,7 @@ export function FloatingNoteWindow() {
         className="flex select-none items-center gap-2 border-b border-slate-100 bg-slate-50/70 px-3 py-2 lg:cursor-move"
       >
         <NotebookPen size={14} className="shrink-0 text-slate-400" />
-        <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-700">{heading}</span>
+        <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-700">Capture</span>
         <GripHorizontal size={14} className="hidden shrink-0 text-slate-300 lg:block" />
         <button
           type="button"

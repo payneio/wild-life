@@ -6,10 +6,15 @@ import { typeLabel, useEntityResolver } from "@/services/api/mentions"
 import type { EntityType } from "@/services/api/types"
 
 /**
- * The entity a note is *rooted to* (its scalar entity_type/entity_id owner —
- * "is about", singular), as opposed to the mentions it references. Polymorphic:
- * pick a type, then pick a row, writing both columns at once. Used only on the
- * note detail, so a note can be re-rooted or a promoted scratch-blob re-homed.
+ * The one object a row is *filed under* — its scalar `entity_type`/`entity_id`
+ * pair ("is about", singular), as opposed to anything it merely references.
+ * Polymorphic: pick a type, then pick a row, writing both columns at once.
+ *
+ * Used by the eight objects that carry the pair — commitment, decision,
+ * delegation, metric, metric group, outcome, request, resource. It was named
+ * `NoteRootField` and documented as being for the note detail; notes have been
+ * moments for a while and a moment files itself through `links`, so the name was
+ * pointing at the one surface that no longer uses it.
  */
 const ROOTABLE_TYPES: EntityType[] = [
   "area",
@@ -17,7 +22,6 @@ const ROOTABLE_TYPES: EntityType[] = [
   "project",
   "outcome",
   "task",
-  "event",
   "person",
   "commitment",
   "request",
@@ -35,7 +39,7 @@ const ROOTABLE_TYPES: EntityType[] = [
   "routine",
 ]
 
-export function NoteRootField({
+export function RootField({
   entityType,
   entityId,
   onSave,
@@ -106,7 +110,7 @@ export function NoteRootField({
             <EntityPicker
               getAnchor={() => btnRef.current}
               type={type}
-              // Rooting a note to the finished project it's about is the
+              // Rooting a record to the finished project it's about is the
               // ordinary case, not an error.
               intent="reference"
               allowCreate={false}

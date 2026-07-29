@@ -4,9 +4,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { MemoryRouter } from "react-router-dom"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import type { Body } from "@/services/api/crud"
+import { MOMENT } from "@/test/fixtures"
 
 const created: Body[] = []
 const scopes: unknown[] = []
+/** The stream the mocked year query returns; set per test. */
+const rows: unknown[] = []
+/** The grouped counts that decide whether a log is an archive or a short list. */
+const buckets: { year: number; month: number; count: number }[] = []
 
 // Partial: the registry (reached through the composer's pickers) constructs a
 // crud for every entity at module scope, so a total mock cannot load.
@@ -25,9 +30,9 @@ vi.mock("@/services/api/hooks", async (importOriginal) => ({
   },
   useMomentsCalendar: (scope: unknown) => {
     scopes.push(scope)
-    return { data: [] }
+    return { data: buckets }
   },
-  useMomentYear: () => ({ data: [], isLoading: false }),
+  useMomentYear: () => ({ data: rows, isLoading: false }),
   useMomentCorpus: () => ({ data: [], isFetching: false }),
   useMomentsMentioning: () => ({ data: [] }),
 }))
@@ -59,7 +64,22 @@ async function write(text: string) {
 beforeEach(() => {
   created.length = 0
   scopes.length = 0
+  rows.length = 0
+  buckets.length = 0
 })
+
+/** One prose entry, filed at `subject`, in the year the stream is showing. */
+function entry(id: string, kind: string, subject: { type: string; id: string } | null) {
+  return {
+    ...MOMENT,
+    id,
+    kind,
+    title: `Entry ${id}`,
+    links: subject
+      ? [{ role: "subject", entity_type: subject.type, entity_id: subject.id }]
+      : [],
+  }
+}
 
 /**
  * The rule this pins is the one the whole vocabulary rests on: **kind is written
@@ -113,5 +133,61 @@ describe("what a log writes", () => {
     // that program's Log *and* in its "Mentioned in" panel directly below.
     mount(<Log subject={{ type: "program", id: "P1" }} base="/moments" />)
     expect((scopes[0] as { role: string[] }).role).not.toContain("mention")
+  })
+})
+
+/**
+ * What a log doesn't say twice.
+ *
+ * Every one of these was a line that restated its own context: the entry's
+ * subject is the record you opened, its kind is the only kind present, and a
+ * search box over four rows searches what you can already see. The rule is the
+ * same one that took the subject chip out of `Involves` — a log says what the
+ * frame doesn't.
+ */
+describe("what a scoped log leaves out", () => {
+  it("drops the About chip when the subject is the record you're on", () => {
+    rows.push(entry("m1", "observation", { type: "program", id: "P1" }))
+    mount(<Log subject={{ type: "program", id: "P1" }} base="/moments" />)
+    expect(screen.queryByTitle("About")).toBeNull()
+  })
+
+  it("keeps it when the entry is about something else", () => {
+    // Here as a participant or a place, filed under something else — the chip
+    // is the only thing saying so, so hiding it would lose the fact.
+    rows.push(entry("m1", "observation", { type: "task", id: "T9" }))
+    mount(<Log subject={{ type: "program", id: "P1" }} base="/moments" />)
+    expect(screen.getByTitle("About")).toBeTruthy()
+  })
+
+  it("drops the kind badge when every row is the same act", () => {
+    rows.push(entry("m1", "observation", null), entry("m2", "observation", null))
+    mount(<Log subject={{ type: "program", id: "P1" }} base="/moments" />)
+    expect(screen.queryByText("Note")).toBeNull()
+  })
+
+  it("shows the badge as soon as the stream is mixed", () => {
+    rows.push(entry("m1", "observation", null), entry("m2", "capture", null))
+    mount(<Log subject={{ type: "program", id: "P1" }} base="/moments" />)
+    // Both a badge (a span on the row) and an option in the kind filter, which
+    // only appears for the same reason — so match the badge specifically.
+    const badge = (label: string) =>
+      screen.getAllByText(label).some((el) => el.tagName === "SPAN")
+    expect(badge("Note")).toBe(true)
+    expect(badge("Capture")).toBe(true)
+  })
+
+  it("offers no search until the log is an archive", () => {
+    rows.push(entry("m1", "observation", null))
+    buckets.push({ year: 2026, month: 7, count: 1 })
+    mount(<Log subject={{ type: "program", id: "P1" }} base="/moments" />)
+    expect(screen.queryByPlaceholderText("Search…")).toBeNull()
+  })
+
+  it("offers it once there is more than one screen of history", () => {
+    rows.push(entry("m1", "observation", null))
+    buckets.push({ year: 2026, month: 7, count: 40 })
+    mount(<Log subject={{ type: "program", id: "P1" }} base="/moments" />)
+    expect(screen.getByPlaceholderText("Search…")).toBeTruthy()
   })
 })

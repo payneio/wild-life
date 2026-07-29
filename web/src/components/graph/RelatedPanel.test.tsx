@@ -6,10 +6,6 @@ import { RelatedPanel } from "@/components/graph/RelatedPanel"
 import type { EntityDef, RelationSpec } from "@/services/api/registry"
 import type { Entity } from "@/services/api/types"
 
-vi.mock("@/notes/floatingNoteContext", () => ({
-  useFloatingNote: () => ({ openNote: vi.fn() }),
-}))
-
 /**
  * `involves` decides whether an *empty* panel is offered. It must never decide
  * whether data is visible.

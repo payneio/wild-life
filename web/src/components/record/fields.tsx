@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react"
 import { EntityRefField } from "@/components/graph/EntityRefField"
 import { RecurrenceEditor } from "@/components/RecurrenceEditor"
-import { NoteRootField } from "@/components/graph/NoteRootField"
+import { RootField } from "@/components/graph/RootField"
 import { AttendeeEditor } from "@/components/calendar/AttendeeEditor"
 import { MentionText } from "@/components/MentionText"
 import { useField, useFields } from "@/components/record/context"
@@ -472,7 +472,7 @@ export function RecordRoot({ label = "Filed in" }: { label?: string }) {
   const { row, save } = useFields(["entity_type", "entity_id"])
   return (
     <Wrap label={label} full>
-      <NoteRootField
+      <RootField
         entityType={(row.entity_type as string | null) ?? null}
         entityId={(row.entity_id as string | null) ?? null}
         onSave={(body) => save(body as Record<string, unknown>)}
@@ -480,7 +480,6 @@ export function RecordRoot({ label = "Filed in" }: { label?: string }) {
     </Wrap>
   )
 }
-
 
 /**
  * A chip-toggle set over a string[] column.

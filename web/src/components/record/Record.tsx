@@ -9,7 +9,6 @@ import { InvolvesControl } from "@/components/record/InvolvesControl"
 import { RelatedPanel } from "@/components/graph/RelatedPanel"
 import { RecordContext, useCoverage } from "@/components/record/context"
 import { Button } from "@/components/ui/primitives"
-import { useFloatingNote } from "@/notes/floatingNoteContext"
 import { formatInstant } from "@/lib/date"
 import type { Body } from "@/services/api/crud"
 import { optionalPanels, REGISTRY_BY_TYPE, type EntityDef } from "@/services/api/registry"
@@ -53,10 +52,18 @@ export function Record({
 }) {
   const update = def.crud.useUpdate()
   const remove = def.crud.useRemove()
-  const { openNote } = useFloatingNote()
   const [merging, setMerging] = useState(false)
   const registry = useRef<Set<string>>(new Set())
   const row = entity as unknown as Record<string, unknown>
+
+  // Scroll the Log into view and hand the writer the cursor. Two steps because
+  // they are two different things: where the page is, and where you are typing.
+  const logRef = useRef<HTMLDivElement>(null)
+  const [focusLog, setFocusLog] = useState(0)
+  const writeInLog = useCallback(() => {
+    logRef.current?.scrollIntoView({ block: "start", behavior: "smooth" })
+    setFocusLog((n) => n + 1)
+  }, [])
 
   const save = useCallback(
     (field: string, value: unknown) =>
@@ -109,17 +116,15 @@ export function Record({
             {taskDone ? "Reopen" : "Complete"}
           </Button>
         )}
+        {/* Not a second composer — the one in the Log band below, brought to
+            you. A record that opened a pop-out offered two ways to write the
+            same observation about the same thing, one of them a 380px window
+            floating over the stream the entry was about to join. On a long
+            record (an area with 66 metrics) the band is a long way down, so
+            what the button is really for is the distance. */}
         {def.entityType && def.entityType !== "moment" && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() =>
-              openNote({
-                owner: { type: def.entityType!, id: entity.id },
-              })
-            }
-          >
-            <NotebookPen size={14} /> {def.entityType === "event" ? "New meeting note" : "New note"}
+          <Button variant="ghost" size="sm" onClick={writeInLog}>
+            <NotebookPen size={14} /> Write
           </Button>
         )}
         {def.entityType && (
@@ -180,9 +185,15 @@ export function Record({
           unexplainable choice was the modelling defect this inversion fixes,
           surfacing as a UX one. */}
       {def.entityType && def.entityType !== "moment" && (
-        <Section title="Log">
-          <Log subject={{ type: def.entityType, id: entity.id }} base="/moments" />
-        </Section>
+        <div ref={logRef}>
+          <Section title="Log">
+            <Log
+              subject={{ type: def.entityType, id: entity.id }}
+              base="/moments"
+              focusSignal={focusLog}
+            />
+          </Section>
+        </div>
       )}
 
       {def.entityType && <Backlinks type={def.entityType} id={entity.id} />}

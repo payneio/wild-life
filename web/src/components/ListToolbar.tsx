@@ -13,6 +13,10 @@ export interface ToolbarProps {
   onSort: (v: string) => void
   /** Present when this list has finished rows to account for. */
   closed?: { count: number; showing: boolean; onToggle: () => void }
+  /** Drop the search box for a list short enough to read — a record's Log below
+   *  the archive threshold, where a filter is still worth offering but a search
+   *  over four entries is a box you'd have to scroll past. */
+  hideSearch?: boolean
 }
 
 /** Consistent list toolbar: search + filter dropdowns + sort. */
@@ -25,21 +29,24 @@ export function ListToolbar({
   sortKey,
   onSort,
   closed,
+  hideSearch,
 }: ToolbarProps) {
   return (
     <div className="space-y-2">
-      <div className="relative">
-        <Search
-          size={15}
-          className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-slate-400"
-        />
-        <Input
-          className="pl-8"
-          placeholder="Search…"
-          value={search}
-          onChange={(e) => onSearch(e.target.value)}
-        />
-      </div>
+      {!hideSearch && (
+        <div className="relative">
+          <Search
+            size={15}
+            className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-slate-400"
+          />
+          <Input
+            className="pl-8"
+            placeholder="Search…"
+            value={search}
+            onChange={(e) => onSearch(e.target.value)}
+          />
+        </div>
+      )}
       {(config.filters.length > 0 || config.sorts.length > 0) && (
         <div className="flex flex-wrap gap-2">
           {config.filters.map((f) => (

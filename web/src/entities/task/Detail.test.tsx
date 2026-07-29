@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { MemoryRouter } from "react-router-dom"
-import { describe, expect, it, vi } from "vitest"
+import { describe, expect, it } from "vitest"
 import { Record } from "@/components/record/Record"
 import { recordFields } from "@/components/record/typed"
 import { REGISTRY } from "@/services/api/registry"
@@ -10,10 +10,6 @@ import { OFF_LANE, STEPS } from "@/entities/task/status"
 import { TASK_STATUS } from "@/services/api/enums"
 import { TASK } from "@/test/fixtures"
 import type { Task } from "@/services/api/types"
-
-vi.mock("@/notes/floatingNoteContext", () => ({
-  useFloatingNote: () => ({ openNote: vi.fn() }),
-}))
 
 function mount(ui: React.ReactNode) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })

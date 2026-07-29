@@ -1,10 +1,9 @@
 import { useRef, useState } from "react"
-import { NotebookPen, Plus, X } from "lucide-react"
+import { Plus, X } from "lucide-react"
 import { StatusBadge } from "@/components/cells"
 import { Section } from "@/components/detail/kit"
 import { EntityPicker } from "@/components/graph/EntityPicker"
 import { EntityRef } from "@/components/graph/EntityRef"
-import { useFloatingNote } from "@/notes/floatingNoteContext"
 import type { Body } from "@/services/api/crud"
 import { byLifecycle } from "@/services/api/lifecycle"
 import type { EntityDef, RelationSpec } from "@/services/api/registry"
@@ -37,10 +36,8 @@ export function RelatedPanel({
   // one order it shows had better be the one you read in.
   const items = byLifecycle(spec.type, targetDef.crud.useList(params).data ?? [])
   const update = targetDef.crud.useUpdate()
-  const { openNote } = useFloatingNote()
   const [open, setOpen] = useState(false)
   const addRef = useRef<HTMLButtonElement>(null)
-  const isNotes = spec.type === "note"
 
   // Whether an *empty* panel is offered at all.
   //
@@ -86,27 +83,16 @@ export function RelatedPanel({
     <Section
       title={`${spec.label} · ${items.length}`}
       action={
-        <div className="flex items-center gap-1">
-          {isNotes && (
-            <button
-              type="button"
-              onClick={() => openNote({ owner: { type: parentType, id: parent.id } })}
-              className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
-            >
-              <NotebookPen size={13} /> New note
-            </button>
-          )}
-          {!readOnly && (
-            <button
-              ref={addRef}
-              type="button"
-              onClick={() => setOpen(true)}
-              className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
-            >
-              <Plus size={13} /> {isNotes ? "Link" : "Add"}
-            </button>
-          )}
-        </div>
+        !readOnly && (
+          <button
+            ref={addRef}
+            type="button"
+            onClick={() => setOpen(true)}
+            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+          >
+            <Plus size={13} /> Add
+          </button>
+        )
       }
     >
       {/* Some objects can't be made from a title alone — an event needs a when.

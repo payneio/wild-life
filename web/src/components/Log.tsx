@@ -36,6 +36,10 @@ import {
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
+/** Whose log this is — null in the Journal, which is scoped by kind instead.
+ *  Rows repeat what it already names, so it is what the entries subtract. */
+type Scope = { type: EntityType; id: string } | null
+
 function entryTime(m: Moment): string {
   // An all-day moment has no clock time to show — it was anchored to noon so the
   // day would render right, and printing "12:00 PM" would be reporting that
@@ -56,12 +60,15 @@ function KindBadge({ kind }: { kind: MomentKind }) {
 }
 
 /** The chips for what a moment involves, minus the subject the header already
- *  names — repeating it is what made 18 of 20 backlink rows duplicates. */
-function Involves({ moment }: { moment: Moment }) {
+ *  names — repeating it is what made 18 of 20 backlink rows duplicates — and
+ *  minus the thing whose log this is, for the same reason one level up. */
+function Involves({ moment, scope }: { moment: Moment; scope: Scope }) {
   const resolve = useEntityResolver()
   const subject = subjectOf(moment)
   const rest = moment.links.filter(
-    (l) => !(l.role === "subject" && l.entity_id === subject?.entity_id),
+    (l) =>
+      !(l.role === "subject" && l.entity_id === subject?.entity_id) &&
+      !(scope && l.entity_type === scope.type && l.entity_id === scope.id),
   )
   if (rest.length === 0) return null
   return (
@@ -87,21 +94,26 @@ const ProseEntry = memo(function ProseEntry({
   focused,
   base,
   showKind,
+  scope,
   onEdit,
   onDelete,
 }: {
   moment: Moment
   focused: boolean
   base: string
-  /** Off in a single-kind stream (the Journal), where every badge would say the
-   *  same word; on in a record's mixed timeline, where the act is the news. */
+  /** Off in a single-kind stream, where every badge would say the same word; on
+   *  in a mixed timeline, where the act is the news. */
   showKind: boolean
+  scope: Scope
   onEdit: (id: string) => void
   onDelete: (id: string) => void
 }) {
   const resolve = useEntityResolver()
   const navigate = useNavigate()
-  const subject = subjectOf(moment)
+  // The "about" button, unless it points at the record you are reading it on.
+  const own = subjectOf(moment)
+  const subject =
+    scope && own && own.entity_type === scope.type && own.entity_id === scope.id ? undefined : own
   return (
     <Card
       className={`group space-y-2 p-4 transition ${
@@ -158,7 +170,7 @@ const ProseEntry = memo(function ProseEntry({
 
       <MentionText>{moment.body || "_Empty entry._"}</MentionText>
 
-      <Involves moment={moment} />
+      <Involves moment={moment} scope={scope} />
 
       {focused && <Backlinks type="moment" id={moment.id} />}
     </Card>
@@ -291,6 +303,8 @@ export function Log({
   heading,
   base,
   deepLink = false,
+  autoFocus = false,
+  focusSignal,
 }: {
   /** Whose timeline this is. Null in the Journal, which is scoped by kind. */
   subject?: { type: EntityType; id: string } | null
@@ -304,6 +318,14 @@ export function Log({
    *  the Journal; inside a record the param is the record's own id, and fetching
    *  a moment by it would be a request that can only 404. */
   deepLink?: boolean
+  /** Put the cursor in the composer on mount. True where the log *is* the page
+   *  and writing is why you came (the Journal). False in a record's band, where
+   *  focusing scrolls a page you opened to read straight past the record to its
+   *  log — the composer sat 900px down and the browser jumped to it. */
+  autoFocus?: boolean
+  /** Bumped by an owner surface to focus the composer on demand — a record's
+   *  Write button, which jumps here rather than opening a second composer. */
+  focusSignal?: number
 }) {
   const params = useParams()
   const id = deepLink ? params.id : undefined
@@ -325,9 +347,11 @@ export function Log({
     [kind, subjectType, subjectId],
   )
   const scoped = !subject || !!subject.id
-  // A record's Log is a mixed stream, so each row says what act it is; the
-  // Journal is all one kind and the badge would repeat itself 253 times.
-  const showKind = !kind
+  // What this log is *of*, for the rows to subtract from themselves.
+  const about = useMemo<Scope>(
+    () => (subjectType && subjectId ? { type: subjectType, id: subjectId } : null),
+    [subjectType, subjectId],
+  )
 
   // One cheap grouped count answers both questions: which years exist, and
   // whether there are enough entries to be worth navigating.
@@ -391,22 +415,30 @@ export function Log({
     return focused && !list.some((m) => m.id === focused.id) ? [focused, ...list] : list
   }, [data, focused])
 
-  // Filter by the act, which is the one facet a mixed timeline has that a list
-  // of notes did not. Options reflect what is actually present this year, and
-  // the filter is absent in a single-kind stream where it could only say one
-  // thing.
+  // What acts are actually in front of you. One derivation answers two
+  // questions — whether the kind filter has anything to choose between, and
+  // whether the badge on each row is telling you something. A record's log is
+  // *usually* mixed but often isn't: a project with four notes and nothing else
+  // printed the word "NOTE" four times, the same repetition the Journal's
+  // single-kind stream was already spared.
+  const kindsPresent = useMemo(
+    () => Array.from(new Set(rows.map((m) => m.kind))).sort(),
+    [rows],
+  )
+  const showKind = kindsPresent.length > 1
   const config = useMemo<ListConfig>(() => {
-    const kinds = Array.from(new Set(rows.map((m) => m.kind))).sort()
     const filters: FilterDef[] = []
-    if (kinds.length > 1)
+    if (kindsPresent.length > 1)
       filters.push({
         field: "kind",
         label: "Kind",
-        options: kinds,
-        optionLabels: Object.fromEntries(kinds.map((k) => [k, KIND_LABEL[k]])),
+        options: kindsPresent,
+        optionLabels: Object.fromEntries(kindsPresent.map((k) => [k, KIND_LABEL[k]])),
       })
-    return { searchKeys: ["title", "body"], filters, sorts: [{ key: "default", label: "Newest", field: "" }] }
-  }, [rows])
+    // No sort control: there is one order a log can be in, and offering a select
+    // with a single option named "Newest" is chrome pretending to be a choice.
+    return { searchKeys: ["title", "body"], filters, sorts: [] }
+  }, [kindsPresent])
 
   const { filtered, toolbarProps } = useListFilter(
     rows as unknown as Record<string, unknown>[],
@@ -485,7 +517,8 @@ export function Log({
             about its subject, the Journal writes a reflection. Never asked. */}
         <MomentComposer
           mode="create"
-          autoFocus
+          autoFocus={autoFocus}
+          focusSignal={focusSignal}
           kind={kind ?? "observation"}
           defaultSubject={subject ?? null}
           onSubmit={(b, pending) =>
@@ -516,7 +549,17 @@ export function Log({
         </div>
       )}
 
-      <ListToolbar {...toolbarProps} search={search} onSearch={setSearch} />
+      {/* Search is for an archive, not for the four entries you can already see;
+          the kind filter appears only when there is more than one act to choose
+          between. Below both thresholds a record's Log has no toolbar at all. */}
+      {(navigable || config.filters.length > 0) && (
+        <ListToolbar
+          {...toolbarProps}
+          search={search}
+          onSearch={setSearch}
+          hideSearch={!navigable}
+        />
+      )}
 
       {partial ? (
         <EmptyState>Type 3+ characters to search…</EmptyState>
@@ -586,6 +629,7 @@ export function Log({
                         focused={n.id === id}
                         base={base}
                         showKind={showKind}
+                        scope={about}
                         onEdit={handleEdit}
                         onDelete={handleDelete}
                       />

@@ -155,9 +155,6 @@ export interface EntityDef {
    *  already says when — but the seam stays because the reason it existed is
    *  still true of any object a title cannot make. */
   capture?: ComponentType<{ root: { type: EntityType; id: string } }>
-  /** If set, the detail shows a polymorphic "primary context" picker (writes the
-   *  entity_type/entity_id soft-poly pair) under this label — e.g. "Rooted to"
-   *  for notes, "About" for events. */
   /**
    * The one object this is filed under — ancestry, declared once.
    *

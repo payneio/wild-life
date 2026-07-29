@@ -307,10 +307,9 @@ export function PersonForm({
       />
       <DateRows rows={dates} onChange={setDates} />
 
-      {/* No scalar "notes" field: 1e42b56 moved planning/CRM entities to
-          first-class Note objects rooted at the person (see the Notes panel on
-          PeoplePage), so a textarea here would write to a column that no
-          longer exists. */}
+      {/* No scalar "notes" field: what you'd write here is a moment about this
+          person, which belongs in their Log band (`PeoplePage`), not in a
+          column — see AGENTS.md, "no column may be named notes". */}
 
       <div className="col-span-2 mt-2 flex justify-end gap-2">
         <Button type="button" variant="secondary" onClick={onCancel}>

@@ -57,7 +57,7 @@ export function LogDoseModal({
   const [unit, setUnit] = useState(defaultUnit ?? "")
   const [when, setWhen] = useState(instantToLocalInput(nowInstant()))
   const [slot, setSlot] = useState(defaultSlot)
-  const [notes, setNotes] = useState("")
+  const [context, setContext] = useState("")
 
   const save = () => {
     const taken = localInputToInstant(when) ?? nowInstant()
@@ -70,7 +70,7 @@ export function LogDoseModal({
         slot,
         scheduled_date: dayOf(taken),
         completed_at: taken,
-        notes: notes.trim() || null,
+        context: context.trim() || null,
       },
       {
         onSuccess: (inst) => {
@@ -140,10 +140,15 @@ export function LogDoseModal({
           ))}
         </Select>
       </Field>
-      <Field label="Note (optional)">
+      {/* Named for the question it answers — why this intake went the way it
+          did — which is the column it writes (`routine_instances.context`). It
+          was labelled "Note" and posted a `notes` key the API stopped having
+          when the notes columns were retired, so pydantic dropped it and every
+          word typed here was lost. */}
+      <Field label="How it went (optional)">
         <Textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
+          value={context}
+          onChange={(e) => setContext(e.target.value)}
           placeholder="e.g. felt nauseous, took with food"
         />
       </Field>

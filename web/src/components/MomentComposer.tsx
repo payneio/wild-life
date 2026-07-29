@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Eye, Home, Image as ImageIcon, Link2, PencilLine, Settings2, X } from "lucide-react"
 import { AutoTextarea } from "@/components/AutoTextarea"
 import { EntityCombobox } from "@/components/EntityCombobox"
@@ -51,6 +51,7 @@ export function MomentComposer({
   onCancel,
   mode,
   autoFocus,
+  focusSignal,
   compact,
   placeholder = "What's on your mind?",
   createLabel = "Post",
@@ -64,6 +65,10 @@ export function MomentComposer({
   onCancel?: () => void
   mode: "create" | "edit"
   autoFocus?: boolean
+  /** Focus on demand: a changed value puts the cursor here. For a surface that
+   *  wants to hand the writer over without owning the composer's ref — a record
+   *  jumping to its Log band. */
+  focusSignal?: number
   compact?: boolean
   placeholder?: string
   /** Label for the create-mode submit button ("Post" in the journal, "Save" in the dock). */
@@ -91,6 +96,15 @@ export function MomentComposer({
   const [pending, setPending] = useState<PendingImage[]>([])
   const taRef = useRef<HTMLTextAreaElement>(null)
   const imgInputRef = useRef<HTMLInputElement>(null)
+
+  // Skips the initial render: an undefined/first signal must not focus, or
+  // every mounted composer would be `autoFocus` again by another name.
+  const lastSignal = useRef(focusSignal)
+  useEffect(() => {
+    if (focusSignal === undefined || focusSignal === lastSignal.current) return
+    lastSignal.current = focusSignal
+    taRef.current?.focus()
+  }, [focusSignal])
 
   // Links this composer does not own, preserved verbatim across a save.
   const foreignLinks = useMemo<MomentLink[]>(

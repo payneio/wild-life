@@ -10,6 +10,10 @@ import type { EntityType } from "@/services/api/types"
 // change_log.entity_type is the DB __tablename__ (plural). Map the tables that
 // have a detail route to their EntityType; child/link tables (interactions,
 // affiliations, metric_entries, …) are absent, so their labels stay plain text.
+//
+// `events` and `notes` are absent for the same reason, now that both are frozen
+// and neither has a surface: the history of a row you can no longer open reads
+// as a label, not as a link into a 404.
 const TABLE_TO_TYPE: Record<string, EntityType> = {
   tasks: "task",
   projects: "project",
@@ -18,8 +22,7 @@ const TABLE_TO_TYPE: Record<string, EntityType> = {
   outcomes: "outcome",
   metrics: "metric",
   routines: "routine",
-  events: "event",
-  notes: "note",
+  moments: "moment",
   people: "person",
   organizations: "organization",
   locations: "location",

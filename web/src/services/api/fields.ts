@@ -152,7 +152,6 @@ export const ORGANIZATION_FIELDS: FieldSpec[] = [
   { name: "phone", label: "Phone" },
   { name: "address", label: "Address", full: true },
   { name: "description", label: "Description", type: "textarea", full: true },
-  { name: "notes", label: "Notes", type: "textarea", full: true },
 ]
 
 export const LOCATION_FIELDS: FieldSpec[] = [
@@ -161,7 +160,6 @@ export const LOCATION_FIELDS: FieldSpec[] = [
   { name: "address", label: "Address", full: true },
   { name: "city", label: "City" },
   { name: "region", label: "Region" },
-  { name: "notes", label: "Notes", type: "textarea", full: true },
 ]
 
 export const MEDICATION_FIELDS: FieldSpec[] = [
@@ -172,7 +170,6 @@ export const MEDICATION_FIELDS: FieldSpec[] = [
   { name: "pharmacy_id", label: "Pharmacy", type: "entity", lookup: "organization" },
   { name: "reason", label: "Reason", type: "textarea" },
   { name: "instructions", label: "Instructions", type: "textarea" },
-  { name: "notes", label: "Notes", type: "textarea", full: true },
 ]
 
 export const PROTOCOL_FIELDS: FieldSpec[] = [
@@ -186,7 +183,6 @@ export const PROTOCOL_FIELDS: FieldSpec[] = [
   { name: "end_date", label: "End", type: "date" },
   { name: "provider_id", label: "Provider", type: "entity", lookup: "people" },
   { name: "intended_outcome", label: "Intended outcome", type: "textarea", full: true },
-  { name: "notes", label: "Notes", type: "textarea", full: true },
 ]
 
 // Dose-line (protocol_item) fields, shared by the protocol Steps editor and the
@@ -203,7 +199,6 @@ export const INSURANCE_FIELDS: FieldSpec[] = [
   { name: "rx_pcn", label: "RX PCN" },
   { name: "rx_group", label: "RX Group" },
   { name: "phone", label: "Phone" },
-  { name: "notes", label: "Notes", type: "textarea", full: true },
 ]
 
 export const ALLERGY_FIELDS: FieldSpec[] = [
@@ -213,7 +208,6 @@ export const ALLERGY_FIELDS: FieldSpec[] = [
   { name: "severity", label: "Severity", type: "select", options: ALLERGY_SEVERITY },
   { name: "status", label: "Status", type: "select", options: ALLERGY_STATUS },
   { name: "noted_on", label: "Noted on", type: "date" },
-  { name: "notes", label: "Notes", type: "textarea", full: true },
 ]
 
 export const AREA_FIELDS: FieldSpec[] = [
@@ -278,7 +272,6 @@ export const ROUTINE_FIELDS: FieldSpec[] = [
   { name: "status", label: "Status", type: "select", options: ["active", "paused", "archived"] },
   { name: "start_date", label: "Start", type: "date" },
   { name: "end_date", label: "End", type: "date" },
-  { name: "notes", label: "Notes", type: "textarea", full: true },
 ]
 
 // --- the registry -----------------------------------------------------------

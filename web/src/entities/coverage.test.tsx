@@ -1,15 +1,11 @@
 import { render } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { MemoryRouter } from "react-router-dom"
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it } from "vitest"
 import { setCoverageListener } from "@/components/record/context"
 import { REGISTRY } from "@/services/api/registry"
 import { FIXTURES, VARIANTS } from "@/test/fixtures"
 import type { Entity } from "@/services/api/types"
-
-vi.mock("@/notes/floatingNoteContext", () => ({
-  useFloatingNote: () => ({ openNote: vi.fn() }),
-}))
 
 /**
  * The completeness guarantee for hand-composed layouts.

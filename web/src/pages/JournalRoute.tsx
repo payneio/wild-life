@@ -16,7 +16,10 @@ import { Log } from "@/components/Log"
 export function JournalRoute() {
   return (
     <div className="mx-auto max-w-4xl">
-      <Log kind="reflection" heading="Journal" base="/notes" deepLink />
+      {/* The one surface that takes the cursor on arrival: here the log *is*
+          the page and the composer is the first thing on it, so focusing moves
+          nothing. In a record's band it scrolled the page past the record. */}
+      <Log kind="reflection" heading="Journal" base="/notes" deepLink autoFocus />
     </div>
   )
 }

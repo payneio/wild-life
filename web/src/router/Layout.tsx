@@ -393,8 +393,10 @@ export function Layout() {
   const [moreOpen, setMoreOpen] = useState(false)
   const { openNote } = useFloatingNote()
 
-  // Global quick-capture: ⌘/Ctrl+Shift+N pops out a fresh, unrooted note from
-  // anywhere, so a stray thought never means losing your place.
+  // Global quick-capture: ⌘/Ctrl+Shift+N pops out a fresh, unrooted capture
+  // from anywhere, so a stray thought never means losing your place. Writing
+  // *about* something is a different act with a different home — the Log band
+  // on that thing's record — so nothing here roots itself to the current page.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === "N" || e.key === "n")) {
@@ -434,12 +436,12 @@ export function Layout() {
           <div className="flex items-center gap-1">
             <button
               type="button"
-              title="New note (⌘⇧N)"
+              title="Capture (⌘⇧N)"
               onClick={() => openNote({})}
               className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
             >
               <NotebookPen size={17} />
-              <span className="hidden sm:inline">New note</span>
+              <span className="hidden sm:inline">Capture</span>
             </button>
             <ReminderToggle />
             <ThemeToggle />

@@ -1,12 +1,17 @@
 import { createContext, useContext } from "react"
-import type { EntityType } from "@/services/api/types"
 
-/** What to open the dock on. `null` target = dock closed. */
+/**
+ * What to open the dock on. `null` target = dock closed.
+ *
+ * There is deliberately nothing here naming a subject. The dock is **capture
+ * from anywhere** — ⌘⇧N, no page, no root, and that unresolved kind is the
+ * Inbox. Writing *about* something has one place, the Log band on that thing's
+ * record, and it was the pop-out's ability to be a second one that let a record
+ * offer two composers for the same act.
+ */
 export interface FloatingNoteTarget {
   /** Reopen an existing note in edit mode. */
   noteId?: string
-  /** Root the (new) note to this entity via its scalar entity_type/entity_id. */
-  owner?: { type: EntityType; id: string }
 }
 
 export interface FloatingNoteState {

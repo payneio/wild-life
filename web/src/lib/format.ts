@@ -1,6 +1,4 @@
 import type { Priority } from "@/services/api/types"
-import type { CalendarDay, Instant } from "@/lib/date"
-import { asDay, dayLabel } from "@/lib/date"
 
 // Date/time helpers now live in @/lib/date (branded + Temporal-backed). Re-export
 // the names existing call sites already use.
@@ -46,28 +44,6 @@ export function statusClass(status: string): string {
   if (["in_progress", "active", "delivered", "delegated", "requested", "accepted"].includes(s))
     return "bg-indigo-100 text-indigo-700"
   return "bg-slate-100 text-slate-600"
-}
-
-// --- journal day grouping ---------------------------------------------------
-/** Bucket notes into day groups (by entry_date, falling back to created_at),
- * preserving the incoming (newest-first) order. */
-export function groupNotesByDay<
-  T extends { entry_date: CalendarDay | null; created_at: Instant },
->(notes: T[]): { key: string; label: string; notes: T[] }[] {
-  const groups: { key: string; label: string; notes: T[] }[] = []
-  const byKey = new Map<string, { key: string; label: string; notes: T[] }>()
-  for (const n of notes) {
-    const stamp = n.entry_date ?? n.created_at
-    const key = asDay(stamp)
-    let g = byKey.get(key)
-    if (!g) {
-      g = { key, label: dayLabel(stamp), notes: [] }
-      byKey.set(key, g)
-      groups.push(g)
-    }
-    g.notes.push(n)
-  }
-  return groups
 }
 
 /** A band in words: "90–130", "under 100", "at least 4". Either bound may be

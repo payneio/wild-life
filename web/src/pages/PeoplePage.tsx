@@ -21,13 +21,12 @@ import {
 } from "lucide-react"
 import { AffiliationsEditor } from "@/components/AffiliationsEditor"
 import { Backlinks } from "@/components/Backlinks"
-import { KIND_LABEL, whenOf } from "@/lib/moments"
+import { Log } from "@/components/Log"
 import { MergeDialog } from "@/components/MergeDialog"
 import { Avatar } from "@/components/AuthedImage"
 import { PersonForm } from "@/components/PersonForm"
 import { StatusBadge } from "@/components/cells"
 import { EntityRef } from "@/components/graph/EntityRef"
-import { RelatedPanel } from "@/components/graph/RelatedPanel"
 import {
   Badge,
   Button,
@@ -48,11 +47,9 @@ import {
   people,
   tasks,
   useDeletePersonPhoto,
-  usePersonOccasions,
   useUploadPersonPhoto,
   requests,
 } from "@/services/api/hooks"
-import { REGISTRY_BY_TYPE } from "@/services/api/registry"
 import type { ContactMethod, EntityType, Person } from "@/services/api/types"
 import { formatPhone, phoneDigits } from "@/lib/phone"
 
@@ -420,8 +417,9 @@ function PersonDetail({
         />
       )}
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div className="space-y-4">
+      {/* Contact and Dates share the row the Log used to take half of; the Log
+          is a full-width band now, like it is on every other record. */}
+      <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2">
           {(person.phones.length > 0 ||
             person.emails.length > 0 ||
             person.addresses.length > 0 ||
@@ -484,24 +482,11 @@ function PersonDetail({
               </ul>
             </Section>
           )}
-        </div>
-
-        <div className="space-y-4">
-          <RelatedPanel
-            parent={person}
-            parentType="person"
-            spec={{ mode: "soft-backref", label: "Log", type: "note" }}
-            targetDef={REGISTRY_BY_TYPE.note!}
-          />
-        </div>
       </div>
 
       <Section title="Organizations">
         <AffiliationsEditor personId={person.id} />
       </Section>
-
-      <PersonEventsSection personId={person.id} />
-
 
       <Section title="Related">
         <RelatedSection personId={person.id} />
@@ -511,37 +496,17 @@ function PersonDetail({
         <AssistantAccessSection person={person} />
       </Section>
 
+      {/* The same band every record carries, in the same place — a person's log
+          is the moments they are the subject of *or* were at, which is what
+          `TIMELINE_ROLES` means. The separate "Together" list this replaces was
+          the participant half of that query rendered twice: once here and once,
+          after this page was ported, inside the Log itself. */}
+      <Section title="Log">
+        <Log subject={{ type: "person", id: person.id }} base="/moments" />
+      </Section>
+
       <Backlinks type="person" id={person.id} />
     </Card>
-  )
-}
-
-// --- everything this person was at (participant links) ---------------------
-function PersonEventsSection({ personId }: { personId: string }) {
-  const navigate = useNavigate()
-  const events = usePersonOccasions(personId).data ?? []
-  if (events.length === 0) return null
-  return (
-    <Section title={`Together · ${events.length}`}>
-      <ul className="max-h-72 space-y-1 overflow-y-auto pr-1">
-        {events.slice(0, 50).map((e) => (
-          <li key={e.id}>
-            <button
-              type="button"
-              onClick={() => navigate(`/moments/${e.id}`)}
-              className="flex w-full items-center gap-2 rounded-lg border border-slate-100 bg-surface px-3 py-2 text-left transition hover:border-slate-300"
-            >
-              <span className="min-w-0 flex-1 truncate text-sm text-slate-700">
-                {e.title || KIND_LABEL[e.kind]}
-              </span>
-              {whenOf(e) && (
-                <span className="shrink-0 text-xs text-slate-400">{formatDate(whenOf(e)!)}</span>
-              )}
-            </button>
-          </li>
-        ))}
-      </ul>
-    </Section>
   )
 }
 
