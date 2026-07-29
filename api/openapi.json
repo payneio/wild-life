@@ -4453,6 +4453,99 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "Identification": {
+        "description": "What is at a candidate's coordinates, looked up on request.\n\nSeparate from promoting, because you cannot sensibly decide to name a place\nbefore anything has told you what it is. Still explicit \u2014 the coordinate\nleaves the box when you ask this question and at no other time.",
+        "properties": {
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "postcode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Postcode"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "street": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Street"
+          }
+        },
+        "required": [
+          "display_name",
+          "name",
+          "street",
+          "city",
+          "region",
+          "postcode",
+          "country"
+        ],
+        "title": "Identification",
+        "type": "object"
+      },
       "IdentityRead": {
         "description": "Who the calling token acts as.\n\n`person_id` is the Person this token *is* \u2014 the owner's comes from\n`WILD_LIFE_SELF_PERSON_ID`, a worker token's from its own row. The web app\nuses it to put you at the top of assignee/responsible pickers, so it is\nresolved per token rather than read from a global default.",
         "properties": {
@@ -9024,8 +9117,7 @@
           "kind": {
             "enum": [
               "standard",
-              "target",
-              "deliverable"
+              "target"
             ],
             "title": "Kind",
             "type": "string"
@@ -9186,8 +9278,7 @@
           "kind": {
             "enum": [
               "standard",
-              "target",
-              "deliverable"
+              "target"
             ],
             "title": "Kind",
             "type": "string"
@@ -9369,8 +9460,7 @@
               {
                 "enum": [
                   "standard",
-                  "target",
-                  "deliverable"
+                  "target"
                 ],
                 "type": "string"
               },
@@ -22494,7 +22584,7 @@
     },
     "/outcomes/{outcome_id}/evaluation": {
       "get": {
-        "description": "Where an outcome stands right now, computed \u2014 never stored.\n\nOne rule per kind: a standard is in its band or breached, a target is a\nfraction of the way from baseline to the edge (and on pace or behind), a\ndeliverable is accepted or outstanding. An outcome with no metric is\n`unmeasured`, which is a legitimate state and not a failure.",
+        "description": "Where an outcome stands right now, computed \u2014 never stored.\n\nOne rule per kind: a standard is in its band or breached, a target is a\nfraction of the way from baseline to the edge (and on pace or behind). An\noutcome with no metric is `unmeasured`, which is a legitimate state and not\na failure.",
         "operationId": "evaluate_outcome_outcomes__outcome_id__evaluation_get",
         "parameters": [
           {
@@ -23051,6 +23141,50 @@
           }
         },
         "summary": "Dismiss",
+        "tags": [
+          "locations"
+        ]
+      }
+    },
+    "/place-candidates/{candidate_id}/identify": {
+      "post": {
+        "description": "Ask what is at these coordinates.\n\nThe review queue used to show a latitude and a longitude and ask you to name\nthe place, which is a question the card had given you no way to answer. This\nis that answer, and it is a button rather than something that happens on\nrender: the privacy rule is that a coordinate leaves the box only when you\nask it to, not that you should have to guess.",
+        "operationId": "place_candidate_identify",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "candidate_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Candidate Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Identification"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Identify",
         "tags": [
           "locations"
         ]

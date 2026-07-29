@@ -20,6 +20,7 @@ from wild_life.db.session import get_session
 from wild_life.geofence import invalidate_fences, rebuild_visits
 from wild_life.models.locations import Location, PlaceCandidate
 from wild_life.schemas.candidates import (
+    Identification,
     PlaceCandidateRead,
     PromoteRequest,
     PromoteResult,
@@ -62,6 +63,42 @@ async def list_candidates(
         stmt.order_by(PlaceCandidate.total_seconds.desc()).limit(limit)
     )
     return list(rows.scalars())
+
+
+@router.post(
+    "/{candidate_id}/identify",
+    response_model=Identification,
+    operation_id="place_candidate_identify",
+)
+async def identify(
+    candidate_id: UUID, session: AsyncSession = Depends(get_session)
+) -> Identification:
+    """Ask what is at these coordinates.
+
+    The review queue used to show a latitude and a longitude and ask you to name
+    the place, which is a question the card had given you no way to answer. This
+    is that answer, and it is a button rather than something that happens on
+    render: the privacy rule is that a coordinate leaves the box only when you
+    ask it to, not that you should have to guess.
+    """
+    candidate = await session.get(PlaceCandidate, candidate_id)
+    if candidate is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Candidate not found")
+
+    hit = await geocode.reverse(session, candidate.centroid_lat, candidate.centroid_lon)
+    if hit is None:
+        raise HTTPException(
+            status.HTTP_502_BAD_GATEWAY,
+            detail="Address lookup is unavailable or returned nothing",
+        )
+    if hit.name:
+        # Remembered, so the queue can show it without asking again.
+        candidate.label_hint = hit.name
+    return Identification(
+        display_name=hit.display_name,
+        **geocode.to_address(hit),
+        name=hit.name,
+    )
 
 
 @router.post(

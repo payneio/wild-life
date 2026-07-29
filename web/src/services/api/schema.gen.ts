@@ -1698,9 +1698,9 @@ export interface paths {
          * @description Where an outcome stands right now, computed — never stored.
          *
          *     One rule per kind: a standard is in its band or breached, a target is a
-         *     fraction of the way from baseline to the edge (and on pace or behind), a
-         *     deliverable is accepted or outstanding. An outcome with no metric is
-         *     `unmeasured`, which is a legitimate state and not a failure.
+         *     fraction of the way from baseline to the edge (and on pace or behind). An
+         *     outcome with no metric is `unmeasured`, which is a legitimate state and not
+         *     a failure.
          */
         get: operations["evaluate_outcome_outcomes__outcome_id__evaluation_get"];
         put?: never;
@@ -1850,6 +1850,32 @@ export interface paths {
          * @description Not a place. The recompute honours this rather than re-proposing it.
          */
         post: operations["place_candidate_dismiss"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/place-candidates/{candidate_id}/identify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Identify
+         * @description Ask what is at these coordinates.
+         *
+         *     The review queue used to show a latitude and a longitude and ask you to name
+         *     the place, which is a question the card had given you no way to answer. This
+         *     is that answer, and it is a button rather than something that happens on
+         *     render: the privacy rule is that a coordinate leaves the box only when you
+         *     ask it to, not that you should have to guess.
+         */
+        post: operations["place_candidate_identify"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3773,6 +3799,30 @@ export interface components {
             detail?: components["schemas"]["ValidationError"][];
         };
         /**
+         * Identification
+         * @description What is at a candidate's coordinates, looked up on request.
+         *
+         *     Separate from promoting, because you cannot sensibly decide to name a place
+         *     before anything has told you what it is. Still explicit — the coordinate
+         *     leaves the box when you ask this question and at no other time.
+         */
+        Identification: {
+            /** City */
+            city: string | null;
+            /** Country */
+            country: string | null;
+            /** Display Name */
+            display_name: string | null;
+            /** Name */
+            name: string | null;
+            /** Postcode */
+            postcode: string | null;
+            /** Region */
+            region: string | null;
+            /** Street */
+            street: string | null;
+        };
+        /**
          * IdentityRead
          * @description Who the calling token acts as.
          *
@@ -5017,7 +5067,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "standard" | "target" | "deliverable";
+            kind: "standard" | "target";
             /** Metric Id */
             metric_id?: string | null;
             /** Satisfied At */
@@ -5067,7 +5117,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "standard" | "target" | "deliverable";
+            kind: "standard" | "target";
             /** Metric Id */
             metric_id: string | null;
             /** Satisfied At */
@@ -5102,7 +5152,7 @@ export interface components {
             /** Entity Type */
             entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "event" | "note" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
             /** Kind */
-            kind?: ("standard" | "target" | "deliverable") | null;
+            kind?: ("standard" | "target") | null;
             /** Metric Id */
             metric_id?: string | null;
             /** Satisfied At */
@@ -11503,6 +11553,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlaceCandidateRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    place_candidate_identify: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                candidate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Identification"];
                 };
             };
             /** @description Validation Error */

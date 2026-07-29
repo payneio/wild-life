@@ -83,9 +83,9 @@ async def evaluate_outcome(
     """Where an outcome stands right now, computed — never stored.
 
     One rule per kind: a standard is in its band or breached, a target is a
-    fraction of the way from baseline to the edge (and on pace or behind), a
-    deliverable is accepted or outstanding. An outcome with no metric is
-    `unmeasured`, which is a legitimate state and not a failure.
+    fraction of the way from baseline to the edge (and on pace or behind). An
+    outcome with no metric is `unmeasured`, which is a legitimate state and not
+    a failure.
     """
     outcome = await _get_outcome(session, outcome_id)
     today = date.today()
@@ -119,10 +119,6 @@ async def evaluate_outcome(
 
     if outcome.by_when is not None:
         result["days_remaining"] = (outcome.by_when - today).days
-
-    if outcome.kind == "deliverable":
-        result["state"] = "satisfied" if outcome.satisfied_at else "outstanding"
-        return result
 
     if outcome.metric_id is None:
         return result

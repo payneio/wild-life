@@ -230,7 +230,7 @@ def test_target_progresses_downward_and_can_be_overdue(
         _cleanup(client, owner, "areas", areas)
 
 
-def test_unmeasured_and_deliverable_are_first_class_states(
+def test_unmeasured_is_a_first_class_state(
     client: TestClient, auth_headers: dict, require_db: None
 ) -> None:
     """An outcome with no metric is a legitimate state, not an error.
@@ -248,35 +248,30 @@ def test_unmeasured_and_deliverable_are_first_class_states(
             client,
             owner,
             "/outcomes",
-            statement=f"{MARK} the shop stays calm and usable",
+            statement=f"{MARK} sleep better",
             kind="standard",
             entity_type="area",
             entity_id=area["id"],
         )
         outcomes.append(aspiration["id"])
         assert _evaluate(client, owner, aspiration["id"])["state"] == "unmeasured"
-
-        d = _post(
-            client,
-            owner,
-            "/outcomes",
-            statement=f"{MARK} alpha shipped",
-            kind="deliverable",
-            entity_type="area",
-            entity_id=area["id"],
-        )
-        outcomes.append(d["id"])
-        assert _evaluate(client, owner, d["id"])["state"] == "outstanding"
-
-        client.patch(
-            f"/outcomes/{d['id']}",
-            headers=owner,
-            json={"satisfied_at": datetime.now(UTC).isoformat()},
-        )
-        assert _evaluate(client, owner, d["id"])["state"] == "satisfied"
     finally:
         _cleanup(client, owner, "outcomes", outcomes)
         _cleanup(client, owner, "areas", areas)
+
+
+def test_deliverable_is_no_longer_a_kind(
+    client: TestClient, auth_headers: dict, require_db: None
+) -> None:
+    """It restated its root: every one was on a project, and the "Done when"
+    panel defaulted the kind by rung, so the app manufactured the correlation.
+    A project's completion is its tasks and its status."""
+    r = client.post(
+        "/outcomes",
+        json={"statement": f"{MARK} rejected", "kind": "deliverable"},
+        headers=auth_headers,
+    )
+    assert r.status_code == 422
 
 
 def test_a_reading_past_its_cadence_is_stale(

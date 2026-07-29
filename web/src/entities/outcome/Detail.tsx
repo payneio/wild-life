@@ -32,22 +32,17 @@ export function OutcomeRecord({
       </RecordSection>
 
       {/* Each kind asks for exactly its own fields — a standard has no deadline
-          to miss, and a deliverable has no band to sit in. */}
-      {outcome.kind !== "deliverable" && (
-        <RecordSection title="Measurement">
-          <F.Ref field="metric_id" label="Metric" lookup="metric" />
-          <F.Number field="target_min" label="At least" />
-          <F.Number field="target_max" label="At most" />
-          {outcome.kind === "target" && <F.Number field="baseline" label="Baseline" />}
-          {outcome.kind === "target" && <F.Date field="by_when" label="By when" />}
-        </RecordSection>
-      )}
-
-      {outcome.kind === "deliverable" && (
-        <RecordSection title="Acceptance">
-          <F.DateTime field="satisfied_at" label="Satisfied at" />
-        </RecordSection>
-      )}
+          to miss, so only a target is asked for a baseline and a date. */}
+      <RecordSection title="Measurement">
+        <F.Ref field="metric_id" label="Metric" lookup="metric" />
+        <F.Number field="target_min" label="At least" />
+        <F.Number field="target_max" label="At most" />
+        {outcome.kind === "target" && <F.Number field="baseline" label="Baseline" />}
+        {outcome.kind === "target" && <F.Date field="by_when" label="By when" />}
+        {/* When the claim became true. No longer gated by kind: an outcome being
+            satisfied is a resolution worth dating whichever kind it is. */}
+        <F.DateTime field="satisfied_at" label="Satisfied at" />
+      </RecordSection>
 
       <RecordSection title="Belongs to">
         <F.Root label="Belongs to" />

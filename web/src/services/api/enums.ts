@@ -105,7 +105,6 @@ export const OUTCOME_STATUS = [
 export const OUTCOME_KIND = [
   "standard",
   "target",
-  "deliverable",
 ] as const satisfies readonly OutcomeKind[]
 
 export const ROUTINE_STATUS = [

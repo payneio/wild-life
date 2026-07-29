@@ -1,7 +1,17 @@
-import { Check, Sparkles, X } from "lucide-react"
-import { useState } from "react"
-import { useDismissCandidate, usePlaceCandidates, usePromoteCandidate } from "@/services/api/hooks"
+import { Check, MapPin, Search, Sparkles, X } from "lucide-react"
+import { lazy, Suspense, useState } from "react"
+import {
+  useDismissCandidate,
+  useIdentifyCandidate,
+  usePlaceCandidates,
+  usePromoteCandidate,
+} from "@/services/api/hooks"
 import type { PlaceCandidate } from "@/services/api/types"
+
+// Leaflet is lazy everywhere it appears, so it stays out of the main bundle.
+const PlaceMap = lazy(() =>
+  import("@/components/PlaceMap").then((m) => ({ default: m.PlaceMap })),
+)
 
 /**
  * Places the system noticed you keep returning to, before they have names.
@@ -33,7 +43,19 @@ function CandidateCard({ candidate }: { candidate: PlaceCandidate }) {
   const [name, setName] = useState(candidate.label_hint ?? "")
   const promote = usePromoteCandidate()
   const dismiss = useDismissCandidate()
+  const identify = useIdentifyCandidate()
   const busy = promote.isPending || dismiss.isPending
+  const found = identify.data
+
+  // The lookup is also the fastest way to fill the name, so adopt it — unless
+  // you have already typed something, which outranks anything a geocoder says.
+  function lookUp() {
+    identify.mutate(candidate.id, {
+      onSuccess: (result) => setName((current) => current || result.name || ""),
+    })
+  }
+
+  const coords = `${candidate.centroid_lat},${candidate.centroid_lon}`
 
   return (
     <li className="rounded-lg border border-stone-200 p-3 dark:border-stone-700">
@@ -43,10 +65,53 @@ function CandidateCard({ candidate }: { candidate: PlaceCandidate }) {
         </span>
         <span className="text-xs text-stone-500 dark:text-stone-400">{span(candidate)}</span>
       </div>
-      <p className="mt-0.5 font-mono text-xs text-stone-500 dark:text-stone-400">
-        {candidate.centroid_lat.toFixed(4)}, {candidate.centroid_lon.toFixed(4)} · ±
-        {Math.round(candidate.radius_m)} m
-      </p>
+
+      {/* Where it is, before anything asks you to name it. */}
+      <div className="mt-2">
+        <Suspense
+          fallback={
+            <div className="h-[130px] animate-pulse rounded bg-stone-100 dark:bg-stone-800" />
+          }
+        >
+          <PlaceMap
+            latitude={candidate.centroid_lat}
+            longitude={candidate.centroid_lon}
+            radiusM={candidate.radius_m}
+          />
+        </Suspense>
+      </div>
+
+      <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+        {found ? (
+          <span className="text-stone-700 dark:text-stone-200">
+            {found.display_name ?? found.name}
+          </span>
+        ) : (
+          <button
+            onClick={lookUp}
+            disabled={identify.isPending}
+            className="inline-flex items-center gap-1 font-medium text-indigo-600 hover:underline disabled:opacity-40"
+          >
+            <Search size={12} /> {identify.isPending ? "Looking up…" : "What's here?"}
+          </button>
+        )}
+        <a
+          href={`https://www.google.com/maps/search/?api=1&query=${coords}`}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1 font-medium text-indigo-600 hover:underline"
+        >
+          <MapPin size={12} /> Open in Maps
+        </a>
+        <span className="font-mono text-stone-400">
+          ±{Math.round(candidate.radius_m)} m
+        </span>
+      </div>
+      {identify.isError && (
+        <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+          Couldn't look that up — the map and Maps link still work.
+        </p>
+      )}
 
       <div className="mt-2 flex items-center gap-2">
         <input

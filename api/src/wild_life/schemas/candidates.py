@@ -37,6 +37,23 @@ class PromoteRequest(BaseModel):
     radius_m: float | None = Field(None, ge=10, le=200_000)
 
 
+class Identification(BaseModel):
+    """What is at a candidate's coordinates, looked up on request.
+
+    Separate from promoting, because you cannot sensibly decide to name a place
+    before anything has told you what it is. Still explicit — the coordinate
+    leaves the box when you ask this question and at no other time.
+    """
+
+    display_name: str | None
+    name: str | None
+    street: str | None
+    city: str | None
+    region: str | None
+    postcode: str | None
+    country: str | None
+
+
 class PromoteResult(BaseModel):
     location: LocationRead
     # How much history the new fence explained. The number that makes promoting

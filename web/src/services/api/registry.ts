@@ -81,7 +81,7 @@ export type RelationSpec =
       hideWhenEmpty?: boolean
       /** Fields quick-create should prefill beyond the root link — the gesture
        *  already knows them. An Area's outcome is a standard, a Project's is a
-       *  deliverable; asking would be asking something already answered. */
+       *  target; asking would be asking something already answered. */
       defaults?: Record<string, unknown>
     }
 
@@ -222,10 +222,13 @@ export const REGISTRY: Record<string, EntityDef> = {
     { mode: "fk-children", label: "Routines", type: "routine", fkField: "area_id" },
     { mode: "soft-backref", label: "Metrics", type: "metric" },
   ] },
+  // No "Done when" panel: it asked every project for a completion criterion and
+  // got prose about the project back, because before every record carried a Log
+  // there was nowhere else for that to go. A project's completion is its tasks
+  // and its status, and tasks are what define when things get done.
   project: { key: "project", label: "Project", crud: projects, fields: PROJECT_FIELDS, title: (e) => e.name, parent: (e) => ({ type: "program", id: e.program_id }), entityType: "project", titleField: "name", quickCreate: true, detail: ProjectRecord, relations: [
     { mode: "soft-backref", label: "Resources", type: "resource" },
     { mode: "soft-backref", label: "Decisions", type: "decision" },
-    { mode: "soft-backref", label: "Done when", type: "outcome", defaults: { kind: "deliverable" } },
   ] },
   outcome: { key: "outcome", label: "Outcome", crud: outcomes, fields: OUTCOME_FIELDS, title: (e) => e.statement, parent: (e) => (e.entity_type && e.entity_id ? { type: e.entity_type, id: e.entity_id } : undefined), entityType: "outcome", titleField: "statement", quickCreate: true, detail: OutcomeRecord, relations: [
   ] },

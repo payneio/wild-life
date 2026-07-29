@@ -31,7 +31,7 @@ class Outcome(UUIDPrimaryKey, TimestampMixin, Base):
     statement: Mapped[str] = mapped_column(Text, nullable=False)
     kind: Mapped[str] = mapped_column(
         Text, nullable=False
-    )  # OutcomeKind: standard/target/deliverable
+    )  # OutcomeKind: standard/target
     description: Mapped[str | None] = mapped_column(Text)
 
     # What this outcome belongs to — soft-polymorphic, no FK, like notes/events.
@@ -58,5 +58,7 @@ class Outcome(UUIDPrimaryKey, TimestampMixin, Base):
     baseline: Mapped[float | None] = mapped_column(Float)
     by_when: Mapped[date | None] = mapped_column(Date)
 
-    # `deliverable` kind: when the criterion was accepted.
+    # When the claim became true. No longer gated by kind — an outcome being
+    # satisfied is a resolution worth dating whichever kind it is, and the
+    # backfill already turns this into a `completion` moment.
     satisfied_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

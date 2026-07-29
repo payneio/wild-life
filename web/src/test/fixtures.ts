@@ -394,7 +394,7 @@ export const MOMENT: Moment = {
 
 /** Shapes of one object whose layout is conditional, so coverage can check all
  *  of them. An Outcome renders different fields per kind — a standard has no
- *  deadline to miss and a deliverable has no band to sit in — so no single row
+ *  deadline to miss and only a target has a baseline — so no single row
  *  can exercise the whole layout. */
 export const VARIANTS: Record<string, Entity[]> = {
   // A derived metric has no entry box and no cadence to be nagged about, so its
@@ -437,7 +437,7 @@ export const VARIANTS: Record<string, Entity[]> = {
     { ...OUTCOME, kind: "standard", baseline: null, by_when: null },
     {
       ...OUTCOME,
-      kind: "deliverable",
+      kind: "standard",
       statement: "Final inspection signed off",
       metric_id: null,
       target_min: null,

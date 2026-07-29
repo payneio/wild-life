@@ -16,6 +16,7 @@ import {
   MED_TYPE,
   MOMENT_KIND,
   ORG_STATUS,
+  OUTCOME_KIND,
   PLAN_TYPE,
   PRIORITIES,
   PROGRAM_STATUS,
@@ -237,7 +238,10 @@ export const PROJECT_FIELDS: FieldSpec[] = [
 
 export const OUTCOME_FIELDS: FieldSpec[] = [
   { name: "statement", label: "Statement", full: true },
-  { name: "kind", label: "Kind", type: "select", options: ["standard", "target", "deliverable"] },
+  // From the enum, not a copy of it: a hand-written list here kept offering
+  // `deliverable` after the API stopped accepting it, which is a 422 the user
+  // meets and the compiler never does.
+  { name: "kind", label: "Kind", type: "select", options: OUTCOME_KIND },
   { name: "status", label: "Status", type: "select", options: ["active", "achieved", "paused", "dropped"] },
   { name: "metric_id", label: "Metric", type: "entity", lookup: "metric" },
   { name: "target_min", label: "At least", type: "number" },

@@ -66,11 +66,17 @@ DerivationKey = Literal[
 TWO_OPERAND_DERIVATIONS = ("ratio", "percent")
 RoutineInstanceStatus = Literal["pending", "done", "skipped"]
 OutcomeStatus = Literal["active", "achieved", "paused", "dropped"]
-# What kind of claim an outcome makes. A standard must hold continuously, a target
-# must become true by a date, a deliverable is accepted once. The kind is declared
-# rather than inferred from which fields are filled: capture asks for exactly the
-# right ones, and the evaluator has a single rule per kind.
-OutcomeKind = Literal["standard", "target", "deliverable"]
+# What kind of claim an outcome makes: a standard must hold continuously, a target
+# must become true by a date. Both are *measured*, which is what an outcome is —
+# and the kind is declared rather than inferred from which fields are filled, so
+# capture asks for exactly the right ones and the evaluator has one rule per kind.
+#
+# `deliverable` was a third, and was retired for restating its root: every one was
+# on a project and every project outcome was one, because the "Done when" panel
+# defaulted the kind by rung. That is `note_type` again — journal meant "about
+# me", deliverable meant "about a project". A project's completion is its tasks
+# and its status; tasks are what define when things get done.
+OutcomeKind = Literal["standard", "target"]
 CommitmentStatus = Literal[
     "open", "in_progress", "waiting", "fulfilled", "broken", "cancelled"
 ]

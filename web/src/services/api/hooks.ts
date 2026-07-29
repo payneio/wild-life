@@ -22,6 +22,7 @@ import type {
   IngestStatus,
   PlaceCandidate,
   PromoteResult,
+  Identification,
   Medication,
   Metric,
   MetricGroup,
@@ -589,6 +590,16 @@ export function usePlaceCandidates() {
   return useQuery({
     queryKey: ["place-candidates"],
     queryFn: () => apiClient.get<PlaceCandidate[]>("/place-candidates"),
+  })
+}
+
+/** Ask what is at a candidate's coordinates. A button, not something that fires
+ *  on render — the rule is that a coordinate leaves the box only when you ask,
+ *  not that you should have to guess what the place is. */
+export function useIdentifyCandidate() {
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiClient.post<Identification>(`/place-candidates/${id}/identify`, {}),
   })
 }
 
