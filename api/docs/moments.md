@@ -298,10 +298,20 @@ So:
 4. **The nine imported series are filed by hand**, using the occasion triage the
    Inbox already has — a `subject` link to a person is exactly what it writes.
 
-The open question worth deciding before building step 4: whether filing a
-birthday series onto a person should *set* `people.birthday`. It would be
-inferring a fact from a schedule, and the year is missing, so the honest answer
-is to offer it rather than do it.
+**Filing a birthday series onto a person must not set `people.birthday`.** Not a
+judgement call — it follows from what the app is for. The thesis is agency in
+resolving *potential* moments into *definite* ones, and the failure mode that
+threatens is manufactured definiteness: a fact asserted that nobody actually
+supplied. A yearly rule carries a month and a day and **no year**, so deriving a
+date of birth from one would invent the very component that makes it useful — an
+age. That is the `note_type`, `event_type` and imported-`mood` failure again,
+where a plausible value nobody chose becomes indistinguishable from one somebody
+did.
+
+The two are different objects and stay so: `people.birthday` is a fact about a
+person, the rule is a recurrence, and filing links them without merging them. A
+person with no birth date is a person whose birth date we do not know, which is a
+true and useful thing for the app to say.
 
 ### `notes.mood` is dropped, and would be a Metric if it ever comes back
 
