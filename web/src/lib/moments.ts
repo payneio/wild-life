@@ -300,3 +300,43 @@ export function themeColor(id: string): string {
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0
   return THEME_COLORS[h % THEME_COLORS.length]
 }
+
+/** A rule's cadence, said out loud.
+ *
+ *  The calendar's own vocabulary, not iCal's: nobody reading their week wants
+ *  `FREQ=WEEKLY;BYDAY=TU;UNTIL=…`. Deliberately says "until" as a date, because
+ *  an end you cannot see is an end you will be surprised by. */
+export function summarizeCadence(rule: {
+  days_of_week: string[]
+  interval_days: number
+  timing: string[]
+  end_date: string | null
+}): string {
+  const DAY_NAMES: Record<string, string> = {
+    mon: "Monday",
+    tue: "Tuesday",
+    wed: "Wednesday",
+    thu: "Thursday",
+    fri: "Friday",
+    sat: "Saturday",
+    sun: "Sunday",
+  }
+  const days = (rule.days_of_week ?? []).map((d) => DAY_NAMES[d] ?? d)
+  const every = rule.interval_days > 1 ? rule.interval_days : 1
+  let when: string
+  if (days.length === 0) {
+    when = every === 1 ? "Every day" : `Every ${every} days`
+  } else if (every > 7 && every % 7 === 0) {
+    const weeks = every / 7
+    when = `Every ${weeks === 2 ? "other" : `${weeks}`} week on ${days.join(", ")}`
+  } else {
+    when = `Every ${days.join(", ")}`
+  }
+  const at = (rule.timing ?? []).filter((t) => /^\d{1,2}:\d{2}$/.test(t))
+  if (at.length) when += ` at ${at.join(", ")}`
+  if (rule.end_date) {
+    const d = new Date(`${rule.end_date}T12:00:00Z`)
+    when += ` until ${d.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}`
+  }
+  return when
+}

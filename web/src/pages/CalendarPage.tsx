@@ -21,9 +21,13 @@ import { QuickCreate } from "@/components/QuickCreate"
 import { RecurrenceScopeDialog } from "@/components/RecurrenceScopeDialog"
 import { UnscheduledTray } from "@/components/UnscheduledTray"
 import { usePersistentState } from "@/lib/persistentState"
+import { RepeatPicker } from "@/components/RepeatPicker"
+import { NO_REPEAT, type Repeat } from "@/lib/repeat"
+import { WEEKDAYS } from "@/lib/slots"
 import {
   moments,
   occurrenceKey,
+  routines,
   tasks,
   useEditOccurrence,
   useOccurrences,
@@ -125,6 +129,7 @@ export function CalendarPage() {
   const [range, setRange] = useState<{ start?: string; end?: string }>({})
   const [pendingMove, setPendingMove] = useState<PendingMove | null>(null)
   const [creating, setCreating] = useState<{ start: string; end: string; allDay: boolean } | null>(null)
+  const [repeat, setRepeat] = useState<Repeat>(NO_REPEAT)
   // Remember where you left the calendar (view + focused date) across visits.
   const [calView, setCalView] = usePersistentState("calendar:view", "dayGridMonth")
   const [calDate, setCalDate] = usePersistentState<string | null>("calendar:date", null)
@@ -203,6 +208,7 @@ export function CalendarPage() {
   const occurrences = useOccurrences(range, showEvents)
   const editOcc = useEditOccurrence()
   const create = moments.useCreate()
+  const createSeries = routines.useCreate()
   const taskUpd = tasks.useUpdate()
   const { items, reschedule } = useCalendarSources(range, enabled)
 
@@ -434,18 +440,56 @@ export function CalendarPage() {
           <QuickCreate
             placeholder="What's happening?"
             onCreate={(title) => {
-              // The kind is the surface's to declare, never the user's: dragging
-              // out a range on a calendar is saying "I had somewhere to be".
-              create.mutate({
-                kind: "occasion",
-                title,
-                started_at: creating.start,
-                ended_at: creating.allDay ? null : creating.end,
-                all_day: creating.allDay,
-              })
+              const start = new Date(creating.start)
+              if (repeat.everyWeeks > 0) {
+                // A series is a **rule**, not a row: its occurrences are
+                // computed, and one becomes a moment only when something
+                // happens to it. So repeating does not create fifty-two
+                // meetings — it creates the reason there are fifty-two.
+                const minutes = creating.allDay
+                  ? null
+                  : Math.round(
+                      (new Date(creating.end).getTime() - start.getTime()) / 60000,
+                    )
+                createSeries.mutate({
+                  kind: "occasion",
+                  activity: title,
+                  timing: [
+                    `${String(start.getHours()).padStart(2, "0")}:${String(
+                      start.getMinutes(),
+                    ).padStart(2, "0")}`,
+                  ],
+                  days_of_week: repeat.days.length
+                    ? repeat.days
+                    : [WEEKDAYS[(start.getDay() + 6) % 7]],
+                  interval_days: repeat.everyWeeks === 1 ? 1 : repeat.everyWeeks * 7,
+                  start_date: dayOfDate(start),
+                  end_date: repeat.until || null,
+                  expected_minutes: minutes,
+                  // The zone the wall-clock slot is in. Without it a 9am series
+                  // drifts an hour across a daylight-saving boundary.
+                  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                })
+              } else {
+                // The kind is the surface's to declare, never the user's:
+                // dragging a range on a calendar says "I had somewhere to be".
+                create.mutate({
+                  kind: "occasion",
+                  title,
+                  started_at: creating.start,
+                  ended_at: creating.allDay ? null : creating.end,
+                  all_day: creating.allDay,
+                })
+              }
+              setRepeat(NO_REPEAT)
               setCreating(null)
             }}
           />
+          {/* Below rather than beside: `extra` is an inline slot for one small
+              control, and a block in it squeezed the title field to nothing. */}
+          <div className="mt-3">
+            <RepeatPicker value={repeat} onChange={setRepeat} />
+          </div>
         </Modal>
       )}
 

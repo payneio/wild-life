@@ -18,7 +18,7 @@ from datetime import UTC, date, datetime, timedelta
 
 import pytest
 
-from wild_life.recurrence import Cadence, expand, translate
+from wild_life.recurrence import Cadence, expand, to_rrule, translate
 from wild_life.rules import is_due
 
 
@@ -299,3 +299,58 @@ class TestTheRulesThatWereWritten:
         """The refusals must have stayed refused all the way into the database."""
         for _, rrule, dtstart in self._pairs():
             assert translate(rrule, dtstart) is not None, rrule
+
+
+class TestOutbound:
+    """Our cadence as a wire rule, and the refusals that keep it honest."""
+
+    @pytest.mark.parametrize(
+        "days,interval,end",
+        [
+            (["tue"], 1, None),
+            (["tue", "wed", "thu"], 1, None),
+            ([], 1, None),
+            ([], 3, None),
+            (["wed"], 14, None),
+            (["tue"], 1, date(2026, 8, 25)),
+            ([], 2, date(2026, 9, 1)),
+        ],
+    )
+    def test_it_round_trips_through_the_wire_and_back(
+        self, days: list[str], interval: int, end: date | None
+    ) -> None:
+        """The proof that matters: what we emit, we can read back unchanged.
+
+        A cadence that survived a round trip is one a guest's calendar and ours
+        agree about — which is the whole reason the wire form exists.
+        """
+        start = (
+            datetime(2026, 7, 28, 14, 30, tzinfo=UTC)
+            if "tue" in days or not days
+            else datetime(2026, 7, 29, 14, 30, tzinfo=UTC)
+        )
+        cadence = Cadence(days_of_week=days, interval_days=interval, end_date=end)
+        wire = to_rrule(cadence, start)
+        assert wire is not None
+        assert translate(wire, start) == cadence
+
+    def test_the_emitted_rule_names_the_days_ours_does(self) -> None:
+        start = datetime(2026, 7, 28, 14, 30, tzinfo=UTC)
+        cadence = Cadence(["tue"], 1, date(2026, 8, 25))
+        wire = to_rrule(cadence, start)
+        assert wire is not None
+        ours = days_from_cadence(cadence, start.date(), date(2026, 12, 31))
+        theirs = {
+            o.date()
+            for o in expand(wire, start, until=datetime(2026, 12, 31, tzinfo=UTC))
+        }
+        assert ours == theirs
+
+    def test_a_stride_that_is_not_whole_weeks_is_refused(self) -> None:
+        """ "Every 10 days, on Wednesdays" is ours to say and not RFC 5545's.
+        Exported as a rule it would drift from what we hold; decision 8 sends
+        those out as RDATE instead of a rule that lies."""
+        assert to_rrule(Cadence(["wed"], 10, None), TUE) is None
+
+    def test_every_other_week_on_several_days_is_refused(self) -> None:
+        assert to_rrule(Cadence(["tue", "thu"], 14, None), TUE) is None

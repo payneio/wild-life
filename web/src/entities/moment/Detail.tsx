@@ -1,14 +1,15 @@
 import { useState, type ReactNode } from "react"
-import { ChevronRight, X } from "lucide-react"
+import { Link } from "react-router-dom"
+import { ChevronRight, Repeat, X } from "lucide-react"
 import { Record, RecordSection } from "@/components/record/Record"
 import { HomePicker } from "@/components/graph/HomePicker"
 import { GuestsPanel } from "@/components/calendar/GuestsPanel"
 import { Segmented } from "@/components/detail/kit"
-import { useCalendarRecord, useSetRsvp, useShareMoment } from "@/services/api/hooks"
+import { routines, useCalendarRecord, useSetRsvp, useShareMoment } from "@/services/api/hooks"
 import { MentionChip } from "@/components/MentionChip"
 import { useFields } from "@/components/record/context"
 import { recordFields } from "@/components/record/typed"
-import { KIND_LABEL } from "@/lib/moments"
+import { KIND_LABEL, summarizeCadence } from "@/lib/moments"
 import { REGISTRY } from "@/services/api/registry"
 import { useEntityResolver } from "@/services/api/mentions"
 import type { Entity, EntityType, Moment, MomentLink, MomentRole } from "@/services/api/types"
@@ -220,6 +221,29 @@ function Fold({ label, children }: { label: string; children: ReactNode }) {
   )
 }
 
+/**
+ * That this occurrence belongs to a series, and where the series lives.
+ *
+ * Without it a repeating occurrence looked exactly like a one-off — until you
+ * deleted one and a this/following/all dialog appeared from nowhere. An
+ * interaction that exists but is unannounced is worse than one that does not:
+ * the reader has no way to know the choice is coming, or that dragging this
+ * meeting might move fifty-one others.
+ */
+function Series({ ruleId }: { ruleId: string }) {
+  const rule = routines.useGet(ruleId).data
+  if (!rule) return null
+  return (
+    <p className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
+      <Repeat size={13} className="text-slate-400" />
+      {summarizeCadence(rule)}
+      <Link to={`/routines/${ruleId}`} className="text-indigo-600 hover:underline">
+        the series
+      </Link>
+    </p>
+  )
+}
+
 const RSVP_OPTIONS = [
   { value: "needs-action", label: "No reply" },
   { value: "accepted", label: "Accept" },
@@ -350,6 +374,7 @@ export function MomentDetail({ entity, onClose }: { entity: Entity; onClose: () 
           anything shared — who. The description comes after all three, because
           for an imported meeting it is mostly the sender's software talking. */}
       <When />
+      {(entity as Moment).rule_id && <Series ruleId={(entity as Moment).rule_id!} />}
 
       <RecordSection title="Involves">
         <Involvement />

@@ -213,3 +213,55 @@ def _normalise(stamp: str | datetime) -> str:
     if parsed.tzinfo is None:
         parsed = parsed.replace(tzinfo=UTC)
     return parsed.astimezone(UTC).isoformat()
+
+
+def to_rrule(cadence: Cadence, dtstart: datetime) -> str | None:
+    """Our cadence as a wire rule, or ``None`` when RFC 5545 cannot state it.
+
+    The other direction, and it has the same duty of refusal. Our expression can
+    say things RRULE cannot — an anchored cadence counting from the last
+    occurrence rather than from a calendar grid — and paraphrasing one of those
+    into the nearest RRULE would hand a guest's calendar a series that drifts
+    from ours. Decision 8's answer for that case is `RDATE`: export the
+    occurrences themselves rather than a rule that lies about them.
+
+    What round-trips exactly (`translate(to_rrule(c)) == c`, which the tests
+    assert) is what we accept inbound: weekdays, every-N-days, and an end.
+    """
+    days = [
+        code
+        for code, ours in _ICAL_DAYS.items()
+        if ours in (cadence.days_of_week or [])
+    ]
+    parts: list[str] = []
+
+    if cadence.days_of_week:
+        # A weekday filter is FREQ=WEEKLY. With a stride of 1 the filter does all
+        # the work — every week, on these days — which is what `translate` emits
+        # for a plain `FREQ=WEEKLY;BYDAY=…`. Any other stride survives only as a
+        # weekly INTERVAL, and so only if it is a whole number of weeks.
+        weeks = 1 if cadence.interval_days == 1 else cadence.interval_days // 7
+        if cadence.interval_days != 1 and cadence.interval_days % 7 != 0:
+            return None
+        if weeks > 1 and len(days) > 1:
+            # "Every other week on Tue and Thu" needs a notion of which week,
+            # and ours is a modulo over days — the same case we refuse inbound.
+            return None
+        parts.append("FREQ=WEEKLY")
+        if weeks > 1:
+            parts.append(f"INTERVAL={weeks}")
+        parts.append(f"BYDAY={','.join(days)}")
+    else:
+        parts.append("FREQ=DAILY")
+        if cadence.interval_days > 1:
+            parts.append(f"INTERVAL={cadence.interval_days}")
+
+    if cadence.end_date is not None:
+        # UNTIL is an instant in UTC, and must not cut the last occurrence: the
+        # end date is the last *day* one may fall on, so the deadline is the end
+        # of it. (`_until_date` reads this back exactly.)
+        zone = dtstart.tzinfo or UTC
+        last = datetime.combine(cadence.end_date, dtstart.time(), tzinfo=zone)
+        parts.append(f"UNTIL={last.astimezone(UTC).strftime('%Y%m%dT%H%M%SZ')}")
+
+    return ";".join(parts)

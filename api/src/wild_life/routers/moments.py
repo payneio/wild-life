@@ -37,7 +37,9 @@ from wild_life.models.moments import (
     MomentLink,
     MomentReading,
 )
+from wild_life.models.routines import Routine
 from wild_life.query import apply_query
+from wild_life.recurrence import Cadence, to_rrule
 from wild_life.schemas.common import EntityType, MomentKind, MomentRole
 from wild_life.routers.notes import MAX_IMAGE_BYTES
 from wild_life.routers.notes import _sniff_image as sniff_image
@@ -466,6 +468,25 @@ async def update_calendar_record(
         session.add(record)
     for field, value in payload.model_dump(exclude_unset=True).items():
         setattr(record, field, value)
+
+    # If the moment belongs to a series of ours, the projection has to carry the
+    # series too — a guest given only this occurrence is told about one meeting
+    # out of fifty-two. Written *from* our cadence rather than stored twice, so
+    # the two cannot drift. A cadence RFC 5545 cannot state leaves `recurrence`
+    # null, and decision 8 exports those as RDATE rather than as a rule that lies
+    # about them.
+    if moment.rule_id is not None and not record.recurrence:
+        rule = await session.get(Routine, moment.rule_id)
+        anchor = moment.started_at or moment.window_start
+        if rule is not None and anchor is not None:
+            record.recurrence = to_rrule(
+                Cadence(
+                    days_of_week=list(rule.days_of_week or []),
+                    interval_days=rule.interval_days or 1,
+                    end_date=rule.end_date,
+                ),
+                anchor,
+            )
     await session.flush()
     await session.refresh(record)
     return record
