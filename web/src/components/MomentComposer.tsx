@@ -132,7 +132,12 @@ export function MomentComposer({
     const val = e.target.value
     const caret = e.target.selectionStart
     setBody(val)
-    if (/(^|\s)@$/.test(val.slice(0, caret))) setMentionAt(caret - 1)
+    // Open unless the `@` is welded to a word, which is the one case that isn't
+    // a mention: an email address. The rule used to require *whitespace* before
+    // it, so `@` was dead after every punctuation mark — "(@abby", "Ben, @abby",
+    // "done.@abby" all silently did nothing, which reads as the feature being
+    // broken rather than as a rule you could learn.
+    if (/(^|[^\w@])@$/.test(val.slice(0, caret))) setMentionAt(caret - 1)
     else setMentionAt(null)
   }
 
