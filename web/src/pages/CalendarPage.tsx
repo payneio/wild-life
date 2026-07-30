@@ -262,11 +262,16 @@ export function CalendarPage() {
     }
     // A stored occurrence opens itself. A projection has no row to open — and
     // creating one just because you looked at it is exactly what "computed,
-    // never materialised" forbids — so it opens the series that produces it.
+    // never materialised" forbids — so it opens the *slot*, addressed by the
+    // pair that names it. It used to open the series instead, which is how a
+    // Thursday meeting's notes came to be filed on the rule that generates
+    // every Thursday; the reader had not chosen that, the routing had.
     if (props.momentId) {
       navigate(`/calendar/${props.momentId}?occ=${encodeURIComponent(String(props.occurrenceAt))}`)
     } else if (props.ruleId) {
-      navigate(`/routines/${props.ruleId}`)
+      navigate(
+        `/calendar/slot/${props.ruleId}?occ=${encodeURIComponent(String(props.occurrenceAt))}`,
+      )
     }
   }
 

@@ -19,6 +19,7 @@ import { PlacesPage } from "@/pages/PlacesPage"
 import { MetricsPage } from "@/pages/MetricsPage"
 import { HistoryPage } from "@/pages/HistoryPage"
 import { JournalRoute } from "@/pages/JournalRoute"
+import { CalendarSlotRoute } from "@/components/CalendarSlotRoute"
 import { TimelinePage } from "@/pages/TimelinePage"
 import { WhiteboardPage } from "@/pages/WhiteboardPage"
 import { DuplicatesPage } from "@/pages/DuplicatesPage"
@@ -109,7 +110,13 @@ export const router = createBrowserRouter([
       {
         path: "calendar",
         element: <CalendarPage />,
-        children: [{ path: ":id", element: <CalendarEventRoute /> }],
+        children: [
+          // A projected slot is addressed by (rule, occurrence_at) because it
+          // has no id of its own; `slot` sits before `:id` so it is not read
+          // as a moment id.
+          { path: "slot/:ruleId", element: <CalendarSlotRoute /> },
+          { path: ":id", element: <CalendarEventRoute /> },
+        ],
       },
       // Events lost its standalone page (Calendar replaced it); keep old deep
       // links (Today, Coming-up, push notifications, bookmarks) alive.
