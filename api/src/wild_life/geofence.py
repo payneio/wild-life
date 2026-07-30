@@ -57,6 +57,11 @@ class Fix:
     accuracy_m: float | None
 
 
+#: Namespace for :attr:`DerivedVisit.id`. Arbitrary but fixed — changing it
+#: renames every derived visit at once.
+_VISIT_NS = uuid.UUID("dd973b77-5d82-4a88-9c9d-b6508d6ac882")
+
+
 @dataclass
 class DerivedVisit:
     """One visit as the derivation sees it, before it becomes a row."""
@@ -71,8 +76,34 @@ class DerivedVisit:
     first_ping_id: int | None = None
     last_ping_id: int | None = None
 
+    @property
+    def id(self) -> uuid.UUID:
+        """A name for this visit, derived from what it *is*.
+
+        This place, entered at this instant — the two facts replay reproduces.
+        Everything else about a visit (when it closed, how many pings, why) is a
+        conclusion that a later pass is allowed to revise, so none of it can be
+        part of the name.
+
+        The alternative — letting the database mint a fresh uuid on insert — made
+        identity a function of *when the row was written*, and replay rewrites its
+        window every quarter hour. Anything downstream keying on the id therefore
+        saw an unbroken stream of brand-new visits: the moment mirror accumulated
+        one duplicate per visit per tick, 50 rows for 5 visits at one address
+        inside three days. Replay being the authority (see the module docstring)
+        only holds if re-deriving is recognisable as the same conclusion.
+        """
+        stamp = self.entered_at
+        if stamp.tzinfo is None:
+            stamp = stamp.replace(tzinfo=timezone.utc)
+        return uuid.uuid5(
+            _VISIT_NS,
+            f"{self.location_id}:{stamp.astimezone(timezone.utc).isoformat()}",
+        )
+
     def as_row(self) -> dict[str, object]:
         return {
+            "id": self.id,
             "location_id": self.location_id,
             "entered_at": self.entered_at,
             "exited_at": self.exited_at,

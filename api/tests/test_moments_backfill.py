@@ -110,6 +110,51 @@ class TestPrivacyIsStructural:
         assert exportable == 0
 
 
+class TestTheMirrorDoesNotAccumulate:
+    """A one-way mirror has to be able to forget, or it only ever grows."""
+
+    def test_no_derived_visit_outlives_its_source(self, conn) -> None:  # noqa: ANN001
+        orphans = _scalar(
+            conn,
+            """
+            SELECT count(*) FROM wild_life.moments m
+            WHERE m.kind = 'visit' AND m.source = 'derived'
+              AND m.source_ref LIKE 'location_visit:%'
+              AND m.body = '' AND m.title IS NULL
+              AND NOT EXISTS (
+                  SELECT 1 FROM wild_life.location_visits v
+                  WHERE 'location_visit:' || v.id::text = m.source_ref
+              )
+            """,
+        )
+        # Replay deletes and re-derives its window every tick. While a visit's id
+        # was minted by the database on insert, every pass produced a visit the
+        # mirror had never seen and a moment nobody could reach the source of:
+        # 50 rows for 5 visits at one address in three days, growing by three
+        # every quarter hour. Two things hold this at zero — a derived visit is
+        # named by (place, entered_at) so re-deriving reproduces its id, and the
+        # backfill reaps the untouched moments whose source row is gone.
+        assert orphans == 0
+
+    def test_one_moment_per_visit(self, conn) -> None:  # noqa: ANN001
+        duplicated = _scalar(
+            conn,
+            """
+            SELECT count(*) FROM (
+                SELECT 1 FROM wild_life.moments m
+                JOIN wild_life.moment_links l
+                  ON l.moment_id = m.id AND l.role = 'place'
+                WHERE m.kind = 'visit' AND m.source = 'derived'
+                GROUP BY l.entity_id, m.started_at
+                HAVING count(*) > 1
+            ) AS repeated
+            """,
+        )
+        # The symptom the invariant above explains, asserted where a reader would
+        # notice it: the same place entered at the same instant is one visit.
+        assert duplicated == 0
+
+
 class TestTheVocabularyIsClosed:
     def test_every_kind_is_in_the_literal(self, conn) -> None:  # noqa: ANN001
         rows = conn.execute(

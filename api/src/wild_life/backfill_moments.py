@@ -740,6 +740,49 @@ class Backfill:
             self.links(mid, [("place", "location", v.location_id)])
             self.count("location_visit→visit")
             self.count("links", 1)
+        self._reap_orphan_visits()
+
+    def _reap_orphan_visits(self) -> None:
+        """Forget the visits the derivation no longer claims.
+
+        Re-deriving is allowed to change its mind — a fence edited, a late ping,
+        a segmentation recomputed — and when it does, the row a moment was mirrored
+        from stops existing. The mirror is one-way, so nothing else would ever
+        notice: the moment outlives its source with no way back to it, and the
+        timeline shows a visit the app no longer believes in.
+
+        Swept on every run rather than only over ``since``'s window, because an
+        orphan is defined by the *absence* of a row and so has no updated_at to
+        find it by. It is one anti-join over a table this app keeps in the tens.
+
+        Bounded to what derivation owns and nobody has touched: an authored visit
+        was never its to delete, and a moment someone wrote on or attached a
+        photograph to has become a record of its own regardless of what produced
+        it. Those are left behind, orphaned and visible, which is the right
+        failure — it can be read and deleted by hand.
+        """
+        if self.dry_run:
+            return
+        gone = self.conn.execute(
+            text("""
+                DELETE FROM wild_life.moments m
+                WHERE m.kind = 'visit'
+                  AND m.source = 'derived'
+                  AND m.source_ref LIKE 'location_visit:%'
+                  AND m.body = ''
+                  AND m.title IS NULL
+                  AND NOT EXISTS (
+                      SELECT 1 FROM wild_life.location_visits v
+                      WHERE 'location_visit:' || v.id::text = m.source_ref
+                  )
+                  AND NOT EXISTS (
+                      SELECT 1 FROM wild_life.moment_images i
+                      WHERE i.moment_id = m.id
+                  )
+            """)
+        ).rowcount
+        if gone:
+            self.count("orphaned visit→reaped", gone)
 
     def task_moments(self) -> None:
         """A task's completion, and its intention to work on it.

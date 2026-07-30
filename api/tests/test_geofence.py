@@ -226,6 +226,42 @@ def test_derivation_is_deterministic() -> None:
     assert [v.as_row() for v in first] == [v.as_row() for v in second]
 
 
+def test_a_visit_keeps_its_name_while_the_facts_about_it_change() -> None:
+    """Identity has to outlive re-derivation, or replay isn't a correction.
+
+    A visit is inserted, deleted and re-derived many times before it is even over
+    — every tick, for as long as it sits in the replay window. While the id came
+    from the database on insert, each of those passes minted a visit that
+    everything downstream read as new: the moment mirror grew one duplicate per
+    visit per tick.
+    """
+    office = _fence(*OFFICE, 75)
+    arriving = [_fix(0, *OFFICE), _fix(5, *OFFICE)]
+    whole = arriving + [_fix(i * 5, *_offset(*OFFICE, 4_000)) for i in range(2, 6)]
+
+    open_visit = derive_visits(arriving, [office])[0]
+    closed_visit = derive_visits(whole, [office])[0]
+
+    assert open_visit.exited_at is None and closed_visit.exited_at is not None
+    assert open_visit.id == closed_visit.id
+    assert closed_visit.as_row()["id"] == closed_visit.id
+
+
+def test_two_visits_to_one_place_are_named_apart() -> None:
+    """The other half: leaving and coming back is two visits, not one row twice."""
+    office = _fence(*OFFICE, 75)
+    there_and_back = (
+        [_fix(0, *OFFICE), _fix(5, *OFFICE)]
+        + [_fix(i * 5, *_offset(*OFFICE, 4_000)) for i in range(2, 6)]
+        + [_fix(30, *OFFICE), _fix(35, *OFFICE)]
+    )
+
+    visits = derive_visits(there_and_back, [office])
+
+    assert len(visits) == 2
+    assert visits[0].id != visits[1].id
+
+
 @pytest.mark.parametrize("chunk", [1, 2, 3, 7])
 def test_incremental_agrees_with_replay(chunk: int) -> None:
     """**The load-bearing test.**
