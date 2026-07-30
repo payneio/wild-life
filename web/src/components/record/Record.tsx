@@ -176,15 +176,29 @@ export function Record({
       {/* The log is a band, not a relation. Being declarable meant being
           forgettable: nine objects had no Notes panel and grew a `notes` column
           instead, which is how dated events ended up in a field. Every object
-          that can be a moment's subject has one, in the same place, always.
-          `moment` is excluded because a moment about a moment is a mention.
+          that can be a moment's subject has one, in the same place, always —
+          and that now includes `moment`, which is a valid `entity_type`.
 
-          It is now the object's whole dated history, not just its writing —
-          which is what let `ProgramTimeline` go. A program showed events here
-          and the Log there with nothing to say which you should add to; that
+          It was excluded on the grounds that a moment about a moment is a
+          mention. That is true of a reflection which merely references
+          Thursday's meeting, and false of the notes you took *during* it: there
+          the meeting is the subject. Which is the distinction `subject` and
+          `mention` already draw, for the other twenty-four types, without
+          anyone needing a rule about the type on the other end. The exclusion
+          answered with a type check a question the roles had already answered.
+
+          Its cost was that an occasion — the thing people most often take notes
+          about — was the one object in the system with nowhere to write. The
+          notes went to the recurring *rule* instead, because a Routine had a
+          band, so every week's notes piled onto one object that could not say
+          which occurrence they belonged to.
+
+          It is the object's whole dated history, not just its writing — which
+          is what let `ProgramTimeline` go. A program showed events here and the
+          Log there with nothing to say which you should add to; that
           unexplainable choice was the modelling defect this inversion fixes,
           surfacing as a UX one. */}
-      {def.entityType && def.entityType !== "moment" && (
+      {def.entityType && (
         <div ref={logRef}>
           <Section title="Log">
             <Log

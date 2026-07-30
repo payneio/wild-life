@@ -160,6 +160,13 @@ function When() {
  * system references — boilerplate the sender's software wrote, not the meeting.
  * Shown in full it filled the screen above every fact worth reading. Authored
  * prose is never folded: you wrote it, so it *is* the content.
+ *
+ * It renders when empty, which is the whole point of it. Hiding the editor
+ * until the body was non-empty meant a slot you had just created — the case
+ * where you most want to write — offered nowhere to write, and no way to
+ * reach one: the field appeared only once it held text it gave you no way to
+ * enter. An empty editor is not clutter on the one surface whose question is
+ * "what happened?".
  */
 function Description() {
   const { row } = useFields(["body"])
@@ -167,7 +174,11 @@ function Description() {
   const body = (m.body || "").trim()
   const boilerplate = m.source === "imported" && body.length > 240
   const [open, setOpen] = useState(!boilerplate)
-  if (!body) return null
+  // An imported description is the *sender's*: `calendar_mail` rewrites `body`
+  // from the wire on every newer SEQUENCE, so an empty editor here would invite
+  // notes into a field the organiser's next update erases. Nothing of theirs to
+  // show means nothing to show. Yours go in the Log band below.
+  if (!body && m.source === "imported") return null
   if (!boilerplate) {
     return (
       <RecordSection columns={false}>

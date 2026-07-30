@@ -471,13 +471,19 @@ export function Log({
       <div className="flex items-end justify-between gap-3">
         <div>
           {heading && <h1 className="text-lg font-semibold text-slate-900">{heading}</h1>}
-          <p className="text-sm text-slate-500">
-            {searching
-              ? `${results.length} result${results.length === 1 ? "" : "s"}`
-              : navigable
-                ? `${list.length} in ${year}`
-                : `${list.length} ${list.length === 1 ? "entry" : "entries"}`}
-          </p>
+          {/* "0 entries" above an empty band is a count of nothing, and the
+              band is now on every object rather than only on the ones someone
+              remembered to give one — so the quiet state is the common one. A
+              composer with a placeholder already says what this is. */}
+          {(searching || navigable || list.length > 0) && (
+            <p className="text-sm text-slate-500">
+              {searching
+                ? `${results.length} result${results.length === 1 ? "" : "s"}`
+                : navigable
+                  ? `${list.length} in ${year}`
+                  : `${list.length} ${list.length === 1 ? "entry" : "entries"}`}
+            </p>
+          )}
         </div>
         {navigable && !searching && (
         <div className="flex items-center gap-1">
@@ -586,7 +592,10 @@ export function Log({
       ) : isLoading ? (
         <EmptyState>Loading…</EmptyState>
       ) : list.length === 0 ? (
-        <EmptyState>{navigable ? `Nothing in ${year}.` : "Nothing recorded yet."}</EmptyState>
+        // Nothing to say on a record's own band: the composer is directly above
+        // and empty is the resting state, not a condition to report. A year you
+        // stepped to *is* a question you asked, so that one still answers.
+        navigable ? <EmptyState>{`Nothing in ${year}.`}</EmptyState> : null
       ) : (
         <div className="space-y-5">
           {groups.map((g) => {
