@@ -1,15 +1,15 @@
 import { useState, type ReactNode } from "react"
-import { Link } from "react-router-dom"
-import { ChevronRight, Repeat, X } from "lucide-react"
+import { ChevronRight, X } from "lucide-react"
 import { Record, RecordSection } from "@/components/record/Record"
 import { HomePicker } from "@/components/graph/HomePicker"
 import { GuestsPanel } from "@/components/calendar/GuestsPanel"
+import { Series } from "@/components/calendar/Series"
 import { Segmented } from "@/components/detail/kit"
-import { routines, useCalendarRecord, useSetRsvp, useShareMoment } from "@/services/api/hooks"
+import { useCalendarRecord, useSetRsvp, useShareMoment } from "@/services/api/hooks"
 import { MentionChip } from "@/components/MentionChip"
 import { useFields } from "@/components/record/context"
 import { recordFields } from "@/components/record/typed"
-import { KIND_LABEL, summarizeCadence } from "@/lib/moments"
+import { KIND_LABEL } from "@/lib/moments"
 import { REGISTRY } from "@/services/api/registry"
 import { useEntityResolver } from "@/services/api/mentions"
 import type { Entity, EntityType, Moment, MomentLink, MomentRole } from "@/services/api/types"
@@ -229,29 +229,6 @@ function Fold({ label, children }: { label: string; children: ReactNode }) {
       </button>
       <div className={open ? "mt-2 space-y-4" : "hidden"}>{children}</div>
     </div>
-  )
-}
-
-/**
- * That this occurrence belongs to a series, and where the series lives.
- *
- * Without it a repeating occurrence looked exactly like a one-off — until you
- * deleted one and a this/following/all dialog appeared from nowhere. An
- * interaction that exists but is unannounced is worse than one that does not:
- * the reader has no way to know the choice is coming, or that dragging this
- * meeting might move fifty-one others.
- */
-function Series({ ruleId }: { ruleId: string }) {
-  const rule = routines.useGet(ruleId).data
-  if (!rule) return null
-  return (
-    <p className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
-      <Repeat size={13} className="text-slate-400" />
-      {summarizeCadence(rule)}
-      <Link to={`/routines/${ruleId}`} className="text-indigo-600 hover:underline">
-        the series
-      </Link>
-    </p>
   )
 }
 

@@ -40,6 +40,13 @@ vi.mock("@/services/api/hooks", async (importOriginal) => ({
     ],
     isLoading: false,
   }),
+  routines: {
+    resource: "routines",
+    useGet: () => ({
+      data: { id: RULE, name: null, days_of_week: ["thu"], interval_days: 1, timing: [], end_date: null },
+    }),
+    useList: () => ({ data: [] }),
+  },
   useEditOccurrence: () => ({
     mutateAsync: async (v: unknown) => {
       materialised.push(v)
@@ -82,6 +89,17 @@ describe("a projected slot", () => {
     mount()
     expect(screen.getAllByText("MADE: Explore team meeting").length).toBeGreaterThan(0)
     expect(screen.queryByText(/no longer on the calendar/)).toBeNull()
+  })
+
+  // The click used to land on the series, so the series was always reachable.
+  // Routing it to the occurrence took that away unless the slot says what
+  // generates it — which is the one thing a slot cannot omit.
+  it("names its series and links to it", async () => {
+    mount()
+    // Rendered twice — the desktop Modal and the mobile Drawer both mount.
+    const links = await screen.findAllByRole("link", { name: "the series" })
+    expect(links.length).toBeGreaterThan(0)
+    expect(links[0].getAttribute("href")).toBe(`/routines/${RULE}`)
   })
 
   it("creates nothing merely by being opened", () => {

@@ -2,6 +2,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { useQueryClient } from "@tanstack/react-query"
 import { DetailDrawer } from "@/components/DetailDrawer"
 import { MomentComposer } from "@/components/MomentComposer"
+import { Series } from "@/components/calendar/Series"
 import { EmptyState, Modal } from "@/components/ui/primitives"
 import {
   useCreateMomentWithImages,
@@ -110,6 +111,11 @@ export function CalendarSlotRoute() {
             {when(slot.start_at, slot.end_at ?? null, slot.all_day)}
           </p>
         </div>
+        {/* Say what generates this, and go there. A slot exists *only* because a
+            rule says so, so of every surface in the app this is the one that
+            may not leave the rule unreachable — and sending the click here
+            instead of to the series is precisely what would have. */}
+        {ruleId && <Series ruleId={ruleId} />}
         {/* No fields: nothing here is editable until the slot is a row, and
             editing one is what the scoped-edit dialog on the grid is for. The
             one act that belongs to *this* Thursday rather than to the series is
@@ -123,7 +129,7 @@ export function CalendarSlotRoute() {
           placeholder="What's on your mind?"
         />
         <p className="text-[11px] text-slate-400">
-          Part of a series · writing here files the note on this occurrence
+          Writing here files the note on this occurrence, not on every one.
         </p>
       </div>
     )
