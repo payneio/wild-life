@@ -19,6 +19,7 @@ import {
   whenOf,
   type KindFamily,
 } from "@/lib/moments"
+import { today } from "@/lib/date"
 import { useEntityResolver } from "@/services/api/mentions"
 import { useThemeOf } from "@/lib/useThemes"
 import { routeFor } from "@/services/api/routes"
@@ -358,6 +359,29 @@ function YearHeading({
   )
 }
 
+/** The local calendar day this instant falls on — what the reader means by
+ *  "today", and the day a group has to be at or before to be behind us. */
+const TODAY: string = today()
+
+/** Where the stream stops being a record and starts being a plan.
+ *
+ *  A boundary between days rather than a position inside one: within a day the
+ *  small moments cluster to the bottom regardless of when they happened, so
+ *  there is no chronological order in there to cut. The rule sits above the day
+ *  this instant falls in — today has happened, tomorrow hasn't. */
+function NowLine() {
+  return (
+    <div className="grid grid-cols-[2.75rem_1fr] items-center gap-x-3 py-1.5">
+      <div className="text-right text-[10px] font-medium uppercase tracking-wide text-red-600">
+        now
+      </div>
+      <div className="relative h-px bg-red-500/70">
+        <span className="absolute -left-1 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-red-500" />
+      </div>
+    </div>
+  )
+}
+
 function groupDays(moments: Moment[]): { day: string; moments: Moment[] }[] {
   const out: { day: string; moments: Moment[] }[] = []
   const byDay = new Map<string, { day: string; moments: Moment[] }>()
@@ -585,6 +609,13 @@ export function TimelinePage() {
             .map((x) => x.theme)
         })()
 
+        const days = groupDays(rows)
+        // Only the year we are in has a now in it. When everything recorded in
+        // it is still ahead, the rule lands at the foot of the year instead.
+        const past = days.findIndex((g) => g.day <= TODAY)
+        const nowAt =
+          year !== Number(TODAY.slice(0, 4)) ? -1 : past === -1 ? days.length : past
+
         return (
           <section key={year}>
             <div ref={(el) => registerMark(year, el)}>
@@ -603,19 +634,21 @@ export function TimelinePage() {
               <p className="py-2 pl-14 text-sm text-slate-300">Nothing recorded.</p>
             ) : (
               <>
-                {groupDays(rows).map((g, gi, all) => {
+                {days.map((g, gi, all) => {
                   // The day column carries a number; without the month, "31"
                   // followed by "1" reads as going forwards.
                   const month = g.day.slice(0, 7)
                   const newMonth = gi === 0 || all[gi - 1].day.slice(0, 7) !== month
                   return (
                     <div key={g.day}>
+                      {/* Above the month heading, which labels the days under it. */}
+                      {gi === nowAt && <NowLine />}
                       {newMonth && (
                         <div className="mt-3 mb-1 pl-[3.6rem] text-[11px] font-medium uppercase tracking-[0.14em] text-slate-400">
                           {MONTHS[Number(g.day.slice(5, 7)) - 1]}
                         </div>
                       )}
-                          <DayGroup
+                      <DayGroup
                         day={g.day}
                         moments={g.moments}
                         themeOf={themeOf}
@@ -624,6 +657,7 @@ export function TimelinePage() {
                     </div>
                   )
                 })}
+                {nowAt === days.length && <NowLine />}
                 {rows.length >= 500 && (
                   <p className="py-2 pl-14 text-xs text-slate-400">
                     Showing the first 500 of this year.
