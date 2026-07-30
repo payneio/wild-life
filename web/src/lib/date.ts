@@ -41,6 +41,42 @@ export const dayOf = (i: Instant): CalendarDay =>
 export const asDay = (s: string): CalendarDay =>
   asDayBrand(s.length > 10 ? dayOf(asInstantBrand(s)) : s)
 
+/** Assert that a string arriving from outside the type system really is an
+ *  instant — a URL query param, or an untyped calendar library's `extendedProps`
+ *  bag, where a branded value goes in and a bare `string` comes out. It parses
+ *  to prove it and answers null when it can't, so the boundary is both checked
+ *  and greppable rather than a silent cast. */
+export const asInstant = (s: string | null | undefined): Instant | null => {
+  if (!s) return null
+  try {
+    return asInstantBrand(Temporal.Instant.from(s).toString())
+  } catch {
+    return null
+  }
+}
+
+/** The instants a local day opens and closes on — the bounds of a query window
+ *  over "that day" as the reader means it.
+ *
+ *  These exist because their absence was the shape of a recurring bug: with no
+ *  primitive for it, four call sites wrote `${day}T00:00:00Z` by hand, which
+ *  pins a *local* day to a *UTC* midnight. West of Greenwich that window opens
+ *  the previous afternoon and shuts mid-evening, so "today" lost its own
+ *  evening and inherited last night's. `endOfDay` is the day's last instant,
+ *  not the next day's first, because the API's `until` is inclusive. */
+export const startOfDay = (d: CalendarDay): Instant =>
+  asInstantBrand(
+    Temporal.PlainDate.from(d).toZonedDateTime(tz()).toInstant().toString(),
+  )
+
+export const endOfDay = (d: CalendarDay): Instant =>
+  asInstantBrand(
+    Temporal.PlainDate.from(d)
+      .toZonedDateTime({ timeZone: tz(), plainTime: "23:59:59.999" })
+      .toInstant()
+      .toString(),
+  )
+
 // --- JS Date bridge (FullCalendar / DOM hand us Date objects) ---------------
 export const instantOfDate = (d: Date): Instant => asInstantBrand(d.toISOString())
 export const dayOfDate = (d: Date): CalendarDay => dayOf(instantOfDate(d))

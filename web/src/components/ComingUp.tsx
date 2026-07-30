@@ -4,22 +4,14 @@ import { Card } from "@/components/ui/primitives"
 import { useOccurrences } from "@/services/api/hooks"
 import { SOURCES, useCalendarSources } from "@/services/calendar/sources"
 import { cn } from "@/lib/utils"
-import { localDay, ymd } from "@/lib/format"
+import { localDay } from "@/lib/format"
+import { addDays, daysBetween, endOfDay, startOfDay, today as todayDay, type CalendarDay } from "@/lib/date"
 
 const HORIZON_DAYS = 21
 const EVENT_COLOR = "#4f46e5"
 
-function isoDay(offset: number): string {
-  const d = new Date()
-  d.setDate(d.getDate() + offset)
-  return ymd(d)
-}
-
-function countdown(date: string, today: string): { label: string; overdue: boolean } {
-  const days = Math.round(
-    (new Date(`${date}T00:00:00`).getTime() - new Date(`${today}T00:00:00`).getTime()) /
-      86400000,
-  )
+function countdown(date: CalendarDay, today: CalendarDay): { label: string; overdue: boolean } {
+  const days = daysBetween(today, date)
   if (days < 0) return { label: `${-days}d overdue`, overdue: true }
   if (days === 0) return { label: "Today", overdue: false }
   if (days === 1) return { label: "Tomorrow", overdue: false }
@@ -28,7 +20,7 @@ function countdown(date: string, today: string): { label: string; overdue: boole
 
 interface Row {
   key: string
-  date: string
+  date: CalendarDay
   title: string
   color: string
   url: string
@@ -36,8 +28,8 @@ interface Row {
 
 /** A forward horizon of everything coming due across the app's time-based data. */
 export function ComingUp() {
-  const today = isoDay(0)
-  const range = { start: `${today}T00:00:00.000Z`, end: `${isoDay(HORIZON_DAYS)}T23:59:59.000Z` }
+  const today = todayDay()
+  const range = { start: startOfDay(today), end: endOfDay(addDays(today, HORIZON_DAYS)) }
   const allKeys = useMemo(() => new Set(SOURCES.map((s) => s.key)), [])
   const { items } = useCalendarSources(range, allKeys)
   // Occasions, expanded server-side — a recurring meeting next week is computed.

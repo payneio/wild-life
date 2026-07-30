@@ -9,6 +9,7 @@ import {
   FAMILIES,
   FAMILY_OF,
   describeMoment,
+  groupMomentsByDay,
   KIND_LABEL,
   KIND_PLURAL,
   routeForMoment,
@@ -19,7 +20,7 @@ import {
   whenOf,
   type KindFamily,
 } from "@/lib/moments"
-import { today } from "@/lib/date"
+import { endOfDay, formatDay, startOfDay, today, type CalendarDay } from "@/lib/date"
 import { useEntityResolver } from "@/services/api/mentions"
 import { useThemeOf } from "@/lib/useThemes"
 import { routeFor } from "@/services/api/routes"
@@ -31,10 +32,6 @@ interface DensityRow {
   kind: MomentKind
   count: number
 }
-
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-const MONTHS = ["January", "February", "March", "April", "May", "June", "July",
-  "August", "September", "October", "November", "December"]
 
 
 type Totals = Record<KindFamily, number>
@@ -53,15 +50,20 @@ function useDensity() {
 }
 
 /** Years load as they come into view. Thirty at once is 3,148 moments and a
- *  scrollbar that lies about how much is left. */
+ *  scrollbar that lies about how much is left.
+ *
+ *  The bounds are the *local* year — midnight to midnight in the device zone,
+ *  not in UTC. West of Greenwich a UTC window ends mid-evening on 31 December,
+ *  so the last hours of the year arrived in the next year's request and drew a
+ *  December day underneath the following year's heading. */
 function useYears(years: number[]) {
   return useQueries({
     queries: years.map((year) => ({
       queryKey: ["moments", "year-stream", year],
       queryFn: () =>
         apiClient.get<Moment[]>("/moments", {
-          since: `${year}-01-01T00:00:00Z`,
-          until: `${year}-12-31T23:59:59Z`,
+          since: startOfDay(`${year}-01-01` as CalendarDay),
+          until: endOfDay(`${year}-12-31` as CalendarDay),
           limit: "500",
         }),
       staleTime: 60_000,
@@ -252,23 +254,26 @@ function DayGroup({
   themeOf,
   focus,
 }: {
-  day: string
+  day: CalendarDay
   moments: Moment[]
   themeOf: (m: Moment) => Theme | undefined
   focus: Theme | null
 }) {
-  const date = new Date(`${day}T12:00:00Z`)
   const small = moments.filter((m) => WEIGHT_OF[m.kind] === "small")
   const rest = moments.filter((m) => WEIGHT_OF[m.kind] !== "small")
 
   return (
     <div className="grid grid-cols-[2.75rem_1fr] gap-x-3 py-1">
       <div className="pt-1 text-right">
+        {/* A bare day formatted as a bare day. This used to parse `${day}T12:00:00Z`
+            and read the number back with getUTCDate — noon so no zone could shift
+            the date out from under it. There is nothing to shift if you never make
+            an instant. */}
         <div className="font-display text-base leading-none tabular-nums text-slate-500">
-          {date.getUTCDate()}
+          {formatDay(day, { day: "numeric" })}
         </div>
         <div className="text-[10px] uppercase tracking-wide text-slate-300">
-          {DAYS[date.getUTCDay()]}
+          {formatDay(day, { weekday: "short" })}
         </div>
       </div>
       <div className="min-w-0">
@@ -380,23 +385,6 @@ function NowLine() {
       </div>
     </div>
   )
-}
-
-function groupDays(moments: Moment[]): { day: string; moments: Moment[] }[] {
-  const out: { day: string; moments: Moment[] }[] = []
-  const byDay = new Map<string, { day: string; moments: Moment[] }>()
-  for (const m of moments) {
-    const stamp = whenOf(m) ?? m.created_at
-    const day = stamp.slice(0, 10)
-    let g = byDay.get(day)
-    if (!g) {
-      g = { day, moments: [] }
-      byDay.set(day, g)
-      out.push(g)
-    }
-    g.moments.push(m)
-  }
-  return out
 }
 
 /**
@@ -609,10 +597,10 @@ export function TimelinePage() {
             .map((x) => x.theme)
         })()
 
-        const days = groupDays(rows)
+        const days = groupMomentsByDay(rows)
         // Only the year we are in has a now in it. When everything recorded in
         // it is still ahead, the rule lands at the foot of the year instead.
-        const past = days.findIndex((g) => g.day <= TODAY)
+        const past = days.findIndex((g) => g.key <= TODAY)
         const nowAt =
           year !== Number(TODAY.slice(0, 4)) ? -1 : past === -1 ? days.length : past
 
@@ -637,19 +625,19 @@ export function TimelinePage() {
                 {days.map((g, gi, all) => {
                   // The day column carries a number; without the month, "31"
                   // followed by "1" reads as going forwards.
-                  const month = g.day.slice(0, 7)
-                  const newMonth = gi === 0 || all[gi - 1].day.slice(0, 7) !== month
+                  const month = g.key.slice(0, 7)
+                  const newMonth = gi === 0 || all[gi - 1].key.slice(0, 7) !== month
                   return (
-                    <div key={g.day}>
+                    <div key={g.key}>
                       {/* Above the month heading, which labels the days under it. */}
                       {gi === nowAt && <NowLine />}
                       {newMonth && (
                         <div className="mt-3 mb-1 pl-[3.6rem] text-[11px] font-medium uppercase tracking-[0.14em] text-slate-400">
-                          {MONTHS[Number(g.day.slice(5, 7)) - 1]}
+                          {formatDay(g.key, { month: "long" })}
                         </div>
                       )}
                       <DayGroup
-                        day={g.day}
+                        day={g.key}
                         moments={g.moments}
                         themeOf={themeOf}
                         focus={focus}

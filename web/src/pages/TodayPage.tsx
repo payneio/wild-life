@@ -6,6 +6,7 @@ import { ComingUp } from "@/components/ComingUp"
 import { TaskRow } from "@/pages/TasksPage"
 import { Card, EmptyState } from "@/components/ui/primitives"
 import { PRIORITY_RANK, todayISO } from "@/lib/format"
+import { endOfDay, startOfDay } from "@/lib/date"
 import { formatDateTime } from "@/lib/utils"
 import {
   tasks,
@@ -33,8 +34,8 @@ export function TodayPage() {
   // Through the same expansion the calendar draws: a recurring meeting today is
   // computed, not stored, so listing rows would report an empty day.
   const { data: todaysEvents } = useOccurrences({
-    start: `${today}T00:00:00.000Z`,
-    end: `${today}T23:59:59.999Z`,
+    start: startOfDay(today),
+    end: endOfDay(today),
   })
   const { data: dash } = useReviewDashboard()
   const submitReflection = useCreateMomentWithImages()

@@ -1,9 +1,9 @@
 import type { ReactNode } from "react"
 import { Link } from "react-router-dom"
 import { cn } from "@/lib/utils"
-import { daysFromToday, shiftDays, todayISO } from "@/components/detail/dates"
-import { localDay, ymd } from "@/lib/format"
-import { compareInstants } from "@/lib/date"
+import { daysFromToday, shiftDays } from "@/components/detail/dates"
+import { localDay } from "@/lib/format"
+import { compareInstants, dayRange } from "@/lib/date"
 import type { CalendarDay, Instant } from "@/lib/date"
 
 /** Shared building blocks for the bespoke entity detail views. All colors go
@@ -195,15 +195,18 @@ export function ScheduleChips({
   value,
   onSet,
 }: {
-  value: string | null | undefined
-  onSet: (iso: string | null) => void
+  value: CalendarDay | Instant | null | undefined
+  onSet: (iso: CalendarDay | null) => void
 }) {
   const presets: [string, number][] = [
     ["Today", 0],
     ["Tomorrow", 1],
     ["+1 wk", 7],
   ]
-  const cur = value?.slice(0, 10) ?? null
+  // `asDay`, not a slice: both callers happen to pass a bare day today, so the
+  // slice was a no-op — but nothing in the old `string` type stopped an instant
+  // arriving, and then it would have chipped off the UTC day.
+  const cur = value ? localDay(value) : null
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {presets.map(([label, n]) => {
@@ -227,7 +230,7 @@ export function ScheduleChips({
       <input
         type="date"
         value={cur ?? ""}
-        onChange={(e) => onSet(e.target.value || null)}
+        onChange={(e) => onSet(e.target.value ? localDay(e.target.value) : null)}
         className="rounded-lg border border-slate-200 bg-surface px-2 py-1 text-xs text-slate-600"
       />
       {cur && (
@@ -305,7 +308,7 @@ export function RelatedRow({
 // --- vertical timeline ------------------------------------------------------
 export type TimelineItem = {
   key: string
-  date: string | null
+  date: CalendarDay | Instant | null
   title: ReactNode
   meta?: ReactNode
   to?: string
@@ -363,25 +366,23 @@ export function Timeline({ items }: { items: TimelineItem[] }) {
 }
 
 // --- consistency heatmap ----------------------------------------------------
-/** GitHub-style grid of the last `weeks` weeks. `levels` maps ISO date → 0-3. */
+/** GitHub-style grid of the last `weeks` weeks. `levels` maps local day → 0-3. */
 export function Heatmap({
   levels,
   weeks = 13,
 }: {
-  levels: Map<string, number>
+  levels: Map<CalendarDay, number>
   weeks?: number
 }) {
-  const cells: { date: string; level: number }[] = []
-  // End on today; walk back to fill full weeks, aligned so last column is this week.
-  const today = new Date(`${todayISO()}T00:00:00`)
+  // End on today; walk back to fill full weeks, aligned so last column is this
+  // week. Calendar arithmetic rather than ±86,400,000ms: the two days a year
+  // that aren't 24 hours long would otherwise slide a column.
   const total = weeks * 7
-  for (let i = total - 1; i >= 0; i--) {
-    const d = new Date(today)
-    d.setDate(d.getDate() - i)
-    const iso = ymd(d)
-    cells.push({ date: iso, level: levels.get(iso) ?? 0 })
-  }
-  const cols: { date: string; level: number }[][] = []
+  const cells = dayRange(shiftDays(-(total - 1)), total).map((date) => ({
+    date,
+    level: levels.get(date) ?? 0,
+  }))
+  const cols: { date: CalendarDay; level: number }[][] = []
   for (let w = 0; w < weeks; w++) cols.push(cells.slice(w * 7, w * 7 + 7))
   const tint = ["bg-slate-100", "bg-indigo-200", "bg-indigo-400", "bg-indigo-600"]
   return (

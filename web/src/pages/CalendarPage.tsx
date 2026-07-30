@@ -30,6 +30,7 @@ import {
   tasks,
   useEditOccurrence,
   useOccurrences,
+  type OccurrenceChanges,
 } from "@/services/api/hooks"
 import {
   SOURCES,
@@ -40,6 +41,7 @@ import { AGENDA_VIEW, asView, VIEWS, type ViewType } from "@/services/calendar/v
 import { cn } from "@/lib/utils"
 import {
   addDays,
+  asInstant,
   compareDays,
   dayOfDate,
   dayOfDate as ymd,
@@ -47,6 +49,7 @@ import {
   timeOfDate,
   today,
   type CalendarDay,
+  type Instant,
 } from "@/lib/date"
 import type { Occurrence, RecurrenceScope } from "@/services/api/types"
 
@@ -100,8 +103,8 @@ const LAYERS_KEY = "wild_life_calendar_layers"
 interface PendingMove {
   ruleId: string
   momentId: string | null
-  occurrenceAt: string
-  changes: { start_at: string; end_at?: string | null }
+  occurrenceAt: Instant | null
+  changes: OccurrenceChanges
   revert: () => void
 }
 
@@ -125,7 +128,7 @@ function rangeLabel({
 export function CalendarPage() {
   const navigate = useNavigate()
   const qc = useQueryClient()
-  const [range, setRange] = useState<{ start?: string; end?: string }>({})
+  const [range, setRange] = useState<{ start?: Instant; end?: Instant }>({})
   const [pendingMove, setPendingMove] = useState<PendingMove | null>(null)
   const [creating, setCreating] = useState<{ start: string; end: string; allDay: boolean } | null>(null)
   const [repeat, setRepeat] = useState<Repeat>(NO_REPEAT)
@@ -242,7 +245,7 @@ export function CalendarPage() {
       setPendingMove({
         ruleId: String(props.ruleId),
         momentId: props.momentId ? String(props.momentId) : null,
-        occurrenceAt: String(props.occurrenceAt),
+        occurrenceAt: asInstant(String(props.occurrenceAt)),
         changes,
         revert: arg.revert,
       })
@@ -397,7 +400,7 @@ export function CalendarPage() {
             dayMaxEvents
             events={fcEvents}
             datesSet={(arg: DatesSetArg) => {
-              setRange({ start: arg.start.toISOString(), end: arg.end.toISOString() })
+              setRange({ start: instantOfDate(arg.start), end: instantOfDate(arg.end) })
               setCalView(arg.view.type)
               setCalDate(arg.view.currentStart.toISOString())
               setTitle(arg.view.title)

@@ -11,6 +11,7 @@ import { Heatmap, Section, Timeline, type TimelineItem } from "@/components/deta
 import { LogDoseModal } from "@/components/LogDoseModal"
 import { cn } from "@/lib/utils"
 import { dayLabel, formatInstant, localDay } from "@/lib/format"
+import type { CalendarDay } from "@/lib/date"
 import { formatPhone } from "@/lib/phone"
 
 export function MedicationDetail({ entity }: { entity: Entity }) {
@@ -47,7 +48,7 @@ export function MedicationDetail({ entity }: { entity: Entity }) {
   const need = expected.size
 
   // Distinct slots taken per day → shade by the fraction of the day's doses done.
-  const doneByDay = new Map<string, Set<string>>()
+  const doneByDay = new Map<CalendarDay, Set<string>>()
   for (const i of instances) {
     const raw = i.completed_at ?? i.scheduled_date
     if (!raw) continue
@@ -56,7 +57,7 @@ export function MedicationDetail({ entity }: { entity: Entity }) {
     slots.add(i.slot ?? "")
     doneByDay.set(day, slots)
   }
-  const levels = new Map<string, number>()
+  const levels = new Map<CalendarDay, number>()
   for (const [day, slots] of doneByDay) {
     const frac = need ? Math.min(1, slots.size / need) : 1
     levels.set(day, frac >= 1 ? 3 : frac >= 0.5 ? 2 : 1)

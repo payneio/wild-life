@@ -13,7 +13,14 @@ import {
   requests,
   tasks,
 } from "@/services/api/hooks"
-import { localInputToInstant } from "@/lib/date"
+import {
+  asDay,
+  instantOfDate,
+  localInputToInstant,
+  type CalendarDay,
+  type Instant,
+  type WallTime,
+} from "@/lib/date"
 import { whenOf } from "@/lib/moments"
 
 export interface SourceMeta {
@@ -38,8 +45,8 @@ export interface CalendarItem {
   sourceKey: string
   rowId: string
   title: string
-  start: string // "YYYY-MM-DD" (all-day) or ISO datetime (timed)
-  end?: string
+  start: CalendarDay | Instant // a bare day when all-day, an instant when timed
+  end?: CalendarDay | Instant
   allDay: boolean
   color: string
   url: string
@@ -52,19 +59,18 @@ const COLOR = Object.fromEntries(SOURCES.map((s) => [s.key, s.color])) as Record
   string
 >
 
-function day(d: string): string {
-  return d.slice(0, 10)
-}
-
 interface Range {
-  start?: string
-  end?: string
+  start?: Instant
+  end?: Instant
 }
 
 export function useCalendarSources(range: Range, enabled: Set<string>) {
   const on = (k: string) => ({ enabled: !!range.start && enabled.has(k) })
-  const from = range.start ? day(range.start) : undefined
-  const to = range.end ? day(range.end) : undefined
+  // `asDay`, not a slice off the front: the visible range arrives as the instant
+  // the local view opens, and its UTC date is a different day wherever the offset
+  // pushes across midnight — east of Greenwich, every layer by a full day.
+  const from = range.start ? asDay(range.start) : undefined
+  const to = range.end ? asDay(range.end) : undefined
   const between = (field: string) =>
     from ? { [`${field}__gte`]: from, [`${field}__lte`]: to, limit: "500" } : undefined
 
@@ -99,10 +105,10 @@ export function useCalendarSources(range: Range, enabled: Set<string>) {
     key: string,
     rowId: string,
     title: string,
-    date: string | null | undefined,
+    date: CalendarDay | Instant | null | undefined,
     field: string,
     editable = true,
-    end?: string,
+    end?: CalendarDay | Instant,
   ) => {
     if (!date) return
     items.push({
@@ -110,8 +116,8 @@ export function useCalendarSources(range: Range, enabled: Set<string>) {
       sourceKey: key,
       rowId,
       title,
-      start: day(date),
-      end: end ? day(end) : undefined,
+      start: asDay(date),
+      end: end ? asDay(end) : undefined,
       allDay: true,
       color: COLOR[key],
       url: URL_FOR[key](rowId),
@@ -122,17 +128,27 @@ export function useCalendarSources(range: Range, enabled: Set<string>) {
 
   if (enabled.has("task"))
     for (const t of taskQ.data ?? []) {
-      if (t.scheduled_date && t.scheduled_time) {
-        const start = `${t.scheduled_date}T${t.scheduled_time}`
+      // A scheduled day plus a time-of-day is a *wall* time — it names no zone,
+      // so it has to be resolved through the device's before it is an instant.
+      // The two ends used to be different kinds of string (a bare wall time and
+      // a UTC stamp) and rendered correctly only because FullCalendar happens to
+      // parse each by its own rule; the types now refuse the mismatch.
+      const startAt =
+        t.scheduled_date && t.scheduled_time
+          ? localInputToInstant(`${t.scheduled_date}T${t.scheduled_time}`)
+          : null
+      if (startAt) {
         const end = t.estimated_minutes
-          ? new Date(new Date(start).getTime() + t.estimated_minutes * 60000).toISOString()
+          ? instantOfDate(
+              new Date(new Date(startAt).getTime() + t.estimated_minutes * 60000),
+            )
           : undefined
         items.push({
           id: `task:${t.id}`,
           sourceKey: "task",
           rowId: t.id,
           title: t.title,
-          start,
+          start: startAt,
           end,
           allDay: false,
           color: COLOR.task,
@@ -164,7 +180,7 @@ export function useCalendarSources(range: Range, enabled: Set<string>) {
       if (!person.birthday) continue
       const md = person.birthday.slice(5) // MM-DD
       for (const y of [...new Set(years)]) {
-        const date = `${y}-${md}`
+        const date = asDay(`${y}-${md}`)
         if (date >= from && date <= to!)
           push("birthday", `${person.id}-${y}`, `🎂 ${person.name}`, date, "", false)
       }
@@ -182,7 +198,11 @@ export function useCalendarSources(range: Range, enabled: Set<string>) {
     birthday: null,
   }
 
-  const reschedule = (item: CalendarItem, newDate: string, newTime?: string | null) => {
+  const reschedule = (
+    item: CalendarItem,
+    newDate: CalendarDay,
+    newTime?: WallTime | null,
+  ) => {
     const upd = UPD[item.sourceKey]
     if (!upd || !item.field) return
     const body: Record<string, unknown> = { [item.field]: newDate }

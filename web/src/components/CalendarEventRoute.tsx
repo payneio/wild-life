@@ -7,6 +7,7 @@ import { EmptyState, Modal } from "@/components/ui/primitives"
 import { moments, useDeleteOccurrence } from "@/services/api/hooks"
 import { REGISTRY } from "@/services/api/registry"
 import { KIND_LABEL } from "@/lib/moments"
+import { asInstant } from "@/lib/date"
 import type { RecurrenceScope } from "@/services/api/types"
 
 /**
@@ -25,7 +26,9 @@ import type { RecurrenceScope } from "@/services/api/types"
 export function CalendarEventRoute() {
   const { id } = useParams()
   const [sp] = useSearchParams()
-  const occ = sp.get("occ")
+  // A query param is a bare string until something proves otherwise; `asInstant`
+  // parses it and answers null when the URL was edited or truncated.
+  const occ = asInstant(sp.get("occ"))
   const navigate = useNavigate()
   const qc = useQueryClient()
   const def = REGISTRY.moment

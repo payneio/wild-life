@@ -5,6 +5,7 @@ import { ScheduleChips, Segmented } from "@/components/detail/kit"
 import { OFF_LANE, STEPS } from "@/entities/task/status"
 import { REGISTRY } from "@/services/api/registry"
 import type { Entity, Priority, Task, TaskStatus } from "@/services/api/types"
+import type { CalendarDay } from "@/lib/date"
 
 const F = recordFields<Task>()
 
@@ -66,7 +67,7 @@ function PriorityField() {
 /** Quick-set chips over a date column. */
 function DateChips({ field }: { field: "scheduled_date" | "due_date" }) {
   const { value, save } = useField(field)
-  return <ScheduleChips value={value as string | null} onSet={(d) => save(d)} />
+  return <ScheduleChips value={value as CalendarDay | null} onSet={(d) => save(d)} />
 }
 
 export function TaskDetail({ entity, onClose }: { entity: Entity; onClose: () => void }) {

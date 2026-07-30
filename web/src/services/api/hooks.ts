@@ -1,6 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { apiClient } from "@/services/api/client"
 import { createCrud, type Body } from "@/services/api/crud"
+import { endOfDay, startOfDay, type CalendarDay, type Instant } from "@/lib/date"
 import { finalizePendingImages, type PendingImage } from "@/services/api/momentImages"
 import type {
   Affiliation,
@@ -100,7 +101,7 @@ export const insurancePlans = createCrud<InsurancePlan>("insurance-plans")
 export const allergies = createCrud<Allergy>("allergies")
 
 /** Today's regimen — routines due today (meds, supplements, activities, habits). */
-export function useRegimen(day: string) {
+export function useRegimen(day: CalendarDay) {
   return useQuery({
     queryKey: ["regimen", day],
     queryFn: () => apiClient.get<RegimenEntry[]>(`/regimen?date=${day}`),
@@ -222,7 +223,7 @@ export function useRecordReading() {
   return useMutation({
     mutationFn: (v: {
       groupId: string
-      recorded_at: string
+      recorded_at: Instant
       context?: string | null
       values: { metric_id: string; value: number }[]
     }) =>
@@ -304,7 +305,11 @@ export function useMomentsCalendar(scope: MomentScope, enabled = true) {
 }
 
 /** One year of a scoped stream. `since`/`until` rather than a `year` param: the
- *  API places a moment by occurrence *or* window, and a single column couldn't. */
+ *  API places a moment by occurrence *or* window, and a single column couldn't.
+ *
+ *  The bounds are the local year. They were UTC, which put the last hours of 31
+ *  December into the following year's request — so an evening entry vanished
+ *  from the Log band of the year it belongs to. */
 export function useMomentYear(scope: MomentScope, year: number | null, enabled = true) {
   return useQuery({
     queryKey: ["moments", "year", ...scopeKey(scope), year],
@@ -313,7 +318,10 @@ export function useMomentYear(scope: MomentScope, year: number | null, enabled =
         ...scopeParams(scope),
         ...(year === null
           ? {}
-          : { since: `${year}-01-01T00:00:00Z`, until: `${year}-12-31T23:59:59Z` }),
+          : {
+              since: startOfDay(`${year}-01-01` as CalendarDay),
+              until: endOfDay(`${year}-12-31` as CalendarDay),
+            }),
         limit: "500",
       }),
     enabled,
@@ -699,8 +707,8 @@ export interface DoseLog {
   amount?: number | null // the dose taken (amount + unit)
   unit?: string | null
   slot?: string
-  scheduled_date?: string // LOCAL day of the intake (dayOf(taken_at))
-  completed_at?: string // actual time taken
+  scheduled_date?: CalendarDay // LOCAL day of the intake (dayOf(taken_at))
+  completed_at?: Instant // actual time taken
   context?: string | null // why this one went the way it did
 }
 
@@ -777,7 +785,7 @@ export function useDeletePersonPhoto() {
  * this hook cannot tell which, which is the point.
  */
 export function useOccurrences(
-  range: { start?: string; end?: string },
+  range: { start?: Instant; end?: Instant },
   enabled = true,
 ) {
   return useQuery({
@@ -797,8 +805,8 @@ export const occurrenceKey = (o: Occurrence) =>
   `${o.moment_id ?? o.rule_id}:${o.occurrence_at}`
 
 export interface OccurrenceChanges {
-  start_at?: string
-  end_at?: string | null
+  start_at?: Instant
+  end_at?: Instant | null
   all_day?: boolean
   title?: string | null
   body?: string
@@ -812,7 +820,7 @@ export function useEditOccurrence() {
       scope: RecurrenceScope
       rule_id?: string | null
       moment_id?: string | null
-      occurrence_at?: string | null
+      occurrence_at?: Instant | null
       changes: OccurrenceChanges
     }) => apiClient.patch<Occurrence>("/occurrences", v),
     onSettled: () => {
@@ -829,7 +837,7 @@ export function useDeleteOccurrence() {
       scope: RecurrenceScope
       rule_id?: string | null
       moment_id?: string | null
-      occurrence_at?: string | null
+      occurrence_at?: Instant | null
     }) => {
       const q = new URLSearchParams({ scope: v.scope })
       if (v.rule_id) q.set("rule_id", v.rule_id)

@@ -28,6 +28,7 @@ import {
 import { TaskBoard } from "@/components/detail/TaskBoard"
 import { daysFromToday } from "@/components/detail/dates"
 import { formatBand, formatInstant, localDay, todayISO, ymd } from "@/lib/format"
+import type { CalendarDay } from "@/lib/date"
 
 // Task's detail surface moved to `entities/task/Detail.tsx` — it composes the
 // `Record` primitives directly instead of inserting a fragment below the generic
@@ -232,7 +233,7 @@ export function RoutineDetail({ entity }: { entity: Entity }) {
   // are shown in Recent but don't inflate the streak or per-day shading.
   const scheduledDone = doneInst.filter((i) => !i.ad_hoc)
 
-  const levels = new Map<string, number>()
+  const levels = new Map<CalendarDay, number>()
   for (const i of scheduledDone) {
     const raw = i.completed_at ?? i.scheduled_date
     if (raw) levels.set(localDay(raw), 3)

@@ -6,7 +6,7 @@
 // what lives here is what the *reader* needs: how to say a kind out loud, which
 // kinds carry prose you wrote, and where a moment sits in time.
 
-import { asDay, dayLabel, type Instant } from "@/lib/date"
+import { asDay, dayLabel, type CalendarDay, type Instant } from "@/lib/date"
 import type { EntityType, Moment, MomentKind, MomentLink, MomentRole } from "@/services/api/types"
 
 /**
@@ -244,9 +244,9 @@ export function describeMoment(
  *  occurrence nor window still has to land somewhere in a stream. */
 export function groupMomentsByDay(
   moments: Moment[],
-): { key: string; label: string; moments: Moment[] }[] {
-  const groups: { key: string; label: string; moments: Moment[] }[] = []
-  const byKey = new Map<string, { key: string; label: string; moments: Moment[] }>()
+): { key: CalendarDay; label: string; moments: Moment[] }[] {
+  const groups: { key: CalendarDay; label: string; moments: Moment[] }[] = []
+  const byKey = new Map<string, { key: CalendarDay; label: string; moments: Moment[] }>()
   for (const m of moments) {
     const stamp = whenOf(m) ?? m.created_at
     const key = asDay(stamp)
