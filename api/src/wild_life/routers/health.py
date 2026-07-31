@@ -20,6 +20,7 @@ from wild_life.models.health import (
     Medication,
 )
 from wild_life.routers.crud import crud_router
+from wild_life.spine import record_finish
 from wild_life.schemas.health import (
     AllergyCreate,
     AllergyRead,
@@ -70,6 +71,8 @@ router.include_router(
         create_schema=AllergyCreate,
         read_schema=AllergyRead,
         update_schema=AllergyUpdate,
+        on_write=lambda s, o: record_finish(s, "allergy", o),
+        spine_entity="allergy",
         order_by=Allergy.substance,
     )
 )

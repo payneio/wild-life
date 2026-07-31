@@ -13,6 +13,7 @@ from wild_life.models.links import EntityLink
 from wild_life.models.metrics import Metric, MetricEntry
 from wild_life.models.outcomes import Outcome
 from wild_life.routers.crud import crud_router
+from wild_life.spine import record_finish
 from wild_life.schemas.outcomes import (
     Evaluation,
     OutcomeCreate,
@@ -30,6 +31,8 @@ router.include_router(
         create_schema=OutcomeCreate,
         read_schema=OutcomeRead,
         update_schema=OutcomeUpdate,
+        on_write=lambda s, o: record_finish(s, "outcome", o),
+        spine_entity="outcome",
         order_by=Outcome.created_at.desc(),
     )
 )

@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wild_life.db.session import get_session
+from wild_life.spine import forget_for, record_routine_instance
 from wild_life.models.routines import Routine, RoutineInstance
 from wild_life.routers.crud import crud_router
 from wild_life.schemas.routines import (
@@ -19,6 +20,18 @@ from wild_life.schemas.routines import (
     RoutineRead,
     RoutineUpdate,
 )
+
+
+async def _record_instance(session: AsyncSession, inst: RoutineInstance) -> None:
+    """A logged step becomes a dose or an activity as it is written.
+
+    The rule is fetched because the medication may live on it rather than on the
+    instance — reading only the instance is what once counted 37 doses where
+    there were 38.
+    """
+    routine = await session.get(Routine, inst.routine_id) if inst.routine_id else None
+    await record_routine_instance(session, inst, routine)
+
 
 router = APIRouter()
 
@@ -42,6 +55,8 @@ router.include_router(
         read_schema=RoutineInstanceRead,
         update_schema=RoutineInstanceUpdate,
         order_by=RoutineInstance.scheduled_date.desc(),
+        on_write=_record_instance,
+        spine_entity="routine_instance",
     )
 )
 
@@ -114,6 +129,7 @@ async def complete_routine(
     instance.completed_at = datetime.now(timezone.utc)
     await session.flush()
     await session.refresh(instance)
+    await record_routine_instance(session, instance, routine)
     return instance
 
 
@@ -128,6 +144,8 @@ async def uncomplete_routine(
     day = on or date.today()
     instance = await _instance_for(session, routine_id, day, slot)
     if instance is not None:
+        # Un-checking removes the log row, so the dose it produced goes too.
+        await forget_for(session, "routine_instance", instance.id)
         await session.delete(instance)
 
 
@@ -185,6 +203,7 @@ async def log_intake(
     session.add(instance)
     await session.flush()
     await session.refresh(instance)
+    await record_routine_instance(session, instance, routine)
     return instance
 
 

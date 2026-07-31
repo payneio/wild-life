@@ -16,6 +16,7 @@ from wild_life.authz import (
     scope_task_create,
 )
 from wild_life.db.session import get_session
+from wild_life.spine import forget_for, record_task
 from wild_life.hierarchy import tasks_rooted_at
 from wild_life.identity import Identity, current_identity
 from wild_life.lifecycle import closed_statuses
@@ -154,6 +155,7 @@ async def create_task(
     session.add(task)
     await session.flush()
     await session.refresh(task)
+    await record_task(session, task)
     return task
 
 
@@ -275,6 +277,8 @@ async def move_task(
     )
     await session.flush()
     await session.refresh(task)
+    # A board drag can carry a status, and a status can carry a completion.
+    await record_task(session, task)
     return task
 
 
@@ -304,16 +308,23 @@ async def update_task(
         setattr(task, field, value)
     _sync_completion(task)
     # Newly completed + recurring -> reveal the next occurrence.
+    nxt = None
     if task.status == "completed" and not was_completed:
         nxt = _spawn_next_occurrence(task)
         if nxt is not None:
             session.add(nxt)
+            await session.flush()
     # Finished work frees its claim so it isn't held forever.
     if task.status in _CLOSED_STATUSES:
         task.claimed_by_id = None
         task.claimed_at = None
     await session.flush()
     await session.refresh(task)
+    # Reopening clears `completed_at`, so this deletes the completion as readily
+    # as it writes one: the timeline must not keep asserting a finish undone.
+    await record_task(session, task)
+    if nxt is not None:
+        await record_task(session, nxt)
     return task
 
 
@@ -390,4 +401,5 @@ async def delete_task(
     task = await session.get(Task, item_id)
     if task is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not found")
+    await forget_for(session, "task", item_id)
     await session.delete(task)

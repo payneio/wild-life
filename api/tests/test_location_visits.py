@@ -119,10 +119,20 @@ def test_nested_fences_open_concurrent_visits(
         assert r.status_code == 200, r.text
         places = r.json()["places"]
         ids = [p["location_id"] for p in places]
-        assert set(ids) == {city["id"], office["id"]}
-        # Innermost first — places[0] is "the place", the tail is the breadcrumb.
-        assert ids[0] == office["id"]
-        assert places[0]["radius_m"] < places[1]["radius_m"]
+        # A subset, not an equality. `/where-was-i` answers *where you are*, and
+        # these tests share the database with the running app — so any visit the
+        # owner has open right now is legitimately in this list too. Asserting
+        # the exact set made the test a function of whether someone happened to
+        # be somewhere, which is why it failed sitting still at a real address.
+        # The claim being made here is "you are in all of them", and that is what
+        # a subset says.
+        assert {city["id"], office["id"]} <= set(ids)
+        # Innermost first — the nearest fence is "the place", the tail is the
+        # breadcrumb out of it. Read off this test's own two rather than the
+        # head of the list, which an unrelated open visit can precede.
+        mine = [p for p in places if p["location_id"] in {city["id"], office["id"]}]
+        assert mine[0]["location_id"] == office["id"]
+        assert mine[0]["radius_m"] < mine[1]["radius_m"]
     finally:
         _cleanup(client, auth_headers, made)
 

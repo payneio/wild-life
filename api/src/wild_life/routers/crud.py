@@ -5,7 +5,7 @@ standard endpoints (create/list/get/patch/delete). Feature routers compose one
 of these per resource and add anything extra on top.
 """
 
-from collections.abc import Callable, Mapping
+from collections.abc import Awaitable, Callable, Mapping
 from typing import Any
 from uuid import UUID
 
@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from wild_life.db.session import get_session
 from wild_life.query import apply_query
+from wild_life.spine import forget_for
 
 
 def crud_router(
@@ -27,6 +28,9 @@ def crud_router(
     update_schema: type[Any],
     order_by: Any | None = None,
     list_filter: Callable[[Any, Mapping[str, str]], Any] | None = None,
+    on_write: Callable[[AsyncSession, Any], Awaitable[None]] | None = None,
+    on_delete: Callable[[AsyncSession, UUID], Awaitable[None]] | None = None,
+    spine_entity: str | None = None,
 ) -> APIRouter:
     """Build a router exposing standard CRUD for ``model``.
 
@@ -34,6 +38,16 @@ def crud_router(
     on its own — a filter that has to join rather than compare a column. It is a
     hook rather than a bespoke router because the alternative, a second ``GET ""``
     shadowing this one, hides the generic behaviour behind a copy of it.
+
+    ``on_write`` records the act on the spine in the *same transaction* as the
+    row, so the timeline can never disagree with the table it was derived from.
+    It is a hook here rather than a line in each router for the reason the whole
+    factory exists: twenty-odd routers that must each remember a step will not
+    all remember it, and the one that forgets is invisible until someone notices
+    their Log is missing something. ``spine_entity`` names the type for the
+    delete path, so removing a row takes its moments with it — a timeline that
+    keeps asserting a finish you undid is worse than one that lags. ``on_delete``
+    is for rows whose children carry moments and vanish by cascade.
     """
     router = APIRouter(prefix=prefix, tags=[tag])
 
@@ -56,6 +70,8 @@ def crud_router(
         session.add(obj)
         await session.flush()
         await session.refresh(obj)
+        if on_write is not None:
+            await on_write(session, obj)
         return obj
 
     @router.get("", response_model=list[read_schema], operation_id=f"{base}_list")
@@ -106,6 +122,8 @@ def crud_router(
             setattr(obj, field, value)
         await session.flush()
         await session.refresh(obj)
+        if on_write is not None:
+            await on_write(session, obj)
         return obj
 
     @router.delete(
@@ -119,6 +137,14 @@ def crud_router(
         obj = await session.get(model, item_id)
         if obj is None:
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not found")
+        if spine_entity is not None:
+            await forget_for(session, spine_entity, item_id)
+        # For rows whose *children* carry moments. A database-level cascade
+        # removes those children without any Python running, so a moment about
+        # them would survive the thing it was about — a visit to a place that no
+        # longer exists still sitting on the timeline.
+        if on_delete is not None:
+            await on_delete(session, item_id)
         await session.delete(obj)
         # Flushed here, not left to the session's commit-on-success. A delete a
         # foreign key refuses — a program still holding projects — otherwise

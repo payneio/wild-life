@@ -55,11 +55,37 @@ def sweep_test_rows() -> Generator[None, None, None]:
     except Exception:  # pragma: no cover - no database, nothing to sweep
         return
     with eng.begin() as conn:
+        # Moments first: a derived moment names its source row, so it has to go
+        # before the row does or the ref stops resolving. The surfaces now write
+        # the spine inline, which means a test that creates a task also creates
+        # moments — and the sweep that did not know about them was leaving those
+        # in the live app's timeline.
+        conn.execute(text("DELETE FROM wild_life.moments WHERE title LIKE 'ZZ-%'"))
         for table, column in _MARKED:
             if column is None:
                 continue
             conn.execute(
                 text(f"DELETE FROM wild_life.{table} WHERE {column} LIKE 'ZZ-%'")
+            )
+        # Anything derived whose source row is gone. The app itself never leaves
+        # one — deleting a row takes its moments with it — but a test that
+        # reaches past the API, or a database cascade, can.
+        for prefix, table in (
+            ("task", "tasks"),
+            ("routine_instance", "routine_instances"),
+            ("metric_entry", "metric_entries"),
+            ("group_reading", "group_readings"),
+            ("location_visit", "location_visits"),
+        ):
+            conn.execute(
+                text(f"""
+                    DELETE FROM wild_life.moments m
+                     WHERE m.source_ref LIKE '{prefix}:%'
+                       AND NOT EXISTS (
+                           SELECT 1 FROM wild_life.{table} r
+                            WHERE m.source_ref LIKE '{prefix}:' || r.id::text || '%'
+                       )
+                """)  # noqa: S608
             )
     eng.dispose()
 

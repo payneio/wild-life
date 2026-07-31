@@ -4,6 +4,7 @@ from fastapi import APIRouter
 
 from wild_life.models.tracking import Commitment, Delegation
 from wild_life.routers.crud import crud_router
+from wild_life.spine import record_finish
 from wild_life.schemas.tracking import (
     CommitmentCreate,
     CommitmentRead,
@@ -23,6 +24,8 @@ router.include_router(
         create_schema=CommitmentCreate,
         read_schema=CommitmentRead,
         update_schema=CommitmentUpdate,
+        on_write=lambda s, o: record_finish(s, "commitment", o),
+        spine_entity="commitment",
         order_by=Commitment.created_at.desc(),
     )
 )

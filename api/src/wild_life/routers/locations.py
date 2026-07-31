@@ -17,6 +17,9 @@ from wild_life import geocode
 from wild_life.config import settings
 from wild_life.db.session import get_session
 from wild_life.geofence import invalidate_fences, rebuild_visits
+from wild_life.spine import forget
+
+
 from wild_life.models.locations import Location, LocationPing, LocationVisit
 from wild_life.query import apply_query
 from wild_life.routers.crud import crud_router
@@ -30,6 +33,27 @@ from wild_life.stops import recompute_candidates
 from wild_life.schemas.visits import LocationVisitRead, Presence, VisitWithLocation
 
 logger = logging.getLogger(__name__)
+
+
+async def _forget_visit_moments(session: AsyncSession, location_id: UUID) -> None:
+    """A place's visits cascade when it is deleted; their moments must not stay.
+
+    The cascade is enforced by the database, so nothing in Python sees the visit
+    rows go. Without this the timeline keeps a stretch of time spent somewhere
+    that no longer exists, and the mirror's own test — no derived visit outlives
+    its source — starts failing on live data.
+    """
+    ids = (
+        (
+            await session.execute(
+                select(LocationVisit.id).where(LocationVisit.location_id == location_id)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    await forget(session, *[f"location_visit:{i}" for i in ids])
+
 
 # A visit list is small, but "small" is a property of the data rather than of the
 # endpoint — the generic factory applies no limit when the caller passes none, so
@@ -49,6 +73,7 @@ router.include_router(
         create_schema=LocationCreate,
         read_schema=LocationRead,
         update_schema=LocationUpdate,
+        on_delete=_forget_visit_moments,
         order_by=Location.name,
     )
 )

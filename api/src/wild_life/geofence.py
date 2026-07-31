@@ -33,6 +33,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from wild_life.config import settings
 from wild_life.geo import beyond_latitude_band, encloses, fit_score, haversine_m
+from types import SimpleNamespace
+
+from wild_life.spine import forget, record_visit
 from wild_life.models.locations import Location, LocationPing, LocationVisit
 
 
@@ -404,6 +407,25 @@ async def rebuild_visits(
     )
     window_start = min(earliest_open, since) if earliest_open else since
 
+    # Replay is delete-then-re-derive, so the moments have to move with the rows.
+    # A derived visit is named by (place, entered_at), so re-deriving reproduces
+    # its id and its moment is upserted rather than duplicated; what this clears
+    # is the remainder — a visit the new pass no longer produces, whose moment
+    # would otherwise assert a stretch of time that has been retracted.
+    doomed = (
+        (
+            await session.execute(
+                select(LocationVisit.id)
+                .where(LocationVisit.location_id.in_(fence_ids))
+                .where(LocationVisit.source == "derived")
+                .where(LocationVisit.entered_at >= window_start)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    await forget(session, *[f"location_visit:{i}" for i in doomed])
+
     await session.execute(
         delete(LocationVisit)
         .where(LocationVisit.location_id.in_(fence_ids))
@@ -417,6 +439,10 @@ async def rebuild_visits(
         await session.execute(
             LocationVisit.__table__.insert(), [v.as_row() for v in derived]
         )
+        # The bulk insert bypasses the reconciler above, so the spine is written
+        # here rather than left to the next tick.
+        for v in derived:
+            await record_visit(session, SimpleNamespace(**v.as_row()))
     return len(derived)
 
 
@@ -469,7 +495,10 @@ async def evaluate_ping(session: AsyncSession, fix: Fix) -> None:
         if row is None:
             # Arriving. Through the ORM, so it reaches change_log and the SSE stream
             # tells the UI "you are here" — a handful of these a day, not per ping.
-            session.add(LocationVisit(**visit.as_row()))
+            fresh = LocationVisit(**visit.as_row())
+            session.add(fresh)
+            await session.flush()
+            await record_visit(session, fresh)
         elif visit.exited_at is not None:
             # Leaving is a real event too, so it also goes through the ORM.
             row.exited_at = visit.exited_at
@@ -477,6 +506,9 @@ async def evaluate_ping(session: AsyncSession, fix: Fix) -> None:
             row.last_seen_inside_at = visit.last_seen_inside_at
             row.ping_count = visit.ping_count
             row.last_ping_id = visit.last_ping_id
+            # An exit closes the moment as well as the row: a visit with no end
+            # reads as "still there", which is what the timeline would show.
+            await record_visit(session, row)
         else:
             # Still inside. These columns move on *every* fix while you are within a
             # fence — inside four nested fences that would be four change_log rows
