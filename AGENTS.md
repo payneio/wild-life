@@ -17,6 +17,11 @@ preserved here under `web/` and `api/`.
 | `api/` | HTTP API + data | FastAPI, SQLAlchemy 2.0 async, Postgres, Alembic  | `wild-life-api` |
 | `web/` | Frontend SPA    | React 19, Vite 7, TanStack Query, Tailwind v4, react-router 7 | `wild-life`     |
 
+- **@api/docs/model.md** — the model the system is being moved toward: attention,
+  intention and occurrence, as eight axioms with the scenarios that force them.
+  A *design record*, explicitly not a description — read it before proposing a
+  change to how planning, commitment or scope work, and check the gap table
+  before assuming any of it is implemented.
 - **`api/`** — the authoritative model and REST surface. Read **@api/CLAUDE.md**
   before non-trivial backend work: it documents the Area→Program→Project→Task
   hierarchy, every entity/router, the pure-ASGI bearer auth, the isolated
