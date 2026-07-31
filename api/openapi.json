@@ -936,20 +936,6 @@
         "title": "Body_upload_moment_image_moments__item_id__images_post",
         "type": "object"
       },
-      "Body_upload_note_image_notes__item_id__images_post": {
-        "properties": {
-          "file": {
-            "contentMediaType": "application/octet-stream",
-            "title": "File",
-            "type": "string"
-          }
-        },
-        "required": [
-          "file"
-        ],
-        "title": "Body_upload_note_image_notes__item_id__images_post",
-        "type": "object"
-      },
       "Body_upload_person_photo_people__person_id__photo_post": {
         "properties": {
           "file": {
@@ -1309,8 +1295,6 @@
                   "outcome",
                   "metric",
                   "metric_group",
-                  "event",
-                  "note",
                   "person",
                   "organization",
                   "location",
@@ -1472,8 +1456,6 @@
                   "outcome",
                   "metric",
                   "metric_group",
-                  "event",
-                  "note",
                   "person",
                   "organization",
                   "location",
@@ -1659,8 +1641,6 @@
                   "outcome",
                   "metric",
                   "metric_group",
-                  "event",
-                  "note",
                   "person",
                   "organization",
                   "location",
@@ -1843,8 +1823,6 @@
                   "outcome",
                   "metric",
                   "metric_group",
-                  "event",
-                  "note",
                   "person",
                   "organization",
                   "location",
@@ -1991,8 +1969,6 @@
                   "outcome",
                   "metric",
                   "metric_group",
-                  "event",
-                  "note",
                   "person",
                   "organization",
                   "location",
@@ -2156,8 +2132,6 @@
                   "outcome",
                   "metric",
                   "metric_group",
-                  "event",
-                  "note",
                   "person",
                   "organization",
                   "location",
@@ -2345,8 +2319,6 @@
                   "outcome",
                   "metric",
                   "metric_group",
-                  "event",
-                  "note",
                   "person",
                   "organization",
                   "location",
@@ -2593,8 +2565,6 @@
                   "outcome",
                   "metric",
                   "metric_group",
-                  "event",
-                  "note",
                   "person",
                   "organization",
                   "location",
@@ -2871,8 +2841,6 @@
                   "outcome",
                   "metric",
                   "metric_group",
-                  "event",
-                  "note",
                   "person",
                   "organization",
                   "location",
@@ -3162,53 +3130,6 @@
         "title": "DoseLogCreate",
         "type": "object"
       },
-      "EntityRef": {
-        "description": "A link from a note to another entity (soft-polymorphic target).",
-        "properties": {
-          "target_id": {
-            "format": "uuid",
-            "title": "Target Id",
-            "type": "string"
-          },
-          "target_type": {
-            "enum": [
-              "area",
-              "program",
-              "project",
-              "task",
-              "routine",
-              "outcome",
-              "metric",
-              "metric_group",
-              "event",
-              "note",
-              "person",
-              "organization",
-              "location",
-              "commitment",
-              "request",
-              "delegation",
-              "review",
-              "resource",
-              "decision",
-              "medication",
-              "protocol",
-              "protocol_item",
-              "insurance_plan",
-              "allergy",
-              "moment"
-            ],
-            "title": "Target Type",
-            "type": "string"
-          }
-        },
-        "required": [
-          "target_type",
-          "target_id"
-        ],
-        "title": "EntityRef",
-        "type": "object"
-      },
       "Evaluation": {
         "description": "Where an outcome actually stands, and the parts that say why.\n\n`state` is the headline; everything else is returned so a surface can show its\nreasoning rather than an unexplained percentage. Nothing here is stored \u2014 an\noutcome's `status` says whether the claim is live, never whether it is met.",
         "properties": {
@@ -3364,837 +3285,6 @@
           "advanced_by"
         ],
         "title": "Evaluation",
-        "type": "object"
-      },
-      "EventCreate": {
-        "properties": {
-          "all_day": {
-            "default": false,
-            "title": "All Day",
-            "type": "boolean"
-          },
-          "attendees": {
-            "default": [],
-            "items": {
-              "type": "string"
-            },
-            "title": "Attendees",
-            "type": "array"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "end_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "End At"
-          },
-          "entity_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Entity Id"
-          },
-          "entity_type": {
-            "anyOf": [
-              {
-                "enum": [
-                  "area",
-                  "program",
-                  "project",
-                  "task",
-                  "routine",
-                  "outcome",
-                  "metric",
-                  "metric_group",
-                  "event",
-                  "note",
-                  "person",
-                  "organization",
-                  "location",
-                  "commitment",
-                  "request",
-                  "delegation",
-                  "review",
-                  "resource",
-                  "decision",
-                  "medication",
-                  "protocol",
-                  "protocol_item",
-                  "insurance_plan",
-                  "allergy",
-                  "moment"
-                ],
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Entity Type"
-          },
-          "event_type": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Event Type"
-          },
-          "external_ref": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "External Ref"
-          },
-          "location": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Location"
-          },
-          "location_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Location Id"
-          },
-          "organizer": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Organizer"
-          },
-          "recurrence": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Recurrence"
-          },
-          "recurrence_exdates": {
-            "default": [],
-            "items": {
-              "type": "string"
-            },
-            "title": "Recurrence Exdates",
-            "type": "array"
-          },
-          "recurrence_id": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Recurrence Id"
-          },
-          "recurrence_parent_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Recurrence Parent Id"
-          },
-          "rsvp_sent_status": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Rsvp Sent Status"
-          },
-          "rsvp_status": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Rsvp Status"
-          },
-          "sequence": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Sequence"
-          },
-          "start_at": {
-            "format": "date-time",
-            "title": "Start At",
-            "type": "string"
-          },
-          "timezone": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Timezone"
-          },
-          "title": {
-            "title": "Title",
-            "type": "string"
-          }
-        },
-        "required": [
-          "title",
-          "start_at"
-        ],
-        "title": "EventCreate",
-        "type": "object"
-      },
-      "EventRead": {
-        "properties": {
-          "all_day": {
-            "title": "All Day",
-            "type": "boolean"
-          },
-          "attendees": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Attendees",
-            "type": "array"
-          },
-          "cancelled_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Cancelled At"
-          },
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "end_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "End At"
-          },
-          "entity_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Entity Id"
-          },
-          "entity_type": {
-            "anyOf": [
-              {
-                "enum": [
-                  "area",
-                  "program",
-                  "project",
-                  "task",
-                  "routine",
-                  "outcome",
-                  "metric",
-                  "metric_group",
-                  "event",
-                  "note",
-                  "person",
-                  "organization",
-                  "location",
-                  "commitment",
-                  "request",
-                  "delegation",
-                  "review",
-                  "resource",
-                  "decision",
-                  "medication",
-                  "protocol",
-                  "protocol_item",
-                  "insurance_plan",
-                  "allergy",
-                  "moment"
-                ],
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Entity Type"
-          },
-          "event_type": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Event Type"
-          },
-          "external_ref": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "External Ref"
-          },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "invites_enabled": {
-            "title": "Invites Enabled",
-            "type": "boolean"
-          },
-          "location": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Location"
-          },
-          "location_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Location Id"
-          },
-          "organizer": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Organizer"
-          },
-          "received_invite": {
-            "description": "True when this is an invite I received (organizer is someone else) \u2014\nas opposed to an event I host (organizer is me or unset).",
-            "readOnly": true,
-            "title": "Received Invite",
-            "type": "boolean"
-          },
-          "recurrence": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Recurrence"
-          },
-          "recurrence_exdates": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Recurrence Exdates",
-            "type": "array"
-          },
-          "recurrence_id": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Recurrence Id"
-          },
-          "recurrence_parent_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Recurrence Parent Id"
-          },
-          "rsvp_sent_status": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Rsvp Sent Status"
-          },
-          "rsvp_status": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Rsvp Status"
-          },
-          "sequence": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Sequence"
-          },
-          "start_at": {
-            "format": "date-time",
-            "title": "Start At",
-            "type": "string"
-          },
-          "timezone": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Timezone"
-          },
-          "title": {
-            "title": "Title",
-            "type": "string"
-          },
-          "updated_at": {
-            "format": "date-time",
-            "title": "Updated At",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "created_at",
-          "updated_at",
-          "title",
-          "event_type",
-          "description",
-          "location",
-          "location_id",
-          "start_at",
-          "end_at",
-          "all_day",
-          "attendees",
-          "recurrence",
-          "timezone",
-          "recurrence_exdates",
-          "recurrence_parent_id",
-          "recurrence_id",
-          "entity_type",
-          "entity_id",
-          "external_ref",
-          "organizer",
-          "sequence",
-          "rsvp_status",
-          "rsvp_sent_status",
-          "invites_enabled",
-          "cancelled_at",
-          "received_invite"
-        ],
-        "title": "EventRead",
-        "type": "object"
-      },
-      "EventUpdate": {
-        "properties": {
-          "all_day": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "All Day"
-          },
-          "attendees": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Attendees"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "end_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "End At"
-          },
-          "entity_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Entity Id"
-          },
-          "entity_type": {
-            "anyOf": [
-              {
-                "enum": [
-                  "area",
-                  "program",
-                  "project",
-                  "task",
-                  "routine",
-                  "outcome",
-                  "metric",
-                  "metric_group",
-                  "event",
-                  "note",
-                  "person",
-                  "organization",
-                  "location",
-                  "commitment",
-                  "request",
-                  "delegation",
-                  "review",
-                  "resource",
-                  "decision",
-                  "medication",
-                  "protocol",
-                  "protocol_item",
-                  "insurance_plan",
-                  "allergy",
-                  "moment"
-                ],
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Entity Type"
-          },
-          "event_type": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Event Type"
-          },
-          "external_ref": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "External Ref"
-          },
-          "location": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Location"
-          },
-          "location_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Location Id"
-          },
-          "organizer": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Organizer"
-          },
-          "recurrence": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Recurrence"
-          },
-          "recurrence_exdates": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Recurrence Exdates"
-          },
-          "recurrence_id": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Recurrence Id"
-          },
-          "recurrence_parent_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Recurrence Parent Id"
-          },
-          "rsvp_sent_status": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Rsvp Sent Status"
-          },
-          "rsvp_status": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Rsvp Status"
-          },
-          "sequence": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Sequence"
-          },
-          "start_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Start At"
-          },
-          "timezone": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Timezone"
-          },
-          "title": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Title"
-          }
-        },
-        "title": "EventUpdate",
         "type": "object"
       },
       "GroupMemberCreate": {
@@ -6153,8 +5243,6 @@
               "outcome",
               "metric",
               "metric_group",
-              "event",
-              "note",
               "person",
               "organization",
               "location",
@@ -6240,8 +5328,6 @@
               "outcome",
               "metric",
               "metric_group",
-              "event",
-              "note",
               "person",
               "organization",
               "location",
@@ -6516,8 +5602,6 @@
               "outcome",
               "metric",
               "metric_group",
-              "event",
-              "note",
               "person",
               "organization",
               "location",
@@ -6583,8 +5667,6 @@
               "outcome",
               "metric",
               "metric_group",
-              "event",
-              "note",
               "person",
               "organization",
               "location",
@@ -6668,8 +5750,6 @@
                   "outcome",
                   "metric",
                   "metric_group",
-                  "event",
-                  "note",
                   "person",
                   "organization",
                   "location",
@@ -6771,8 +5851,6 @@
               "outcome",
               "metric",
               "metric_group",
-              "event",
-              "note",
               "person",
               "organization",
               "location",
@@ -6976,8 +6054,6 @@
                   "outcome",
                   "metric",
                   "metric_group",
-                  "event",
-                  "note",
                   "person",
                   "organization",
                   "location",
@@ -7357,8 +6433,6 @@
               "outcome",
               "metric",
               "metric_group",
-              "event",
-              "note",
               "person",
               "organization",
               "location",
@@ -7437,8 +6511,6 @@
               "outcome",
               "metric",
               "metric_group",
-              "event",
-              "note",
               "person",
               "organization",
               "location",
@@ -7891,413 +6963,6 @@
         "title": "MomentUpdate",
         "type": "object"
       },
-      "NoteCreate": {
-        "properties": {
-          "body": {
-            "default": "",
-            "title": "Body",
-            "type": "string"
-          },
-          "entity_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Entity Id"
-          },
-          "entity_type": {
-            "anyOf": [
-              {
-                "enum": [
-                  "area",
-                  "program",
-                  "project",
-                  "task",
-                  "routine",
-                  "outcome",
-                  "metric",
-                  "metric_group",
-                  "event",
-                  "note",
-                  "person",
-                  "organization",
-                  "location",
-                  "commitment",
-                  "request",
-                  "delegation",
-                  "review",
-                  "resource",
-                  "decision",
-                  "medication",
-                  "protocol",
-                  "protocol_item",
-                  "insurance_plan",
-                  "allergy",
-                  "moment"
-                ],
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Entity Type"
-          },
-          "entry_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Entry Date"
-          },
-          "links": {
-            "default": [],
-            "items": {
-              "$ref": "#/components/schemas/EntityRef"
-            },
-            "title": "Links",
-            "type": "array"
-          },
-          "mood": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Mood"
-          },
-          "title": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Title"
-          }
-        },
-        "title": "NoteCreate",
-        "type": "object"
-      },
-      "NoteImageRead": {
-        "properties": {
-          "content_type": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Content Type"
-          },
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "filename": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Filename"
-          },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "note_id": {
-            "format": "uuid",
-            "title": "Note Id",
-            "type": "string"
-          },
-          "sort_order": {
-            "title": "Sort Order",
-            "type": "integer"
-          },
-          "updated_at": {
-            "format": "date-time",
-            "title": "Updated At",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "created_at",
-          "updated_at",
-          "note_id",
-          "filename",
-          "content_type",
-          "sort_order"
-        ],
-        "title": "NoteImageRead",
-        "type": "object"
-      },
-      "NoteRead": {
-        "properties": {
-          "body": {
-            "title": "Body",
-            "type": "string"
-          },
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "entity_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Entity Id"
-          },
-          "entity_type": {
-            "anyOf": [
-              {
-                "enum": [
-                  "area",
-                  "program",
-                  "project",
-                  "task",
-                  "routine",
-                  "outcome",
-                  "metric",
-                  "metric_group",
-                  "event",
-                  "note",
-                  "person",
-                  "organization",
-                  "location",
-                  "commitment",
-                  "request",
-                  "delegation",
-                  "review",
-                  "resource",
-                  "decision",
-                  "medication",
-                  "protocol",
-                  "protocol_item",
-                  "insurance_plan",
-                  "allergy",
-                  "moment"
-                ],
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Entity Type"
-          },
-          "entry_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Entry Date"
-          },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "links": {
-            "default": [],
-            "items": {
-              "$ref": "#/components/schemas/EntityRef"
-            },
-            "title": "Links",
-            "type": "array"
-          },
-          "mood": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Mood"
-          },
-          "title": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Title"
-          },
-          "updated_at": {
-            "format": "date-time",
-            "title": "Updated At",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "created_at",
-          "updated_at",
-          "title",
-          "body",
-          "entry_date",
-          "mood",
-          "entity_type",
-          "entity_id"
-        ],
-        "title": "NoteRead",
-        "type": "object"
-      },
-      "NoteUpdate": {
-        "properties": {
-          "body": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Body"
-          },
-          "entity_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Entity Id"
-          },
-          "entity_type": {
-            "anyOf": [
-              {
-                "enum": [
-                  "area",
-                  "program",
-                  "project",
-                  "task",
-                  "routine",
-                  "outcome",
-                  "metric",
-                  "metric_group",
-                  "event",
-                  "note",
-                  "person",
-                  "organization",
-                  "location",
-                  "commitment",
-                  "request",
-                  "delegation",
-                  "review",
-                  "resource",
-                  "decision",
-                  "medication",
-                  "protocol",
-                  "protocol_item",
-                  "insurance_plan",
-                  "allergy",
-                  "moment"
-                ],
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Entity Type"
-          },
-          "entry_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Entry Date"
-          },
-          "links": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/EntityRef"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Links"
-          },
-          "mood": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Mood"
-          },
-          "title": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Title"
-          }
-        },
-        "title": "NoteUpdate",
-        "type": "object"
-      },
       "Occurrence": {
         "description": "One thing on the calendar, however it came to be there.\n\nThree sources reach this one shape, which is the whole point of the read\npath: a plain moment, a wire rule we could not translate and so expand as we\nwere given it, and a rule of our own projected forward. A client should not\nhave to know which \u2014 and before this it did, because it expanded RRULEs\nitself.",
         "properties": {
@@ -8502,6 +7167,64 @@
           }
         },
         "title": "OccurrenceChanges",
+        "type": "object"
+      },
+      "OccurrenceEdit": {
+        "properties": {
+          "changes": {
+            "$ref": "#/components/schemas/OccurrenceChanges",
+            "default": {}
+          },
+          "moment_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moment Id"
+          },
+          "occurrence_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurrence At"
+          },
+          "rule_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Id"
+          },
+          "scope": {
+            "enum": [
+              "this",
+              "following",
+              "all"
+            ],
+            "title": "Scope",
+            "type": "string"
+          }
+        },
+        "required": [
+          "scope"
+        ],
+        "title": "OccurrenceEdit",
         "type": "object"
       },
       "OrganizationCreate": {
@@ -9093,8 +7816,6 @@
               "outcome",
               "metric",
               "metric_group",
-              "event",
-              "note",
               "person",
               "organization",
               "location",
@@ -9249,8 +7970,6 @@
               "outcome",
               "metric",
               "metric_group",
-              "event",
-              "note",
               "person",
               "organization",
               "location",
@@ -9429,8 +8148,6 @@
                   "outcome",
                   "metric",
                   "metric_group",
-                  "event",
-                  "note",
                   "person",
                   "organization",
                   "location",
@@ -10316,8 +9033,6 @@
                 "outcome",
                 "metric",
                 "metric_group",
-                "event",
-                "note",
                 "person",
                 "organization",
                 "location",
@@ -10500,8 +9215,6 @@
                 "outcome",
                 "metric",
                 "metric_group",
-                "event",
-                "note",
                 "person",
                 "organization",
                 "location",
@@ -10694,8 +9407,6 @@
                     "outcome",
                     "metric",
                     "metric_group",
-                    "event",
-                    "note",
                     "person",
                     "organization",
                     "location",
@@ -11930,8 +10641,6 @@
                   "outcome",
                   "metric",
                   "metric_group",
-                  "event",
-                  "note",
                   "person",
                   "organization",
                   "location",
@@ -12122,8 +10831,6 @@
                   "outcome",
                   "metric",
                   "metric_group",
-                  "event",
-                  "note",
                   "person",
                   "organization",
                   "location",
@@ -12363,8 +11070,6 @@
                   "outcome",
                   "metric",
                   "metric_group",
-                  "event",
-                  "note",
                   "person",
                   "organization",
                   "location",
@@ -12554,8 +11259,6 @@
                   "outcome",
                   "metric",
                   "metric_group",
-                  "event",
-                  "note",
                   "person",
                   "organization",
                   "location",
@@ -12655,8 +11358,6 @@
                   "outcome",
                   "metric",
                   "metric_group",
-                  "event",
-                  "note",
                   "person",
                   "organization",
                   "location",
@@ -12769,8 +11470,6 @@
                   "outcome",
                   "metric",
                   "metric_group",
-                  "event",
-                  "note",
                   "person",
                   "organization",
                   "location",
@@ -15787,92 +14486,6 @@
         },
         "title": "WhiteboardWrite",
         "type": "object"
-      },
-      "wild_life__routers__calendar__OccurrenceEdit": {
-        "properties": {
-          "changes": {
-            "$ref": "#/components/schemas/EventUpdate",
-            "default": {}
-          },
-          "occurrence_date": {
-            "format": "date-time",
-            "title": "Occurrence Date",
-            "type": "string"
-          },
-          "scope": {
-            "enum": [
-              "this",
-              "following",
-              "all"
-            ],
-            "title": "Scope",
-            "type": "string"
-          }
-        },
-        "required": [
-          "scope",
-          "occurrence_date"
-        ],
-        "title": "OccurrenceEdit",
-        "type": "object"
-      },
-      "wild_life__routers__occurrences__OccurrenceEdit": {
-        "properties": {
-          "changes": {
-            "$ref": "#/components/schemas/OccurrenceChanges",
-            "default": {}
-          },
-          "moment_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Moment Id"
-          },
-          "occurrence_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Occurrence At"
-          },
-          "rule_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Rule Id"
-          },
-          "scope": {
-            "enum": [
-              "this",
-              "following",
-              "all"
-            ],
-            "title": "Scope",
-            "type": "string"
-          }
-        },
-        "required": [
-          "scope"
-        ],
-        "title": "OccurrenceEdit",
-        "type": "object"
       }
     }
   },
@@ -17202,449 +15815,6 @@
         "summary": "List Derivations",
         "tags": [
           "metrics"
-        ]
-      }
-    },
-    "/events": {
-      "get": {
-        "operationId": "events_list",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/EventRead"
-                  },
-                  "title": "Response Events List",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          }
-        },
-        "summary": "List All",
-        "tags": [
-          "calendar"
-        ]
-      },
-      "post": {
-        "operationId": "events_create",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EventCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EventRead"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Create",
-        "tags": [
-          "calendar"
-        ]
-      }
-    },
-    "/events/{event_id}/auto-file": {
-      "post": {
-        "description": "On-import filing: link attendees to people AND inherit a home from a\nsame-title rooted event. Called by the ICS import after each create.",
-        "operationId": "events_auto_file",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "event_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Event Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "additionalProperties": true,
-                  "title": "Response Events Auto File",
-                  "type": "object"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Auto File",
-        "tags": [
-          "calendar"
-        ]
-      }
-    },
-    "/events/{event_id}/occurrence": {
-      "delete": {
-        "operationId": "delete_occurrence_events__event_id__occurrence_delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "event_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Event Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "scope",
-            "required": true,
-            "schema": {
-              "enum": [
-                "this",
-                "following",
-                "all"
-              ],
-              "title": "Scope",
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "occurrence_date",
-            "required": true,
-            "schema": {
-              "format": "date-time",
-              "title": "Occurrence Date",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Delete Occurrence",
-        "tags": [
-          "calendar"
-        ]
-      },
-      "patch": {
-        "description": "Scoped edit of a recurring event. Returns the row that now represents the\nedited occurrence/series.",
-        "operationId": "edit_occurrence_events__event_id__occurrence_patch",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "event_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Event Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/wild_life__routers__calendar__OccurrenceEdit"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EventRead"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Edit Occurrence",
-        "tags": [
-          "calendar"
-        ]
-      }
-    },
-    "/events/{event_id}/people": {
-      "get": {
-        "operationId": "events_people",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "event_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Event Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "additionalProperties": true,
-                    "type": "object"
-                  },
-                  "title": "Response Events People",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Event People",
-        "tags": [
-          "calendar"
-        ]
-      }
-    },
-    "/events/{event_id}/reconcile-attendees": {
-      "post": {
-        "operationId": "events_reconcile_attendees",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "event_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Event Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "additionalProperties": true,
-                  "title": "Response Events Reconcile Attendees",
-                  "type": "object"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Reconcile Attendees",
-        "tags": [
-          "calendar"
-        ]
-      }
-    },
-    "/events/{item_id}": {
-      "delete": {
-        "operationId": "events_delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Delete",
-        "tags": [
-          "calendar"
-        ]
-      },
-      "get": {
-        "operationId": "events_get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EventRead"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Get One",
-        "tags": [
-          "calendar"
-        ]
-      },
-      "patch": {
-        "operationId": "events_update",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EventUpdate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EventRead"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Update",
-        "tags": [
-          "calendar"
         ]
       }
     },
@@ -19076,8 +17246,6 @@
                     "outcome",
                     "metric",
                     "metric_group",
-                    "event",
-                    "note",
                     "person",
                     "organization",
                     "location",
@@ -20137,8 +18305,6 @@
                     "outcome",
                     "metric",
                     "metric_group",
-                    "event",
-                    "note",
                     "person",
                     "organization",
                     "location",
@@ -20396,8 +18562,6 @@
                     "outcome",
                     "metric",
                     "metric_group",
-                    "event",
-                    "note",
                     "person",
                     "organization",
                     "location",
@@ -20594,8 +18758,6 @@
                     "outcome",
                     "metric",
                     "metric_group",
-                    "event",
-                    "note",
                     "person",
                     "organization",
                     "location",
@@ -20667,64 +18829,6 @@
           }
         },
         "summary": "Moments Density",
-        "tags": [
-          "moments"
-        ]
-      }
-    },
-    "/moments/sync": {
-      "post": {
-        "description": "Mirror the tables that still write their own rows into the spine.\n\nDoses, readings and task completions are authored through their own surfaces\nand land in `routine_instances`, `metric_entries` and `tasks`. Until those\nsurfaces move too, a moment for them exists only because this ran \u2014 so a dose\nlogged at noon would otherwise be missing from the timeline until someone\nremembered to backfill.\n\nSame shape as `locations/tick`, and for the same reason its docstring gives:\na rolling replay is what lets the live path stay simple. The window is\ngenerous rather than exact, because re-upserting a handful of rows is free\nand a stored high-water mark is a thing that can be wrong.\n\n`full=true` re-reads everything; that belongs nightly rather than every few\nminutes.",
-        "operationId": "moments_sync",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "full",
-            "required": false,
-            "schema": {
-              "default": false,
-              "title": "Full",
-              "type": "boolean"
-            }
-          },
-          {
-            "in": "query",
-            "name": "hours",
-            "required": false,
-            "schema": {
-              "default": 2.0,
-              "title": "Hours",
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "additionalProperties": {
-                    "type": "integer"
-                  },
-                  "title": "Response Moments Sync",
-                  "type": "object"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Sync",
         "tags": [
           "moments"
         ]
@@ -21253,620 +19357,6 @@
         ]
       }
     },
-    "/note-images/{image_id}": {
-      "delete": {
-        "operationId": "delete_note_image_note_images__image_id__delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "image_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Image Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Delete Note Image",
-        "tags": [
-          "notes"
-        ]
-      },
-      "get": {
-        "description": "Return image bytes (bearer-protected).",
-        "operationId": "get_note_image_note_images__image_id__get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "image_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Image Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Get Note Image",
-        "tags": [
-          "notes"
-        ]
-      }
-    },
-    "/notes": {
-      "get": {
-        "operationId": "notes_list",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "entity_type",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "enum": [
-                    "area",
-                    "program",
-                    "project",
-                    "task",
-                    "routine",
-                    "outcome",
-                    "metric",
-                    "metric_group",
-                    "event",
-                    "note",
-                    "person",
-                    "organization",
-                    "location",
-                    "commitment",
-                    "request",
-                    "delegation",
-                    "review",
-                    "resource",
-                    "decision",
-                    "medication",
-                    "protocol",
-                    "protocol_item",
-                    "insurance_plan",
-                    "allergy",
-                    "moment"
-                  ],
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Entity Type"
-            }
-          },
-          {
-            "in": "query",
-            "name": "entity_id",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "format": "uuid",
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Entity Id"
-            }
-          },
-          {
-            "in": "query",
-            "name": "linked_type",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "enum": [
-                    "area",
-                    "program",
-                    "project",
-                    "task",
-                    "routine",
-                    "outcome",
-                    "metric",
-                    "metric_group",
-                    "event",
-                    "note",
-                    "person",
-                    "organization",
-                    "location",
-                    "commitment",
-                    "request",
-                    "delegation",
-                    "review",
-                    "resource",
-                    "decision",
-                    "medication",
-                    "protocol",
-                    "protocol_item",
-                    "insurance_plan",
-                    "allergy",
-                    "moment"
-                  ],
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Linked Type"
-            }
-          },
-          {
-            "in": "query",
-            "name": "linked_id",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "format": "uuid",
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Linked Id"
-            }
-          },
-          {
-            "in": "query",
-            "name": "year",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "integer"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Year"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/NoteRead"
-                  },
-                  "title": "Response Notes List",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "List Notes",
-        "tags": [
-          "notes"
-        ]
-      },
-      "post": {
-        "operationId": "notes_create",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NoteCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NoteRead"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Create Note",
-        "tags": [
-          "notes"
-        ]
-      }
-    },
-    "/notes/calendar": {
-      "get": {
-        "description": "Per-(year, month) entry counts for a log's year/month navigation.\n\nScoped by root the same way ``list_notes`` is, so the rail counts exactly the\nrows the stream shows \u2014 the journal passes the self Person, any other object's\nlog passes itself.",
-        "operationId": "notes_calendar",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "entity_type",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "enum": [
-                    "area",
-                    "program",
-                    "project",
-                    "task",
-                    "routine",
-                    "outcome",
-                    "metric",
-                    "metric_group",
-                    "event",
-                    "note",
-                    "person",
-                    "organization",
-                    "location",
-                    "commitment",
-                    "request",
-                    "delegation",
-                    "review",
-                    "resource",
-                    "decision",
-                    "medication",
-                    "protocol",
-                    "protocol_item",
-                    "insurance_plan",
-                    "allergy",
-                    "moment"
-                  ],
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Entity Type"
-            }
-          },
-          {
-            "in": "query",
-            "name": "entity_id",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "format": "uuid",
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Entity Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "additionalProperties": true,
-                    "type": "object"
-                  },
-                  "title": "Response Notes Calendar",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Notes Calendar",
-        "tags": [
-          "notes"
-        ]
-      }
-    },
-    "/notes/{item_id}": {
-      "delete": {
-        "operationId": "notes_delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Delete Note",
-        "tags": [
-          "notes"
-        ]
-      },
-      "get": {
-        "operationId": "notes_get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NoteRead"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Get Note",
-        "tags": [
-          "notes"
-        ]
-      },
-      "patch": {
-        "operationId": "notes_update",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NoteUpdate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NoteRead"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Update Note",
-        "tags": [
-          "notes"
-        ]
-      }
-    },
-    "/notes/{item_id}/images": {
-      "get": {
-        "operationId": "list_note_images_notes__item_id__images_get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/NoteImageRead"
-                  },
-                  "title": "Response List Note Images Notes  Item Id  Images Get",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "List Note Images",
-        "tags": [
-          "notes"
-        ]
-      },
-      "post": {
-        "description": "Attach an image to a note. Returns the image row; reference it in the body\nas ``![alt](note-image:<id>)``.",
-        "operationId": "upload_note_image_notes__item_id__images_post",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "item_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Item Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "$ref": "#/components/schemas/Body_upload_note_image_notes__item_id__images_post"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NoteImageRead"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Upload Note Image",
-        "tags": [
-          "notes"
-        ]
-      }
-    },
     "/nudges/digest": {
       "post": {
         "description": "Send today's one-line agenda digest as a push (once per day).",
@@ -22116,7 +19606,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/wild_life__routers__occurrences__OccurrenceEdit"
+                "$ref": "#/components/schemas/OccurrenceEdit"
               }
             }
           },
@@ -22863,53 +20353,6 @@
         "summary": "List Person Affiliations",
         "tags": [
           "organizations"
-        ]
-      }
-    },
-    "/people/{person_id}/events": {
-      "get": {
-        "operationId": "people_events",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "person_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Person Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/EventRead"
-                  },
-                  "title": "Response People Events",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Person Events",
-        "tags": [
-          "calendar"
         ]
       }
     },

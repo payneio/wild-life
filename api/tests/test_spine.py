@@ -236,38 +236,30 @@ class TestAPanelIsOneAct:
                 client.delete(f"/metrics/{mid}", headers=h)
 
 
-class TestTheMirrorAndTheActAgree:
-    def test_running_the_backfill_after_an_act_does_not_duplicate_it(
+class TestWritingTwiceWritesOnce:
+    def test_repeating_the_act_corrects_rather_than_duplicates(
         self, client: TestClient, auth_headers: dict, require_db: None
     ) -> None:
-        """The property the whole cut-over rests on.
+        """`source_ref` is the name, and a name holds one row.
 
-        Both writers name a derived moment after the row it came from, and
-        `uq_moments_source_ref` allows one row per name — so the tick corrects
-        what the act wrote instead of writing a second copy. Without this the two
-        could not run at the same time, and every surface would have to move on
-        one flag day.
+        This began as "the mirror and the act agree" — the property that let both
+        writers run at once during the cut-over. The mirror is gone, and the
+        property is still the one holding the spine together: an act repeated,
+        edited, or replayed corrects the moment it already wrote instead of
+        laying down a second one. `uq_moments_source_ref` is what enforces it.
         """
-        from sqlalchemy import create_engine as _engine
-
-        from wild_life.backfill_moments import Backfill
-
         h = auth_headers
-        task = _post(client, h, "/tasks", title=f"{MARK} both writers")
+        task = _post(client, h, "/tasks", title=f"{MARK} twice")
+        ref = f"task:{task['id']}:completion"
         try:
             _patch(client, h, f"/tasks/{task['id']}", status="completed")
-            ref = f"task:{task['id']}:completion"
             assert len(_moments(ref)) == 1
-            # Only the pass under test. `run()` refuses without a self person —
-            # rightly, since misfiling every reflection is worse than not running
-            # — and forcing one here would do that to live data.
-            eng = _engine(settings.sync_database_url)
-            try:
-                with eng.begin() as conn:
-                    Backfill(conn, dry_run=False).task_moments()
-            finally:
-                eng.dispose()
-            assert len(_moments(ref)) == 1, "the tick duplicated what the act wrote"
+            # Same act again, then an edit that rewrites the moment's title.
+            _patch(client, h, f"/tasks/{task['id']}", status="completed")
+            _patch(client, h, f"/tasks/{task['id']}", title=f"{MARK} twice, renamed")
+            got = _moments(ref)
+            assert len(got) == 1, "a repeated act laid down a second moment"
+            assert got[0]["title"] == f"{MARK} twice, renamed"
         finally:
             client.delete(f"/tasks/{task['id']}", headers=h)
 

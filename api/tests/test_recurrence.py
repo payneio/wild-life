@@ -273,8 +273,15 @@ class TestEveryRuleInTheCorpus:
                     (r.recurrence, r.start_at.astimezone(_zone(r.timezone)))
                     for r in conn.execute(
                         text(
-                            "SELECT recurrence, start_at, timezone "
-                            "FROM wild_life.events WHERE recurrence IS NOT NULL"
+                            # The wire form lives on the calendar record now:
+                            # `events.recurrence` moved there in the inversion
+                            # and the table itself has been retired. Same 74
+                            # rules, read from where they actually are.
+                            "SELECT c.recurrence, m.started_at AS start_at, "
+                            "       c.timezone "
+                            "  FROM wild_life.calendar_records c "
+                            "  JOIN wild_life.moments m ON m.id = c.moment_id "
+                            " WHERE c.recurrence IS NOT NULL"
                         )
                     )
                 ]
@@ -330,11 +337,22 @@ class TestTheRulesThatWereWritten:
                         SELECT r.days_of_week, r.interval_days, r.start_date,
                                r.end_date, r.timing, r.expected_minutes, r.kind,
                                r.timezone, r.months, r.day_of_month,
-                               r.week_of_month, e.recurrence, e.start_at
+                               r.week_of_month, c.recurrence,
+                               m.started_at AS start_at
                         FROM wild_life.routines r
-                        JOIN wild_life.events e
-                          ON r.source_ref = 'event:' || e.id || '\\:rule'
-                        """)
+                        -- A rule's source_ref is the occasion's with a rule
+                        -- suffix, so the two still meet even though the table
+                        -- that minted the id is gone.
+                        JOIN wild_life.moments m
+                          -- Bound, not inlined. text() scans the whole string
+                          -- for parameters, including inside SQL comments, so a
+                          -- colon-prefixed word anywhere here becomes one.
+                          ON r.source_ref = m.source_ref || :suffix
+                        JOIN wild_life.calendar_records c
+                          ON c.moment_id = m.id
+                       WHERE c.recurrence IS NOT NULL
+                        """),
+                        {"suffix": ":rule"},
                     )
                 ]
         finally:

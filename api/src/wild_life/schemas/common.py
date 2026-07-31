@@ -151,6 +151,12 @@ ReviewType = Literal[
 ]
 
 # Soft polymorphic-link target types.
+#
+# `event` and `note` are deliberately absent. Both were retired by the inversion
+# — an event is an `occasion` moment and a note is a prose one — and a type that
+# can still be *named* but no longer constructed is a constructor for something
+# that cannot exist. Every consumer had to carry a branch for two cases that
+# could only 404.
 EntityType = Literal[
     "area",
     "program",
@@ -160,8 +166,6 @@ EntityType = Literal[
     "outcome",
     "metric",
     "metric_group",
-    "event",
-    "note",
     "person",
     "organization",
     "location",

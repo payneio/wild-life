@@ -7,8 +7,8 @@ rather than eight hand-written projections.
 """
 
 from collections import defaultdict
+from datetime import datetime
 from pathlib import Path
-from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from fastapi import (
@@ -24,9 +24,7 @@ from fastapi import (
 from fastapi.responses import Response
 from sqlalchemy import delete, func, or_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.concurrency import run_in_threadpool
 
-from wild_life.backfill_moments import run as backfill
 from wild_life.config import settings
 from wild_life.db.session import get_session
 from wild_life.models.moments import (
@@ -41,8 +39,6 @@ from wild_life.models.routines import Routine
 from wild_life.query import apply_query
 from wild_life.recurrence import Cadence, to_rrule
 from wild_life.schemas.common import EntityType, MomentKind, MomentRole
-from wild_life.routers.notes import MAX_IMAGE_BYTES
-from wild_life.routers.notes import _sniff_image as sniff_image
 from wild_life.schemas.moments import (
     CalendarRecordRead,
     CalendarRecordUpdate,
@@ -535,35 +531,31 @@ async def delete_moment(
     await session.delete(moment)
 
 
-@router.post("/sync", operation_id="moments_sync")
-async def sync(full: bool = False, hours: float = 2.0) -> dict[str, int]:
-    """Mirror the tables that still write their own rows into the spine.
-
-    Doses, readings and task completions are authored through their own surfaces
-    and land in `routine_instances`, `metric_entries` and `tasks`. Until those
-    surfaces move too, a moment for them exists only because this ran — so a dose
-    logged at noon would otherwise be missing from the timeline until someone
-    remembered to backfill.
-
-    Same shape as `locations/tick`, and for the same reason its docstring gives:
-    a rolling replay is what lets the live path stay simple. The window is
-    generous rather than exact, because re-upserting a handful of rows is free
-    and a stored high-water mark is a thing that can be wrong.
-
-    `full=true` re-reads everything; that belongs nightly rather than every few
-    minutes.
-    """
-    since = None if full else datetime.now(UTC) - timedelta(hours=hours)
-    # The backfill is synchronous (it is also a CLI), so it runs off the event
-    # loop rather than blocking every other request for the length of a scan.
-    return await run_in_threadpool(backfill, dry_run=False, since=since)
-
-
 # --- images ---------------------------------------------------------------- #
 #
 # Inherited from notes rather than left behind. Writing prose you cannot attach a
 # photograph to is a smaller app than the one that exists, and 13 pictures on 7
 # entries would otherwise become invisible the moment the surfaces move.
+
+
+MAX_IMAGE_BYTES = 20 * 1024 * 1024
+
+
+def sniff_image(data: bytes) -> str | None:
+    """The content type, read from the bytes rather than taken on trust.
+
+    A client-supplied `Content-Type` is a claim about a file, not a fact about
+    it. These four magic numbers are every format the composer can produce.
+    """
+    if data[:3] == b"\xff\xd8\xff":
+        return "image/jpeg"
+    if data[:8] == b"\x89PNG\r\n\x1a\n":
+        return "image/png"
+    if data[:6] in (b"GIF87a", b"GIF89a"):
+        return "image/gif"
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return "image/webp"
+    return None
 
 
 def _image_path(moment_id: UUID, image_id: UUID) -> Path:

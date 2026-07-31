@@ -109,10 +109,6 @@ class GroupReading(UUIDPrimaryKey, TimestampMixin, Base):
     )
     # What was true of the whole act — "fasting", "after the flu", "home cuff".
     context: Mapped[str | None] = mapped_column(Text)
-    # Set only when the draw really was an appointment you had already scheduled.
-    # Deliberately optional and deliberately not an Event itself: events
-    # round-trip through iCalendar, and a weight check has no business syncing to
-    # anyone's calendar.
-    event_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("events.id", ondelete="SET NULL")
-    )
+    # No link to the occasion it happened at. The column that used to say so was
+    # set on none of 63 rows, and a reading is now its own `measurement` moment —
+    # which is the claim it was reaching for.

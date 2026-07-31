@@ -59,8 +59,11 @@ describe("isTerminal", () => {
   it("reports open for types with no status, and for unknown statuses", () => {
     // Absence of a terminal status is not evidence of one.
     expect(isTerminal("person", undefined)).toBe(false)
-    expect(isTerminal("note", undefined)).toBe(false)
-    expect(isTerminal("event", "cancelled")).toBe(false) // no status column
+    // Types with no status column at all. `note` and `event` used to stand here
+    // and are gone — an entity type that cannot be constructed should not be
+    // nameable, which is why removing them from the union broke this line.
+    expect(isTerminal("moment", undefined)).toBe(false)
+    expect(isTerminal("location", "cancelled")).toBe(false)
     expect(isTerminal("project", "bogus")).toBe(false)
     expect(isTerminal("project", null)).toBe(false)
   })
@@ -112,6 +115,6 @@ describe("byLifecycle", () => {
   })
 
   it("leaves rows with no status alone", () => {
-    expect(byLifecycle("note", [{ id: "b" }, { id: "a" }]).map((r) => r.id)).toEqual(["b", "a"])
+    expect(byLifecycle("moment", [{ id: "b" }, { id: "a" }]).map((r) => r.id)).toEqual(["b", "a"])
   })
 })

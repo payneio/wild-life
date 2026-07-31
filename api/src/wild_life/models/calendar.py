@@ -4,95 +4,17 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import (
-    Boolean,
     DateTime,
     ForeignKey,
     Integer,
     Text,
     UniqueConstraint,
 )
-from sqlalchemy.dialects.postgresql import ARRAY, UUID
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from wild_life.db.base import Base
 from wild_life.models.mixins import TimestampMixin, UUIDPrimaryKey
-
-
-class Event(UUIDPrimaryKey, TimestampMixin, Base):
-    __tablename__ = "events"
-
-    title: Mapped[str] = mapped_column(Text, nullable=False)
-    # Type facet — meeting/appointment/lab/procedure/… (drives suggested links +
-    # calendar color). Clinical events (folded-in HealthEvents) use the clinical types.
-    event_type: Mapped[str | None] = mapped_column(Text)
-    description: Mapped[str | None] = mapped_column(Text)
-    # Two location fields, deliberately. `location` is the free text iCalendar
-    # carries and is the wire format both directions — inbound invites bring
-    # strings we cannot always resolve, and outbound ones must send something.
-    # `location_id` is the internal reference, and it is *planned* rather than
-    # observed: where the event is meant to happen, which is why it cannot be
-    # derived from readings the way a note's place can.
-    location: Mapped[str | None] = mapped_column(Text)
-    location_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("locations.id", ondelete="SET NULL"), index=True
-    )
-    start_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    end_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    all_day: Mapped[bool] = mapped_column(
-        Boolean, server_default="false", nullable=False
-    )
-    attendees: Mapped[list[str]] = mapped_column(ARRAY(Text), server_default="{}")
-    # Recurrence — raw RFC-5545 RRULE (e.g. "FREQ=WEEKLY;BYDAY=TU") plus any
-    # excluded occurrence dates. Occurrences are expanded on demand (reminders,
-    # calendar grid); we store the rule losslessly, not the expansion.
-    # The TZID a recurring DTSTART arrived with, so the series can be expanded
-    # as wall times rather than as an instant that drifts across a DST boundary.
-    # Transitional: it rides here from the importers to the rule, and goes when
-    # this table does.
-    timezone: Mapped[str | None] = mapped_column(Text)
-    recurrence: Mapped[str | None] = mapped_column(Text)
-    recurrence_exdates: Mapped[list[str]] = mapped_column(
-        ARRAY(Text), server_default="{}"
-    )
-    # Override linkage: a modified single occurrence of a recurring series is its
-    # own row pointing at the master via `recurrence_parent_id`, with
-    # `recurrence_id` = the original occurrence start it replaces. The master
-    # carries that date in `recurrence_exdates` so it isn't double-rendered.
-    recurrence_parent_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("events.id", ondelete="CASCADE"), index=True
-    )
-    recurrence_id: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    # Primary context — "what this event is about" — the soft-polymorphic pair
-    # used across the app (notes, commitments, …). Replaces the old fixed
-    # area/program/project FK triple. Unrooted = entity_type IS NULL.
-    entity_type: Mapped[str | None] = mapped_column(Text)
-    entity_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
-    # Natural key for events synced/imported from an external source
-    # (e.g. "proton:<uid>", "invite:<uid>"). Indexed for idempotent dedup lookups.
-    external_ref: Mapped[str | None] = mapped_column(Text, index=True)
-    # Invitation / iMIP fields — populated when this event arrived as an emailed
-    # meeting request (METHOD:REQUEST). `organizer`/`sequence` are what a valid
-    # RSVP (METHOD:REPLY) must echo back. `rsvp_status` is the user's response
-    # (needs-action|accepted|declined|tentative); `rsvp_sent_status` records the
-    # response last emailed to the organizer, so a change triggers a new reply.
-    organizer: Mapped[str | None] = mapped_column(Text)
-    sequence: Mapped[int | None] = mapped_column(Integer)
-    rsvp_status: Mapped[str | None] = mapped_column(Text)
-    rsvp_sent_status: Mapped[str | None] = mapped_column(Text)
-    # Hosting (I invite others). `invites_enabled` is the user's opt-in — the
-    # honest bridge between the synchronous "Send invitations" action and the
-    # async mail tick: attendees are always data, but REQUESTs only go out once
-    # this is set. `sequence` is bumped on a material change to re-send updates.
-    # `cancelled_at` is a soft-cancel tombstone so a delete can email CANCEL to
-    # the guests before the row (and its SentInvite ledger) is purged.
-    invites_enabled: Mapped[bool] = mapped_column(
-        Boolean, server_default="false", nullable=False
-    )
-    cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    # Signature of the last-sent material fields (time/place/title). A change
-    # here bumps `sequence` and re-sends to all guests; adding/removing a guest
-    # leaves it untouched, so existing guests aren't spuriously re-notified.
-    invite_signature: Mapped[str | None] = mapped_column(Text)
 
 
 class SentInvite(UUIDPrimaryKey, TimestampMixin, Base):
@@ -107,7 +29,7 @@ class SentInvite(UUIDPrimaryKey, TimestampMixin, Base):
     __tablename__ = "sent_invites"
     __table_args__ = (
         UniqueConstraint(
-            "event_id",
+            "moment_id",
             "attendee_email",
             "method",
             "sequence",
@@ -115,15 +37,9 @@ class SentInvite(UUIDPrimaryKey, TimestampMixin, Base):
         ),
     )
 
-    event_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("events.id", ondelete="CASCADE"),
-        index=True,
-    )
     # What has already left the building, keyed to the thing that can leave it.
-    # `event_id` stays until `events` retires; a ledger row that cannot find its
-    # moment must read as "not yet sent" rather than raise inside a loop that
-    # emails people.
+    # A ledger row that cannot find its moment must read as "not yet sent"
+    # rather than raise inside a loop that emails people.
     moment_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("moments.id", ondelete="CASCADE"),
@@ -148,15 +64,9 @@ class AttendeeResponse(UUIDPrimaryKey, TimestampMixin, Base):
         UniqueConstraint("moment_id", "attendee_email", name="uq_attendee_response"),
     )
 
-    event_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("events.id", ondelete="CASCADE"),
-        index=True,
-    )
     # What has already left the building, keyed to the thing that can leave it.
-    # `event_id` stays until `events` retires; a ledger row that cannot find its
-    # moment must read as "not yet sent" rather than raise inside a loop that
-    # emails people.
+    # A ledger row that cannot find its moment must read as "not yet sent"
+    # rather than raise inside a loop that emails people.
     moment_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("moments.id", ondelete="CASCADE"),

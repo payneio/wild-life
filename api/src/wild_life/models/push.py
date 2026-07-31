@@ -34,16 +34,16 @@ class SentReminder(UUIDPrimaryKey, TimestampMixin, Base):
     __tablename__ = "sent_reminders"
     __table_args__ = (
         UniqueConstraint(
-            "event_id",
+            "moment_id",
             "occurrence_start",
             "lead_minutes",
             name="uq_sent_reminder",
         ),
     )
 
-    event_id: Mapped[uuid.UUID] = mapped_column(
+    moment_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("events.id", ondelete="CASCADE"),
+        ForeignKey("moments.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )

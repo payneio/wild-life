@@ -84,7 +84,6 @@ async def record_reading(
         group_id=group_id,
         recorded_at=payload.recorded_at,
         context=payload.context,
-        event_id=payload.event_id,
     )
     session.add(reading)
     await session.flush()

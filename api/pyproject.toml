@@ -32,8 +32,6 @@ dependencies = [
 wild-life = "wild_life.main:run"
 wild-life-openapi = "wild_life.openapi:main"
 wild-life-lifecycle = "wild_life.lifecycle:main"
-wild-life-backfill-moments = "wild_life.backfill_moments:main"
-wild-life-reverse-moments = "wild_life.reverse_moments:main"
 
 [build-system]
 requires = ["hatchling"]

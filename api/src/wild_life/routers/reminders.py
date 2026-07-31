@@ -83,7 +83,7 @@ async def tick(session: AsyncSession = Depends(get_session)) -> ReminderTickResu
             (
                 await session.execute(
                     select(SentReminder.lead_minutes).where(
-                        SentReminder.event_id == subject_id,
+                        SentReminder.moment_id == subject_id,
                         SentReminder.occurrence_start == occ,
                     )
                 )
@@ -102,7 +102,7 @@ async def tick(session: AsyncSession = Depends(get_session)) -> ReminderTickResu
             "kind": "reminder",
             "title": entry.title or "Untitled",
             "body": _lead_label(notify_lead),
-            "event_id": str(subject_id),
+            "moment_id": str(subject_id),
             "start_at": occ.isoformat(),
             "location": entry.calendar.location if entry.calendar else None,
             "url": (
@@ -133,7 +133,9 @@ async def tick(session: AsyncSession = Depends(get_session)) -> ReminderTickResu
 
         for ln in fresh:
             session.add(
-                SentReminder(event_id=subject_id, occurrence_start=occ, lead_minutes=ln)
+                SentReminder(
+                    moment_id=subject_id, occurrence_start=occ, lead_minutes=ln
+                )
             )
 
     if gone_ids:

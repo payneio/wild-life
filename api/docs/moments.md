@@ -1,7 +1,9 @@
-# Moments — the kind vocabulary and the migration mapping
+# Moments — the spine
 
-The kind vocabulary, the shape it produced, and what is left to move onto it.
-Read this before touching `models/moments.py`.
+The kind vocabulary and the shape it produced. The migration onto it is done —
+see *The migration is finished* — and the mapping tables below are kept as the
+record of what became what, which the CSVs in `migrations/legacy/` are the data
+half of. Read this before touching `models/moments.py`.
 
 ## What a kind is, and is not
 
@@ -140,48 +142,41 @@ Note: `insurance_plans` has no effective dates today, only `status`. If validity
 dates are added later they follow the `affiliations` rule, with status derived
 from the interval rather than stored beside it.
 
-## Where the migration stands
+## The migration is finished
 
 | piece | state |
 | --- | --- |
 | Schema (`moments`, links, payloads, `calendar_records`, `dependencies`, `moment_images`) | applied |
-| Backfill — `wild-life-backfill-moments` | 3,147 moments; idempotent, incremental (`--since-hours`), silent |
-| Reverse — `wild-life-reverse-moments` | tested; names by kind what it cannot bring back |
-| `/moments` — CRUD, timeline-by-any-end, `unfulfilled`, rail, images | live |
-| `POST /moments/sync` + wildpc job | every 5 minutes, 2-hour window |
-| **Prose surfaces** — Journal, Inbox, every record's Log, both composers | **on moments** |
+| `/moments` — CRUD, timeline-by-any-end, `unfiled`, `unfulfilled`, rail, images | live |
+| **Every act writes a moment inline**, in its own transaction (`spine.py`) | live |
+| **Prose surfaces** — Journal, Inbox, every record's Log, both composers | on moments |
 | **A moment's own Log** — a moment is a legal `subject`, so an occasion has notes | live; no exception by kind |
 | **Rules** — one cadence expression, freed from `protocol_id` | generalised `Routine` + `rule_links` |
 | **Recurrence** — wire ⇄ our cadence, proved against all 74 real rules | 58 translate · 16 materialised |
-| **Calendar** — reads and writes `/occurrences`; scoped edits; server-side expansion | **on moments + rules** |
-| **Projected slots** — `/calendar/slot/:ruleId?occ=`, materialise on write | live |
-| **iMIP** — invitations, RSVP, guests | **on moments + calendar records** |
-| The ICS importer and the Inbox's occasion triage | **on moments + calendar records** |
+| **Calendar** — `/occurrences`, scoped edits, server-side expansion, projected slots | on moments + rules |
+| **iMIP** — invitations, RSVP, guests | on moments + calendar records |
+| The mirror (`POST /moments/sync`, the 5-minute job, the backfill) | **deleted** |
+| `events`, `notes`, `note_mentions`, `note_images` + six scaffolding tables | **dropped** (`c4d5e6f7a8b9`) |
+| The `event_id` columns those tables left behind | **dropped** (`e7f8a9b0c1d2`) |
+| `event` and `note` as `EntityType` values | **retired** |
 
-**The sync job is why the mirrored kinds exist at all, and it is the unfinished
-half of the migration.** Only `moments`, `occurrences` and `calendar_mail` create
-a `Moment` inline. Everything else still writes its own table and waits for the
-tick:
+**Nothing lags any more, and nothing is written twice.** `spine.py` records the
+moment for an act in the same transaction as the row the act wrote, so the
+timeline and every record's Log are as current as the database. Each derived
+moment is named after its source row (`task:<id>:completion`) and
+`uq_moments_source_ref` allows one per name, which is what made the cut-over
+incremental — the mirror and the inline write could both run, agreeing, until
+the last surface moved and the mirror could go.
 
-| act | writes | becomes | when |
-| --- | --- | --- | --- |
-| log a dose | `routine_instances` | `dose` / `activity` | next tick |
-| record a reading | `metric_entries`, `group_readings` | `measurement` | next tick |
-| complete a task | `tasks.completed_at` (`_sync_completion`) | `completion` | next tick |
-| schedule a task | `tasks.scheduled_date` | `work` intention | next tick |
-| resolve a request, satisfy an outcome, decide | those rows' date columns | `completion` / `decision` | next tick |
-| enter a place | `location_visits` (geofence) | `visit` | next tick |
+The inline writers also *retract*, which the mirror never could: reopening a
+task deletes its completion, unscheduling deletes its intention, un-checking a
+routine deletes its dose, and deleting a row takes its moments with it. A
+timeline that keeps asserting something you undid is worse than one that lags.
 
-So **the timeline and every record's Log lag reality by up to five minutes for
-most of what you do in the app** — the dose you just logged is not on the
-medication's Log when you look. That latency is the real cost of running two
-models, and finishing the migration is what removes it: each surface writes a
-moment inline, and the mirror pass for it goes away.
-
-`notes` and `events` are already done — nothing writes them, the web app calls
-neither router, and they are retained for `wild-life-reverse-moments` rather than
-for the app. Their passes in the backfill are therefore no-ops kept for the
-reverse path, not live mirroring.
+The pre-inversion rows are in `migrations/legacy/*.csv`, verified row-for-row
+against the database before the tables were dropped. That is the way back, and
+it is an artifact rather than live schema on purpose: **a frozen table is worse
+than no table, because it answers.**
 
 ### How the calendar works now
 
@@ -240,11 +235,16 @@ building, so they have to hang off the thing that can leave it.
 
 ### What is left of `events` and `notes`
 
-Nothing reads them and nothing writes them. Both stay as what the backfill was
-derived from and what `wild-life-reverse-moments` writes back to — the way out,
-not a dependency. Do not add a reader: **a frozen table is worse than no table,
-because it answers.** Three readers survived the cut-over pointing at `events`
-and were silently wrong until they were found.
+Nothing. Both tables are dropped, along with `note_mentions`, `note_images`, the
+six `_`-prefixed scaffolding tables, and the `event_id` columns four models were
+still carrying. `event` and `note` are no longer `EntityType` values either — a
+type that cannot be constructed should not be nameable, or every consumer keeps
+a branch for a case that can only 404.
+
+Their rows are in `migrations/legacy/*.csv`. Keeping them as an artifact rather
+than as live schema is the point: **a frozen table is worse than no table,
+because it answers.** Three readers survived the cut-over still pointing at
+`events` and were silently wrong until someone found them.
 
 **One expander, not four.** `Routine`'s cadence, `Event`'s RRULE, FullCalendar's
 and `reminders.py`'s each used to answer "when does this happen" separately, with

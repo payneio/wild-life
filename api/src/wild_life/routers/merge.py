@@ -26,12 +26,11 @@ from wild_life.models import (
     Commitment,
     Decision,
     Delegation,
-    Event,
     InsurancePlan,
     Location,
     Medication,
     Metric,
-    Note,
+    Moment,
     Organization,
     Outcome,
     Person,
@@ -60,8 +59,6 @@ TYPE_TO_MODEL: dict[str, type[Any]] = {
     "routine": Routine,
     "outcome": Outcome,
     "metric": Metric,
-    "event": Event,
-    "note": Note,
     "commitment": Commitment,
     "request": Request,
     "delegation": Delegation,
@@ -96,18 +93,17 @@ NAME_COL: dict[str, str] = {
 
 # Soft-poly (table, type_col, id_col) — NOT FKs. change_log deliberately omitted.
 SOFT_POLY = [
-    (Note.__table__, "entity_type", "entity_id"),
-    (
-        Note.__table__.metadata.tables["wild_life.note_mentions"],
-        "target_type",
-        "target_id",
-    ),
+    # The spine. Everything a merge has to carry now lives here: a moment's
+    # subject, the people who were there, the place it happened, and what it
+    # merely named are all one soft-poly edge. Its absence was a live defect —
+    # merging two people repointed their commitments and left every moment they
+    # were involved in pointing at the row that was about to be deleted.
+    (Base.metadata.tables["wild_life.moment_links"], "entity_type", "entity_id"),
     (Commitment.__table__, "entity_type", "entity_id"),
     (Request.__table__, "entity_type", "entity_id"),
     (Delegation.__table__, "entity_type", "entity_id"),
     (Resource.__table__, "entity_type", "entity_id"),
     (Decision.__table__, "entity_type", "entity_id"),
-    (Event.__table__, "entity_type", "entity_id"),
     # An outcome's root is soft-poly like the rest, so a merge has to carry it —
     # otherwise combining two rows silently drops what they claimed must be true.
     (Outcome.__table__, "entity_type", "entity_id"),
@@ -225,8 +221,8 @@ async def merge_preview(
         (
             await session.execute(
                 select(func.count())
-                .select_from(Note.__table__)
-                .where(Note.__table__.c.body.like(f"%{body_tok}%"))
+                .select_from(Moment.__table__)
+                .where(Moment.__table__.c.body.like(f"%{body_tok}%"))
             )
         ).scalar_one()
     )
@@ -261,12 +257,15 @@ async def merge_entities(
         if moved:
             repointed[f"{tbl.name}.{icol.name}"] = moved
 
-    # note-body tokens: type:loser -> type:survivor
+    # Mention tokens inside prose: `type:loser` -> `type:survivor`. A mention is
+    # stored twice on purpose — as a link, and as a markdown target inside the
+    # body — so repointing the link alone leaves the sentence pointing at a
+    # person who no longer exists.
     old, new = f"{req.type}:{req.loser_id}", f"{req.type}:{req.survivor_id}"
     body_res = await session.execute(
-        update(Note.__table__)
-        .where(Note.__table__.c.body.like(f"%{old}%"))
-        .values(body=func.replace(Note.__table__.c.body, old, new))
+        update(Moment.__table__)
+        .where(Moment.__table__.c.body.like(f"%{old}%"))
+        .values(body=func.replace(Moment.__table__.c.body, old, new))
     )
     note_bodies = body_res.rowcount or 0
 

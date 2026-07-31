@@ -71,14 +71,12 @@ class GroupReadingCreate(BaseModel):
 
     recorded_at: datetime
     context: str | None = None
-    event_id: uuid.UUID | None = None
     values: list[ReadingValue] = []
 
 
 class GroupReadingUpdate(BaseModel):
     recorded_at: datetime | None = None
     context: str | None = None
-    event_id: uuid.UUID | None = None
 
 
 class ReadingEntry(BaseModel):
@@ -92,7 +90,6 @@ class GroupReadingRead(Entity):
     group_id: uuid.UUID
     recorded_at: datetime
     context: str | None
-    event_id: uuid.UUID | None
     # Batch-loaded, not lazy: the table renders every reading at once and an
     # N+1 here would be one query per draw.
     entries: list[ReadingEntry] = []

@@ -38,17 +38,23 @@ Edge = tuple[str, str, uuid.UUID]
 
 
 def instant(d: date | datetime | None) -> datetime | None:
-    """A date becomes the instant it starts, in UTC; a datetime passes through.
+    """A date becomes **noon** UTC; a datetime passes through.
 
-    The same widening the backfill does. Noon would be the choice for something
-    rendered back as a day — see the composer — but a *window* bound is not
-    rendered, it is compared, so midnight is the honest edge.
+    Noon, not midnight, and this is not a detail: a day-precision moment is
+    rendered back in the reader's zone, and midnight UTC is the previous
+    afternoon anywhere west of Greenwich. Anchoring there is how "the 28th"
+    becomes "the 27th" on the timeline — the same failure as slicing a UTC day
+    off an instant, arriving from the other direction.
+
+    The composer anchors prose at noon for exactly this reason, and so did the
+    mirror this module replaced; `tests/test_spine_invariants.py` pins it, which
+    is how the midnight version of this function was caught.
     """
     if d is None:
         return None
     if isinstance(d, datetime):
         return d if d.tzinfo else d.replace(tzinfo=timezone.utc)
-    return datetime.combine(d, time.min, tzinfo=timezone.utc)
+    return datetime.combine(d, time(12, 0), tzinfo=timezone.utc)
 
 
 async def upsert_moment(

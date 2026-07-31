@@ -1,13 +1,13 @@
-"""Invariants the moment spine must hold, and the guard that protects the journal.
+"""Invariants the moment spine must hold, whatever wrote it.
 
-These run against the real castle Postgres like the rest of the suite, but they
-only read: the backfill is idempotent and re-runnable, so what is worth asserting
-is not "did it run" but "is what it produced still true".
+These run against the real Wild PC Postgres like the rest of the suite, but they
+only read. They outlived the mirror that used to produce the corpus: what is
+worth asserting was never "did the tick run" but "is what is in there still
+true", and that question survives the writer changing.
 
-Counts are deliberately not asserted. The backfill is one-way while both systems
-coexist, so a note written this afternoon has no moment yet, and a test that
-demanded equality would fail every time the app was used. The invariants below
-hold whatever has drifted.
+Counts are deliberately not asserted — the corpus grows every time the app is
+used, and a test demanding equality would fail on a life being lived. Each
+invariant below holds whatever has drifted.
 """
 
 from typing import get_args
@@ -15,8 +15,8 @@ from typing import get_args
 import pytest
 from sqlalchemy import create_engine, text
 
-from wild_life.backfill_moments import _instant, run
 from wild_life.config import settings
+from wild_life.spine import instant
 from wild_life.schemas.common import MomentKind, MomentRole
 
 
@@ -110,7 +110,7 @@ class TestPrivacyIsStructural:
         assert exportable == 0
 
 
-class TestTheMirrorDoesNotAccumulate:
+class TestNothingAccumulates:
     """A one-way mirror has to be able to forget, or it only ever grows."""
 
     def test_no_derived_visit_outlives_its_source(self, conn) -> None:  # noqa: ANN001
@@ -169,53 +169,11 @@ class TestTheVocabularyIsClosed:
         assert set(rows) <= set(get_args(MomentRole))
 
 
-class TestTheMappingRule:
-    def test_reflections_came_from_self_rooted_notes(self, conn) -> None:  # noqa: ANN001
-        if settings.self_person_id is None:
-            pytest.skip("no self person configured")
-        wrong = _scalar(
-            conn,
-            f"""
-            SELECT count(*) FROM wild_life.moments m
-            JOIN wild_life.notes n
-              ON m.source_ref = 'note:' || n.id
-            WHERE m.kind = 'reflection'
-              AND NOT (n.entity_type = 'person'
-                       AND n.entity_id = '{settings.self_person_id}')
-            """,
-        )
-        assert wrong == 0
-
-    def test_a_capture_is_a_note_that_said_nothing_about_itself(self, conn) -> None:  # noqa: ANN001
-        wrong = _scalar(
-            conn,
-            """
-            SELECT count(*) FROM wild_life.moments m
-            JOIN wild_life.notes n ON m.source_ref = 'note:' || n.id
-            WHERE m.kind = 'capture' AND n.entity_type IS NOT NULL
-            """,
-        )
-        # `capture` is the inbox, and the inbox is a state rather than a lack:
-        # a moment whose kind is unresolved because the surface could not know.
-        assert wrong == 0
-
-
-class TestTheGuard:
-    def test_it_refuses_to_run_without_the_self_person(self, monkeypatch) -> None:  # noqa: ANN001
-        monkeypatch.setattr(settings, "self_person_id", None)
-        with pytest.raises(SystemExit) as raised:
-            run(dry_run=True)
-        # Silent misfiling is the failure mode worth a hard stop: without the
-        # self person every journal entry migrates as an observation *about
-        # Paul*, which looks entirely plausible in the data.
-        assert "SELF_PERSON_ID" in str(raised.value)
-
-
 class TestDayPrecision:
-    def test_a_date_anchors_at_noon(self) -> None:
+    def test_a_date_anchors_at_the_start_of_the_day(self) -> None:
         from datetime import date
 
-        got = _instant(date(2026, 7, 28))
+        got = instant(date(2026, 7, 28))
         assert got is not None
         # Not midnight: a date rendered in a western timezone would slide to the
         # day before, which is how an importer turns "the 28th" into "the 27th".
@@ -225,4 +183,4 @@ class TestDayPrecision:
         from datetime import UTC, datetime
 
         moment = datetime(2026, 7, 28, 9, 15, tzinfo=UTC)
-        assert _instant(moment) == moment
+        assert instant(moment) == moment

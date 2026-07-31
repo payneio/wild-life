@@ -26,7 +26,6 @@ from wild_life.mail import scheduler as mail_scheduler
 from wild_life.routers import (
     me,
     admin,
-    calendar,
     calendar_mail,
     core,
     history,
@@ -38,7 +37,6 @@ from wild_life.routers import (
     metrics,
     moments,
     occurrences,
-    notes,
     nudges,
     organizations,
     outcomes,
@@ -180,8 +178,6 @@ app.include_router(routines.router)
 app.include_router(outcomes.router)
 app.include_router(metrics.router)
 app.include_router(metric_groups.router)
-app.include_router(calendar.router)
-app.include_router(calendar.people_links_router)
 app.include_router(calendar_mail.router)
 app.include_router(calendar_mail.event_invites_router)
 app.include_router(preferences.router)
@@ -189,8 +185,6 @@ app.include_router(whiteboard.router)
 app.include_router(moments.router)
 app.include_router(moments.images_router)
 app.include_router(occurrences.router)
-app.include_router(notes.router)
-app.include_router(notes.images_router)
 app.include_router(tracking.router)
 app.include_router(requests.router)
 app.include_router(reviews.router)

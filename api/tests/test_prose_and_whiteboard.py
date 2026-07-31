@@ -1,4 +1,4 @@
-"""What is left of `notes` after the surfaces moved to moments.
+"""What prose is, and the one buffer that is not prose.
 
 The Journal and the Inbox are no longer here. Both were defined by negation once
 — Journal was "notes carrying neither tag", Inbox was "every unrooted note" —
@@ -19,17 +19,26 @@ class TestGenreIsGone:
     def test_note_type_is_not_accepted_or_returned(
         self, client: TestClient, auth_headers: dict[str, str], require_db: None
     ) -> None:
-        """A genre column only ever restated the root, so it no longer exists.
-        Pydantic ignores the unknown key rather than 422-ing; what matters is that
-        nothing round-trips."""
+        """A genre only ever restated the root, so there is no column for one.
+
+        The claim outlived its endpoint. This asked `/notes` before writing
+        became a moment and the notes table was retired; the thing being denied
+        is the same, so it asks the surface that exists. Pydantic ignores an
+        unknown key rather than 422-ing, which is why the assertion is about
+        what comes back rather than about the status.
+        """
         r = client.post(
-            "/notes",
-            json={"title": f"{MARK} genre", "body": "x", "note_type": "journal"},
+            "/moments",
+            json={
+                "kind": "reflection",
+                "body": f"{MARK} genre",
+                "note_type": "journal",
+            },
             headers=auth_headers,
         )
-        assert r.status_code == 201
+        assert r.status_code == 201, r.text
         assert "note_type" not in r.json()
-        client.delete(f"/notes/{r.json()['id']}", headers=auth_headers)
+        client.delete(f"/moments/{r.json()['id']}", headers=auth_headers)
 
 
 class TestWhiteboard:
