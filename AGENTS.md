@@ -72,73 +72,60 @@ Iterate with the dev servers; they never touch the live URLs. Publish separately
 
 ## Architecture worth knowing
 
-- **Object-first UI (OOUX).** The frontend is built around domain *objects* and
-  their *representations*, not pages/flows. One object → a default representation
-  set (reference chip · list row · picker · a modeless detail-editor composed in
-  `entities/<obj>/Detail.tsx` from the `components/record/` vocabulary),
-  framed as pane / modal / full-page by context (routing). Read
-  **@web/docs/ui-architecture.md** before adding a page or deciding how an object
-  should appear — it has the selection rule and the property test for when an object
-  earns bespoke views (e.g. Person, Event, Project).
-- **API types are generated, not mirrored.** `web/src/services/api/schema.gen.ts`
-  is compiled from `api/openapi.json` (itself exported from the FastAPI app), and
-  `services/api/types.ts` only *names* those shapes — `Task = S["TaskRead"]` — plus
-  the few responses with no `response_model`. Enum unions and the `CalendarDay` /
-  `Instant` / `WallTime` brands are derived from the spec, so they can't drift.
-  After any schema change: `pnpm gen:api`, then `tsc` tells you what broke. Both
-  artifacts are committed, so `pnpm build` never needs Python.
+- **Object-first UI (OOUX).** Built around domain *objects* and their
+  *representations*, not pages/flows. A record opens full-page; a modal is only for
+  something summoned from a canvas. Read **@web/docs/ui-architecture.md** before
+  adding a page — it has the selection rule and the property test for when an object
+  earns bespoke views.
+- **API types are generated, not mirrored.** `services/api/schema.gen.ts` is
+  compiled from `api/openapi.json`; `services/api/types.ts` only *names* those
+  shapes (`Task = S["TaskRead"]`). Enum unions and the `CalendarDay` / `Instant` /
+  `WallTime` brands derive from the spec, so they can't drift. After a schema
+  change: `pnpm gen:api`, then `tsc` tells you what broke. Both artifacts are
+  committed, so `pnpm build` never needs Python.
+- **Dates are branded, and the brand only bites where it is applied.** A
+  `CalendarDay` and an `Instant` are different types (`web/src/lib/date.ts`), and
+  converting between them *requires* naming a zone — so the UTC-vs-local bug stops
+  compiling. Type day- and instant-carrying values as `CalendarDay`/`Instant`
+  rather than `string`; a bare `string` is a hole in the wall, and slicing
+  `YYYY-MM-DD` off a timestamp is the mistake it exists to prevent.
 - **SSE-driven reactivity.** Frontend mutations do **not** invalidate the query
-  cache themselves (`web/src/services/api/crud.ts`). Every write lands in the
-  backend `change_log`, fans out over Postgres `LISTEN/NOTIFY`, and a single
-  app-wide SSE stream (`web/src/services/api/live.ts` ↔ `api/.../routers/stream.py`)
-  triggers a global React Query invalidation. Your own edits and external edits
-  travel the same path — so a new page stays live just by using normal hooks.
-- **Every note is about something, and *you* are a valid something.** Writing is
-  a **moment** like everything else: prose in `body`, placed by `started_at` (or
-  a window), and joined to what it concerns by `moment_links` — role `subject`
-  for what it is about, `mention` for what it merely names. There is deliberately
-  **no genre column**: `note_type` used to exist and only ever restated the root
-  — journal meant "about me", meeting meant "about an event" — so it was dropped
-  (`e8f9a0b1c2d3`). What survived that argument is the *root*, not the label: a
-  note about a meeting is an `observation` whose subject is the occasion, which
-  is why `moment` is itself a legal `entity_type`. Documents aren't stored in
-  this app at all; they live on disk. What follows from one universal root:
-  - **The Journal** (`/notes`) is writing turned inward — `kind: reflection`,
-    which is what "about me" became when the act stopped being inferred from the
-    root. `JournalRoute` is one line of `<Log>` scoped by kind rather than by
-    subject, so it needs no self Person to exist; `WILD_LIFE_SELF_PERSON_ID`
-    survives only in the backfill, which used self-rootedness to decide which
-    imported notes were reflections. Treat "no self person" as a normal state,
-    not an error.
-  - **The Inbox** (`/inbox`) is *unfiled*, full stop — a note you wrote without
-    saying what it was about. The predicate is **one** server-side filter,
-    `GET /moments?unfiled=true`; it used to be stated twice, in `InboxPage.tsx`
-    and in a `unrooted_notes_count` on the review dashboard, with nothing but a
-    test holding them level. Keep it that way: a predicate this load-bearing
-    belongs in the query, not in each surface that asks it.
-  - **The Whiteboard** (`/whiteboard`) is one buffer, not a collection of notes —
-    its own single-row table, `__audit__ = False`, absent from `EntityType`, the
-    registry and `change_log`. A scratch space has no subject, no date and no
-    identity, which is exactly why it is not a Note.
-- **No tagging.** `Tag`/`EntityTag` and the `tags text[]` columns are both gone
-  (`b1c2d3e4f5a7`). Tags did one job nothing else could — recall by a theme that
-  isn't an object — and search does that job without anyone maintaining a
-  vocabulary, which is the real cost. Every tag in the database had been assigned
-  by the 2026-07-15 import rather than by hand, and the only surface that ever
-  read one was a filter on the people list. If thematic recall is wanted, build
-  vector search over note bodies; do not reintroduce a labelling chore.
+  cache themselves. Every write lands in `change_log`, fans out over Postgres
+  `LISTEN/NOTIFY`, and one app-wide SSE stream (`services/api/live.ts` ↔
+  `routers/stream.py`) triggers a global React Query invalidation. Your edits and
+  external edits travel the same path, so a new page stays live using normal hooks.
+- **Writing is a moment, and it is about something.** Prose in `body`, placed by
+  `started_at` (or a window), joined to what it concerns by `moment_links` — role
+  `subject` for what it is about, `mention` for what it merely names. There is
+  deliberately **no genre column**: a genre only ever restates the root, so a note
+  about a meeting is an `observation` whose subject is the occasion. `moment` is
+  itself a legal `entity_type`, which is what makes that sentence true. Documents
+  are not stored here; they live on disk.
+  - **The Journal** (`/notes`) is `kind: reflection` — writing turned inward,
+    scoped by act rather than by subject, so it needs no self Person to exist.
+    Treat "no self person" as a normal state, not an error.
+  - **The Inbox** (`/inbox`) is *unfiled* — written without saying what it was
+    about. The predicate is **one** server-side filter, `GET /moments?unfiled=true`.
+    Keep it there: a predicate this load-bearing belongs in the query, not
+    restated in each surface that asks it.
+  - **The Whiteboard** (`/whiteboard`) is one buffer, not a collection — its own
+    single-row table, `__audit__ = False`, absent from `EntityType`, the registry
+    and `change_log`. A scratch space has no subject, no date and no identity,
+    which is why it is not a note.
+- **No tagging.** Tags do one job nothing else can — recall by a theme that isn't
+  an object — and search does that job without anyone maintaining a vocabulary,
+  which is the real cost. If thematic recall is wanted, build vector search over
+  bodies; do not reintroduce a labelling chore.
 - **Where prose goes.** What the thing *is* → a named field on it. Measurable and
   must stay true → an Outcome. An observation → a note, on whatever it's about.
   Just thinking → the whiteboard.
-  **No column may be named `notes`** (`f9a0b1c2d3e4` retired the last nine): a
-  field named for nothing accumulates whatever has nowhere else to go, which is
-  how `medications.notes` came to hold four hand-dated events beside one standing
-  contingency. Each is now named for the question it answers — `metrics.scale`,
-  `routines.rationale`, `protocols.adjustments`, `metric_entries.context`. The
-  tell that you have misfiled prose is that you typed a date into it.
-  Likewise one `purpose` per stewarded object, not `description` +
-  `intended_outcome`; and no `Interaction` table — a touchpoint with a person is
-  a note rooted at them, with mentions, tags, images and search that table lacked.
+  **No column may be named `notes`**: a field named for nothing accumulates
+  whatever has nowhere else to go. Name each for the question it answers —
+  `metrics.scale`, `routines.rationale`, `protocols.adjustments`,
+  `metric_entries.context`. The tell that you have misfiled prose is that you
+  typed a date into it. Likewise one `purpose` per stewarded object, not
+  `description` + `intended_outcome`; and no `Interaction` table — a touchpoint
+  with a person is a note rooted at them.
 - **Generic CRUD.** Most backend routers compose `crud_router` factory
   (`api/.../routers/crud.py`); the frontend mirrors it with `createCrud`
   (`web/src/services/api/crud.ts`) + a registry (`web/src/services/api/registry.ts`).

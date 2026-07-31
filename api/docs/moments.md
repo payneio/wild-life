@@ -1,8 +1,7 @@
 # Moments — the kind vocabulary and the migration mapping
 
-Phase 1 of the moment inversion: the two things that must be fixed before any
-schema work. The decisions this rests on are in the plan; this file records only
-what they imply, concretely, table by table.
+The kind vocabulary, the shape it produced, and what is left to move onto it.
+Read this before touching `models/moments.py`.
 
 ## What a kind is, and is not
 
@@ -18,10 +17,10 @@ type, or its tense.
   when.
 
 **Every kind is written by the surface that creates the moment. No surface asks
-the user.** This is the load-bearing rule: `Event.event_type` is null on 1,283 of
-1,332 rows because a hand-set facet does not get set, and `kind` carries the
-inbox predicate, the journal, and the default reading filter. The one surface
-that cannot know is quick capture, and its unresolved kind *is* the inbox.
+the user.** A hand-set facet does not get set, and `kind` carries the inbox
+predicate, the Journal and the default reading filter — so none of them can
+depend on someone having remembered. The one surface that cannot know is quick
+capture, and its unresolved kind *is* the inbox.
 
 ## The vocabulary
 
@@ -104,13 +103,13 @@ Five things the diagram is making a point about:
 
 | source | kind | occurrence | links | payload |
 | --- | --- | --- | --- | --- |
-| `notes` rooted at self (253) | `reflection` | `entry_date`, all-day | mentions → `mention` | — |
-| `notes` rooted elsewhere (593) | `observation` | `entry_date`, all-day | root → `subject`, mentions → `mention` | — |
-| `notes` unrooted (1) | `capture` | `entry_date`, all-day | — | — |
-| `events` (1,332) | `occasion`; `event_type` in (`note`, `symptom`, `injury`) → `observation` | `start_at`/`end_at`, `all_day` | `location_id` → `place`; `entity_*` → `subject`; resolved attendees → `participant` (325 self-edges dropped) | — |
+| `notes` rooted at self | `reflection` | `entry_date`, all-day | mentions → `mention` | — |
+| `notes` rooted elsewhere | `observation` | `entry_date`, all-day | root → `subject`, mentions → `mention` | — |
+| `notes` unrooted | `capture` | `entry_date`, all-day | — | — |
+| `events` | `occasion`; `event_type` in (`note`, `symptom`, `injury`) → `observation` | `start_at`/`end_at`, `all_day` | `location_id` → `place`; `entity_*` → `subject`; resolved attendees → `participant` | — |
 | `routine_instances` with a medication | `dose` | `completed_at`; `scheduled_date` → window | medication → `subject` | dose |
 | `routine_instances` without | `activity` | as above | rule → `subject` | — |
-| `metric_entries` (325) | `measurement` | `recorded_at` | metric → `subject` | reading (`value`, `context`) |
+| `metric_entries` | `measurement` | `recorded_at` | metric → `subject` | reading (`value`, `context`) |
 | `group_readings` | `measurement` (one moment per act) | `recorded_at` | one `subject` link per member metric | one reading per link |
 | `location_visits` | `visit`, `source: derived` | `entered_at`/`exited_at` | location → `place` | — |
 | `tasks.completed_at` | `completion` | the timestamp | task → `subject` | — |
@@ -123,7 +122,7 @@ Five things the diagram is making a point about:
 
 | source | becomes |
 | --- | --- |
-| `notes.entity_type`/`entity_id`, `note_mentions`, `events.location_id`, `entity_links` (443 `attendee`) | `moment_links` with roles `subject` / `mention` / `place` / `participant`, plus a surrogate `id` |
+| `notes.entity_type`/`entity_id`, `note_mentions`, `events.location_id`, `entity_links` (`attendee`) | `moment_links` with roles `subject` / `mention` / `place` / `participant`, plus a surrogate `id` |
 | `events.recurrence`, `recurrence_exdates`, `recurrence_parent_id`, `recurrence_id`, `attendees`, `organizer`, `sequence`, `rsvp_*`, `invites_enabled`, `external_ref` | `calendar_records` — the projection, storing the wire form verbatim |
 | `routines.days_of_week`, `interval_days`, `timing`, `start_date`, `end_date`; `protocols.start_date`/`end_date`; `tasks.recurrence` | `rules` — our own cadence expression, slots first-class, freed from `protocol_id` |
 | `tasks.due_date`, `requests.needed_by`, `outcomes.by_when`, `projects.target_date` | constraint columns on the work (`due_at`) |
@@ -135,46 +134,11 @@ Five things the diagram is making a point about:
 | `tasks.claimed_by_id`/`claimed_at` | unchanged — a cooperative lock, infrastructure, not an ask |
 | `change_log`, `created_at`/`updated_at`, `geocode_cache.fetched_at`, `api_tokens.revoked_at` | unchanged — the system spine and infrastructure timestamps are not life |
 | `whiteboard` | unchanged — no date, no subject, one buffer |
-| `notes.mood` | dropped — 235 values, all from the 2026-07-15 import, 95 distinct free-text strings. A Metric if ever wanted; see below |
+| `notes.mood` | dropped — a free-text vocabulary nobody chose and nothing read. A Metric if it is ever wanted |
 
 Note: `insurance_plans` has no effective dates today, only `status`. If validity
 dates are added later they follow the `affiliations` rule, with status derived
 from the interval rather than stored beside it.
-
-## What the backfill produced
-
-Run 2026-07-28 (`wild-life-backfill-moments`), against live data:
-
-| source | rows | became |
-| --- | --- | --- |
-| `notes` | 848 | 253 `reflection` · 593 `observation` · 2 `capture` |
-| `note_mentions` | 1,015 | 1,000 `mention` links — 15 self-mentions dropped |
-| `events` | 1,332 | 1,315 `occasion` · 17 `observation` · 1,282 calendar records |
-| `entity_links` `attendee` | 443 | 118 `participant` links — 325 self-edges dropped |
-| `entity_links` `diagnosed_by` | 4 | unchanged — a standing-thing edge, not involvement |
-| `tasks.completed_at` | 411 | 411 `completion` |
-| `tasks.scheduled_date` | 402 | 402 `work` intentions |
-| `metric_entries` | 325 | 325 reading payloads across 86 `measurement` moments |
-| `group_readings` | 58 | 58 of those moments; the rest are 28 standalone readings |
-| `routine_instances` | 59 | 38 `dose` · 21 `activity` |
-| `decisions.decided_on` | 8 | 8 `decision` |
-| `requests.resolved_at` | 1 | 1 `completion` |
-| `location_visits` | 0 | `visit` (ingestion began 2026-07-27) |
-
-**3,147 moments · 2,969 links · 325 readings · 38 doses · 1,282 calendar records.**
-`change_log` was 27,894 before and after: every write is a Core statement, which
-the audit listener never sees, so the backfill neither logged 8,000 rows nor
-notified every open SSE stream once per row.
-
-Three things the run corrected in this document:
-
-- **`delegations` has no rows.** The `exchange` mapping is written and exercises
-  nothing; folding `Delegation` into `Request` migrates no data.
-- **Doses are 38, not 37.** A routine instance takes its medication from the
-  instance *or* its routine, and only the second was counted here before.
-- **Self-mentions go too.** 15 journal entries mention their own author. The
-  frame rule was stated for participants and roots; it applies to every role, and
-  the mention reconciler needs the same rule in Phase 4 or they return on save.
 
 ## Where the migration stands
 
@@ -194,14 +158,30 @@ Three things the run corrected in this document:
 | **iMIP** — invitations, RSVP, guests | **on moments + calendar records** |
 | The ICS importer and the Inbox's occasion triage | **on moments + calendar records** |
 
-**The sync job is why the mirrored kinds stay current.** Doses and readings are
-still authored through their own surfaces into `routine_instances`,
-`metric_entries` and `group_readings`; the tick mirrors them, so a record's Log
-shows them within five minutes of the act. It goes away one kind at a time as
-those surfaces move — and those two are what is left, which makes them the whole
-remaining cost of running two models at once. `notes` and `events` are no longer
-written by anything: the web app calls neither router, and they are retained for
-`wild-life-reverse-moments` rather than for the app.
+**The sync job is why the mirrored kinds exist at all, and it is the unfinished
+half of the migration.** Only `moments`, `occurrences` and `calendar_mail` create
+a `Moment` inline. Everything else still writes its own table and waits for the
+tick:
+
+| act | writes | becomes | when |
+| --- | --- | --- | --- |
+| log a dose | `routine_instances` | `dose` / `activity` | next tick |
+| record a reading | `metric_entries`, `group_readings` | `measurement` | next tick |
+| complete a task | `tasks.completed_at` (`_sync_completion`) | `completion` | next tick |
+| schedule a task | `tasks.scheduled_date` | `work` intention | next tick |
+| resolve a request, satisfy an outcome, decide | those rows' date columns | `completion` / `decision` | next tick |
+| enter a place | `location_visits` (geofence) | `visit` | next tick |
+
+So **the timeline and every record's Log lag reality by up to five minutes for
+most of what you do in the app** — the dose you just logged is not on the
+medication's Log when you look. That latency is the real cost of running two
+models, and finishing the migration is what removes it: each surface writes a
+moment inline, and the mirror pass for it goes away.
+
+`notes` and `events` are already done — nothing writes them, the web app calls
+neither router, and they are retained for `wild-life-reverse-moments` rather than
+for the app. Their passes in the backfill are therefore no-ops kept for the
+reverse path, not live mirroring.
 
 ### How the calendar works now
 
@@ -258,32 +238,20 @@ pins the default; `tests/test_calendar_mail_tick.py` exercises the lifecycle.
 Both iMIP ledgers re-key onto the moment. They record what has already left the
 building, so they have to hang off the thing that can leave it.
 
-### What is left of `events`
+### What is left of `events` and `notes`
 
-Nothing reads it and nothing writes it. The table and its 1,332 rows stay as what
-the backfill was derived from and what `wild-life-reverse-moments` writes back to
-— the way out, not a dependency.
+Nothing reads them and nothing writes them. Both stay as what the backfill was
+derived from and what `wild-life-reverse-moments` writes back to — the way out,
+not a dependency. Do not add a reader: **a frozen table is worse than no table,
+because it answers.** Three readers survived the cut-over pointing at `events`
+and were silently wrong until they were found.
 
-The retirement removed more than the registry entry. Three live readers were
-still on it and were therefore **already broken**, since the table froze: nudges
-counted zero meetings for any day made since, the reminder tick would never fire
-for a calendar entry created after the cut-over, and the dashboard's unfiled
-figure could only go stale. Reading a frozen table is worse than reading none,
-because it answers.
-
-`reminders.py` carried the **fourth** recurrence expander — after `Routine`'s
-cadence, `Event`'s RRULE and FullCalendar's — with its own parsing, its own
-EXDATE comparison and its own fallback. The occurrence endpoint's body is now
-callable (`routers/occurrences.collect`) and everything that needs to know when
-something happens asks it. That was the point of the whole migration, stated in
-one function.
-
-Gone with it: `entities/event/`, `EventCapture`, the Event record and its
-when/where block, the Area/Project "Events" panels (an object's dated history is
-the Log band), `EVENT_FIELDS`, `EVENT_TYPE`, `EventItem`, the `events` crud and
-the `event` registry entry. A person's page now reads `role=participant` — every
-moment they were actually *at*, which is the payoff of deleting the 325 self-edges
-and was unanswerable before.
+**One expander, not four.** `Routine`'s cadence, `Event`'s RRULE, FullCalendar's
+and `reminders.py`'s each used to answer "when does this happen" separately, with
+no way to tell which was right. `routers/occurrences.collect` is the one answer
+and is callable in-process; everything that needs to know asks it. That is the
+migration's point stated in a single function, and it is the rule most worth
+keeping: if you find yourself expanding a recurrence, you are writing the fifth.
 
 
 ### Birthdays: two mechanisms, and how they should become one
@@ -327,67 +295,3 @@ The two are different objects and stay so: `people.birthday` is a fact about a
 person, the rule is a recurrence, and filing links them without merging them. A
 person with no birth date is a person whose birth date we do not know, which is a
 true and useful thing for the app to say.
-
-### `notes.mood` is dropped, and would be a Metric if it ever comes back
-
-It appears in neither mapping table above because it becomes nothing. The
-measurement settles it: **all 235 values were written by the 2026-07-15 import
-and none by hand**, across 95 distinct free-text strings for 235 rows. That is
-the tag finding again, in a different column — a vocabulary nobody chose,
-maintained by nobody, read by nothing.
-
-It is also the shape `note_type` had. Mood is meaningless on a `dose` or a
-`completion`, so a mood column on `moments` would be a facet only one kind
-carries, hand-set, and therefore unset — the `Event.event_type` failure with a
-different name.
-
-If mood is wanted later it is a **Metric**, not a column: a named measurable
-thing with a scale and a cadence, whose readings are `measurement` moments
-carrying a reading payload. That is the existing spine, it gives series and
-outcomes for free, and it puts mood beside weight and sleep where a thing you
-track over time belongs. Do not add the column back.
-
-## What the frontend cut-over did
-
-All of it landed together, because a record's Log and the Journal are the same
-component over the same store: the surfaces that share data had to move in one
-commit or writing in one place would have gone missing from the other.
-
-| surface | before | after |
-| --- | --- | --- |
-| `components/Log.tsx` | notes rooted at one entity | `/moments?linked_type&linked_id` — every kind involving the thing, prose editable and mirrors read-only |
-| `pages/JournalRoute.tsx` | the self Person's log | `kind=reflection`, no subject, no identity needed |
-| `pages/InboxPage.tsx` | `entity_type IS NULL` | `kind=capture`; filing writes the subject *and* resolves the kind in one PATCH |
-| `components/MomentComposer.tsx` | `NoteComposer` | takes `kind` as a prop; About writes a `subject` link, mentions write `mention` |
-| `detail/planning.tsx` | `ProgramTimeline` | deleted — it is the Log band now |
-| `components/Backlinks.tsx` | every linked note, minus the root, client-side | `role=mention`, server-side |
-| `services/calendar/sources.ts` | notes by `entry_date` | reflections by `started_at` |
-| `services/api/registry.ts` | `note` | `moment`, with `entities/moment/Detail.tsx` and a fixture |
-
-`event` stays in the registry, and `entities/event/Capture.tsx` with it, for the
-reason in *Why the calendar did not move* above.
-
-Things learned the hard way, worth not rediscovering:
-
-- **The self-link rule belongs in the reconciler**, and it is already there
-  (`routers/moments.py`). The composer may legitimately send a mention of the
-  writer; it is dropped on the way in, not rejected.
-- **`kind` is written by the surface, never asked.** Quick capture (⌘⇧N with no
-  owner) is the only surface that writes `capture`; the same window opened *from*
-  a record writes `observation`. That is what makes the inbox a state rather than
-  a lack. `web/src/components/Log.test.tsx` pins it.
-- **`PATCH /moments` reconciles links wholesale.** Any writer that sends `links`
-  must send back the ones it does not own, or it deletes them. The composer
-  carries `participant` and `place` through untouched; the Inbox carries mentions
-  through when it files a capture.
-- **Images changed reference form**: bodies say `![alt](moment-image:<id>)` and
-  are served from `/moment-images/<id>`.
-- **A moment with no occurrence and no window sorts `nullslast`**, so past 200
-  rows it is off the end of the page. Every composer writes `started_at`
-  (all-day, noon-anchored) for exactly this reason.
-- **Run the backfill immediately before the cut**, so anything written that day
-  has a moment. After the cut, `wild-life-reverse-moments` is the way back.
-- The scripts need `WILD_LIFE_DATABASE_URL`, `WILD_LIFE_SELF_PERSON_ID` (now
-  guarded — it refuses rather than misfiling 253 reflections) and
-  `WILD_LIFE_DATA_DIR=/data/castle/wild-life-api`. The data dir is *not* guarded:
-  without it the image pass wrote 13 rows with no bytes behind them.
