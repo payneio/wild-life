@@ -211,7 +211,7 @@ async def record_routine_instance(
         all_day=inst.completed_at is None,
         window_start=window,
         window_end=window,
-        title=routine.activity if routine else None,
+        title=routine.name if routine else None,
     )
     edges: list[Edge] = []
     if med:

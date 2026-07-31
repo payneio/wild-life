@@ -3386,18 +3386,6 @@
             ],
             "title": "Context"
           },
-          "event_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Event Id"
-          },
           "recorded_at": {
             "format": "date-time",
             "title": "Recorded At",
@@ -3444,18 +3432,6 @@
             "title": "Entries",
             "type": "array"
           },
-          "event_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Event Id"
-          },
           "group_id": {
             "format": "uuid",
             "title": "Group Id",
@@ -3483,8 +3459,7 @@
           "updated_at",
           "group_id",
           "recorded_at",
-          "context",
-          "event_id"
+          "context"
         ],
         "title": "GroupReadingRead",
         "type": "object"
@@ -12086,17 +12061,6 @@
       },
       "RoutineCreate": {
         "properties": {
-          "activity": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Activity"
-          },
           "amount": {
             "anyOf": [
               {
@@ -12750,17 +12714,6 @@
       },
       "RoutineRead": {
         "properties": {
-          "activity": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Activity"
-          },
           "amount": {
             "anyOf": [
               {
@@ -13051,7 +13004,6 @@
           "created_at",
           "updated_at",
           "name",
-          "activity",
           "medication_id",
           "protocol_id",
           "kind",
@@ -13083,17 +13035,6 @@
       },
       "RoutineUpdate": {
         "properties": {
-          "activity": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Activity"
-          },
           "amount": {
             "anyOf": [
               {

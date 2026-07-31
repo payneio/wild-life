@@ -240,7 +240,7 @@ export const REGISTRY: Record<string, EntityDef> = {
   metricGroup: { key: "metricGroup", label: "Metric group", crud: metricGroups, fields: METRIC_GROUP_FIELDS, title: (e) => e.name, parent: (e) => (e.entity_type && e.entity_id ? { type: e.entity_type, id: e.entity_id } : undefined), entityType: "metric_group", titleField: "name", quickCreate: true, detail: MetricGroupRecord },
   // The rule table also holds `occasion` rules (recurring calendar series), which
   // are not routines to a reader and get their own surface in the calendar step.
-  routine: { key: "routine", label: "Routine", crud: routines, listParams: { kind__in: "dose,activity", limit: "200" }, fields: ROUTINE_FIELDS, title: (e) => e.activity ?? e.name ?? "Routine", parent: (e) => refOf(e, ["protocol_id", "protocol"], ["program_id", "program"], ["area_id", "area"]), entityType: "routine", titleField: "activity", quickCreate: true, detail: RoutineRecord },
+  routine: { key: "routine", label: "Routine", crud: routines, listParams: { kind__in: "dose,activity", limit: "200" }, fields: ROUTINE_FIELDS, title: (e) => e.name ?? "Routine", parent: (e) => refOf(e, ["protocol_id", "protocol"], ["program_id", "program"], ["area_id", "area"]), entityType: "routine", titleField: "name", quickCreate: true, detail: RoutineRecord },
   program: { key: "program", label: "Program", crud: programs, fields: PROGRAM_FIELDS, title: (e) => e.name, parent: (e) => refOf(e, ["area_id", "area"]), entityType: "program", titleField: "name", quickCreate: true, detail: ProgramRecord, relations: [
     { mode: "fk-children", label: "Projects", type: "project", fkField: "program_id" },
     { mode: "soft-backref", label: "Metrics", type: "metric" },

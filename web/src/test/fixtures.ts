@@ -311,8 +311,7 @@ export const OUTCOME: Outcome = {
 
 export const ROUTINE: Routine = {
   ...BASE,
-  name: null,
-  activity: "Heel stretches",
+  name: "Heel stretches",
   status: "active",
   area_id: null,
   program_id: null,

@@ -3261,8 +3261,6 @@ export interface components {
         GroupReadingCreate: {
             /** Context */
             context?: string | null;
-            /** Event Id */
-            event_id?: string | null;
             /**
              * Recorded At
              * Format: date-time
@@ -3288,8 +3286,6 @@ export interface components {
              * @default []
              */
             entries: components["schemas"]["ReadingEntry"][];
-            /** Event Id */
-            event_id: string | null;
             /**
              * Group Id
              * Format: uuid
@@ -5560,8 +5556,6 @@ export interface components {
         };
         /** RoutineCreate */
         RoutineCreate: {
-            /** Activity */
-            activity?: string | null;
             /** Amount */
             amount?: number | null;
             /** Area Id */
@@ -5742,8 +5736,6 @@ export interface components {
         };
         /** RoutineRead */
         RoutineRead: {
-            /** Activity */
-            activity: string | null;
             /** Amount */
             amount: number | null;
             /** Area Id */
@@ -5820,8 +5812,6 @@ export interface components {
         };
         /** RoutineUpdate */
         RoutineUpdate: {
-            /** Activity */
-            activity?: string | null;
             /** Amount */
             amount?: number | null;
             /** Area Id */

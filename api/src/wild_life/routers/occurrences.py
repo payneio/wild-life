@@ -252,7 +252,7 @@ async def collect(
                     occurrence_at=occ.start,
                     start_at=occ.start,
                     end_at=occ.end,
-                    title=rule.activity or rule.name,
+                    title=rule.name,
                     kind=rule.kind,
                     links=rule_links[rule.id],
                 )
@@ -345,7 +345,7 @@ async def _materialise(
             if rule.expected_minutes
             else None
         ),
-        title=rule.activity or rule.name,
+        title=rule.name,
         body="",
         source="authored",
     )
@@ -404,7 +404,7 @@ async def edit_occurrence(
         # The rule *is* the series, so editing it is the whole edit — no walking
         # of override rows, because there are none to walk.
         if changes.title is not None:
-            rule.activity = changes.title
+            rule.name = changes.title
         if changes.start_at is not None:
             rule.timing = [
                 changes.start_at.astimezone(_zone_of(rule)).strftime("%H:%M")
@@ -423,7 +423,7 @@ async def edit_occurrence(
         raise HTTPException(400, detail="occurrence_at is required for scope=following")
     tail = Routine(
         kind=rule.kind,
-        activity=changes.title if changes.title is not None else rule.activity,
+        name=changes.title if changes.title is not None else rule.name,
         timing=(
             [changes.start_at.astimezone(_zone_of(rule)).strftime("%H:%M")]
             if changes.start_at is not None
@@ -490,14 +490,14 @@ def _first_projection(
             occurrence_at=one.start,
             start_at=one.start,
             end_at=one.end,
-            title=rule.activity or rule.name,
+            title=rule.name,
             kind=rule.kind,
         )
     return Occurrence(
         rule_id=rule.id,
         occurrence_at=at or datetime.now(UTC),
         start_at=at or datetime.now(UTC),
-        title=rule.activity or rule.name,
+        title=rule.name,
         kind=rule.kind,
     )
 

@@ -15,8 +15,7 @@ from wild_life.schemas.health import Weekday
 
 
 class RoutineCreate(BaseModel):
-    name: str | None = None  # legacy label; prefer ``activity`` / the linked med
-    activity: str | None = None  # non-medication step, e.g. "walk after dinner"
+    name: str | None = None  # the label; null for a dose, which is named by its medication
     medication_id: uuid.UUID | None = None
     # A container a rule may belong to, not what makes it a rule. Optional since
     # the generalisation: a weekly habit used to have to invent a protocol.
@@ -68,7 +67,6 @@ class RoutineCreate(BaseModel):
 
 class RoutineUpdate(BaseModel):
     name: str | None = None
-    activity: str | None = None
     medication_id: uuid.UUID | None = None
     protocol_id: uuid.UUID | None = None
     kind: MomentKind | None = None
@@ -98,7 +96,6 @@ class RoutineUpdate(BaseModel):
 
 class RoutineRead(Entity):
     name: str | None
-    activity: str | None
     medication_id: uuid.UUID | None
     protocol_id: uuid.UUID | None
     kind: MomentKind

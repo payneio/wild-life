@@ -144,7 +144,7 @@ class TestKindIsDerivedNotAsked:
     def test_without_one_it_is_an_activity(self) -> None:
         from wild_life.schemas.routines import RoutineCreate
 
-        assert RoutineCreate(activity="walk after dinner").kind == "activity"
+        assert RoutineCreate(name="walk after dinner").kind == "activity"
 
     def test_an_explicit_kind_always_wins(self) -> None:
         """How an occasion or work rule — which has nothing to infer from — is written."""

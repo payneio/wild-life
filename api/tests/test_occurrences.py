@@ -35,7 +35,7 @@ def cleanup(client: TestClient, auth_headers: dict[str, str]) -> Iterator[dict]:
 
 def make_rule(client: TestClient, headers: dict, cleanup: dict, **over) -> dict:
     body = {
-        "activity": f"{MARK} weekly",
+        "name": f"{MARK} weekly",
         "kind": "occasion",
         "timing": ["17:00"],
         "days_of_week": ["mon"],

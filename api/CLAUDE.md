@@ -69,11 +69,18 @@ postgres. All tables live in an isolated Postgres schema **`wild_life`**.
 The primary hierarchy is **Area → optional Program → Project → Task**; moments hang
 off all of it by link rather than by ownership.
 
-**A caveat worth knowing before you extend `Routine`:** it is currently two things
-under one name — the cadence that generates a calendar series (unnamed, pure
-infrastructure) and a practice you keep (a protocol step, a habit). Only the second
-is something a moment can meaningfully be *about*. `docs/moments.md` calls the
-first concept `rules`; the implementation reused `Routine` and added `kind`.
+**`Routine` is one thing, not two.** A rule is a cadence that projects
+occurrences, and `kind` says what those occurrences are — `occasion`, `dose`,
+`activity` — exactly as `Moment.kind` names an act rather than an object. A
+meeting series and a habit differ in what they generate, not in what they are,
+which is why one expander answers for both. Splitting them would recreate the
+four-answers-to-one-question the migration existed to remove.
+
+What *was* wrong there was the label: it lived in `name` for some kinds and
+`activity` for others, with every reader spelling `activity or name`, and
+`activity` is a column named after one of `kind`'s values while holding meeting
+titles for another. One column now (`name`), null for a dose, whose label is the
+medication it schedules.
 
 ## Database & migrations (Alembic)
 

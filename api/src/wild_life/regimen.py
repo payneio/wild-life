@@ -67,7 +67,7 @@ async def compute_regimen(session: AsyncSession, day: date) -> list[RegimenEntry
         slots = expected_on(routine, proto, day)
         if not slots:
             continue
-        label = med.name if med is not None else (routine.activity or routine.name)
+        label = med.name if med is not None else routine.name
         for slot in slots:
             key = (med.id, slot) if med is not None else (routine.id, slot)
             if key in seen:  # first live source wins the attribution

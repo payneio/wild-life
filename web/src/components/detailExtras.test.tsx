@@ -22,17 +22,17 @@ const entries = [
   entry("e2", "2026-03-04T22:03:00Z", 141), // 14:03 Pacific
 ]
 const steps = [
-  { ...ROUTINE, id: "step-1", activity: "Heel stretches", medication_id: null },
+  { ...ROUTINE, id: "step-1", name: "Heel stretches", medication_id: null },
   {
     ...ROUTINE,
     id: "step-2",
-    activity: null,
+    name: null,
     medication_id: "44444444-4444-4444-4444-444444444444",
     amount: 500,
     unit: "mg",
   },
   // What "Add dose" actually creates: a step that names neither yet.
-  { ...ROUTINE, id: "step-3", activity: null, medication_id: null, amount: null, unit: null },
+  { ...ROUTINE, id: "step-3", name: null, medication_id: null, amount: null, unit: null },
 ]
 
 // Override only the routines crud; everything else in the module stays real, so
@@ -95,7 +95,7 @@ describe("protocol steps", () => {
 
     expect(update).toHaveBeenCalledWith({
       id: "step-1",
-      body: { activity: "Calf raises" },
+      body: { name: "Calf raises" },
     })
   })
 
@@ -107,7 +107,7 @@ describe("protocol steps", () => {
 
     // One PATCH, not two: a half-applied switch would leave a step that is both
     // a dose and an activity.
-    expect(update).toHaveBeenCalledWith({ id: "step-1", body: { activity: null } })
+    expect(update).toHaveBeenCalledWith({ id: "step-1", body: { name: null } })
   })
 
   it("opens a just-added step as a dose, and lets the toggle move", async () => {

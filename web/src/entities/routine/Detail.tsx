@@ -48,7 +48,7 @@ function SeriesDetail({ entity, onClose }: { entity: Entity; onClose: () => void
       ]}
     >
       <RecordSection>
-        <F.Title field="activity" placeholder="What is this series?" />
+        <F.Title field="name" placeholder="What is this series?" />
       </RecordSection>
 
       <p className="flex items-center gap-1.5 text-sm text-slate-600">
@@ -140,8 +140,7 @@ export function RoutineDetail({ entity, onClose }: { entity: Entity; onClose: ()
       ]}
     >
       <RecordSection>
-        <F.Title field="activity" placeholder="What's the routine?" />
-        <F.Text field="name" label="Name" />
+        <F.Title field="name" placeholder="What's the routine?" />
         <F.Select field="status" label="Status" options={ROUTINE_STATUS} />
       </RecordSection>
 

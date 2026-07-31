@@ -267,7 +267,7 @@ export const METRIC_FIELDS: FieldSpec[] = [
 ]
 
 export const ROUTINE_FIELDS: FieldSpec[] = [
-  { name: "activity", label: "Routine", full: true, placeholder: "e.g. Walk after dinner" },
+  { name: "name", label: "Routine", full: true, placeholder: "e.g. Walk after dinner" },
   { name: "timing", label: "Times of day", type: "multiselect", options: SLOTS, full: true },
   { name: "days_of_week", label: "Days (blank = every day)", type: "multiselect", options: WEEKDAYS, full: true },
   { name: "interval_days", label: "Every N days", type: "number", placeholder: "1" },

@@ -231,7 +231,7 @@ type StepKindValue = "dose" | "activity"
  */
 function stepKind(step: Routine, intent: StepKindValue): StepKindValue {
   if (step.medication_id != null) return "dose"
-  if (step.activity != null) return "activity"
+  if (step.name != null) return "activity"
   return intent
 }
 
@@ -248,7 +248,7 @@ function StepRow({
   onDelete: () => void
 }) {
   const [intent, setIntent] = useState<StepKindValue>(() =>
-    step.activity != null ? "activity" : "dose",
+    step.name != null ? "activity" : "dose",
   )
   const kind = stepKind(step, intent)
   const isDose = step.medication_id != null
@@ -265,8 +265,8 @@ function StepRow({
             <span className="font-medium">
               <RefName kind="medication" id={step.medication_id} />
             </span>
-          ) : step.activity ? (
-            <span className="font-medium">{step.activity}</span>
+          ) : step.name ? (
+            <span className="font-medium">{step.name}</span>
           ) : (
             <span className="font-medium text-slate-400">(step)</span>
           )}
@@ -297,7 +297,7 @@ function StepRow({
                 <R.Text field="unit" label="Unit" placeholder="mg" />
               </>
             ) : (
-              <R.Text field="activity" label="Activity" full placeholder="e.g. Walk after dinner" />
+              <R.Text field="name" label="Name" full placeholder="e.g. Walk after dinner" />
             )}
             <R.MultiSelect field="timing" label="Times of day" options={SLOTS} />
             <R.MultiSelect field="days_of_week" label="Days (blank = every day)" options={WEEKDAYS} />
@@ -339,7 +339,7 @@ function StepKind({
           onChange(v)
           save(
             v === "dose"
-              ? { activity: null }
+              ? { name: null }
               : { medication_id: null, amount: null, unit: null },
           )
         }}

@@ -52,10 +52,12 @@ class Routine(UUIDPrimaryKey, TimestampMixin, Base):
     __tablename__ = "routines"
     __table_args__ = (Index("uq_routines_source_ref", "source_ref", unique=True),)
 
-    # Label: an activity/habit's free text; null for medication routines (the label
-    # comes from the linked medication). ``name`` is the legacy label, folded into
-    # ``activity`` during the migration and dropped afterward.
-    activity: Mapped[str | None] = mapped_column(Text)
+    # What this rule is called. Null for a medication schedule, where the label is
+    # the medication's name and storing a copy would be a second thing to keep
+    # true. It used to be two columns — `activity` beside this one, with every
+    # reader spelling `activity or name` — and `activity` was named after one of
+    # `kind`'s three values while holding meeting titles for another, which is
+    # the "no column named for nothing" rule in a different word.
     name: Mapped[str | None] = mapped_column(Text)
 
     # What it is: a medication dose and/or a member of a protocol bundle.
