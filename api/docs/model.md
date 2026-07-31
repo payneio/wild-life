@@ -41,7 +41,8 @@ Each names the scenario that forces it. Scenarios are in the next section and ar
 **specifications, not history** — a change to this model is legitimate only if
 every scenario still has an answer.
 
-**A1 · Attention.** Scopes nest, one parent each. Each declares a review cadence.
+**A1 · Attention.** Scopes nest, one parent each. Each has a review cadence
+(declared or inherited — A10).
 Examination is a recorded act; a scope unexamined past its cadence is a failure
 of attention, at every altitude. *(S7)*
 
@@ -80,6 +81,24 @@ system's entry point is *commitment* — which is the line Bratman draws between
 desire and intention, and taking it is what makes a plan library unnecessary.
 The Journal is therefore architectural, not a feature: it holds the part of
 thinking the model declines to hold. *(S1)*
+
+**A9 · Means and ends.** A task may serve one or more objectives, M:N and
+optional — not everything you do serves a declared end. **Contribution is not
+satisfaction**: an objective is satisfied when its claim holds, never by its
+contributing tasks completing. Drafting, editing and submitting do not publish
+the paper. *(S4)*
+
+**A10 · Cadence inherits, examination does not.** A review cadence declared at a
+scope applies to its descendants unless overridden, so a hierarchy does not
+require a declaration per node. Examination remains an explicit act naming the
+scopes it covered — reviewing a program may cover its projects, but only if it
+says so. *(S7)*
+
+**A11 · An objective must be evaluable to be live.** One with neither a metric
+nor a review cadence is *inert*: nothing can ever change its truth value. It is
+permitted — a claim you cannot yet measure is still worth capturing — but it is
+reported as inert rather than silently carried among claims that mean something.
+*(S9)*
 
 ### One consequence worth stating separately
 
@@ -155,21 +174,54 @@ theirs carries a distribution, ours only bounds.
 
 ---
 
-## Where the implementation stands
+## Where the implementation stands, and in what order
 
 Honest gap, because a design record read as description is how docs start lying.
+Every row was checked against the schema rather than asserted. The **phase**
+column is the plan: phases are ordered by dependency, and each one leaves the app
+working — nothing here is a flag day.
 
-| axiom | state |
-|---|---|
-| A1 attention hierarchy | scopes nest ✓ · cadence on areas and programs, **not projects** · projects judged by `last_activity_date`, which is activity, **not** examination |
-| A2 one scope reference | ✗ — intention is spread over 14 tables with no common type; `tasks` names its parent with **three** nullable FKs where every other rung uses one. `outcomes` already has the right shape |
-| A3 monotonicity | ✗ — `outcomes.kind` (`standard`/`target`) gropes at it under names that do not say it; no truth history for non-monotonic claims |
-| A4 generate / discharge | ✗ — no edge either way. The plan→outcome relation exists only as a naming convention in `source_ref`, so it is unindexable and unenforceable |
-| A5 causes | partial — `withdrawn_at`/`withdrawal_reason` exist and are unused; lapse is correctly derived (`unfulfilled`) |
-| A6 valence as a moment | reachable — `moment` became a legal `entity_type` and every object gained a Log band, so writing about an intention will work once intentions are first-class |
-| A7 assignment lifecycle | ✗ — RACI is on *things*, not on intentions; `delegations` is built and unexercised |
-| A8 deliberation in prose | ✓ — the Journal, though nothing marks where prose becomes commitment |
-| windows | ✗ — every window in the corpus is zero-width and `expected_minutes` is never set, because the writers set `window_start = window_end` |
+| # | axiom | state | phase |
+|---|---|---|---|
+| 1 | windows | ✗ every window in the corpus is zero-width and `expected_minutes` is never set, because the writers set `window_start = window_end` | **0** |
+| 2 | A11 inert objectives | ✗ not reported | **0** |
+| 3 | A1/A10 cadence + examination | ~ cadence on areas and programs, **not** projects; no inheritance; projects judged by `last_activity_date`, which is activity, **not** examination | **0** |
+| 4 | A2 one scope reference | ✗ `tasks` names its parent with **three** nullable FKs where every other rung uses one. `outcomes` already has the right shape | **1** |
+| 5 | A2 intention as a type | ✗ intention is spread over 14 tables with no common shape | **2** |
+| 6 | A3 monotonicity | ✗ `outcomes.kind` (`standard`/`target`) gropes at it under names that do not say it; no truth history for a non-monotonic claim | **2** |
+| 7 | A4 generate / discharge · A9 means-end | ✗ no edge in any direction. The plan→outcome relation exists only as a naming convention in `source_ref`, so it is unindexable and unenforceable | **3** |
+| 8 | A5 causes · A6 valence | ~ `withdrawn_at`/`withdrawal_reason` exist and are set on 0 of 3,210 rows; lapse is correctly derived (`unfulfilled`). Valence is *reachable* — a moment may now be about a first-class thing | **4** |
+| 9 | A7 assignment lifecycle | ✗ RACI is on *things*, not on intentions; `delegations` is built and unexercised | **5** |
+| — | A8 deliberation in prose | ✓ the Journal — though nothing marks where prose becomes commitment | — |
+
+**Phase 0 — needs no new structure.** Stop collapsing windows; report inert
+objectives; give projects a cadence and derive examination from review events
+rather than from activity. Independently useful even if the rest never happens.
+
+**Phase 1 — one scope reference.** Replace the three nullable FKs on `tasks`
+with the polymorphic reference `outcomes` already uses. Contained, and it makes
+the attention hierarchy a strict tree, so delegation becomes a subtree operation.
+
+**Phase 2 — intention as a type.** The load-bearing phase. Two species —
+task and objective — sharing one shape: scope reference, RACI, window, ending.
+**Two tables, not one:** their payloads differ (metric binding versus
+scheduling), and merging them would reproduce the 85–100% null columns that were
+just removed from `moments`.
+
+**Phase 3 — the edges.** Generate, discharge (M:N), and means-end. This is what
+makes "how do intentions become outcomes" a query rather than string surgery, and
+it is the point of the whole exercise.
+
+**Phase 4 — endings and valence.** Causes recorded, lapse still derived, appraisal
+written as a moment about the intention.
+
+**Phase 5 — assignment.** RACI moves onto intentions; delegation and decline
+become events on the assignment rather than on the commitment.
+
+**What disappears on the way.** `moments.window_start`/`window_end`/
+`expected_minutes`/`withdrawn_at`/`withdrawal_reason`, once intention lives on
+intentions; the `work` kind, since a scheduled task *is* the intention and needs
+no shadow moment; and `tasks.area_id`/`program_id`.
 
 ## How to use this
 
