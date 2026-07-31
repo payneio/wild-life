@@ -24,6 +24,12 @@ from wild_life.models.tasks import Task
 from wild_life.query import apply_query
 from wild_life.ranking import end_position, position_between
 from wild_life.schemas.common import Priority, TaskStatus
+from sqlalchemy import delete as sa_delete
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+
+from wild_life.models.intentions import TaskObjective
+from wild_life.models.outcomes import Outcome
+from wild_life.schemas.outcomes import OutcomeRead
 from wild_life.schemas.tasks import (
     AssignmentEvent,
     TaskCreate,
@@ -499,3 +505,60 @@ async def record_assignment(
     await session.flush()
     await session.refresh(task)
     return task
+
+
+# --- means and ends (A9) ----------------------------------------------------
+
+
+@router.get(
+    "/{item_id}/objectives",
+    response_model=list[OutcomeRead],
+    operation_id="tasks_objectives",
+)
+async def task_objectives(
+    item_id: UUID, session: AsyncSession = Depends(get_session)
+) -> list[Outcome]:
+    """The objectives this task is done in service of."""
+    rows = await session.execute(
+        select(Outcome)
+        .join(TaskObjective, TaskObjective.outcome_id == Outcome.id)
+        .where(TaskObjective.task_id == item_id)
+        .order_by(Outcome.statement)
+    )
+    return list(rows.scalars().all())
+
+
+@router.put(
+    "/{item_id}/objectives/{outcome_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    operation_id="tasks_serve_objective",
+)
+async def serve_objective(
+    item_id: UUID, outcome_id: UUID, session: AsyncSession = Depends(get_session)
+) -> None:
+    """Say this task is *for* that objective.
+
+    Contribution is not satisfaction (A9): this answers "what is left before X"
+    and nothing about whether X is true. Completing every contributing task does
+    not publish the paper; publishing does.
+    """
+    await session.execute(
+        pg_insert(TaskObjective)
+        .values(task_id=item_id, outcome_id=outcome_id)
+        .on_conflict_do_nothing(constraint="uq_task_objective")
+    )
+
+
+@router.delete(
+    "/{item_id}/objectives/{outcome_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    operation_id="tasks_unserve_objective",
+)
+async def unserve_objective(
+    item_id: UUID, outcome_id: UUID, session: AsyncSession = Depends(get_session)
+) -> None:
+    await session.execute(
+        sa_delete(TaskObjective).where(
+            TaskObjective.task_id == item_id, TaskObjective.outcome_id == outcome_id
+        )
+    )

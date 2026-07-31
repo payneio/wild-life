@@ -2353,6 +2353,51 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tasks/{item_id}/objectives": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Task Objectives
+         * @description The objectives this task is done in service of.
+         */
+        get: operations["tasks_objectives"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tasks/{item_id}/objectives/{outcome_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Serve Objective
+         * @description Say this task is *for* that objective.
+         *
+         *     Contribution is not satisfaction (A9): this answers "what is left before X"
+         *     and nothing about whether X is true. Completing every contributing task does
+         *     not publish the paper; publishing does.
+         */
+        put: operations["tasks_serve_objective"];
+        post?: never;
+        /** Unserve Objective */
+        delete: operations["tasks_unserve_objective"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tasks/{item_id}/release": {
         parameters: {
             query?: never;
@@ -5589,6 +5634,8 @@ export interface components {
          * @description Everything a periodic review should catch, grouped by what's wrong.
          */
         ReviewDashboard: {
+            /** Claims Awaiting Evaluation */
+            claims_awaiting_evaluation: components["schemas"]["DashRow"][];
             /** Completed With Open Tasks */
             completed_with_open_tasks: components["schemas"]["DashRow"][];
             /** Conditions Without Protocol */
@@ -12513,6 +12560,97 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["TaskRead"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    tasks_objectives: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutcomeRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    tasks_serve_objective: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+                outcome_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    tasks_unserve_objective: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+                outcome_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

@@ -187,13 +187,13 @@ working — nothing here is a flag day.
 
 | # | axiom | state | phase |
 |---|---|---|---|
-| 1 | windows | ✗ every window is zero-width and `expected_minutes` never set. **Subsumed by phase 2**, which deletes these columns — fixing writers for a column already scheduled for removal is motion, not progress | ~~0~~ → 2 |
+| 1 | windows on `moments` | ✗ still zero-width. **The one axiom nothing yet honours:** A2 puts the window on the intention, and intentions do not carry one — a task has `scheduled_date` (attention) and `due_date` (a deadline), neither of which is "sometime in June" narrowing. Deleting `moments.window_*` waits on that | open |
 | 2 | A11 inert objectives | ✓ done — reported on the review dashboard | ~~0~~ |
 | 3 | A1/A10 cadence + examination | ~ cadence on areas and programs, **not** projects; no inheritance; projects judged by `last_activity_date`, which is activity, **not** examination | **0** |
 | 4 | A2 one scope reference | ✓ done — `tasks.scope_type`/`scope_id`; the `ck_tasks_single_parent` check is gone because the shape it enforced is now unrepresentable | ~~1~~ |
 | 5 | A2 intention as a type | ✗ intention is spread over 14 tables with no common shape | **2** |
-| 6 | A3 monotonicity | ~ `standard`/`target` *is* monotonicity, correctly defined — kept rather than renamed. `outcome_evaluations` built with `POST /outcomes/{id}/evaluations`; the review surface does not yet prompt for one | 2 |
-| 7 | A4 generate / discharge · A9 means-end | ~ `discharges` written and retracted; `generates` written via `generated_by_moment_id` on task create; 419 edges backfilled. `task_objectives` has no writer — no surface asks what a task is *for* yet | 3 |
+| 6 | A3 monotonicity | ✓ `standard`/`target` *is* monotonicity — kept rather than renamed. Truth history in `outcome_evaluations`, and the review prompts for a judgement on every standing claim whose last one is older than its scope's cadence | ~~2~~ |
+| 7 | A4 generate / discharge · A9 means-end | ✓ `discharges` written and retracted, `generates` on task create, 419 edges backfilled; `task_objectives` written from the task's **Serves** picker | ~~3~~ |
 | 8 | A5 causes · A6 valence | ✓ `ending_cause` on both species (`discharged`/`abandoned`/`voided`); lapse still derived. Valence works by writing about the intention | ~~4~~ |
 | 9 | A7 assignment lifecycle | ✓ `POST /tasks/{id}/assignment` — offer/accept/decline/withdraw moves Responsible only, recorded as a moment. RACI still lives on the row rather than on a separate intention type | ~~5~~ |
 | — | A8 deliberation in prose | ✓ the Journal — though nothing marks where prose becomes commitment | — |

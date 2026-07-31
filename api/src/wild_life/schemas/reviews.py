@@ -81,6 +81,11 @@ class ReviewDashboard(BaseModel):
     # Claims nothing can ever evaluate: no metric, and no cadence anywhere above
     # them to be judged at.
     inert_objectives: list[DashRow]
+    # Standing claims whose last judgement is older than their scope's cadence.
+    # A standard is never completed, so what it needs is a prompt rather than a
+    # deadline — and a review is where the prompt belongs, because looking at a
+    # scope *is* when its claims get a truth value.
+    claims_awaiting_evaluation: list[DashRow]
     overdue_delegations: list[DashRow]
     delegation_followups: list[DashRow]
     unreviewed_deliverables: list[DashRow]

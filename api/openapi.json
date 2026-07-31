@@ -11883,6 +11883,13 @@
       "ReviewDashboard": {
         "description": "Everything a periodic review should catch, grouped by what's wrong.",
         "properties": {
+          "claims_awaiting_evaluation": {
+            "items": {
+              "$ref": "#/components/schemas/DashRow"
+            },
+            "title": "Claims Awaiting Evaluation",
+            "type": "array"
+          },
           "completed_with_open_tasks": {
             "items": {
               "$ref": "#/components/schemas/DashRow"
@@ -12056,6 +12063,7 @@
           "inactive_programs",
           "unexamined_scopes",
           "inert_objectives",
+          "claims_awaiting_evaluation",
           "overdue_delegations",
           "delegation_followups",
           "unreviewed_deliverables",
@@ -24039,6 +24047,145 @@
           }
         },
         "summary": "Move Task",
+        "tags": [
+          "tasks"
+        ]
+      }
+    },
+    "/tasks/{item_id}/objectives": {
+      "get": {
+        "description": "The objectives this task is done in service of.",
+        "operationId": "tasks_objectives",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OutcomeRead"
+                  },
+                  "title": "Response Tasks Objectives",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Task Objectives",
+        "tags": [
+          "tasks"
+        ]
+      }
+    },
+    "/tasks/{item_id}/objectives/{outcome_id}": {
+      "delete": {
+        "operationId": "tasks_unserve_objective",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "outcome_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outcome Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Unserve Objective",
+        "tags": [
+          "tasks"
+        ]
+      },
+      "put": {
+        "description": "Say this task is *for* that objective.\n\nContribution is not satisfaction (A9): this answers \"what is left before X\"\nand nothing about whether X is true. Completing every contributing task does\nnot publish the paper; publishing does.",
+        "operationId": "tasks_serve_objective",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "outcome_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outcome Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Serve Objective",
         "tags": [
           "tasks"
         ]

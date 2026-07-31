@@ -2,6 +2,7 @@ import { Link } from "react-router-dom"
 import { asDay } from "@/lib/date"
 import { Card } from "@/components/ui/primitives"
 import { EntityRef } from "@/components/graph/EntityRef"
+import { ClaimsToJudge } from "@/components/ClaimsToJudge"
 import { cn } from "@/lib/utils"
 import { formatDate } from "@/lib/utils"
 import type { DashRow, EntityType, ReviewDashboard } from "@/services/api/types"
@@ -83,8 +84,9 @@ export function ReviewDashboardView({
       </div>
     )
   }
+  const claims = (data.claims_awaiting_evaluation ?? []) as DashRow[]
   const active = CATS.filter((c) => (data[c.key] as DashRow[]).length > 0)
-  if (active.length === 0) {
+  if (active.length === 0 && claims.length === 0) {
     return (
       <Card className="p-6 text-center text-sm text-emerald-600">
         Nothing flagged — everything looks current. 🎉
@@ -92,7 +94,11 @@ export function ReviewDashboardView({
     )
   }
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <div className="space-y-3">
+      {/* First, because judging is the act a review *is* — the flagged lists
+          below are things to notice, and this is the thing to do. */}
+      <ClaimsToJudge rows={claims} />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       {active.map((c) => {
         const rows = data[c.key] as DashRow[]
         return (
@@ -120,6 +126,7 @@ export function ReviewDashboardView({
           </Card>
         )
       })}
+      </div>
     </div>
   )
 }

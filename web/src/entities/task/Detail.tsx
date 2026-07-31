@@ -3,6 +3,7 @@ import { useField } from "@/components/record/context"
 import { recordFields } from "@/components/record/typed"
 import { ScheduleChips, Segmented } from "@/components/detail/kit"
 import { OFF_LANE, STEPS } from "@/entities/task/status"
+import { TaskObjectives } from "@/components/TaskObjectives"
 import { REGISTRY } from "@/services/api/registry"
 import type { Entity, Priority, Task, TaskStatus } from "@/services/api/types"
 import type { CalendarDay } from "@/lib/date"
@@ -135,6 +136,13 @@ export function TaskDetail({ entity, onClose }: { entity: Entity; onClose: () =>
           `abandoned` and `voided` look identical in a status and are the
           distinction valence attaches to — dropping something you should never
           have committed to is good judgement, letting it rot is not. */}
+      {/* What this is for. Optional, and deliberately says nothing about
+          whether the objective holds — completing every contributing task does
+          not make a claim true. */}
+      <RecordSection title="Serves" columns={false}>
+        <TaskObjectives taskId={entity.id} />
+      </RecordSection>
+
       <RecordSection title="Ending">
         <F.Text field="ending_cause" label="Cause" placeholder="open" />
         <F.Textarea field="ending_note" label="Why" />

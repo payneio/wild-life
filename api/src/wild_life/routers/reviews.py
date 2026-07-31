@@ -8,11 +8,11 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wild_life import regimen
-from wild_life.attention import Attention, scope_ref
+from wild_life.attention import CADENCE_DAYS, Attention, scope_ref
 from wild_life.db.session import get_session
 from wild_life.identity import Identity, current_identity
 from wild_life.models.core import Program, Project
-from wild_life.models.outcomes import Outcome
+from wild_life.models.outcomes import Outcome, OutcomeEvaluation
 from wild_life.models.moments import CalendarRecord, Moment, MomentLink
 from wild_life.models.health import Medication
 from wild_life.models.protocols import Protocol
@@ -213,6 +213,46 @@ async def review_dashboard(
         if (late := att.overdue_by(scope_ref(kind, obj.id), today)) is not None
     ]
     unexamined_scopes.sort(key=lambda r: -r["days_overdue"])
+
+    # A3 and A1 are the same act: looking at a scope is when its standing claims
+    # get a truth value. A *standard* is never completed, so what it needs is not
+    # a deadline but a prompt — these are the claims whose last judgement is older
+    # than the cadence of the scope they hang on, which is exactly the set a
+    # review should walk. A metric-bound claim is excluded: the instrument
+    # answers for it, and asking a person to re-judge what a number already says
+    # is how a review becomes a chore nobody does.
+    latest_eval = {
+        oid: when
+        for oid, when in (
+            await session.execute(
+                select(
+                    OutcomeEvaluation.outcome_id,
+                    func.max(OutcomeEvaluation.evaluated_at),
+                ).group_by(OutcomeEvaluation.outcome_id)
+            )
+        ).all()
+    }
+    all_outcomes = list((await session.execute(select(Outcome))).scalars().all())
+    claims_awaiting_evaluation = []
+    for o in all_outcomes:
+        if o.kind != "standard" or o.metric_id is not None:
+            continue
+        cadence = att.cadence(scope_ref(o.entity_type, o.entity_id))
+        days = CADENCE_DAYS.get(cadence or "")
+        if not days:
+            continue  # inert — reported separately, not asked about
+        last = latest_eval.get(o.id)
+        stale = last is None or (today - last.date()).days > days
+        if stale:
+            claims_awaiting_evaluation.append(
+                {
+                    "id": str(o.id),
+                    "name": o.statement,
+                    "type": o.entity_type,
+                    "last_evaluated": last.date().isoformat() if last else None,
+                    "review_frequency": cadence,
+                }
+            )
 
     # A11: a claim with neither a metric nor a review cadence on its scope is
     # inert — nothing in the system can ever change its truth value. Permitted,
@@ -508,6 +548,7 @@ async def review_dashboard(
         "inactive_programs": inactive_programs,
         "unexamined_scopes": unexamined_scopes,
         "inert_objectives": inert_objectives,
+        "claims_awaiting_evaluation": claims_awaiting_evaluation,
         "overdue_delegations": [deleg_row(d) for d in overdue_delegations],
         "delegation_followups": [deleg_row(d) for d in delegation_followups],
         "unreviewed_deliverables": [deleg_row(d) for d in unreviewed_deliverables],
