@@ -186,17 +186,22 @@ Three things the run corrected in this document:
 | `/moments` — CRUD, timeline-by-any-end, `unfulfilled`, rail, images | live |
 | `POST /moments/sync` + wildpc job | every 5 minutes, 2-hour window |
 | **Prose surfaces** — Journal, Inbox, every record's Log, both composers | **on moments** |
+| **A moment's own Log** — a moment is a legal `subject`, so an occasion has notes | live; no exception by kind |
 | **Rules** — one cadence expression, freed from `protocol_id` | generalised `Routine` + `rule_links` |
 | **Recurrence** — wire ⇄ our cadence, proved against all 74 real rules | 58 translate · 16 materialised |
 | **Calendar** — reads and writes `/occurrences`; scoped edits; server-side expansion | **on moments + rules** |
+| **Projected slots** — `/calendar/slot/:ruleId?occ=`, materialise on write | live |
 | **iMIP** — invitations, RSVP, guests | **on moments + calendar records** |
 | The ICS importer and the Inbox's occasion triage | **on moments + calendar records** |
 
-**The sync job is why the mirrored kinds stay current.** Doses, readings,
-completions and imported occasions are still authored through their own surfaces
-into `routine_instances`, `metric_entries`, `tasks` and `events`; the tick mirrors
-them, so a record's Log shows them within five minutes of the act. It goes away
-one kind at a time as those surfaces move.
+**The sync job is why the mirrored kinds stay current.** Doses and readings are
+still authored through their own surfaces into `routine_instances`,
+`metric_entries` and `group_readings`; the tick mirrors them, so a record's Log
+shows them within five minutes of the act. It goes away one kind at a time as
+those surfaces move — and those two are what is left, which makes them the whole
+remaining cost of running two models at once. `notes` and `events` are no longer
+written by anything: the web app calls neither router, and they are retained for
+`wild-life-reverse-moments` rather than for the app.
 
 ### How the calendar works now
 
@@ -223,6 +228,16 @@ is always the *original* instant — the identity of the slot, not the new time.
 Scoped edits (`PATCH /occurrences`) follow from that and are most of a page
 rather than most of a file: `all` edits the rule, `following` splits it in two
 and re-points later exceptions, `this` writes one moment.
+
+**A slot with no row is still addressable**, and has to be: a projection has no
+id, so the grid once sent a click on a repeating meeting to the *series*, and one
+Thursday's notes were filed on the rule that generates every Thursday. The web
+app addresses it by the pair instead — `/calendar/slot/:ruleId?occ=` — and opening
+one still creates nothing, because a row per meeting glanced at would make every
+glance an exception immune to a later `all` edit. Writing is the case that earns a
+row: the first note materialises the slot via scope `this` (idempotent on the
+pair, so this is the same door the drag handlers use), roots itself at the moment
+that comes back, and hands over to the ordinary record.
 
 ### iMIP, and where privacy became structural
 

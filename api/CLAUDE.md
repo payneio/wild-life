@@ -19,7 +19,7 @@ uv run ruff format .        # Format
 
 ## Architecture
 
-Layered FastAPI + SQLAlchemy 2.0 (async) service, backed by the shared castle
+Layered FastAPI + SQLAlchemy 2.0 (async) service, backed by the shared Wild PC
 postgres. All tables live in an isolated Postgres schema **`wild_life`**.
 
 - `config.py` — pydantic-settings, env prefix `WILD_LIFE_`. Note the token
@@ -30,40 +30,58 @@ postgres. All tables live in an isolated Postgres schema **`wild_life`**.
 - `auth.py` — **pure-ASGI** `BearerAuthMiddleware` (not BaseHTTPMiddleware, which
   breaks async SQLAlchemy). Runs before routing; `/health` + docs are open;
   `OPTIONS` (CORS preflight) passes through.
-- `models/` — grouped modules for the life-management model: `core` (Area/Program/
-  Project), `tasks`, `people` (Person), `routines` (Routine/Instance),
-  `goals` (Goal + GoalProject link), `metrics` (Metric/Entry), `calendar` (Event),
-  `notes` (Note), `tracking` (Commitment/WaitingItem/Delegation), `reviews`,
-  `knowledge` (Resource/Decision). `mixins.py` gives uuid
-  PK + tz-aware created/updated. **All datetime columns use `DateTime(timezone=True)`**
-  — asyncpg rejects tz-aware values into naive columns. Statuses are Text columns
+- `models/moments.py` — **the spine.** A life is a series of moments; every other
+  object is their subject rather than their owner. Read `docs/moments.md` before
+  touching it: the kind vocabulary, the four link roles, and why tense is two
+  column pairs rather than a status enum.
+- `models/` — the standing things moments are about: `core` (Area/Program/Project),
+  `tasks`, `people`, `organizations`, `locations`, `routines` (a cadence *and* a
+  practice — see the caveat below), `outcomes`, `metrics` + `metric_groups`,
+  `health`/`protocols` (Medication/Protocol/Allergy/InsurancePlan), `tracking`,
+  `requests`, `reviews`, `knowledge` (Resource/Decision), `links`, `whiteboard`,
+  `preferences`, `history`, `auth`, `push`. `mixins.py` gives uuid PK + tz-aware
+  created/updated. **All datetime columns use `DateTime(timezone=True)`** —
+  asyncpg rejects tz-aware values into naive columns. Statuses are Text columns
   validated by `Literal`s in `schemas/common.py`. Cross-entity links to
-  area/program/project are typed FKs; `entity_type`/`entity_id` are *soft*
-  polymorphic links (no FK) used by notes/resources/decisions/delegations.
+  area/program/project are typed FKs; `moment_links` is the soft polymorphic
+  edge (`entity_type`/`entity_id`, no FK) because a moment may concern anything.
+- `models/calendar.py` (`Event`) and `models/notes.py` (`Note`) are **pre-inversion
+  tables kept for the reverse migration**, not the live model. Nothing in `web/`
+  reads them; `POST /moments/sync` (wildpc job, every 5 min) mirrors the surfaces
+  that still author their own rows — doses into `routine_instances`, readings into
+  `metric_entries` — onto the spine. Both go away as those surfaces move.
 - `schemas/` — Pydantic v2 Create/Update/Read per module (Read = `from_attributes`);
   shared enums + `Entity` base in `common.py`.
 - `routers/crud.py` — generic CRUD-router factory; most routers compose one per
-  resource. Custom logic: `tasks` (personal vs delegated `queue`, recurring-task
-  next-occurrence, completed_at), `routines` (`/routines/{id}/complete` logs an
-  instance), `goals` (project links + `/computed-progress`), `reviews`
-  (`GET /review-dashboard` — the neglect/drift/overdue/ownership detector),
-  `notes`/`people`/`metrics` (filters + nested).
+  resource. Custom logic: `moments` (timeline by any end, `unfiled`, density rail,
+  images, `/sync`), `occurrences` (**the one answer to "when does this happen"** —
+  plain moments, untranslatable wire rules expanded from their calendar record,
+  and our own rules projected but never stored; plus the scoped `this`/`following`/
+  `all` edit), `tasks` (personal vs delegated `queue`, completed_at), `routines`
+  (`/routines/{id}/complete`), `reviews` (`GET /review-dashboard` — the
+  neglect/drift/overdue detector), `calendar_mail` (iMIP: invitations, RSVP,
+  guests), `people`/`metrics` (filters + nested).
 - `main.py` — wires auth + CORS middleware and includes every router.
 
-Full product spec (entities, statuses, rules) provided by the user; the primary
-hierarchy is **Area → optional Program → Project → Task**, with supporting entities
-for goals, routines, metrics, delegation, commitments, waiting items, reviews, etc.
+The primary hierarchy is **Area → optional Program → Project → Task**; moments hang
+off all of it by link rather than by ownership.
+
+**A caveat worth knowing before you extend `Routine`:** it is currently two things
+under one name — the cadence that generates a calendar series (unnamed, pure
+infrastructure) and a practice you keep (a protocol step, a habit). Only the second
+is something a moment can meaningfully be *about*. `docs/moments.md` calls the
+first concept `rules`; the implementation reused `Routine` and added `kind`.
 
 ## Database & migrations (Alembic)
 
-Tables are in schema `wild_life` on the castle db (`localhost:5432/castle`).
+Tables are in schema `wild_life` on the Wild PC db (`localhost:5432/castle`).
 The app uses the **async** DSN (`postgresql+asyncpg://…`); Alembic uses the
 **sync** DSN (`+psycopg`, derived in `migrations/env.py`). `env.py` also creates
 the schema and filters autogenerate to `wild_life` only (`include_name`) so it
 never touches `public`.
 
 ```bash
-export WILD_LIFE_DATABASE_URL="postgresql+asyncpg://castle:$(castle secret get POSTGRES_PASSWORD)@localhost:5432/castle"
+export WILD_LIFE_DATABASE_URL="postgresql+asyncpg://castle:$(wildpc secret get POSTGRES_PASSWORD)@localhost:5432/castle"
 uv run alembic revision --autogenerate -m "describe change"   # after model edits
 uv run alembic upgrade head
 ```
@@ -71,14 +89,14 @@ uv run alembic upgrade head
 ## Configuration
 
 Environment variables (`WILD_LIFE_` prefix), supplied in production by the
-castle deployment's `defaults.env`:
+Wild PC deployment's `defaults.env`:
 - `WILD_LIFE_PORT` (default 9005), `WILD_LIFE_DATA_DIR`, `WILD_LIFE_HOST`
-- `WILD_LIFE_DATABASE_URL` — async DSN to castle postgres
+- `WILD_LIFE_DATABASE_URL` — async DSN to Wild PC postgres
 - `WILD_LIFE_TOKEN` — bearer token every request must present (`${secret:WILD_LIFE_TOKEN}`)
 - `WILD_LIFE_CORS_ORIGINS` — comma-separated allowed browser origins
 
 ## Deploy
 
-`castle apply wild-life-api` (systemd service, gateway route). Live at
+`wildpc apply wild-life-api` (systemd service, gateway route). Live at
 `https://wild-life-api.civil.payne.io`. Extend by adding a model + schema + router
-(compose `crud_router`), a migration, then `castle apply`.
+(compose `crud_router`), a migration, then `wildpc apply`.

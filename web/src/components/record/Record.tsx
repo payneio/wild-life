@@ -121,8 +121,13 @@ export function Record({
             same observation about the same thing, one of them a 380px window
             floating over the stream the entry was about to join. On a long
             record (an area with 66 metrics) the band is a long way down, so
-            what the button is really for is the distance. */}
-        {def.entityType && def.entityType !== "moment" && (
+            what the button is really for is the distance.
+
+            Moments are not excluded. They were, back when they had no band for
+            it to jump to; giving them one and leaving this behind is how a
+            record ends up with the place to write and no way to be taken there.
+            The two conditions have to be the same condition. */}
+        {def.entityType && (
           <Button variant="ghost" size="sm" onClick={writeInLog}>
             <NotebookPen size={14} /> Write
           </Button>

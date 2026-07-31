@@ -93,22 +93,29 @@ Iterate with the dev servers; they never touch the live URLs. Publish separately
   app-wide SSE stream (`web/src/services/api/live.ts` ↔ `api/.../routers/stream.py`)
   triggers a global React Query invalidation. Your own edits and external edits
   travel the same path — so a new page stays live just by using normal hooks.
-- **Every note is about something, and *you* are a valid something.** A note
-  carries `entity_type`/`entity_id` (its subject), `entry_date` (when), and
-  `note_mentions` (what else it touches). There is deliberately **no genre
-  column**: `note_type` used to exist and only ever restated the root — journal
-  meant "about me", meeting meant "about an event" — so it was dropped
-  (`e8f9a0b1c2d3`). Documents aren't stored in this app at all; they live on disk.
-  What follows from one universal root:
-  - **The Journal** (`/notes`) is the self Person's log — *my observations about
-    myself*, the same relation a note on anyone else has to them. It is
-    `NotesPage` pointed at `WILD_LIFE_SELF_PERSON_ID` via `JournalRoute`, so the
-    same component can front any object's log. Treat "no self person" as a normal
-    state, not an error.
-  - **The Inbox** (`/inbox`) is *unrooted*, full stop — a note you wrote without
-    saying what it was about. The predicate lives in two places, `InboxPage.tsx`
-    and `unrooted_notes_count` in `routers/reviews.py`, and nothing binds them but
-    `api/tests/test_notes.py`; keep them in lockstep.
+- **Every note is about something, and *you* are a valid something.** Writing is
+  a **moment** like everything else: prose in `body`, placed by `started_at` (or
+  a window), and joined to what it concerns by `moment_links` — role `subject`
+  for what it is about, `mention` for what it merely names. There is deliberately
+  **no genre column**: `note_type` used to exist and only ever restated the root
+  — journal meant "about me", meeting meant "about an event" — so it was dropped
+  (`e8f9a0b1c2d3`). What survived that argument is the *root*, not the label: a
+  note about a meeting is an `observation` whose subject is the occasion, which
+  is why `moment` is itself a legal `entity_type`. Documents aren't stored in
+  this app at all; they live on disk. What follows from one universal root:
+  - **The Journal** (`/notes`) is writing turned inward — `kind: reflection`,
+    which is what "about me" became when the act stopped being inferred from the
+    root. `JournalRoute` is one line of `<Log>` scoped by kind rather than by
+    subject, so it needs no self Person to exist; `WILD_LIFE_SELF_PERSON_ID`
+    survives only in the backfill, which used self-rootedness to decide which
+    imported notes were reflections. Treat "no self person" as a normal state,
+    not an error.
+  - **The Inbox** (`/inbox`) is *unfiled*, full stop — a note you wrote without
+    saying what it was about. The predicate is **one** server-side filter,
+    `GET /moments?unfiled=true`; it used to be stated twice, in `InboxPage.tsx`
+    and in a `unrooted_notes_count` on the review dashboard, with nothing but a
+    test holding them level. Keep it that way: a predicate this load-bearing
+    belongs in the query, not in each surface that asks it.
   - **The Whiteboard** (`/whiteboard`) is one buffer, not a collection of notes —
     its own single-row table, `__audit__ = False`, absent from `EntityType`, the
     registry and `change_log`. A scratch space has no subject, no date and no

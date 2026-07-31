@@ -77,6 +77,15 @@ could be forgotten: eleven objects had one, nine did not, and those nine grew a 
 column that filled up with dated events instead. Being unforgettable is what makes
 "where do I write this?" answerable by navigation alone.
 
+**Every object that can be a moment's subject gets one, and that includes `moment`.**
+There is no exception, which took a second attempt: `moment` was excluded on the
+grounds that a moment about a moment is a mention. True of a reflection that merely
+references Thursday's meeting; false of the notes taken *during* it, where the meeting
+is the subject — and that is the line `subject` and `mention` already draw for the other
+twenty-four types. So the exclusion answered with a type check a question the roles had
+answered, and its cost was that an occasion, the thing one most often takes notes about,
+was the only object with nowhere to write.
+
 `def.detail` is **required** — there is no generic field-grid renderer left to fall
 back to, so nothing can half-own a surface. The old partial-override shape (`extra` +
 `detailHide`) forced two renderers to agree out-of-band about who drew what, which is
@@ -95,9 +104,10 @@ converted object's real detail against a complete fixture in `test/fixtures.ts` 
 fails on any unrendered, unexcused key. Deliberate omissions go in `omit` with a
 reason. Converting an object enrols it automatically; add its fixture at the same time.
 
-All 23 registered objects are converted, and `EditableRecord`, `DetailSurface`,
-`EntityForm`, `extra` and `detailHide` are all deleted. No component renders a
-field by switching on a type tag any more.
+Every registered object is converted — the count is `Object.values(REGISTRY).filter(d => d.detail)`
+and `coverage.test.tsx` asserts it rather than this sentence, which is why no number is
+written here. `EditableRecord`, `DetailSurface`, `EntityForm`, `extra` and `detailHide`
+are all deleted. No component renders a field by switching on a type tag any more.
 
 ## 2b. Creation is capture
 
@@ -136,6 +146,7 @@ A record opens **full-page**, always: a standalone `/<obj>/:id` sibling route re
 |---|---|---|
 | **Full-page** | detail route **standalone** (a sibling route) | `RecordPage` |
 | **Modal** (over a canvas) | detail route **nested under a canvas layout** | `CalendarEventRoute` |
+| **Modal, for a thing with no row** | a *projected* occurrence, addressed by `(rule, occurrence_at)` | `CalendarSlotRoute` |
 
 There used to be a third — a pane beside the list, chosen per entity by intent
 ("Directory" vs "Workbench"). It's gone, and the reason is §2's Log band: every record
@@ -200,11 +211,12 @@ framing/representation change, not a new object.
 |---|---|
 | Object model | `src/services/api/registry.ts` |
 | Detail + editor (modeless) | `src/entities/<obj>/Detail.tsx` · `src/components/record/` |
-| Framings | `RecordPage.tsx` (full-page) · `CalendarEventRoute.tsx` (modal, canvas only) |
+| Framings | `RecordPage.tsx` (full-page) · `CalendarEventRoute.tsx` / `CalendarSlotRoute.tsx` (modal, canvas only) |
 | List launcher | `src/components/SimpleEntityPage.tsx` |
 | The Log band | `src/components/Log.tsx`, rendered by `record/Record.tsx` |
 | Reference / collection cells | `src/components/cells.tsx` |
 | Selector | `src/components/graph/EntityRefField.tsx` |
-| Field controls (create form) | `src/components/EntityForm.tsx` |
+| Field primitives | `src/components/record/fields.tsx` (called, never dispatched to) |
+| Capture | `src/components/QuickCreate.tsx` · `src/components/MomentComposer.tsx` |
 | List filter/sort rig | `src/lib/listFilter.ts`, `src/components/ListToolbar.tsx` |
 | Routing (where framings are wired) | `src/router/routes.tsx` |
