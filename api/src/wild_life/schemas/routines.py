@@ -15,7 +15,9 @@ from wild_life.schemas.health import Weekday
 
 
 class RoutineCreate(BaseModel):
-    name: str | None = None  # the label; null for a dose, which is named by its medication
+    name: str | None = (
+        None  # the label; null for a dose, which is named by its medication
+    )
     medication_id: uuid.UUID | None = None
     # A container a rule may belong to, not what makes it a rule. Optional since
     # the generalisation: a weekly habit used to have to invent a protocol.

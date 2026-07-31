@@ -232,6 +232,7 @@ export const PROJECT_FIELDS: FieldSpec[] = [
   { name: "start_date", label: "Start", type: "date" },
   { name: "target_date", label: "Target", type: "date" },
   { name: "last_activity_date", label: "Last activity", type: "date" },
+  { name: "review_frequency", label: "Review frequency", placeholder: "inherits" },
   { name: "accountable_owner_id", label: "Accountable", type: "entity", lookup: "people" },
   { name: "responsible_lead_id", label: "Lead", type: "entity", lookup: "people" },
 ]

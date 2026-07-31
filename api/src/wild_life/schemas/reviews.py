@@ -73,7 +73,14 @@ class ReviewDashboard(BaseModel):
     projects_missing_next_action: list[DashRow]
     unclear_ownership: list[DashRow]
     inactive_programs: list[DashRow]
-    neglected_areas: list[DashRow]
+    # Attention failure, at every altitude. Not "areas with no work in them" —
+    # that was inactivity, and it could not see the case that matters: a scope
+    # busy with work nobody has looked at. `days_overdue` is against the
+    # effective cadence, which inherits from the nearest ancestor declaring one.
+    unexamined_scopes: list[DashRow]
+    # Claims nothing can ever evaluate: no metric, and no cadence anywhere above
+    # them to be judged at.
+    inert_objectives: list[DashRow]
     overdue_delegations: list[DashRow]
     delegation_followups: list[DashRow]
     unreviewed_deliverables: list[DashRow]

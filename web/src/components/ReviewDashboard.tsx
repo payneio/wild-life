@@ -21,7 +21,11 @@ const CATS: Cat[] = [
   { key: "projects_missing_next_action", title: "Missing next action", type: "project", label: (r) => String(r.name ?? "") },
   { key: "unclear_ownership", title: "Unclear ownership", type: "project", label: (r) => String(r.name ?? "") },
   { key: "inactive_programs", title: "Inactive programs", type: "program", label: (r) => String(r.name ?? "") },
-  { key: "neglected_areas", title: "Neglected areas", type: "area", label: (r) => String(r.name ?? "") },
+  // Attention failure at every altitude, replacing "areas with no work in them".
+  // The row already knows which rung it is, so one section covers all three and
+  // the reader sees them ranked by how late rather than split by type.
+  { key: "unexamined_scopes", title: "Unexamined", type: "area", label: (r) => String(r.name ?? ""), sub: (r) => `${r.type} · ${r.days_overdue}d overdue` },
+  { key: "inert_objectives", title: "Objectives nothing can evaluate", type: "area", label: (r) => String(r.name ?? ""), sub: (r) => `on ${r.type} · no metric, no review cadence` },
   { key: "overdue_delegations", title: "Overdue delegations", type: "delegation", label: (r) => String(r.requested_outcome ?? "") },
   { key: "delegation_followups", title: "Delegation follow-ups", type: "delegation", label: (r) => String(r.requested_outcome ?? "") },
   { key: "unreviewed_deliverables", title: "Deliverables to review", type: "delegation", label: (r) => String(r.requested_outcome ?? "") },

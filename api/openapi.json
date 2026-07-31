@@ -9579,6 +9579,17 @@
             ],
             "title": "Responsible Lead Id"
           },
+          "review_frequency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Frequency"
+          },
           "start_date": {
             "anyOf": [
               {
@@ -9714,6 +9725,17 @@
             ],
             "title": "Responsible Lead Id"
           },
+          "review_frequency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Frequency"
+          },
           "start_date": {
             "anyOf": [
               {
@@ -9771,7 +9793,8 @@
           "accountable_owner_id",
           "responsible_lead_id",
           "next_action",
-          "last_activity_date"
+          "last_activity_date",
+          "review_frequency"
         ],
         "title": "ProjectRead",
         "type": "object"
@@ -9875,6 +9898,17 @@
               }
             ],
             "title": "Responsible Lead Id"
+          },
+          "review_frequency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Frequency"
           },
           "start_date": {
             "anyOf": [
@@ -11667,6 +11701,13 @@
             "title": "Inactive Programs",
             "type": "array"
           },
+          "inert_objectives": {
+            "items": {
+              "$ref": "#/components/schemas/DashRow"
+            },
+            "title": "Inert Objectives",
+            "type": "array"
+          },
           "low_adherence": {
             "items": {
               "$ref": "#/components/schemas/DashRow"
@@ -11686,13 +11727,6 @@
               "$ref": "#/components/schemas/DashRow"
             },
             "title": "My Inbox",
-            "type": "array"
-          },
-          "neglected_areas": {
-            "items": {
-              "$ref": "#/components/schemas/DashRow"
-            },
-            "title": "Neglected Areas",
             "type": "array"
           },
           "open_requests": {
@@ -11751,6 +11785,13 @@
             "title": "Unclear Ownership",
             "type": "array"
           },
+          "unexamined_scopes": {
+            "items": {
+              "$ref": "#/components/schemas/DashRow"
+            },
+            "title": "Unexamined Scopes",
+            "type": "array"
+          },
           "unresolved_captures_count": {
             "title": "Unresolved Captures Count",
             "type": "integer"
@@ -11784,7 +11825,8 @@
           "projects_missing_next_action",
           "unclear_ownership",
           "inactive_programs",
-          "neglected_areas",
+          "unexamined_scopes",
+          "inert_objectives",
           "overdue_delegations",
           "delegation_followups",
           "unreviewed_deliverables",

@@ -109,6 +109,7 @@ class ProjectCreate(BaseModel):
     responsible_lead_id: uuid.UUID | None = None
     next_action: str | None = None
     last_activity_date: date | None = None
+    review_frequency: str | None = None
 
 
 class ProjectUpdate(BaseModel):
@@ -126,6 +127,7 @@ class ProjectUpdate(BaseModel):
     responsible_lead_id: uuid.UUID | None = None
     next_action: str | None = None
     last_activity_date: date | None = None
+    review_frequency: str | None = None
 
 
 class ProjectRead(Entity):
@@ -140,3 +142,4 @@ class ProjectRead(Entity):
     responsible_lead_id: uuid.UUID | None
     next_action: str | None
     last_activity_date: date | None
+    review_frequency: str | None

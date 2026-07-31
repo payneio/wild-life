@@ -8,9 +8,10 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wild_life import regimen
+from wild_life.attention import Attention, scope_ref
 from wild_life.db.session import get_session
 from wild_life.identity import Identity, current_identity
-from wild_life.models.core import Area, Program, Project
+from wild_life.models.core import Program, Project
 from wild_life.models.outcomes import Outcome
 from wild_life.models.moments import CalendarRecord, Moment, MomentLink
 from wild_life.models.health import Medication
@@ -186,39 +187,40 @@ async def review_dashboard(
         if p.id not in active_project_program_ids
     ]
 
-    # Areas with no active projects and no open tasks.
-    areas = await _rows(session, select(Area).where(Area.status == "active"))
-    # A project's area is its program's; it no longer keeps a copy of its own.
-    areas_with_projects = {
-        aid
-        for (aid,) in (
-            await session.execute(
-                select(Program.area_id)
-                .join(Project, Project.program_id == Program.id)
-                .where(Project.status == "active", Program.area_id.isnot(None))
-            )
-        ).all()
-    }
-    # A task hangs off exactly one rung of the hierarchy, so finding its area
-    # means following whichever rung it uses. Reading `Task.area_id` alone would
-    # now see only the unfiled ones and report every worked area as neglected.
-    open_tasks = Task.status.notin_(_TASK_OPEN)
-    areas_with_tasks: set[Any] = set()
-    for stmt in (
-        select(Task.area_id).where(open_tasks, Task.area_id.isnot(None)),
-        select(Program.area_id)
-        .join(Task, Task.program_id == Program.id)
-        .where(open_tasks, Program.area_id.isnot(None)),
-        select(Program.area_id)
-        .join(Project, Project.program_id == Program.id)
-        .join(Task, Task.project_id == Project.id)
-        .where(open_tasks, Program.area_id.isnot(None)),
-    ):
-        areas_with_tasks |= {aid for (aid,) in (await session.execute(stmt)).all()}
-    neglected_areas = [
-        {"id": str(a.id), "name": a.name, "review_frequency": a.review_frequency}
-        for a in areas
-        if a.id not in areas_with_projects and a.id not in areas_with_tasks
+    # Attention failure, not inactivity. This block used to list areas with no
+    # open projects or tasks — which is a report about *work*, and the case it
+    # could never surface is the one that matters: an area busy with work you
+    # have not looked at in three months. A1 says a scope unexamined past its
+    # cadence has failed, at every altitude, so all three rungs are asked the
+    # same question and the answer says how many days late.
+    att = await Attention.load(session)
+    unexamined_scopes = [
+        {
+            "id": str(obj.id),
+            "name": obj.name,
+            "type": kind,
+            "review_frequency": att.cadence(scope_ref(kind, obj.id)),
+            "days_overdue": late,
+        }
+        for kind, rows in (
+            ("area", att.areas),
+            ("program", att.programs),
+            ("project", att.projects),
+        )
+        for obj in rows
+        if (late := att.overdue_by(scope_ref(kind, obj.id), today)) is not None
+    ]
+    unexamined_scopes.sort(key=lambda r: -r["days_overdue"])
+
+    # A11: a claim with neither a metric nor a review cadence on its scope is
+    # inert — nothing in the system can ever change its truth value. Permitted,
+    # because a claim you cannot yet measure is still worth capturing, but
+    # reported rather than carried silently among claims that mean something.
+    inert_objectives = [
+        {"id": str(o.id), "name": o.statement, "type": o.entity_type}
+        for o in (await session.execute(select(Outcome))).scalars().all()
+        if o.metric_id is None
+        and att.cadence(scope_ref(o.entity_type, o.entity_id)) is None
     ]
 
     # Delegation oversight.
@@ -502,7 +504,8 @@ async def review_dashboard(
         "projects_missing_next_action": [project_row(p) for p in missing_next_action],
         "unclear_ownership": [project_row(p) for p in unclear_ownership],
         "inactive_programs": inactive_programs,
-        "neglected_areas": neglected_areas,
+        "unexamined_scopes": unexamined_scopes,
+        "inert_objectives": inert_objectives,
         "overdue_delegations": [deleg_row(d) for d in overdue_delegations],
         "delegation_followups": [deleg_row(d) for d in delegation_followups],
         "unreviewed_deliverables": [deleg_row(d) for d in unreviewed_deliverables],

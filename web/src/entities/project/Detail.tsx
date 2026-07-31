@@ -41,6 +41,10 @@ export function ProjectDetail({ entity, onClose }: { entity: Entity; onClose: ()
         <F.Date field="start_date" label="Start" />
         <F.Date field="target_date" label="Target" />
         <F.Date field="last_activity_date" label="Last activity" />
+        {/* How often this expects to be *examined* — a different question from
+            whether work happened inside it. Usually left blank: the cadence
+            inherits from the program above unless this one needs its own. */}
+        <F.Text field="review_frequency" label="Review frequency" placeholder="inherits" />
       </RecordSection>
 
       <RecordSection title="Context & ownership">

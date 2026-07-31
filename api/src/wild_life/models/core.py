@@ -98,6 +98,11 @@ class Project(UUIDPrimaryKey, TimestampMixin, Base):
     responsible_lead_id: Mapped[uuid.UUID | None] = _person_fk()
     next_action: Mapped[str | None] = mapped_column(Text)
     last_activity_date: Mapped[date | None] = mapped_column(Date)
+    # How often this project expects to be *examined*. Distinct from
+    # `last_activity_date`, which says whether work happened inside it — a
+    # project can be busy and unattended, and that is the neglect worth
+    # reporting. Usually null: cadence inherits from the program above (A10).
+    review_frequency: Mapped[str | None] = mapped_column(Text)
 
 
 class ProjectContributor(Base):

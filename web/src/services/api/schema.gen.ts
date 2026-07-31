@@ -4946,6 +4946,8 @@ export interface components {
             purpose?: string | null;
             /** Responsible Lead Id */
             responsible_lead_id?: string | null;
+            /** Review Frequency */
+            review_frequency?: string | null;
             /** Start Date */
             start_date?: CalendarDay | null;
             /**
@@ -4991,6 +4993,8 @@ export interface components {
             purpose: string | null;
             /** Responsible Lead Id */
             responsible_lead_id: string | null;
+            /** Review Frequency */
+            review_frequency: string | null;
             /** Start Date */
             start_date: CalendarDay | null;
             /**
@@ -5024,6 +5028,8 @@ export interface components {
             purpose?: string | null;
             /** Responsible Lead Id */
             responsible_lead_id?: string | null;
+            /** Review Frequency */
+            review_frequency?: string | null;
             /** Start Date */
             start_date?: CalendarDay | null;
             /** Status */
@@ -5461,14 +5467,14 @@ export interface components {
             generated_for: CalendarDay;
             /** Inactive Programs */
             inactive_programs: components["schemas"]["DashRow"][];
+            /** Inert Objectives */
+            inert_objectives: components["schemas"]["DashRow"][];
             /** Low Adherence */
             low_adherence: components["schemas"]["DashRow"][];
             /** Metrics Overdue */
             metrics_overdue: components["schemas"]["DashRow"][];
             /** My Inbox */
             my_inbox: components["schemas"]["DashRow"][];
-            /** Neglected Areas */
-            neglected_areas: components["schemas"]["DashRow"][];
             /** Open Requests */
             open_requests: components["schemas"]["DashRow"][];
             /** Outcomes Overdue */
@@ -5485,6 +5491,8 @@ export interface components {
             stale_projects: components["schemas"]["DashRow"][];
             /** Unclear Ownership */
             unclear_ownership: components["schemas"]["DashRow"][];
+            /** Unexamined Scopes */
+            unexamined_scopes: components["schemas"]["DashRow"][];
             /** Unresolved Captures Count */
             unresolved_captures_count: number;
             /** Unreviewed Deliverables */

@@ -291,6 +291,7 @@ export const PROJECT: Project = {
   responsible_lead_id: null,
   next_action: "Confirm the cabinet order",
   last_activity_date: "2026-07-20" as CalendarDay,
+  review_frequency: null,
 }
 
 export const OUTCOME: Outcome = {
