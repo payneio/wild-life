@@ -77,6 +77,12 @@ OutcomeStatus = Literal["active", "achieved", "paused", "dropped"]
 # me", deliverable meant "about a project". A project's completion is its tasks
 # and its status; tasks are what define when things get done.
 OutcomeKind = Literal["standard", "target"]
+# Why a commitment stopped being live (A5). `revised` is deliberately absent: a
+# revised commitment continues, so recording a revision as an ending would close
+# something still owed. `lapsed` is absent because it is derived — a window that
+# passed with no act and no decision is a silence, and telling that apart from a
+# decision is the reason the other three are written down.
+EndingCause = Literal["discharged", "abandoned", "voided"]
 CommitmentStatus = Literal[
     "open", "in_progress", "waiting", "fulfilled", "broken", "cancelled"
 ]

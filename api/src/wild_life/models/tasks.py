@@ -87,6 +87,11 @@ class Task(UUIDPrimaryKey, TimestampMixin, Base):
         Boolean, server_default="false", nullable=False
     )
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Why this commitment ended: `discharged`, `abandoned` or `voided`. Not
+    # `revised` — a revised commitment continues, and closing it would be a
+    # lie. Not `lapsed` either, which is derived from silence. A5.
+    ending_cause: Mapped[str | None] = mapped_column(Text)
+    ending_note: Mapped[str | None] = mapped_column(Text)
     # Cooperative claim so exactly one worker/agent works a task at a time.
     # A lock, not an assignment: infrastructure rather than an ask.
     claimed_by_id: Mapped[uuid.UUID | None] = mapped_column(

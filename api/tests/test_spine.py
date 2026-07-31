@@ -364,3 +364,84 @@ class TestAnIntentionMeetsAMoment:
             assert self._edges(task["id"]) == 1
         finally:
             client.delete(f"/tasks/{task['id']}", headers=h)
+
+
+class TestAnEndingHasACause:
+    """A5. `completed` and `cancelled` said *that* it ended, never why."""
+
+    def _cause(self, client: TestClient, h: dict, task_id: str) -> str | None:
+        return client.get(f"/tasks/{task_id}", headers=h).json()["ending_cause"]
+
+    def test_completing_discharges(
+        self, client: TestClient, auth_headers: dict, require_db: None
+    ) -> None:
+        h = auth_headers
+        t = _post(client, h, "/tasks", title=f"{MARK} cause discharged")
+        try:
+            assert self._cause(client, h, t["id"]) is None
+            _patch(client, h, f"/tasks/{t['id']}", status="completed")
+            assert self._cause(client, h, t["id"]) == "discharged"
+        finally:
+            client.delete(f"/tasks/{t['id']}", headers=h)
+
+    def test_cancelling_defaults_to_abandoned_and_can_be_corrected(
+        self, client: TestClient, auth_headers: dict, require_db: None
+    ) -> None:
+        """Abandoned and voided look identical in a status, and A6 attaches
+        valence to the difference — so cancelling records the commoner one as a
+        default the caller may correct, rather than guessing or leaving it
+        uncaused."""
+        h = auth_headers
+        t = _post(client, h, "/tasks", title=f"{MARK} cause abandoned")
+        try:
+            _patch(client, h, f"/tasks/{t['id']}", status="cancelled")
+            assert self._cause(client, h, t["id"]) == "abandoned"
+            _patch(client, h, f"/tasks/{t['id']}", ending_cause="voided")
+            assert self._cause(client, h, t["id"]) == "voided"
+        finally:
+            client.delete(f"/tasks/{t['id']}", headers=h)
+
+    def test_reopening_clears_the_cause(
+        self, client: TestClient, auth_headers: dict, require_db: None
+    ) -> None:
+        """An intention that is open again ended for no reason, because it has
+        not ended."""
+        h = auth_headers
+        t = _post(client, h, "/tasks", title=f"{MARK} cause cleared")
+        try:
+            _patch(client, h, f"/tasks/{t['id']}", status="completed")
+            _patch(client, h, f"/tasks/{t['id']}", status="in_progress")
+            assert self._cause(client, h, t["id"]) is None
+        finally:
+            client.delete(f"/tasks/{t['id']}", headers=h)
+
+
+class TestAssignmentIsItsOwnLifecycle:
+    """A7. A decline ends the assignment, not the commitment."""
+
+    def test_declining_returns_responsibility_and_keeps_the_task(
+        self, client: TestClient, auth_headers: dict, require_db: None
+    ) -> None:
+        h = auth_headers
+        person = _post(client, h, "/people", name=f"{MARK} delegate")
+        t = _post(client, h, "/tasks", title=f"{MARK} delegated work")
+        try:
+            r = client.post(
+                f"/tasks/{t['id']}/assignment",
+                headers=h,
+                json={"event": "offered", "person_id": person["id"]},
+            )
+            assert r.status_code == 200, r.text
+            assert r.json()["responsible_id"] == person["id"]
+
+            r = client.post(
+                f"/tasks/{t['id']}/assignment", headers=h, json={"event": "declined"}
+            )
+            assert r.status_code == 200, r.text
+            body = r.json()
+            assert body["responsible_id"] is None, "responsibility returns"
+            assert body["status"] != "cancelled", "the commitment survives"
+            assert body["ending_cause"] is None, "a decline is not an ending"
+        finally:
+            client.delete(f"/tasks/{t['id']}", headers=h)
+            client.delete(f"/people/{person['id']}", headers=h)

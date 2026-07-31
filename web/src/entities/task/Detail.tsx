@@ -131,6 +131,15 @@ export function TaskDetail({ entity, onClose }: { entity: Entity; onClose: () =>
         <F.Ref field="blocked_by_task_id" label="Blocked by" lookup="task" />
       </RecordSection>
 
+      {/* Why this ended, when it has. `discharged` is written by completing;
+          `abandoned` and `voided` look identical in a status and are the
+          distinction valence attaches to — dropping something you should never
+          have committed to is good judgement, letting it rot is not. */}
+      <RecordSection title="Ending">
+        <F.Text field="ending_cause" label="Cause" placeholder="open" />
+        <F.Textarea field="ending_note" label="Why" />
+      </RecordSection>
+
       <RecordSection title="Ownership">
         <F.Ref field="assignee_id" label="Assignee" lookup="people" />
         <F.Ref field="responsible_id" label="Responsible" lookup="people" />

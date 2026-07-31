@@ -11,12 +11,14 @@ from wild_life.db.session import get_session
 from wild_life.derivations import series_for
 from wild_life.models.links import EntityLink
 from wild_life.models.metrics import Metric, MetricEntry
-from wild_life.models.outcomes import Outcome
+from wild_life.models.outcomes import Outcome, OutcomeEvaluation
 from wild_life.routers.crud import crud_router
 from wild_life.spine import record_finish
 from wild_life.schemas.outcomes import (
     Evaluation,
     OutcomeCreate,
+    OutcomeEvaluationCreate,
+    OutcomeEvaluationRead,
     OutcomeRead,
     OutcomeUpdate,
 )
@@ -213,3 +215,61 @@ async def evaluate_outcome(
 
 
 router.include_router(extra)
+
+
+evaluations = APIRouter(prefix="/outcomes", tags=["outcomes"])
+
+
+@evaluations.post(
+    "/{outcome_id}/evaluations",
+    response_model=OutcomeEvaluationRead,
+    status_code=status.HTTP_201_CREATED,
+    operation_id="outcomes_evaluate",
+)
+async def evaluate(
+    outcome_id: UUID,
+    payload: OutcomeEvaluationCreate,
+    session: AsyncSession = Depends(get_session),
+) -> OutcomeEvaluation:
+    """Record whether a claim held, at a moment (A3).
+
+    The judgement is yours; the system only asks and remembers. A *target* is
+    discharged once and `satisfied_at` says so; a *standard* can become false
+    again, so it accumulates these instead of ever being completed.
+
+    `holds` may be null — "looked, could not tell" is a different answer from
+    "no", and it is the one that most wants following up.
+    """
+    outcome = await session.get(Outcome, outcome_id)
+    if outcome is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not found")
+    row = OutcomeEvaluation(
+        outcome_id=outcome_id,
+        evaluated_at=payload.evaluated_at or datetime.now(timezone.utc),
+        holds=payload.holds,
+        note=payload.note,
+    )
+    session.add(row)
+    await session.flush()
+    await session.refresh(row)
+    return row
+
+
+@evaluations.get(
+    "/{outcome_id}/evaluations",
+    response_model=list[OutcomeEvaluationRead],
+    operation_id="outcomes_evaluations",
+)
+async def list_evaluations(
+    outcome_id: UUID, session: AsyncSession = Depends(get_session)
+) -> list[OutcomeEvaluation]:
+    """The truth history, newest first."""
+    rows = await session.execute(
+        select(OutcomeEvaluation)
+        .where(OutcomeEvaluation.outcome_id == outcome_id)
+        .order_by(OutcomeEvaluation.evaluated_at.desc())
+    )
+    return list(rows.scalars().all())
+
+
+router.include_router(evaluations)

@@ -5,7 +5,7 @@ from datetime import date, datetime
 
 from pydantic import BaseModel
 
-from wild_life.schemas.common import Entity, EntityType, OutcomeKind, OutcomeStatus
+from wild_life.schemas.common import EndingCause, Entity, EntityType, OutcomeKind, OutcomeStatus
 
 
 class OutcomeCreate(BaseModel):
@@ -21,6 +21,8 @@ class OutcomeCreate(BaseModel):
     baseline: float | None = None
     by_when: date | None = None
     satisfied_at: datetime | None = None
+    ending_cause: EndingCause | None = None
+    ending_note: str | None = None
 
 
 class OutcomeUpdate(BaseModel):
@@ -36,6 +38,8 @@ class OutcomeUpdate(BaseModel):
     baseline: float | None = None
     by_when: date | None = None
     satisfied_at: datetime | None = None
+    ending_cause: EndingCause | None = None
+    ending_note: str | None = None
 
 
 class OutcomeRead(Entity):
@@ -51,6 +55,8 @@ class OutcomeRead(Entity):
     baseline: float | None
     by_when: date | None
     satisfied_at: datetime | None
+    ending_cause: EndingCause | None
+    ending_note: str | None
 
 
 class Evaluation(BaseModel):
@@ -79,3 +85,23 @@ class Evaluation(BaseModel):
     pace_actual: float | None
     # How much work claims to be moving this.
     advanced_by: int
+
+
+class OutcomeEvaluationCreate(BaseModel):
+    """One judgement of whether a claim held.
+
+    `evaluated_at` defaults to now; supplying it is for recording a judgement
+    made at a review you are writing up afterwards.
+    """
+
+    evaluated_at: datetime | None = None
+    #: Null means "looked, could not tell" — kept apart from "no" on purpose.
+    holds: bool | None = None
+    note: str | None = None
+
+
+class OutcomeEvaluationRead(Entity):
+    outcome_id: uuid.UUID
+    evaluated_at: datetime
+    holds: bool | None
+    note: str | None

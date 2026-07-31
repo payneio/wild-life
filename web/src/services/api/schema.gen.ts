@@ -1459,6 +1459,37 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/outcomes/{outcome_id}/evaluations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Evaluations
+         * @description The truth history, newest first.
+         */
+        get: operations["outcomes_evaluations"];
+        put?: never;
+        /**
+         * Evaluate
+         * @description Record whether a claim held, at a moment (A3).
+         *
+         *     The judgement is yours; the system only asks and remembers. A *target* is
+         *     discharged once and `satisfied_at` says so; a *standard* can become false
+         *     again, so it accumulates these instead of ever being completed.
+         *
+         *     `holds` may be null — "looked, could not tell" is a different answer from
+         *     "no", and it is the one that most wants following up.
+         */
+        post: operations["outcomes_evaluate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/people": {
         parameters: {
             query?: never;
@@ -2251,6 +2282,37 @@ export interface paths {
         patch: operations["tasks_update"];
         trace?: never;
     };
+    "/tasks/{item_id}/assignment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record Assignment
+         * @description Offer, accept, decline or withdraw responsibility for a commitment.
+         *
+         *     **Delegation moves Responsible and never Accountable.** That is the whole of
+         *     A7, and it is why this is not a status: a decline ends the *assignment* and
+         *     returns responsibility to whoever is accountable — it does not end the
+         *     commitment. Sharing one state machine with the task would make "they said
+         *     no" read as "it is over", which is the case the axiom exists to prevent.
+         *
+         *     The event itself is written as a moment about the task, the same way an
+         *     appraisal is (A6). Assignment has a history for the same reason intention
+         *     does: an audit of how work actually moved needs to see the offer that was
+         *     declined, not only where it came to rest.
+         */
+        post: operations["tasks_assignment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tasks/{item_id}/claim": {
         parameters: {
             query?: never;
@@ -2646,6 +2708,24 @@ export interface components {
             review_frequency?: string | null;
             /** Status */
             status?: ("active" | "inactive" | "archived") | null;
+        };
+        /**
+         * AssignmentEvent
+         * @description A change in who is *responsible*, never in who is accountable.
+         *
+         *     `offered`/`accepted` put responsibility on someone; `declined`/`withdrawn`
+         *     return it. The commitment is untouched either way — A7.
+         */
+        AssignmentEvent: {
+            /**
+             * Event
+             * @enum {string}
+             */
+            event: "offered" | "accepted" | "declined" | "withdrawn";
+            /** Note */
+            note?: string | null;
+            /** Person Id */
+            person_id?: string | null;
         };
         /** Body_upload_moment_image_moments__item_id__images_post */
         Body_upload_moment_image_moments__item_id__images_post: {
@@ -4496,6 +4576,10 @@ export interface components {
             by_when?: CalendarDay | null;
             /** Description */
             description?: string | null;
+            /** Ending Cause */
+            ending_cause?: ("discharged" | "abandoned" | "voided") | null;
+            /** Ending Note */
+            ending_note?: string | null;
             /**
              * Entity Id
              * Format: uuid
@@ -4528,6 +4612,53 @@ export interface components {
             /** Target Min */
             target_min?: number | null;
         };
+        /**
+         * OutcomeEvaluationCreate
+         * @description One judgement of whether a claim held.
+         *
+         *     `evaluated_at` defaults to now; supplying it is for recording a judgement
+         *     made at a review you are writing up afterwards.
+         */
+        OutcomeEvaluationCreate: {
+            /** Evaluated At */
+            evaluated_at?: Instant | null;
+            /** Holds */
+            holds?: boolean | null;
+            /** Note */
+            note?: string | null;
+        };
+        /** OutcomeEvaluationRead */
+        OutcomeEvaluationRead: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: Instant;
+            /**
+             * Evaluated At
+             * Format: date-time
+             */
+            evaluated_at: Instant;
+            /** Holds */
+            holds: boolean | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Note */
+            note: string | null;
+            /**
+             * Outcome Id
+             * Format: uuid
+             */
+            outcome_id: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: Instant;
+        };
         /** OutcomeRead */
         OutcomeRead: {
             /** Baseline */
@@ -4541,6 +4672,10 @@ export interface components {
             created_at: Instant;
             /** Description */
             description: string | null;
+            /** Ending Cause */
+            ending_cause: ("discharged" | "abandoned" | "voided") | null;
+            /** Ending Note */
+            ending_note: string | null;
             /**
              * Entity Id
              * Format: uuid
@@ -4590,6 +4725,10 @@ export interface components {
             by_when?: CalendarDay | null;
             /** Description */
             description?: string | null;
+            /** Ending Cause */
+            ending_cause?: ("discharged" | "abandoned" | "voided") | null;
+            /** Ending Note */
+            ending_note?: string | null;
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
@@ -5936,8 +6075,14 @@ export interface components {
             description?: string | null;
             /** Due Date */
             due_date?: CalendarDay | null;
+            /** Ending Cause */
+            ending_cause?: ("discharged" | "abandoned" | "voided") | null;
+            /** Ending Note */
+            ending_note?: string | null;
             /** Estimated Minutes */
             estimated_minutes?: number | null;
+            /** Generated By Moment Id */
+            generated_by_moment_id?: string | null;
             /** Position */
             position?: number | null;
             /**
@@ -6018,6 +6163,10 @@ export interface components {
             description: string | null;
             /** Due Date */
             due_date: CalendarDay | null;
+            /** Ending Cause */
+            ending_cause: ("discharged" | "abandoned" | "voided") | null;
+            /** Ending Note */
+            ending_note: string | null;
             /** Estimated Minutes */
             estimated_minutes: number | null;
             /**
@@ -6075,6 +6224,10 @@ export interface components {
             description?: string | null;
             /** Due Date */
             due_date?: CalendarDay | null;
+            /** Ending Cause */
+            ending_cause?: ("discharged" | "abandoned" | "voided") | null;
+            /** Ending Note */
+            ending_note?: string | null;
             /** Estimated Minutes */
             estimated_minutes?: number | null;
             /** Position */
@@ -9947,6 +10100,72 @@ export interface operations {
             };
         };
     };
+    outcomes_evaluations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                outcome_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutcomeEvaluationRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    outcomes_evaluate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                outcome_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OutcomeEvaluationCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutcomeEvaluationRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     people_list: {
         parameters: {
             query?: never;
@@ -12182,6 +12401,41 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["TaskUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    tasks_assignment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignmentEvent"];
             };
         };
         responses: {

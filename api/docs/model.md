@@ -61,9 +61,13 @@ because areas never end. *(S3, S9)*
 intentions and may **discharge** them, M:N in both directions. One errand
 discharges three commitments; one meeting generates two. *(S2, S5)*
 
-**A5 · Endings have causes.** *Discharged · revised · abandoned · voided* are
-recorded acts. *Lapsed* is derived from absence and never written — a lapse is a
-silence, and telling it apart from a decision is the point. *(S1, S4, S6)*
+**A5 · Endings have causes.** *Discharged · abandoned · voided* are recorded
+acts. **Not *revised***, which this axiom listed until building it showed the
+error: a revised commitment continues — the deck moving from the 14th to the
+21st is still owed on the 21st — so recording a revision as an ending closes
+something still open. Revisions are acts written about the intention, where A6
+puts appraisal. *Lapsed* stays derived from absence and never written: a lapse
+is a silence, and telling it apart from a decision is the point. *(S1, S4, S6)*
 
 **A6 · Valence is not structural.** No cause carries a sign. Revising because you
 should never have committed is good judgment; revising because you keep deferring
@@ -188,10 +192,10 @@ working — nothing here is a flag day.
 | 3 | A1/A10 cadence + examination | ~ cadence on areas and programs, **not** projects; no inheritance; projects judged by `last_activity_date`, which is activity, **not** examination | **0** |
 | 4 | A2 one scope reference | ✓ done — `tasks.scope_type`/`scope_id`; the `ck_tasks_single_parent` check is gone because the shape it enforced is now unrepresentable | ~~1~~ |
 | 5 | A2 intention as a type | ✗ intention is spread over 14 tables with no common shape | **2** |
-| 6 | A3 monotonicity | ~ `standard`/`target` turned out to *be* monotonicity, correctly defined — kept rather than renamed. Truth history built (`outcome_evaluations`); not yet written at review | 2 |
-| 7 | A4 generate / discharge · A9 means-end | ~ `intention_moments` and `task_objectives` exist; `discharges` is written and retracted on the task and outcome paths, and 419 edges were backfilled from the naming convention. `generates` and means-end have no writer yet | 3 |
-| 8 | A5 causes · A6 valence | ~ `withdrawn_at`/`withdrawal_reason` exist and are set on 0 of 3,210 rows; lapse is correctly derived (`unfulfilled`). Valence is *reachable* — a moment may now be about a first-class thing | **4** |
-| 9 | A7 assignment lifecycle | ✗ RACI is on *things*, not on intentions; `delegations` is built and unexercised | **5** |
+| 6 | A3 monotonicity | ~ `standard`/`target` *is* monotonicity, correctly defined — kept rather than renamed. `outcome_evaluations` built with `POST /outcomes/{id}/evaluations`; the review surface does not yet prompt for one | 2 |
+| 7 | A4 generate / discharge · A9 means-end | ~ `discharges` written and retracted; `generates` written via `generated_by_moment_id` on task create; 419 edges backfilled. `task_objectives` has no writer — no surface asks what a task is *for* yet | 3 |
+| 8 | A5 causes · A6 valence | ✓ `ending_cause` on both species (`discharged`/`abandoned`/`voided`); lapse still derived. Valence works by writing about the intention | ~~4~~ |
+| 9 | A7 assignment lifecycle | ✓ `POST /tasks/{id}/assignment` — offer/accept/decline/withdraw moves Responsible only, recorded as a moment. RACI still lives on the row rather than on a separate intention type | ~~5~~ |
 | — | A8 deliberation in prose | ✓ the Journal — though nothing marks where prose becomes commitment | — |
 
 **Phase 0 — needs no new structure.** Stop collapsing windows; report inert

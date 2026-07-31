@@ -65,6 +65,9 @@ class Outcome(UUIDPrimaryKey, TimestampMixin, Base):
     # outcomes in the corpus, which is what that category error looks like from
     # the outside.
     satisfied_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    #: Why this claim stopped being live. See `Task.ending_cause`. A5.
+    ending_cause: Mapped[str | None] = mapped_column(Text)
+    ending_note: Mapped[str | None] = mapped_column(Text)
 
 
 class OutcomeEvaluation(UUIDPrimaryKey, TimestampMixin, Base):

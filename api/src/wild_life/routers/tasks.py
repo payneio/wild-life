@@ -16,7 +16,7 @@ from wild_life.authz import (
     scope_task_create,
 )
 from wild_life.db.session import get_session
-from wild_life.spine import forget_for, record_task
+from wild_life.spine import forget_for, link_intention, record_task, set_links, upsert_moment
 from wild_life.hierarchy import tasks_rooted_at
 from wild_life.identity import Identity, current_identity
 from wild_life.lifecycle import closed_statuses
@@ -24,7 +24,13 @@ from wild_life.models.tasks import Task
 from wild_life.query import apply_query
 from wild_life.ranking import end_position, position_between
 from wild_life.schemas.common import Priority, TaskStatus
-from wild_life.schemas.tasks import TaskCreate, TaskMove, TaskRead, TaskUpdate
+from wild_life.schemas.tasks import (
+    AssignmentEvent,
+    TaskCreate,
+    TaskMove,
+    TaskRead,
+    TaskUpdate,
+)
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
@@ -70,10 +76,28 @@ def _next_date(base: date, recurrence: str) -> date | None:
 
 
 def _sync_completion(task: Task) -> None:
-    if task.status == "completed" and task.completed_at is None:
-        task.completed_at = datetime.now(timezone.utc)
-    elif task.status != "completed":
+    """Keep `completed_at` and `ending_cause` in step with `status`.
+
+    Completing discharges. Cancelling ends it too, but *why* is a distinction the
+    status cannot carry — abandoned on purpose and voided because the thing
+    ceased to exist look identical afterwards, and A6 attaches valence to that
+    difference. So cancelling records `abandoned` as the default a caller may
+    correct, rather than guessing `voided` or leaving the ending uncaused.
+
+    Reopening clears both: an intention that is open again ended for no reason,
+    because it has not ended.
+    """
+    if task.status == "completed":
+        if task.completed_at is None:
+            task.completed_at = datetime.now(timezone.utc)
+        task.ending_cause = "discharged"
+    else:
         task.completed_at = None
+        if task.status == "cancelled":
+            if task.ending_cause not in ("abandoned", "voided"):
+                task.ending_cause = "abandoned"
+        else:
+            task.ending_cause = None
 
 
 def _spawn_next_occurrence(task: Task) -> Task | None:
@@ -149,9 +173,10 @@ async def create_task(
     session: AsyncSession = Depends(get_session),
     identity: Identity = Depends(current_identity),
 ) -> Task:
-    values = await scope_task_create(
-        session, _file_under_one_parent(payload.model_dump()), identity
-    )
+    raw = payload.model_dump()
+    # Not a column: the relation is M:N and lives in `intention_moments`.
+    generated_by = raw.pop("generated_by_moment_id", None)
+    values = await scope_task_create(session, _file_under_one_parent(raw), identity)
     task = Task(**values)
     _sync_completion(task)
     # Ranked last among its siblings unless the caller placed it deliberately.
@@ -161,6 +186,17 @@ async def create_task(
     await session.flush()
     await session.refresh(task)
     await record_task(session, task)
+    # Where this commitment came from, when it came from somewhere. Half of the
+    # audit A4 exists for: discharges are the numerator, generates the
+    # denominator, and neither is derivable from the other.
+    if generated_by is not None:
+        await link_intention(
+            session,
+            intention_type="task",
+            intention_id=task.id,
+            moment_id=generated_by,
+            role="generates",
+        )
     return task
 
 
@@ -408,3 +444,58 @@ async def delete_task(
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not found")
     await forget_for(session, "task", item_id)
     await session.delete(task)
+
+
+# --- assignment: its own lifecycle (A7) ------------------------------------
+
+
+@router.post(
+    "/{item_id}/assignment",
+    response_model=TaskRead,
+    operation_id="tasks_assignment",
+)
+async def record_assignment(
+    item_id: UUID,
+    payload: AssignmentEvent,
+    session: AsyncSession = Depends(get_session),
+) -> Task:
+    """Offer, accept, decline or withdraw responsibility for a commitment.
+
+    **Delegation moves Responsible and never Accountable.** That is the whole of
+    A7, and it is why this is not a status: a decline ends the *assignment* and
+    returns responsibility to whoever is accountable — it does not end the
+    commitment. Sharing one state machine with the task would make "they said
+    no" read as "it is over", which is the case the axiom exists to prevent.
+
+    The event itself is written as a moment about the task, the same way an
+    appraisal is (A6). Assignment has a history for the same reason intention
+    does: an audit of how work actually moved needs to see the offer that was
+    declined, not only where it came to rest.
+    """
+    task = await session.get(Task, item_id)
+    if task is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not found")
+
+    if payload.event in ("offered", "accepted"):
+        task.responsible_id = payload.person_id
+    else:
+        # Declined or withdrawn: responsibility returns. Accountability never
+        # moved, so there is nothing to restore.
+        task.responsible_id = None
+
+    mid = await upsert_moment(
+        session,
+        f"task:{task.id}:assignment:{datetime.now(timezone.utc).isoformat()}",
+        kind="exchange",
+        started_at=datetime.now(timezone.utc),
+        title=f"{payload.event.capitalize()} — {task.title}"[:200],
+        body=payload.note or "",
+    )
+    edges: list[tuple[str, str, UUID]] = [("subject", "task", task.id)]
+    if payload.person_id:
+        edges.append(("participant", "person", payload.person_id))
+    await set_links(session, mid, edges)
+
+    await session.flush()
+    await session.refresh(task)
+    return task

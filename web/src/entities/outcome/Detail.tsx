@@ -47,6 +47,14 @@ export function OutcomeRecord({
       <RecordSection title="Belongs to">
         <F.Root label="Belongs to" />
       </RecordSection>
+    
+      {/* A target is discharged once; a standard cannot be, and accumulates
+          evaluations instead. This says why a claim stopped being live. */}
+      <RecordSection title="Ending">
+        <F.Text field="ending_cause" label="Cause" placeholder="open" />
+        <F.Textarea field="ending_note" label="Why" />
+      </RecordSection>
+
     </Record>
   )
 }

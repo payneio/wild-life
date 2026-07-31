@@ -922,6 +922,49 @@
         "title": "AreaUpdate",
         "type": "object"
       },
+      "AssignmentEvent": {
+        "description": "A change in who is *responsible*, never in who is accountable.\n\n`offered`/`accepted` put responsibility on someone; `declined`/`withdrawn`\nreturn it. The commitment is untouched either way \u2014 A7.",
+        "properties": {
+          "event": {
+            "enum": [
+              "offered",
+              "accepted",
+              "declined",
+              "withdrawn"
+            ],
+            "title": "Event",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "person_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Person Id"
+          }
+        },
+        "required": [
+          "event"
+        ],
+        "title": "AssignmentEvent",
+        "type": "object"
+      },
       "Body_upload_moment_image_moments__item_id__images_post": {
         "properties": {
           "file": {
@@ -7776,6 +7819,33 @@
             ],
             "title": "Description"
           },
+          "ending_cause": {
+            "anyOf": [
+              {
+                "enum": [
+                  "discharged",
+                  "abandoned",
+                  "voided"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ending Cause"
+          },
+          "ending_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ending Note"
+          },
           "entity_id": {
             "format": "uuid",
             "title": "Entity Id",
@@ -7889,6 +7959,109 @@
         "title": "OutcomeCreate",
         "type": "object"
       },
+      "OutcomeEvaluationCreate": {
+        "description": "One judgement of whether a claim held.\n\n`evaluated_at` defaults to now; supplying it is for recording a judgement\nmade at a review you are writing up afterwards.",
+        "properties": {
+          "evaluated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evaluated At"
+          },
+          "holds": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Holds"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "title": "OutcomeEvaluationCreate",
+        "type": "object"
+      },
+      "OutcomeEvaluationRead": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "evaluated_at": {
+            "format": "date-time",
+            "title": "Evaluated At",
+            "type": "string"
+          },
+          "holds": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Holds"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "outcome_id": {
+            "format": "uuid",
+            "title": "Outcome Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "created_at",
+          "updated_at",
+          "outcome_id",
+          "evaluated_at",
+          "holds",
+          "note"
+        ],
+        "title": "OutcomeEvaluationRead",
+        "type": "object"
+      },
       "OutcomeRead": {
         "properties": {
           "baseline": {
@@ -7929,6 +8102,33 @@
               }
             ],
             "title": "Description"
+          },
+          "ending_cause": {
+            "anyOf": [
+              {
+                "enum": [
+                  "discharged",
+                  "abandoned",
+                  "voided"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ending Cause"
+          },
+          "ending_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ending Note"
           },
           "entity_id": {
             "format": "uuid",
@@ -8058,7 +8258,9 @@
           "target_max",
           "baseline",
           "by_when",
-          "satisfied_at"
+          "satisfied_at",
+          "ending_cause",
+          "ending_note"
         ],
         "title": "OutcomeRead",
         "type": "object"
@@ -8098,6 +8300,33 @@
               }
             ],
             "title": "Description"
+          },
+          "ending_cause": {
+            "anyOf": [
+              {
+                "enum": [
+                  "discharged",
+                  "abandoned",
+                  "voided"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ending Cause"
+          },
+          "ending_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ending Note"
           },
           "entity_id": {
             "anyOf": [
@@ -13561,6 +13790,33 @@
             ],
             "title": "Due Date"
           },
+          "ending_cause": {
+            "anyOf": [
+              {
+                "enum": [
+                  "discharged",
+                  "abandoned",
+                  "voided"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ending Cause"
+          },
+          "ending_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ending Note"
+          },
           "estimated_minutes": {
             "anyOf": [
               {
@@ -13571,6 +13827,18 @@
               }
             ],
             "title": "Estimated Minutes"
+          },
+          "generated_by_moment_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generated By Moment Id"
           },
           "position": {
             "anyOf": [
@@ -13908,6 +14176,33 @@
             ],
             "title": "Due Date"
           },
+          "ending_cause": {
+            "anyOf": [
+              {
+                "enum": [
+                  "discharged",
+                  "abandoned",
+                  "voided"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ending Cause"
+          },
+          "ending_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ending Note"
+          },
           "estimated_minutes": {
             "anyOf": [
               {
@@ -14090,7 +14385,9 @@
           "waiting_on",
           "acceptance_required",
           "position",
-          "completed_at"
+          "completed_at",
+          "ending_cause",
+          "ending_note"
         ],
         "title": "TaskRead",
         "type": "object"
@@ -14178,6 +14475,33 @@
               }
             ],
             "title": "Due Date"
+          },
+          "ending_cause": {
+            "anyOf": [
+              {
+                "enum": [
+                  "discharged",
+                  "abandoned",
+                  "voided"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ending Cause"
+          },
+          "ending_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ending Note"
           },
           "estimated_minutes": {
             "anyOf": [
@@ -20206,6 +20530,106 @@
         ]
       }
     },
+    "/outcomes/{outcome_id}/evaluations": {
+      "get": {
+        "description": "The truth history, newest first.",
+        "operationId": "outcomes_evaluations",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "outcome_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outcome Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OutcomeEvaluationRead"
+                  },
+                  "title": "Response Outcomes Evaluations",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Evaluations",
+        "tags": [
+          "outcomes"
+        ]
+      },
+      "post": {
+        "description": "Record whether a claim held, at a moment (A3).\n\nThe judgement is yours; the system only asks and remembers. A *target* is\ndischarged once and `satisfied_at` says so; a *standard* can become false\nagain, so it accumulates these instead of ever being completed.\n\n`holds` may be null \u2014 \"looked, could not tell\" is a different answer from\n\"no\", and it is the one that most wants following up.",
+        "operationId": "outcomes_evaluate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "outcome_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Outcome Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OutcomeEvaluationCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutcomeEvaluationRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Evaluate",
+        "tags": [
+          "outcomes"
+        ]
+      }
+    },
     "/people": {
       "get": {
         "operationId": "people_list",
@@ -23463,6 +23887,60 @@
           }
         },
         "summary": "Update Task",
+        "tags": [
+          "tasks"
+        ]
+      }
+    },
+    "/tasks/{item_id}/assignment": {
+      "post": {
+        "description": "Offer, accept, decline or withdraw responsibility for a commitment.\n\n**Delegation moves Responsible and never Accountable.** That is the whole of\nA7, and it is why this is not a status: a decline ends the *assignment* and\nreturns responsibility to whoever is accountable \u2014 it does not end the\ncommitment. Sharing one state machine with the task would make \"they said\nno\" read as \"it is over\", which is the case the axiom exists to prevent.\n\nThe event itself is written as a moment about the task, the same way an\nappraisal is (A6). Assignment has a history for the same reason intention\ndoes: an audit of how work actually moved needs to see the offer that was\ndeclined, not only where it came to rest.",
+        "operationId": "tasks_assignment",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignmentEvent"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Record Assignment",
         "tags": [
           "tasks"
         ]

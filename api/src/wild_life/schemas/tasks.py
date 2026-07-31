@@ -3,12 +3,19 @@
 import uuid
 from datetime import date, datetime, time
 
+from typing import Literal
+
 from pydantic import BaseModel
 
-from wild_life.schemas.common import EntityType, Entity, Priority, TaskStatus
+from wild_life.schemas.common import EndingCause, EntityType, Entity, Priority, TaskStatus
 
 
 class TaskCreate(BaseModel):
+    # The act this commitment came out of, if it came out of one — a meeting
+    # that produced two follow-ups, a conversation that left you owing
+    # something. Writes the `generates` edge (A4). Not stored on the task: the
+    # relation is M:N and lives in `intention_moments`.
+    generated_by_moment_id: uuid.UUID | None = None
     title: str
     description: str | None = None
     status: TaskStatus = "inbox"
@@ -36,6 +43,8 @@ class TaskCreate(BaseModel):
     position: float | None = None
     # Allow backdating on create/import; _sync_completion leaves a provided value untouched.
     completed_at: datetime | None = None
+    ending_cause: EndingCause | None = None
+    ending_note: str | None = None
 
 
 class TaskMove(BaseModel):
@@ -56,6 +65,8 @@ class TaskMove(BaseModel):
 
 
 class TaskUpdate(BaseModel):
+    ending_cause: EndingCause | None = None
+    ending_note: str | None = None
     title: str | None = None
     description: str | None = None
     status: TaskStatus | None = None
@@ -104,5 +115,19 @@ class TaskRead(Entity):
     acceptance_required: bool
     position: float
     completed_at: datetime | None
+    ending_cause: EndingCause | None
+    ending_note: str | None
     claimed_by_id: uuid.UUID | None = None
     claimed_at: datetime | None = None
+
+
+class AssignmentEvent(BaseModel):
+    """A change in who is *responsible*, never in who is accountable.
+
+    `offered`/`accepted` put responsibility on someone; `declined`/`withdrawn`
+    return it. The commitment is untouched either way — A7.
+    """
+
+    event: Literal["offered", "accepted", "declined", "withdrawn"]
+    person_id: uuid.UUID | None = None
+    note: str | None = None

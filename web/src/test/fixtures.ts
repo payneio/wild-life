@@ -59,6 +59,8 @@ export const TASK: Task = {
   waiting_on: null,
   acceptance_required: false,
   completed_at: null,
+  ending_cause: null,
+  ending_note: null,
   claimed_by_id: null,
   claimed_at: null,
   scope_type: "project" as const,
@@ -307,6 +309,8 @@ export const OUTCOME: Outcome = {
   baseline: 5,
   by_when: "2026-11-01" as CalendarDay,
   satisfied_at: null,
+  ending_cause: null,
+  ending_note: null,
 }
 
 export const ROUTINE: Routine = {
