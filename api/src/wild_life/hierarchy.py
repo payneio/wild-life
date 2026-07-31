@@ -15,7 +15,7 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from sqlalchemy import or_, select
+from sqlalchemy import and_, or_, select
 
 from wild_life.models.core import Program, Project
 from wild_life.models.tasks import Task
@@ -37,19 +37,37 @@ def tasks_rooted_at(entity_type: str, entity_id: uuid.UUID) -> Any | None:
     Returns ``None`` for a root that cannot hold tasks, so callers can treat an
     unsupported root as "no rows" rather than as "all rows".
     """
+    # One shape at every altitude: the scope itself, plus the scopes beneath it.
+    # A task names its scope once, so "at or below" is a membership test over a
+    # set of references rather than a disjunction over three columns — and the
+    # branches differ only in which descendants they gather.
+    def under(*descendants: Any) -> Any:
+        clauses = [
+            and_(Task.scope_type == entity_type, Task.scope_id == entity_id),
+            *descendants,
+        ]
+        return or_(*clauses)
+
     if entity_type == "project":
-        return Task.project_id == entity_id
+        return under()
     if entity_type == "program":
-        return or_(
-            Task.program_id == entity_id,
-            Task.project_id.in_(
-                select(Project.id).where(Project.program_id == entity_id)
-            ),
+        return under(
+            and_(
+                Task.scope_type == "project",
+                Task.scope_id.in_(
+                    select(Project.id).where(Project.program_id == entity_id)
+                ),
+            )
         )
     if entity_type == "area":
-        return or_(
-            Task.area_id == entity_id,
-            Task.program_id.in_(programs_in_area(entity_id)),
-            Task.project_id.in_(projects_in_area(entity_id)),
+        return under(
+            and_(
+                Task.scope_type == "program",
+                Task.scope_id.in_(programs_in_area(entity_id)),
+            ),
+            and_(
+                Task.scope_type == "project",
+                Task.scope_id.in_(projects_in_area(entity_id)),
+            ),
         )
     return None

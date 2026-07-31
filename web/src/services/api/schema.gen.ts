@@ -5958,6 +5958,10 @@ export interface components {
             scheduled_date?: CalendarDay | null;
             /** Scheduled Time */
             scheduled_time?: WallTime | null;
+            /** Scope Id */
+            scope_id?: string | null;
+            /** Scope Type */
+            scope_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
             /**
              * Status
              * @default inbox
@@ -5995,8 +5999,6 @@ export interface components {
             acceptance_required: boolean;
             /** Accountable Owner Id */
             accountable_owner_id: string | null;
-            /** Area Id */
-            area_id: string | null;
             /** Assignee Id */
             assignee_id: string | null;
             /** Blocked By Task Id */
@@ -6030,10 +6032,6 @@ export interface components {
              * @enum {string}
              */
             priority: "low" | "medium" | "high" | "urgent";
-            /** Program Id */
-            program_id: string | null;
-            /** Project Id */
-            project_id: string | null;
             /** Recurrence */
             recurrence: string | null;
             /** Responsible Id */
@@ -6042,6 +6040,10 @@ export interface components {
             scheduled_date: CalendarDay | null;
             /** Scheduled Time */
             scheduled_time: WallTime | null;
+            /** Scope Id */
+            scope_id: string | null;
+            /** Scope Type */
+            scope_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
             /**
              * Status
              * @enum {string}
@@ -6091,6 +6093,10 @@ export interface components {
             scheduled_date?: CalendarDay | null;
             /** Scheduled Time */
             scheduled_time?: WallTime | null;
+            /** Scope Id */
+            scope_id?: string | null;
+            /** Scope Type */
+            scope_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
             /** Status */
             status?: ("inbox" | "planned" | "in_progress" | "waiting" | "delegated" | "delivered" | "completed" | "cancelled") | null;
             /** Title */

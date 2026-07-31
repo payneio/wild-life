@@ -101,8 +101,10 @@ async def review_dashboard(
             "status": t.status,
             "priority": t.priority,
             "due_date": t.due_date.isoformat() if t.due_date else None,
-            "project_id": str(t.project_id) if t.project_id else None,
-            "area_id": str(t.area_id) if t.area_id else None,
+            # The one scope it names, at whatever altitude — the reader wants
+            # "where does this sit", and the rung is part of the answer.
+            "scope_type": t.scope_type,
+            "scope_id": str(t.scope_id) if t.scope_id else None,
         }
 
     def project_row(p: Project) -> dict:
@@ -317,8 +319,8 @@ async def review_dashboard(
         pid
         for (pid,) in (
             await session.execute(
-                select(Task.project_id).where(
-                    Task.status.notin_(_TASK_OPEN), Task.project_id.isnot(None)
+                select(Task.scope_id).where(
+                    Task.status.notin_(_TASK_OPEN), Task.scope_type == "project"
                 )
             )
         ).all()

@@ -91,9 +91,8 @@ def _spawn_next_occurrence(task: Task) -> Task | None:
         title=task.title,
         description=task.description,
         status="planned",
-        area_id=task.area_id,
-        program_id=task.program_id,
-        project_id=task.project_id,
+        scope_type=task.scope_type,
+        scope_id=task.scope_id,
         priority=task.priority,
         accountable_owner_id=task.accountable_owner_id,
         responsible_id=task.responsible_id,
@@ -106,30 +105,36 @@ def _spawn_next_occurrence(task: Task) -> Task | None:
     )
 
 
-# Tightest first — the rung a caller means when they supply more than one.
+# Tightest first — the rung a caller means when they supply more than one. Kept
+# as an API convenience: a client may still post `project_id`, and it is folded
+# into the single scope reference the model actually stores.
 _PARENT_FIELDS = ("project_id", "program_id", "area_id")
 _ROOT_PARAMS = frozenset(_PARENT_FIELDS)
 
 
 def _file_under_one_parent(values: dict) -> dict:
-    """Keep the tightest parent supplied and clear the rest.
+    """Fold a rung-shaped filing into the one scope reference the model stores.
 
-    Filing a task somewhere *moves* it; it does not add a second home. Callers
-    that still send a project alongside a copied-down area — which is how the
-    two drifted apart in the first place — get the project and a cleared area
-    rather than a `ck_tasks_single_parent` violation.
+    Filing a task somewhere *moves* it; it does not add a second home. A caller
+    may still say `project_id` — that is the natural way to say it, and it is
+    what every existing client says — so the tightest rung supplied wins and
+    becomes `(scope_type, scope_id)`. Sending a project alongside a copied-down
+    area, which is how the two drifted apart in the first place, now cannot
+    produce two homes because there is only one place to put the answer.
 
-    Only fires when a parent is actually being set. A patch that sends nothing
-    leaves the filing alone, and one that nulls a rung just unfiles the task.
+    Only fires when a filing is actually being set. A patch that sends nothing
+    leaves it alone; one that explicitly nulls a rung unfiles the task.
     """
-    tightest = next(
-        (f for f in _PARENT_FIELDS if values.get(f) is not None),
-        None,
-    )
+    tightest = next((f for f in _PARENT_FIELDS if values.get(f) is not None), None)
     if tightest is not None:
-        for field in _PARENT_FIELDS:
-            if field != tightest:
-                values[field] = None
+        values["scope_type"] = tightest.removesuffix("_id")
+        values["scope_id"] = values[tightest]
+    elif any(f in values for f in _PARENT_FIELDS):
+        # An explicit null on any rung is an unfiling.
+        values["scope_type"] = None
+        values["scope_id"] = None
+    for field in _PARENT_FIELDS:
+        values.pop(field, None)
     return values
 
 
@@ -184,7 +189,7 @@ async def list_tasks(
     if program_id is not None:
         stmt = stmt.where(tasks_rooted_at("program", program_id))
     if project_id is not None:
-        stmt = stmt.where(Task.project_id == project_id)
+        stmt = stmt.where(tasks_rooted_at("project", project_id))
     if queue == "personal":
         # Personal execution queue excludes delegated work.
         stmt = stmt.where(Task.status.notin_(_DELEGATED_STATUSES | _CLOSED_STATUSES))
@@ -230,18 +235,18 @@ async def my_tasks(
         return []
     pid = identity.person_id
     direct = await directly_owned_scopes(session, pid)
-    # Unassigned tasks match the direct owner of their TIGHTEST populated scope
-    # (project > program > area), so a broader owner never shadows a specific one.
-    # The tightest-scope rule needs no guards any more: a task carries exactly
-    # one of the three ids, so matching on `program_id` already implies it has
-    # no project, and a broader owner cannot shadow a specific one by accident.
+    # Unassigned tasks match the direct owner of the scope they name. A task
+    # names exactly one, so a broader owner cannot shadow a specific one — the
+    # tightest-scope rule is a property of the representation now rather than a
+    # convention the reader has to uphold.
     triage = []
-    if direct.project_ids:
-        triage.append(Task.project_id.in_(direct.project_ids))
-    if direct.program_ids:
-        triage.append(Task.program_id.in_(direct.program_ids))
-    if direct.area_ids:
-        triage.append(Task.area_id.in_(direct.area_ids))
+    for kind, ids in (
+        ("project", direct.project_ids),
+        ("program", direct.program_ids),
+        ("area", direct.area_ids),
+    ):
+        if ids:
+            triage.append(and_(Task.scope_type == kind, Task.scope_id.in_(ids)))
     actionable = [Task.assignee_id == pid]
     if triage:
         actionable.append(and_(Task.assignee_id.is_(None), or_(*triage)))

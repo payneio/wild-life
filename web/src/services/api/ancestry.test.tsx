@@ -7,9 +7,9 @@ const ROWS: Record<string, Record<string, unknown>> = {
   "area:a1": { id: "a1", name: "Health" },
   "program:g1": { id: "g1", name: "Sleep", area_id: "a1" },
   "project:p1": { id: "p1", name: "Sleep study", program_id: "g1" },
-  "task:t1": { id: "t1", title: "Book the clinic", project_id: "p1" },
+  "task:t1": { id: "t1", title: "Book the clinic", scope_type: "project", scope_id: "p1" },
   // A task filed straight at an area, which the model still allows.
-  "task:t2": { id: "t2", title: "Clean the flat", area_id: "a1" },
+  "task:t2": { id: "t2", title: "Clean the flat", scope_type: "area", scope_id: "a1" },
   // An unfiled inbox capture: no parent at all.
   "task:t3": { id: "t3", title: "Write the article" },
 }

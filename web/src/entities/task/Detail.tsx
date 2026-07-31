@@ -123,9 +123,11 @@ export function TaskDetail({ entity, onClose }: { entity: Entity; onClose: () =>
       </RecordSection>
 
       <RecordSection title="Where it lives">
-        <F.Ref field="area_id" label="Area" lookup="area" />
-        <F.Ref field="program_id" label="Program" lookup="program" />
-        <F.Ref field="project_id" label="Project" lookup="project" />
+        {/* One scope, at whatever altitude — usually a project, sometimes an
+            area for a single action that has no project and should not have one
+            invented for it. Three separate pickers implied a task could sit in
+            three places, which is how the copies drifted apart. */}
+        <F.Root label="Scope" typeField="scope_type" idField="scope_id" />
         <F.Ref field="blocked_by_task_id" label="Blocked by" lookup="task" />
       </RecordSection>
 

@@ -183,10 +183,10 @@ working — nothing here is a flag day.
 
 | # | axiom | state | phase |
 |---|---|---|---|
-| 1 | windows | ✗ every window in the corpus is zero-width and `expected_minutes` is never set, because the writers set `window_start = window_end` | **0** |
-| 2 | A11 inert objectives | ✗ not reported | **0** |
+| 1 | windows | ✗ every window is zero-width and `expected_minutes` never set. **Subsumed by phase 2**, which deletes these columns — fixing writers for a column already scheduled for removal is motion, not progress | ~~0~~ → 2 |
+| 2 | A11 inert objectives | ✓ done — reported on the review dashboard | ~~0~~ |
 | 3 | A1/A10 cadence + examination | ~ cadence on areas and programs, **not** projects; no inheritance; projects judged by `last_activity_date`, which is activity, **not** examination | **0** |
-| 4 | A2 one scope reference | ✗ `tasks` names its parent with **three** nullable FKs where every other rung uses one. `outcomes` already has the right shape | **1** |
+| 4 | A2 one scope reference | ✓ done — `tasks.scope_type`/`scope_id`; the `ck_tasks_single_parent` check is gone because the shape it enforced is now unrepresentable | ~~1~~ |
 | 5 | A2 intention as a type | ✗ intention is spread over 14 tables with no common shape | **2** |
 | 6 | A3 monotonicity | ✗ `outcomes.kind` (`standard`/`target`) gropes at it under names that do not say it; no truth history for a non-monotonic claim | **2** |
 | 7 | A4 generate / discharge · A9 means-end | ✗ no edge in any direction. The plan→outcome relation exists only as a naming convention in `source_ref`, so it is unindexable and unenforceable | **3** |

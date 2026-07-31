@@ -5,16 +5,21 @@ from datetime import date, datetime, time
 
 from pydantic import BaseModel
 
-from wild_life.schemas.common import Entity, Priority, TaskStatus
+from wild_life.schemas.common import EntityType, Entity, Priority, TaskStatus
 
 
 class TaskCreate(BaseModel):
     title: str
     description: str | None = None
     status: TaskStatus = "inbox"
+    # Stored as one scope reference; accepted either way. A client saying
+    # `project_id` is saying the natural thing, and `_file_under_one_parent`
+    # folds it into the pair below.
     area_id: uuid.UUID | None = None
     program_id: uuid.UUID | None = None
     project_id: uuid.UUID | None = None
+    scope_type: EntityType | None = None
+    scope_id: uuid.UUID | None = None
     priority: Priority = "medium"
     accountable_owner_id: uuid.UUID | None = None
     responsible_id: uuid.UUID | None = None
@@ -54,9 +59,14 @@ class TaskUpdate(BaseModel):
     title: str | None = None
     description: str | None = None
     status: TaskStatus | None = None
+    # Stored as one scope reference; accepted either way. A client saying
+    # `project_id` is saying the natural thing, and `_file_under_one_parent`
+    # folds it into the pair below.
     area_id: uuid.UUID | None = None
     program_id: uuid.UUID | None = None
     project_id: uuid.UUID | None = None
+    scope_type: EntityType | None = None
+    scope_id: uuid.UUID | None = None
     priority: Priority | None = None
     accountable_owner_id: uuid.UUID | None = None
     responsible_id: uuid.UUID | None = None
@@ -78,9 +88,8 @@ class TaskRead(Entity):
     title: str
     description: str | None
     status: TaskStatus
-    area_id: uuid.UUID | None
-    program_id: uuid.UUID | None
-    project_id: uuid.UUID | None
+    scope_type: EntityType | None
+    scope_id: uuid.UUID | None
     priority: Priority
     accountable_owner_id: uuid.UUID | None
     responsible_id: uuid.UUID | None

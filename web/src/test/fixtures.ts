@@ -47,9 +47,6 @@ export const TASK: Task = {
   priority: "high",
   // Rank among siblings — set by the API, never left unset.
   position: 1024,
-  area_id: null,
-  program_id: null,
-  project_id: null,
   accountable_owner_id: null,
   responsible_id: null,
   assignee_id: null,
@@ -64,6 +61,8 @@ export const TASK: Task = {
   completed_at: null,
   claimed_by_id: null,
   claimed_at: null,
+  scope_type: "project" as const,
+  scope_id: "33333333-3333-3333-3333-333333333333",
 }
 
 

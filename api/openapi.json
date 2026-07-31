@@ -13665,6 +13665,54 @@
             ],
             "title": "Scheduled Time"
           },
+          "scope_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Id"
+          },
+          "scope_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "area",
+                  "program",
+                  "project",
+                  "task",
+                  "routine",
+                  "outcome",
+                  "metric",
+                  "metric_group",
+                  "person",
+                  "organization",
+                  "location",
+                  "commitment",
+                  "request",
+                  "delegation",
+                  "review",
+                  "resource",
+                  "decision",
+                  "medication",
+                  "protocol",
+                  "protocol_item",
+                  "insurance_plan",
+                  "allergy",
+                  "moment"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Type"
+          },
           "status": {
             "default": "inbox",
             "enum": [
@@ -13771,18 +13819,6 @@
               }
             ],
             "title": "Accountable Owner Id"
-          },
-          "area_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Area Id"
           },
           "assignee_id": {
             "anyOf": [
@@ -13902,30 +13938,6 @@
             "title": "Priority",
             "type": "string"
           },
-          "program_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Program Id"
-          },
-          "project_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Project Id"
-          },
           "recurrence": {
             "anyOf": [
               {
@@ -13973,6 +13985,54 @@
             ],
             "title": "Scheduled Time"
           },
+          "scope_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Id"
+          },
+          "scope_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "area",
+                  "program",
+                  "project",
+                  "task",
+                  "routine",
+                  "outcome",
+                  "metric",
+                  "metric_group",
+                  "person",
+                  "organization",
+                  "location",
+                  "commitment",
+                  "request",
+                  "delegation",
+                  "review",
+                  "resource",
+                  "decision",
+                  "medication",
+                  "protocol",
+                  "protocol_item",
+                  "insurance_plan",
+                  "allergy",
+                  "moment"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Type"
+          },
           "status": {
             "enum": [
               "inbox",
@@ -14015,9 +14075,8 @@
           "title",
           "description",
           "status",
-          "area_id",
-          "program_id",
-          "project_id",
+          "scope_type",
+          "scope_id",
           "priority",
           "accountable_owner_id",
           "responsible_id",
@@ -14229,6 +14288,54 @@
               }
             ],
             "title": "Scheduled Time"
+          },
+          "scope_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Id"
+          },
+          "scope_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "area",
+                  "program",
+                  "project",
+                  "task",
+                  "routine",
+                  "outcome",
+                  "metric",
+                  "metric_group",
+                  "person",
+                  "organization",
+                  "location",
+                  "commitment",
+                  "request",
+                  "delegation",
+                  "review",
+                  "resource",
+                  "decision",
+                  "medication",
+                  "protocol",
+                  "protocol_item",
+                  "insurance_plan",
+                  "allergy",
+                  "moment"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope Type"
           },
           "status": {
             "anyOf": [

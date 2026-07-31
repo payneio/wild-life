@@ -5,7 +5,6 @@ from datetime import date, datetime, time
 
 from sqlalchemy import (
     Boolean,
-    CheckConstraint,
     Date,
     DateTime,
     Float,
@@ -25,36 +24,29 @@ from wild_life.models.mixins import TimestampMixin, UUIDPrimaryKey
 # A task hangs off exactly one rung of Area → Program → Project, or off none at
 # all while it is still in the inbox. Not "exactly one": capture takes a title
 # and nothing else, so unfiled is a designed state, not a defect.
-#
-# Enforced in the database rather than trusted to the writers, because the
-# writers are what broke it. Carrying a project *and* a cached area/program let
-# the copies rot — 17 tasks disagreed with their project's area and 14 with its
-# program, always because the task was re-filed and the copy stayed put. With a
-# single link there is no second copy to go stale, and the area is a join away.
-SINGLE_PARENT = CheckConstraint(
-    "num_nonnulls(area_id, program_id, project_id) <= 1",
-    name="ck_tasks_single_parent",
-)
-
-
 class Task(UUIDPrimaryKey, TimestampMixin, Base):
     __tablename__ = "tasks"
-    __table_args__ = (SINGLE_PARENT,)
+
 
     title: Mapped[str] = mapped_column(Text, nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
     status: Mapped[str] = mapped_column(
         Text, server_default="inbox", nullable=False
     )  # inbox/planned/in_progress/waiting/delegated/delivered/completed/cancelled
-    area_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("areas.id", ondelete="SET NULL"), index=True
-    )
-    program_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("programs.id", ondelete="SET NULL"), index=True
-    )
-    project_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="SET NULL"), index=True
-    )
+    # The one scope this task sits in, at whatever altitude — `area`, `program`
+    # or `project`. One reference, not three nullable ones: with three, a task
+    # carrying a project *and* a cached area let the copies rot (17 disagreed
+    # with their project's area, 14 with its program, always after a re-file),
+    # which needed a CHECK constraint to forbid what the representation should
+    # never have allowed. A single pair cannot disagree with itself, so the
+    # constraint is gone rather than enforced.
+    #
+    # Soft, like `outcomes.entity_type`/`entity_id`, because the altitude varies
+    # and a foreign key cannot. The three it replaces were `SET NULL`, which
+    # silently orphaned a task when its project was deleted; the router refuses
+    # the delete instead.
+    scope_type: Mapped[str | None] = mapped_column(Text)
+    scope_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     priority: Mapped[str] = mapped_column(
         Text, server_default="medium", nullable=False
     )  # low/medium/high/urgent

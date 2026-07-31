@@ -35,16 +35,14 @@ def siblings_of(task: Task) -> Any:
     other unfiled ones. A task carries exactly one parent, so this is a single
     comparison rather than a guess about which of three columns to trust.
     """
-    if task.project_id is not None:
-        return Task.project_id == task.project_id
-    if task.program_id is not None:
-        return Task.program_id == task.program_id
-    if task.area_id is not None:
-        return Task.area_id == task.area_id
+    # Siblings share a scope. One comparison, where three branches used to pick
+    # whichever column happened to be filled.
+    if task.scope_id is not None:
+        return and_(
+            Task.scope_type == task.scope_type, Task.scope_id == task.scope_id
+        )
     return and_(
-        Task.project_id.is_(None),
-        Task.program_id.is_(None),
-        Task.area_id.is_(None),
+        Task.scope_id.is_(None),
     )
 
 

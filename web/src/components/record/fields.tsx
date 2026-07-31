@@ -468,14 +468,27 @@ export function RecordRecurrence({ field, label }: { field: string; label?: stri
  * The soft-poly "filed in" link — one control owning the `entity_type` /
  * `entity_id` pair, written in a single PATCH so the two can't land apart.
  */
-export function RecordRoot({ label = "Filed in" }: { label?: string }) {
-  const { row, save } = useFields(["entity_type", "entity_id"])
+export function RecordRoot({
+  label = "Filed in",
+  typeField = "entity_type",
+  idField = "entity_id",
+}: {
+  label?: string
+  /** The pair this control binds. `tasks` names its scope `scope_type`/
+   *  `scope_id`; everything else calls the same shape `entity_type`/`entity_id`,
+   *  which is why the column names are a parameter rather than the concept. */
+  typeField?: string
+  idField?: string
+}) {
+  const { row, save } = useFields([typeField, idField])
   return (
     <Wrap label={label} full>
       <RootField
-        entityType={(row.entity_type as string | null) ?? null}
-        entityId={(row.entity_id as string | null) ?? null}
-        onSave={(body) => save(body as Record<string, unknown>)}
+        entityType={(row[typeField] as string | null) ?? null}
+        entityId={(row[idField] as string | null) ?? null}
+        onSave={(body) =>
+          save({ [typeField]: body.entity_type, [idField]: body.entity_id })
+        }
       />
     </Wrap>
   )

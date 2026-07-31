@@ -5,6 +5,7 @@ import { QuickCreate } from "@/components/QuickCreate"
 import { PRIORITIES, TASK_STATUS } from "@/services/api/enums"
 import { ListToolbar } from "@/components/ListToolbar"
 import { DateText, PriorityBadge, RefName } from "@/components/cells"
+import type { LookupKey } from "@/services/api/lookups"
 import { Card, EmptyState } from "@/components/ui/primitives"
 import { useListFilter, type ListConfig } from "@/lib/listFilter"
 import { usePersistentState } from "@/lib/persistentState"
@@ -84,9 +85,9 @@ export function TaskRow({
       >
         <span className="min-w-0 break-words">{task.title}</span>
       </span>
-      {task.project_id && !hideProject && (
+      {task.scope_id && task.scope_type && !hideProject && (
         <span className="hidden max-w-[9rem] shrink-0 truncate text-xs text-slate-400 sm:block">
-          <RefName kind="project" id={task.project_id} />
+          <RefName kind={task.scope_type as LookupKey} id={task.scope_id} />
         </span>
       )}
       {(task.status === "delegated" || task.status === "delivered") && (

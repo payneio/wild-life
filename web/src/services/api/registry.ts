@@ -94,6 +94,23 @@ export type RelationSpec =
  * that silently prints nothing. `registry.test.ts` checks each named field
  * against the fixtures for exactly that reason.
  */
+/** The scope a row names by a `<x>_type`/`<x>_id` pair, rather than by a column
+ *  per candidate rung. `refOf` answers "which of these columns is filled";
+ *  this answers "what does this one column say", which is what a single
+ *  polymorphic reference means. */
+export function scopeOf(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  row: any,
+  typeField = "scope_type",
+  idField = "scope_id",
+): { type: EntityType; id: string } | undefined {
+  const type = row?.[typeField]
+  const id = row?.[idField]
+  return typeof type === "string" && typeof id === "string" && type && id
+    ? { type: type as EntityType, id }
+    : undefined
+}
+
 export function refOf(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   row: any,
@@ -257,7 +274,7 @@ export const REGISTRY: Record<string, EntityDef> = {
     // on.
   ] },
   // Tightest first, though the API now guarantees only one is ever set.
-  task: { key: "task", label: "Task", crud: tasks, fields: TASK_FIELDS, title: (e) => e.title, parent: (e) => refOf(e, ["project_id", "project"], ["program_id", "program"], ["area_id", "area"]), entityType: "task", titleField: "title", quickCreate: true, detail: TaskRecord, relations: [
+  task: { key: "task", label: "Task", crud: tasks, fields: TASK_FIELDS, title: (e) => e.title, parent: (e) => scopeOf(e), entityType: "task", titleField: "title", quickCreate: true, detail: TaskRecord, relations: [
   ] },
   delegation: { key: "delegation", label: "Delegation", crud: delegations, fields: DELEGATION_FIELDS, title: (e) => e.requested_outcome, entityType: "delegation", titleField: "requested_outcome", quickCreate: true, detail: DelegationRecord, relations: [
   ] },

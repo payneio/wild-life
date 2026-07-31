@@ -115,9 +115,15 @@ def _task_in_scope(task: Task, person_id: uuid.UUID, scopes: OwnedScopes) -> boo
         task.assignee_id == person_id
         or task.responsible_id == person_id
         or task.accountable_owner_id == person_id
-        or (task.area_id is not None and task.area_id in scopes.area_ids)
-        or (task.program_id is not None and task.program_id in scopes.program_ids)
-        or (task.project_id is not None and task.project_id in scopes.project_ids)
+        or (
+            task.scope_id is not None
+            and task.scope_id
+            in {
+                "area": scopes.area_ids,
+                "program": scopes.program_ids,
+                "project": scopes.project_ids,
+            }.get(task.scope_type or "", frozenset())
+        )
     )
 
 
