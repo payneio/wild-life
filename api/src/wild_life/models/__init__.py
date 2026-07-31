@@ -14,6 +14,7 @@ from wild_life.models.knowledge import Decision, Resource
 from wild_life.models.links import EntityLink
 from wild_life.models.metric_groups import GroupMember, GroupReading, MetricGroup
 from wild_life.models.metrics import Metric, MetricEntry
+from wild_life.models.intentions import IntentionMoment, TaskObjective
 from wild_life.models.locations import (
     GeocodeCache,
     Location,
@@ -47,6 +48,7 @@ __all__ = [
     "Project",
     "ProjectContributor",
     "Task",
+    "TaskObjective",
     "Routine",
     "RoutineInstance",
     "Outcome",
@@ -69,6 +71,7 @@ __all__ = [
     "PushSubscription",
     "SentReminder",
     "SentNudge",
+    "IntentionMoment",
     "Location",
     "LocationPing",
     "LocationVisit",

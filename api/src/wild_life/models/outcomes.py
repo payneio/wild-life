@@ -13,7 +13,7 @@ acceptance criteria without three sets of nullable FKs.
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import Date, DateTime, Float, ForeignKey, Index, Text
+from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, Index, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -58,7 +58,47 @@ class Outcome(UUIDPrimaryKey, TimestampMixin, Base):
     baseline: Mapped[float | None] = mapped_column(Float)
     by_when: Mapped[date | None] = mapped_column(Date)
 
-    # When the claim became true. No longer gated by kind — an outcome being
-    # satisfied is a resolution worth dating whichever kind it is, and the
-    # backfill already turns this into a `completion` moment.
+    # When the claim became true — and *stayed* true, which is why this belongs
+    # to a `target` and not to a `standard`. A standing claim can become false
+    # again, so a completion timestamp is a category error for one; its history
+    # lives in `OutcomeEvaluation` instead. Set on none of the twenty-one
+    # outcomes in the corpus, which is what that category error looks like from
+    # the outside.
     satisfied_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class OutcomeEvaluation(UUIDPrimaryKey, TimestampMixin, Base):
+    """Whether a claim held, on a date. The truth history A3 requires.
+
+    A *target* becomes true and stays true, so `Outcome.satisfied_at` says
+    everything about it: one moment, and the claim is discharged.
+
+    A *standard* cannot work that way. "No important relationship neglected" is
+    true or false today and can become false again, so a completion timestamp is
+    a category error for it — which is why `satisfied_at` is set on none of the
+    twenty-one outcomes in the corpus, and why the comment above it, saying an
+    outcome is worth dating "whichever kind it is", was reaching for something
+    this table provides instead.
+
+    Written at review, because that is when a standing claim gets looked at —
+    A3's evaluation and A1's examination are the same act, which is what makes
+    the review surface load-bearing rather than reporting.
+    """
+
+    __tablename__ = "outcome_evaluations"
+    __table_args__ = (
+        Index("ix_outcome_evaluations_outcome", "outcome_id", "evaluated_at"),
+    )
+
+    outcome_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("outcomes.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    evaluated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    #: Did the claim hold at that moment? Nullable for "looked, could not tell",
+    #: which is a different answer from "no" and worth keeping apart from it.
+    holds: Mapped[bool | None] = mapped_column(Boolean)
+    note: Mapped[str | None] = mapped_column(Text)

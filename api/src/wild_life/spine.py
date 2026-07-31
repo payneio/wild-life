@@ -32,6 +32,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from wild_life.models.intentions import IntentionMoment
 from wild_life.models.moments import Moment, MomentDose, MomentLink, MomentReading
 
 Edge = tuple[str, str, uuid.UUID]
@@ -144,6 +145,48 @@ async def forget(session: AsyncSession, *source_refs: str) -> None:
         await session.execute(delete(Moment).where(Moment.source_ref.in_(source_refs)))
 
 
+async def link_intention(
+    session: AsyncSession,
+    *,
+    intention_type: str,
+    intention_id: uuid.UUID,
+    moment_id: uuid.UUID,
+    role: str,
+) -> None:
+    """Record that a moment discharged or generated an intention (A4).
+
+    Idempotent on the edge, so recording the same act twice corrects nothing and
+    duplicates nothing — the same property `source_ref` gives the moment itself.
+    """
+    await session.execute(
+        insert(IntentionMoment)
+        .values(
+            intention_type=intention_type,
+            intention_id=intention_id,
+            moment_id=moment_id,
+            role=role,
+        )
+        .on_conflict_do_nothing(constraint="uq_intention_moment_edge")
+    )
+
+
+async def unlink_intention(
+    session: AsyncSession, *, intention_type: str, intention_id: uuid.UUID, role: str
+) -> None:
+    """Drop the edges of one role for an intention.
+
+    Reopening a task retracts its discharge as surely as it deletes the
+    completion moment: an intention that is open again was not met by anything.
+    """
+    await session.execute(
+        delete(IntentionMoment).where(
+            IntentionMoment.intention_type == intention_type,
+            IntentionMoment.intention_id == intention_id,
+            IntentionMoment.role == role,
+        )
+    )
+
+
 # --- one function per act ---------------------------------------------------
 
 
@@ -164,8 +207,20 @@ async def record_task(session: AsyncSession, task: Any) -> None:
             title=task.title,
         )
         await set_links(session, mid, [("subject", "task", task.id)])
+        # The relation that used to be a naming convention. Completing a task is
+        # an act that discharges the commitment, and now says so as data.
+        await link_intention(
+            session,
+            intention_type="task",
+            intention_id=task.id,
+            moment_id=mid,
+            role="discharges",
+        )
     else:
         await forget(session, f"task:{task.id}:completion")
+        await unlink_intention(
+            session, intention_type="task", intention_id=task.id, role="discharges"
+        )
 
     if task.scheduled_date is not None:
         timed = getattr(task, "scheduled_time", None)
@@ -319,6 +374,13 @@ async def record_finish(session: AsyncSession, entity_type: str, row: Any) -> No
     ref = f"{entity_type}:{row.id}:{kind}"
     if when is None:
         await forget(session, ref)
+        if entity_type == "outcome":
+            await unlink_intention(
+                session,
+                intention_type="outcome",
+                intention_id=row.id,
+                role="discharges",
+            )
         return
     label = getattr(row, label_attr, None)
     mid = await upsert_moment(
@@ -330,6 +392,17 @@ async def record_finish(session: AsyncSession, entity_type: str, row: Any) -> No
         title=str(label)[:200] if label else None,
     )
     await set_links(session, mid, [("subject", entity_type, row.id)])
+    # An outcome is the other species of intention, so its satisfaction is a
+    # discharge like a task's. The remaining finish-bearing rows are not
+    # intentions and get a moment without an edge.
+    if entity_type == "outcome":
+        await link_intention(
+            session,
+            intention_type="outcome",
+            intention_id=row.id,
+            moment_id=mid,
+            role="discharges",
+        )
 
 
 async def record_visit(session: AsyncSession, visit: Any) -> None:

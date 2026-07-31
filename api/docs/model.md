@@ -188,8 +188,8 @@ working — nothing here is a flag day.
 | 3 | A1/A10 cadence + examination | ~ cadence on areas and programs, **not** projects; no inheritance; projects judged by `last_activity_date`, which is activity, **not** examination | **0** |
 | 4 | A2 one scope reference | ✓ done — `tasks.scope_type`/`scope_id`; the `ck_tasks_single_parent` check is gone because the shape it enforced is now unrepresentable | ~~1~~ |
 | 5 | A2 intention as a type | ✗ intention is spread over 14 tables with no common shape | **2** |
-| 6 | A3 monotonicity | ✗ `outcomes.kind` (`standard`/`target`) gropes at it under names that do not say it; no truth history for a non-monotonic claim | **2** |
-| 7 | A4 generate / discharge · A9 means-end | ✗ no edge in any direction. The plan→outcome relation exists only as a naming convention in `source_ref`, so it is unindexable and unenforceable | **3** |
+| 6 | A3 monotonicity | ~ `standard`/`target` turned out to *be* monotonicity, correctly defined — kept rather than renamed. Truth history built (`outcome_evaluations`); not yet written at review | 2 |
+| 7 | A4 generate / discharge · A9 means-end | ~ `intention_moments` and `task_objectives` exist; `discharges` is written and retracted on the task and outcome paths, and 419 edges were backfilled from the naming convention. `generates` and means-end have no writer yet | 3 |
 | 8 | A5 causes · A6 valence | ~ `withdrawn_at`/`withdrawal_reason` exist and are set on 0 of 3,210 rows; lapse is correctly derived (`unfulfilled`). Valence is *reachable* — a moment may now be about a first-class thing | **4** |
 | 9 | A7 assignment lifecycle | ✗ RACI is on *things*, not on intentions; `delegations` is built and unexercised | **5** |
 | — | A8 deliberation in prose | ✓ the Journal — though nothing marks where prose becomes commitment | — |

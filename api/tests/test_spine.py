@@ -302,3 +302,65 @@ class TestNoMomentOutlivesItsSource:
         finally:
             eng.dispose()
         assert orphans == 0
+
+
+class TestAnIntentionMeetsAMoment:
+    """A4. The relation that used to be a naming convention.
+
+    Asking whether a commitment happened once meant `replace(source_ref,
+    ':work', ':completion')` — a string transformation standing in for a join,
+    which could not be indexed, constrained, or trusted through a rename.
+    """
+
+    def _edges(self, task_id: str, role: str = "discharges") -> int:
+        eng = create_engine(settings.sync_database_url)
+        try:
+            with eng.connect() as conn:
+                return conn.execute(
+                    text(
+                        "SELECT count(*) FROM wild_life.intention_moments"
+                        " WHERE intention_type='task' AND intention_id=:t"
+                        "   AND role=:r"
+                    ),
+                    {"t": task_id, "r": role},
+                ).scalar_one()
+        finally:
+            eng.dispose()
+
+    def test_completing_a_task_discharges_it(
+        self, client: TestClient, auth_headers: dict, require_db: None
+    ) -> None:
+        h = auth_headers
+        task = _post(client, h, "/tasks", title=f"{MARK} discharge me")
+        try:
+            assert self._edges(task["id"]) == 0
+            _patch(client, h, f"/tasks/{task['id']}", status="completed")
+            assert self._edges(task["id"]) == 1
+        finally:
+            client.delete(f"/tasks/{task['id']}", headers=h)
+
+    def test_reopening_retracts_the_discharge(
+        self, client: TestClient, auth_headers: dict, require_db: None
+    ) -> None:
+        """An intention that is open again was not met by anything."""
+        h = auth_headers
+        task = _post(client, h, "/tasks", title=f"{MARK} retract me")
+        try:
+            _patch(client, h, f"/tasks/{task['id']}", status="completed")
+            assert self._edges(task["id"]) == 1
+            _patch(client, h, f"/tasks/{task['id']}", status="in_progress")
+            assert self._edges(task["id"]) == 0
+        finally:
+            client.delete(f"/tasks/{task['id']}", headers=h)
+
+    def test_completing_twice_writes_one_edge(
+        self, client: TestClient, auth_headers: dict, require_db: None
+    ) -> None:
+        h = auth_headers
+        task = _post(client, h, "/tasks", title=f"{MARK} twice discharged")
+        try:
+            _patch(client, h, f"/tasks/{task['id']}", status="completed")
+            _patch(client, h, f"/tasks/{task['id']}", title=f"{MARK} renamed")
+            assert self._edges(task["id"]) == 1
+        finally:
+            client.delete(f"/tasks/{task['id']}", headers=h)
