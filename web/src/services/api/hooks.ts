@@ -67,7 +67,7 @@ export const outcomes = createCrud<Outcome>("outcomes")
 export const metrics = createCrud<Metric>("metrics")
 export const metricEntries = createCrud<MetricEntry>("metric-entries")
 export const metricGroups = createCrud<MetricGroup>("metric-groups")
-/** The spine. A life is a series of moments; everything above is their subject. */
+/** A life is a series of moments; everything above is their subject. */
 export const moments = createCrud<Moment>("moments")
 
 /**

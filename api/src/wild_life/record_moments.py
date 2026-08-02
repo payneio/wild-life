@@ -1,4 +1,4 @@
-"""Writing the spine inline, at the moment the act happens.
+"""Recording each act's moment inline, as the act happens.
 
 The inversion moved *reading* onto moments and left *writing* where it was: a
 dose landed in `routine_instances` and became a moment only when the five-minute
@@ -19,7 +19,7 @@ same time, and surfaces can move over one at a time rather than on a flag day.
 
 The mapping rules are the backfill's, deliberately: two writers that disagree
 about what a dose becomes would be worse than the lag this removes.
-`tests/test_spine.py` pins them against it.
+`tests/test_record_moments.py` pins them against it.
 """
 
 from __future__ import annotations
@@ -48,7 +48,7 @@ def instant(d: date | datetime | None) -> datetime | None:
     off an instant, arriving from the other direction.
 
     The composer anchors prose at noon for exactly this reason, and so did the
-    mirror this module replaced; `tests/test_spine_invariants.py` pins it, which
+    mirror this module replaced; `tests/test_moment_invariants.py` pins it, which
     is how the midnight version of this function was caught.
     """
     if d is None:
@@ -189,7 +189,7 @@ async def record_task(session: AsyncSession, task: Any) -> None:
 
     One moment, not two. Finishing is an occurrence and belongs here; being
     scheduled for Tuesday is an *intention*, which lives on the task itself and
-    needs no shadow on the spine. Reopening deletes rather than leaving a moment
+    needs no shadow moment. Reopening deletes rather than leaving a moment
     asserting a finish that was undone.
     """
     if task.completed_at is not None:
@@ -219,7 +219,7 @@ async def record_task(session: AsyncSession, task: Any) -> None:
     # No `work` moment. A scheduled task *is* the intention, and a shadow
     # moment restating `tasks.scheduled_date` was the same fact in two places —
     # the duplication this model exists to remove. Its completion counterpart
-    # stays, because finishing is an occurrence and belongs on the spine.
+    # stays: finishing is an occurrence, so it gets a moment.
     await forget(session, f"task:{task.id}:work")
 
 

@@ -16,7 +16,7 @@ from wild_life.authz import (
     scope_task_create,
 )
 from wild_life.db.session import get_session
-from wild_life.spine import (
+from wild_life.record_moments import (
     forget_for,
     link_intention,
     record_task,

@@ -1,4 +1,4 @@
-# Moments — the spine
+# Moments
 
 The kind vocabulary and the shape it produced. The migration onto it is done —
 see *The migration is finished* — and the mapping tables below are kept as the
@@ -70,7 +70,7 @@ Deliberately absent:
              ▼                                     ▼
      ┌───────────────────┐                  ┌──────────────┐
      │      moments      │                  │  rule_links  │
-     │    (the spine)    │                  └──────────────┘
+     │  (what happened)  │                  └──────────────┘
      └──┬────┬────┬───┬──┘
         │    │    │   └──────────────────────────┐
         │    │    └───────────────┐              │
@@ -137,7 +137,7 @@ Five things the diagram is making a point about:
 | `projects.last_activity_date` | dropped; it is a fold over moments |
 | `affiliations.start_date`/`end_date` | unchanged — an externally determined validity interval, not a lifespan of mine |
 | `tasks.claimed_by_id`/`claimed_at` | unchanged — a cooperative lock, infrastructure, not an ask |
-| `change_log`, `created_at`/`updated_at`, `geocode_cache.fetched_at`, `api_tokens.revoked_at` | unchanged — the system spine and infrastructure timestamps are not life |
+| `change_log`, `created_at`/`updated_at`, `geocode_cache.fetched_at`, `api_tokens.revoked_at` | unchanged — the system's own bookkeeping and infrastructure timestamps are not life |
 | `whiteboard` | unchanged — no date, no subject, one buffer |
 | `notes.mood` | dropped — a free-text vocabulary nobody chose and nothing read. A Metric if it is ever wanted |
 
@@ -151,7 +151,7 @@ from the interval rather than stored beside it.
 | --- | --- |
 | Schema (`moments`, links, payloads, `calendar_records`, `dependencies`, `moment_images`) | applied |
 | `/moments` — CRUD, timeline, `unfiled`, rail, images | live |
-| **Every act writes a moment inline**, in its own transaction (`spine.py`) | live |
+| **Every act writes a moment inline**, in its own transaction (`record_moments.py`) | live |
 | **Prose surfaces** — Journal, Inbox, every record's Log, both composers | on moments |
 | **A moment's own Log** — a moment is a legal `subject`, so an occasion has notes | live; no exception by kind |
 | **Rules** — one cadence expression, freed from `protocol_id` | generalised `Routine` + `rule_links` |
@@ -163,7 +163,7 @@ from the interval rather than stored beside it.
 | The `event_id` columns those tables left behind | **dropped** (`e7f8a9b0c1d2`) |
 | `event` and `note` as `EntityType` values | **retired** |
 
-**Nothing lags any more, and nothing is written twice.** `spine.py` records the
+**Nothing lags any more, and nothing is written twice.** `record_moments.py` records the
 moment for an act in the same transaction as the row the act wrote, so the
 timeline and every record's Log are as current as the database. Each derived
 moment is named after its source row (`task:<id>:completion`) and

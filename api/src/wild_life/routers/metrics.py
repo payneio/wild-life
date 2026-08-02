@@ -10,7 +10,7 @@ from wild_life.db.session import get_session
 from wild_life.derivations import DERIVATIONS, series_for
 from wild_life.models.metrics import Metric, MetricEntry
 from wild_life.routers.crud import crud_router
-from wild_life.spine import record_metric_entry
+from wild_life.record_moments import record_metric_entry
 from wild_life.schemas.metrics import (
     DerivationInfo,
     MetricCreate,
@@ -44,7 +44,7 @@ router.include_router(
         read_schema=MetricEntryRead,
         update_schema=MetricEntryUpdate,
         on_write=record_metric_entry,
-        spine_entity="metric_entry",
+        source_type="metric_entry",
         order_by=MetricEntry.recorded_at.desc(),
     )
 )

@@ -17,7 +17,7 @@ from wild_life import geocode
 from wild_life.config import settings
 from wild_life.db.session import get_session
 from wild_life.geofence import invalidate_fences, rebuild_visits
-from wild_life.spine import forget
+from wild_life.record_moments import forget
 
 
 from wild_life.models.locations import Location, LocationPing, LocationVisit

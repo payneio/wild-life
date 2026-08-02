@@ -102,7 +102,7 @@ export type OrgStatus = Organization["status"]
 export type ReviewType = Review["review_type"]
 // Read off a moment link, which is now the canonical soft-polymorphic reference
 // in the model: every involvement flows through one, so the union cannot name a
-// type the spine can't point at.
+// type a moment link can't point at.
 export type EntityType = MomentLink["entity_type"]
 
 // --- moments ----------------------------------------------------------------

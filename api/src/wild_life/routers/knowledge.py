@@ -4,7 +4,7 @@ from fastapi import APIRouter
 
 from wild_life.models.knowledge import Decision, Resource
 from wild_life.routers.crud import crud_router
-from wild_life.spine import record_finish
+from wild_life.record_moments import record_finish
 from wild_life.schemas.knowledge import (
     DecisionCreate,
     DecisionRead,
@@ -36,7 +36,7 @@ router.include_router(
         read_schema=DecisionRead,
         update_schema=DecisionUpdate,
         on_write=lambda s, o: record_finish(s, "decision", o),
-        spine_entity="decision",
+        source_type="decision",
         order_by=Decision.created_at.desc(),
     )
 )

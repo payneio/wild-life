@@ -57,7 +57,7 @@ def sweep_test_rows() -> Generator[None, None, None]:
     with eng.begin() as conn:
         # Moments first: a derived moment names its source row, so it has to go
         # before the row does or the ref stops resolving. The surfaces now write
-        # the spine inline, which means a test that creates a task also creates
+        # moments inline, which means a test that creates a task also creates
         # moments — and the sweep that did not know about them was leaving those
         # in the live app's timeline.
         conn.execute(text("DELETE FROM wild_life.moments WHERE title LIKE 'ZZ-%'"))

@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wild_life.db.session import get_session
-from wild_life.spine import forget_for, record_routine_instance
+from wild_life.record_moments import forget_for, record_routine_instance
 from wild_life.models.routines import Routine, RoutineInstance
 from wild_life.routers.crud import crud_router
 from wild_life.schemas.routines import (
@@ -56,7 +56,7 @@ router.include_router(
         update_schema=RoutineInstanceUpdate,
         order_by=RoutineInstance.scheduled_date.desc(),
         on_write=_record_instance,
-        spine_entity="routine_instance",
+        source_type="routine_instance",
     )
 )
 

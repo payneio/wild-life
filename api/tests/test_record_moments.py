@@ -1,4 +1,4 @@
-"""Acts write the spine as they happen, not five minutes later.
+"""Acts write their moments as they happen, not five minutes later.
 
 Before this, every surface except moments/occurrences/calendar-mail wrote its own
 table and became a moment only when the mirror tick ran — so the timeline and
@@ -22,7 +22,7 @@ from sqlalchemy import create_engine, text
 
 from wild_life.config import settings
 
-MARK = "ZZ-spine"
+MARK = "ZZ-record"
 
 
 def _post(client: TestClient, h: dict, path: str, **body: object) -> dict:
@@ -252,7 +252,7 @@ class TestWritingTwiceWritesOnce:
 
         This began as "the mirror and the act agree" — the property that let both
         writers run at once during the cut-over. The mirror is gone, and the
-        property is still the one holding the spine together: an act repeated,
+        property is still the one that keeps moments correct: an act repeated,
         edited, or replayed corrects the moment it already wrote instead of
         laying down a second one. `uq_moments_source_ref` is what enforces it.
         """

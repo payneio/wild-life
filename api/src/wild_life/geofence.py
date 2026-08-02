@@ -35,7 +35,7 @@ from wild_life.config import settings
 from wild_life.geo import beyond_latitude_band, encloses, fit_score, haversine_m
 from types import SimpleNamespace
 
-from wild_life.spine import forget, record_visit
+from wild_life.record_moments import forget, record_visit
 from wild_life.models.locations import Location, LocationPing, LocationVisit
 
 
@@ -439,7 +439,7 @@ async def rebuild_visits(
         await session.execute(
             LocationVisit.__table__.insert(), [v.as_row() for v in derived]
         )
-        # The bulk insert bypasses the reconciler above, so the spine is written
+        # The bulk insert bypasses the reconciler above, so the moment is written
         # here rather than left to the next tick.
         for v in derived:
             await record_visit(session, SimpleNamespace(**v.as_row()))

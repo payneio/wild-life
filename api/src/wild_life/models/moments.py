@@ -1,6 +1,6 @@
 """Moment — something that happened, or that you intend to happen.
 
-The spine of the app. A life is a series of moments; areas, programs, people and
+A life is a series of moments; areas, programs, people and
 medications are their subjects and objects, not their owners. See
 ``api/docs/moments.md`` for the kind vocabulary and the migration mapping, and
 the design record for why.
@@ -196,7 +196,7 @@ class MomentImage(UUIDPrimaryKey, TimestampMixin, Base):
 
     The same shape as ``NoteImage``, which it succeeds. Writing prose without
     being able to attach what you photographed is a smaller app than the one that
-    exists, so the spine inherits this rather than leaving 13 pictures behind on
+    exists, so moments inherit this rather than leaving 13 pictures behind on
     rows nothing renders.
     """
 

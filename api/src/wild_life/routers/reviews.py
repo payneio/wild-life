@@ -22,7 +22,7 @@ from wild_life.models.routines import Routine, RoutineInstance
 from wild_life.models.tasks import Task
 from wild_life.models.tracking import Delegation
 from wild_life.routers.crud import crud_router
-from wild_life.spine import record_finish
+from wild_life.record_moments import record_finish
 from wild_life.schemas.reviews import (
     ReviewCreate,
     ReviewDashboard,
@@ -57,7 +57,7 @@ router.include_router(
         read_schema=ReviewRead,
         update_schema=ReviewUpdate,
         on_write=lambda s, o: record_finish(s, "review", o),
-        spine_entity="review",
+        source_type="review",
         order_by=Review.created_at.desc(),
     )
 )

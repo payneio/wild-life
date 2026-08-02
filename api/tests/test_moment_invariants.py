@@ -1,4 +1,4 @@
-"""Invariants the moment spine must hold, whatever wrote it.
+"""Invariants moments must hold, whatever wrote them.
 
 These run against the real Wild PC Postgres like the rest of the suite, but they
 only read. They outlived the mirror that used to produce the corpus: what is
@@ -16,7 +16,7 @@ import pytest
 from sqlalchemy import create_engine, text
 
 from wild_life.config import settings
-from wild_life.spine import instant
+from wild_life.record_moments import instant
 from wild_life.schemas.common import MomentKind, MomentRole
 
 

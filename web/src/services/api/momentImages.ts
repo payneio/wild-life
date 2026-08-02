@@ -8,7 +8,7 @@ export type PendingImage = { tmp: string; file: File }
  * The inline markdown token that references a moment image in a body.
  *
  * Succeeds `note-image:`, which the backfill rewrote in place — bodies and bytes
- * both moved, so the 13 pictures on 7 entries render from the spine rather than
+ * both moved, so the 13 pictures on 7 entries render from moments rather than
  * being left behind on rows nothing draws.
  */
 export const momentImageToken = (id: string) => `![](moment-image:${id})`

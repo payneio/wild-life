@@ -30,10 +30,10 @@ postgres. All tables live in an isolated Postgres schema **`wild_life`**.
 - `auth.py` — **pure-ASGI** `BearerAuthMiddleware` (not BaseHTTPMiddleware, which
   breaks async SQLAlchemy). Runs before routing; `/health` + docs are open;
   `OPTIONS` (CORS preflight) passes through.
-- `models/moments.py` — **the spine.** A life is a series of moments; every other
-  object is their subject rather than their owner. Read `docs/moments.md` before
-  touching it: the kind vocabulary, the four link roles, and why tense is two
-  column pairs rather than a status enum.
+- `models/moments.py` — **every dated thing lands here.** A life is a series of
+  moments; every other object is their subject rather than their owner. Read
+  `docs/moments.md` before touching it: the kind vocabulary, the four link roles,
+  and why tense is two column pairs rather than a status enum.
 - `models/` — the standing things moments are about: `core` (Area/Program/Project),
   `tasks`, `people`, `organizations`, `locations`, `routines` (a cadence *and* a
   practice — see the caveat below), `outcomes`, `metrics` + `metric_groups`,
@@ -45,14 +45,14 @@ postgres. All tables live in an isolated Postgres schema **`wild_life`**.
   validated by `Literal`s in `schemas/common.py`. Cross-entity links to
   area/program/project are typed FKs; `moment_links` is the soft polymorphic
   edge (`entity_type`/`entity_id`, no FK) because a moment may concern anything.
-- `spine.py` — **every act writes its moment inline**, in the same transaction as
-  the row the act wrote, so the timeline never lags the table it came from. Each
-  derived moment is named after its source (`task:<id>:completion`) and
-  `uq_moments_source_ref` allows one per name, so writing twice corrects rather
-  than duplicates. The writers retract too: reopening a task deletes its
-  completion. `crud_router` takes `on_write`/`on_delete` so a router cannot
-  forget. The pre-inversion tables and the mirror that fed them are gone; their
-  rows are in `migrations/legacy/*.csv`.
+- `record_moments.py` — **every act writes its moment inline**, in the same
+  transaction as the row the act wrote, so the timeline never lags the table it
+  came from. Each derived moment is named after its source
+  (`task:<id>:completion`) and `uq_moments_source_ref` allows one per name, so
+  writing twice corrects rather than duplicates. The writers retract too:
+  reopening a task deletes its completion. `crud_router` takes
+  `on_write`/`on_delete` so a router cannot forget. The pre-inversion tables and
+  the mirror that fed them are gone; their rows are in `migrations/legacy/*.csv`.
 - `schemas/` — Pydantic v2 Create/Update/Read per module (Read = `from_attributes`);
   shared enums + `Entity` base in `common.py`.
 - `routers/crud.py` — generic CRUD-router factory; most routers compose one per

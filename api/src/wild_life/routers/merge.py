@@ -93,7 +93,7 @@ NAME_COL: dict[str, str] = {
 
 # Soft-poly (table, type_col, id_col) — NOT FKs. change_log deliberately omitted.
 SOFT_POLY = [
-    # The spine. Everything a merge has to carry now lives here: a moment's
+    # Moments. Everything a merge has to carry now lives here: a moment's
     # subject, the people who were there, the place it happened, and what it
     # merely named are all one soft-poly edge. Its absence was a live defect —
     # merging two people repointed their commitments and left every moment they

@@ -78,7 +78,7 @@ function useYears(years: number[]) {
  *  Six supplements and two readings are a *pattern*, not eight events, and eight
  *  rows of them buries the conversation you had that afternoon. The count is the
  *  honest summary; the detail is one tap away for the day you actually want it. */
-function SmallCluster({ moments, spine }: { moments: Moment[]; spine: Spine }) {
+function SmallCluster({ moments, edge }: { moments: Moment[]; edge: Edge }) {
   const [open, setOpen] = useState(false)
   const resolve = useEntityResolver()
   const byKind = useMemo(() => {
@@ -93,8 +93,8 @@ function SmallCluster({ moments, spine }: { moments: Moment[]; spine: Spine }) {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className={`group flex w-full items-center gap-2 rounded-r-lg border-l-2 py-1 pl-2 text-left transition hover:bg-slate-100/60 ${spine.dim}`}
-        style={{ borderColor: spine.color }}
+        className={`group flex w-full items-center gap-2 rounded-r-lg border-l-2 py-1 pl-2 text-left transition hover:bg-slate-100/60 ${edge.dim}`}
+        style={{ borderColor: edge.color }}
       >
         <span className="flex shrink-0 items-center gap-0.5">
           {moments.slice(0, 10).map((m) => (
@@ -141,13 +141,13 @@ function SmallCluster({ moments, spine }: { moments: Moment[]; spine: Spine }) {
 }
 
 /** Something that closed. A line — it has an outcome, not content. */
-function MediumRow({ moment, spine }: { moment: Moment; spine: Spine }) {
+function MediumRow({ moment, edge }: { moment: Moment; edge: Edge }) {
   const resolve = useEntityResolver()
   return (
     <Link
       to={routeForMoment(moment)}
-      className={`group flex items-center gap-2.5 rounded-r-lg border-l-2 py-1 pl-2 transition hover:bg-slate-100/60 ${spine.dim}`}
-      style={{ borderColor: spine.color }}
+      className={`group flex items-center gap-2.5 rounded-r-lg border-l-2 py-1 pl-2 transition hover:bg-slate-100/60 ${edge.dim}`}
+      style={{ borderColor: edge.color }}
     >
       <span
         className="h-2 w-2 shrink-0 rounded-[2px]"
@@ -162,7 +162,7 @@ function MediumRow({ moment, spine }: { moment: Moment; spine: Spine }) {
 
 /** Time you spent somewhere, or words you wrote. The only things with a body
  *  worth reading in place, so the only things that get room. */
-function LargeBlock({ moment, spine }: { moment: Moment; spine: Spine }) {
+function LargeBlock({ moment, edge }: { moment: Moment; edge: Edge }) {
   const resolve = useEntityResolver()
   const subject = subjectOf(moment)
   const when = whenOf(moment)
@@ -174,8 +174,8 @@ function LargeBlock({ moment, spine }: { moment: Moment; spine: Spine }) {
 
   return (
     <div
-      className={`my-1 rounded-r-lg border-l-2 bg-surface/60 py-1.5 pl-3 transition hover:bg-surface ${spine.dim}`}
-      style={{ borderColor: spine.color }}
+      className={`my-1 rounded-r-lg border-l-2 bg-surface/60 py-1.5 pl-3 transition hover:bg-surface ${edge.dim}`}
+      style={{ borderColor: edge.color }}
     >
       <Link to={routeForMoment(moment)} className="block">
         <div className="flex items-baseline gap-2">
@@ -231,16 +231,16 @@ function SubjectChip({
  * Where a moment belongs to no program the edge carries its family colour, so
  * the encoding degrades to what it replaced rather than to nothing.
  */
-interface Spine {
+interface Edge {
   color: string
   dim: string
 }
 
-function spineFor(
+function edgeFor(
   moment: Moment,
   theme: Theme | undefined,
   focus: Theme | null,
-): Spine {
+): Edge {
   const color = theme ? themeColor(theme.id) : colorOf(moment.kind)
   const dim = focus && theme?.id !== focus.id ? "opacity-25" : ""
   return { color, dim }
@@ -279,15 +279,15 @@ function DayGroup({
       <div className="min-w-0">
         {rest.map((m) =>
           WEIGHT_OF[m.kind] === "large" ? (
-            <LargeBlock key={m.id} moment={m} spine={spineFor(m, themeOf(m), focus)} />
+            <LargeBlock key={m.id} moment={m} edge={edgeFor(m, themeOf(m), focus)} />
           ) : (
-            <MediumRow key={m.id} moment={m} spine={spineFor(m, themeOf(m), focus)} />
+            <MediumRow key={m.id} moment={m} edge={edgeFor(m, themeOf(m), focus)} />
           ),
         )}
         {small.length > 0 && (
           <SmallCluster
             moments={small}
-            spine={spineFor(small[0], themeOf(small[0]), focus)}
+            edge={edgeFor(small[0], themeOf(small[0]), focus)}
           />
         )}
       </div>

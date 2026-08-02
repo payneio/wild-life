@@ -103,7 +103,7 @@ export const router = createBrowserRouter([
       // and a record's Log all route here, whatever act the moment is.
       { path: "moments/:id", element: <RecordPage entityKey="moment" backTo="/notes" backLabel="Journal" /> },
       // Everything recorded, read downward like a core sample. The payoff of the
-      // inversion: one query answers thirty years, because there is one spine.
+      // inversion: one query answers thirty years, because every dated thing is a moment.
       { path: "timeline", element: <TimelinePage /> },
       // The whiteboard is one buffer, not a collection — no list, no detail, no id.
       { path: "whiteboard", element: <WhiteboardPage /> },

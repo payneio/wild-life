@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from wild_life.db.session import get_session
 from wild_life.query import apply_query
-from wild_life.spine import forget_for
+from wild_life.record_moments import forget_for
 
 
 def crud_router(
@@ -30,7 +30,7 @@ def crud_router(
     list_filter: Callable[[Any, Mapping[str, str]], Any] | None = None,
     on_write: Callable[[AsyncSession, Any], Awaitable[None]] | None = None,
     on_delete: Callable[[AsyncSession, UUID], Awaitable[None]] | None = None,
-    spine_entity: str | None = None,
+    source_type: str | None = None,
 ) -> APIRouter:
     """Build a router exposing standard CRUD for ``model``.
 
@@ -39,12 +39,12 @@ def crud_router(
     hook rather than a bespoke router because the alternative, a second ``GET ""``
     shadowing this one, hides the generic behaviour behind a copy of it.
 
-    ``on_write`` records the act on the spine in the *same transaction* as the
+    ``on_write`` records the act as a moment in the *same transaction* as the
     row, so the timeline can never disagree with the table it was derived from.
     It is a hook here rather than a line in each router for the reason the whole
     factory exists: twenty-odd routers that must each remember a step will not
     all remember it, and the one that forgets is invisible until someone notices
-    their Log is missing something. ``spine_entity`` names the type for the
+    their Log is missing something. ``source_type`` names the type for the
     delete path, so removing a row takes its moments with it — a timeline that
     keeps asserting a finish you undid is worse than one that lags. ``on_delete``
     is for rows whose children carry moments and vanish by cascade.
@@ -137,8 +137,8 @@ def crud_router(
         obj = await session.get(model, item_id)
         if obj is None:
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Not found")
-        if spine_entity is not None:
-            await forget_for(session, spine_entity, item_id)
+        if source_type is not None:
+            await forget_for(session, source_type, item_id)
         # For rows whose *children* carry moments. A database-level cascade
         # removes those children without any Python running, so a moment about
         # them would survive the thing it was about — a visit to a place that no

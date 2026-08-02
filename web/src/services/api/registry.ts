@@ -285,7 +285,7 @@ export const REGISTRY: Record<string, EntityDef> = {
   ] },
   location: { key: "location", label: "Location", crud: locations, fields: LOCATION_FIELDS, title: (e) => e.name, context: (e) => e.city ?? undefined, entityType: "location", titleField: "name", quickCreate: true, detail: LocationRecord },
   protocol: { key: "protocol", label: "Protocol", crud: protocols, fields: PROTOCOL_FIELDS, title: (e) => e.name, parent: (e) => refOf(e, ["program_id", "program"]), entityType: "protocol", titleField: "name", quickCreate: true, detail: ProtocolRecord },
-  // The spine. Deliberately has no `parent`: involvement replaces rootedness, so
+  // Moments. Deliberately has no `parent`: involvement replaces rootedness, so
   // the display parent is *derived* tightest-first from the links rather than
   // read off a privileged column — which is what lets one moment concern the
   // program and the medication both.

@@ -39,7 +39,7 @@ async def _digest_lines(session: AsyncSession, today: date) -> list[str]:
     end = datetime.combine(today, time.max, tzinfo=UTC)
     mmdd = today.strftime("%m-%d")
 
-    # Counted from the spine, and through the same expansion the calendar draws:
+    # Counted from moments, and through the same expansion the calendar draws:
     # a recurring meeting today is a projection, not a row, so a plain count of
     # stored moments would say the day was empty.
     events_n = len(await collect(session, start, end, kind=["occasion"]))

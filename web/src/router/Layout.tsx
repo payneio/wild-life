@@ -71,7 +71,7 @@ const DAILY: Item[] = [
   { to: "/whiteboard", label: "Whiteboard", icon: StickyNote },
 ]
 
-/** The spine, in containment order, then the recurring mode of work. A program's
+/** The work hierarchy, in containment order, then the recurring mode of work. A program's
  *  effort is either finite (projects → tasks) or repeating (protocols →
  *  routines); protocols sit after the chain rather than beside projects because
  *  Area → Program → Project → Task is the sequence you already think in. */

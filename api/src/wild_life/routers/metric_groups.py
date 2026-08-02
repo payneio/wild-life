@@ -8,7 +8,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wild_life.db.session import get_session
-from wild_life.spine import record_reading as spine_record_reading
+from wild_life.record_moments import record_reading as record_panel_reading
 from wild_life.models.metric_groups import GroupMember, GroupReading, MetricGroup
 from wild_life.models.metrics import MetricEntry
 from wild_life.routers.crud import crud_router
@@ -100,7 +100,7 @@ async def record_reading(
     await session.flush()
     await session.refresh(reading)
     # One act, N metrics, N values — the moment is the occasion they share.
-    await spine_record_reading(
+    await record_panel_reading(
         session,
         reading_id=reading.id,
         recorded_at=payload.recorded_at,
