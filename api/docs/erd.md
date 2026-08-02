@@ -93,11 +93,22 @@ flowchart TB
 
 ---
 
-## 1. Moments — what happened (2,864 moments · 2,709 links)
+## 1. Moments — what happened (2,870 moments · 2,718 links)
 
 A life is a series of moments; every other object is their *subject* rather than
-their owner. Tense is not a status — a moment is future or past according to
-whether `started_at` has arrived. See `moments.md` for why.
+their owner.
+
+**A moment is what happened.** It carries no window and no intention — those live
+on the intention (`tasks.not_before`/`due_date`, `outcomes.by_when`), where the
+two ends close on each other as a plan sharpens. `moments.window_start`/
+`window_end` did sit here once and all 485 ever written were zero-width, which is
+what retired them along with the `work` kind (`c1d2e3f4a5b6`).
+
+The apparent exception is not one. **6 rows have `started_at` in the future, all
+`occasion`** — scheduled meetings, the furthest 2026-08-28. A meeting next week is
+an occurrence whose time is already settled and has yet to arrive; that is not a
+range still closing, which is the thing moments deliberately cannot express.
+`started_at` is nullable but **null on none of the 2,870 rows**.
 
 Payload hangs off the **link**, not the moment: a reading belongs to
 *this moment concerning that metric*, so one measurement moment can carry a whole
@@ -108,7 +119,7 @@ erDiagram
     moments {
         uuid id PK
         text kind "MomentKind — 12 permitted, 10 in use"
-        timestamptz started_at "null until it is placed in time"
+        timestamptz started_at "nullable; null on 0 of 2,870 rows"
         timestamptz ended_at
         boolean all_day
         text title
@@ -210,19 +221,22 @@ erDiagram
 
 | kind | rows | | kind | rows |
 |---|---:|---|---|---:|
-| occasion | 1,316 | | dose | 56 |
-| observation | 622 | | activity | 56 |
+| occasion | 1,316 | | activity | 59 |
+| observation | 622 | | dose | 56 |
 | completion | 424 | | decision | 8 |
 | reflection | 257 | | visit | 7 |
-| measurement | 117 | | capture | 1 |
+| measurement | 120 | | capture | 1 |
 | **exchange** | **0** | | **withdrawal** | **0** |
+
+**34 of those 120 `measurement` rows are test residue, not life** — see
+[What the ERD makes visible](#what-the-erd-makes-visible). Real total: 2,836.
 
 `work` was removed with its 402 rows (`c1d2e3f4a5b6`) — the window belonged to
 the intention, so a shadow moment said the same thing twice. `exchange` and
 `withdrawal` have never been written; `exchange` is the delegation half that has
 not been built.
 
-**Link roles**: `subject` 1,576 · `mention` 1,008 · `participant` 118 · `place` 7.
+**Link roles**: `subject` 1,585 · `mention` 1,008 · `participant` 118 · `place` 7.
 
 ---
 
@@ -798,23 +812,25 @@ erDiagram
 `record_reading` for a whole panel (`source_ref=group_reading:<id>`), the latter
 folding a panel's members into **one** measurement moment carrying many readings.
 
-The moment count reconciles exactly — 89 panels + 28 standalone entries = 117
-`measurement` moments. **The reading count does not:**
+**It reconciles exactly**, once the test suite's leavings are excluded:
 
 | | |
 |---|---:|
-| `metric_entries` in panels | 297 |
-| `moment_readings` under those panels | **353** |
-| panels where the two agree | 61 of 89 |
-| panels with more readings than entries | 28 |
-| panels with more entries than readings | 0 |
+| real panels | 58 |
+| panels where entries and readings agree | **58 of 58** |
+| `metric_entries` in those panels | 297 |
+| `moment_readings` under those panels | **297** |
+| standalone entries · their readings | 28 · 28 |
 
-56 readings on moments have no `metric_entries` row behind them, and the
-asymmetry is one-way — the moment side never has *fewer*. That is consistent with
-entries (or panel members) being removed without the derived readings being
-retracted, since `set_links` replaces a moment's links but a delete on the metric
-side has no writer here. Nothing in the schema or the tests currently checks the
-correspondence. Not diagnosed further; recorded so it is not rediscovered.
+92 panels + 28 standalone entries = 120 `measurement` moments, which reconciles
+exactly too.
+
+> **A first pass at this reported a 56-reading discrepancy. That was wrong.** The
+> query did not exclude rows the test suite leaves behind, and every one of the
+> panels it called over-counted was a `ZZ-` fixture. Corrected here rather than
+> quietly dropped, because the retraction is the more useful record: a
+> reconciliation query run against a database the tests write to has to exclude
+> them, and this one did not.
 
 ---
 
@@ -1059,12 +1075,15 @@ rather than proposals.
 would write to it. Reading either group as "unused, therefore droppable" would be
 a mistake in one of the two directions.
 
-**2. Measurement is stored twice, and the two have already drifted.** The moment
-side is derived from the metric side by `record_moments.py`, so it should
-reconcile. The moments do (117 = 89 panels + 28 standalone); the readings do not
-— 353 moment readings against 297 panel entries, with 28 of 89 panels over-counted and none
-under-counted (§7). Derived state with no retraction path and no test is how that
-happens.
+**2. The test suite leaks rows into the live database.** 36 `ZZ-` metric groups,
+34 group readings, and 34 `measurement` moments carrying 62 readings are sitting
+in the app's real data, and they accumulate with every run. Three gaps compound:
+`conftest.py` sweeps `moments WHERE title LIKE 'ZZ-%'`, but `record_reading`
+gives a panel's moment a body and **no title**, so those escape; `metric_groups`
+and `group_readings` are not in the sweep's `_MARKED` list, so the source rows
+survive; and the orphan pass that would catch a derived moment whose source is
+gone therefore never fires. The sweep runs at session start, so a run's own
+residue always outlives it.
 
 **3. Attention has no representation.** Every moment has a duration
 (`started_at`→`ended_at`) and nothing records whose attention it consumed, because
