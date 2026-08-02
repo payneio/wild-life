@@ -1023,7 +1023,7 @@ the application's job, not Postgres's**.
 
 | table | columns | permitted | observed |
 |---|---|---|---|
-| `moment_links` | `entity_type` / `entity_id` | all of `EntityType` (23) | task 827 · person 787 · metric 381 · project 144 · location 123 · organization 113 · area 108 · program 66 · medication 61 · routine 50 · moment 40 · decision 8 · request 1 |
+| `moment_links` | `entity_type` / `entity_id` | all of `EntityType` (22) | task 827 · person 787 · metric 381 · project 144 · location 123 · organization 113 · area 108 · program 66 · medication 61 · routine 50 · moment 40 · decision 8 · request 1 |
 | `rule_links` | `entity_type` / `entity_id` | all | medication 15 · person 2 |
 | `tasks` | `scope_type` / `scope_id` | area, program, project | project 460 · program 5 · area 4 · null 1 |
 | `outcomes` | `entity_type` / `entity_id` | any scope | area 11 · program 10 |
@@ -1039,9 +1039,11 @@ the application's job, not Postgres's**.
 | `entity_links` | `source_*` / `target_*` | all | attendee 443 · diagnosed_by 4 |
 | `change_log` | `entity_type` / `entity_id` | all + non-entities | — |
 
-`EntityType` deliberately **excludes `event` and `note`**: both were retired by
-the inversion, and a type that can be named but not constructed is a constructor
-for something that cannot exist.
+`EntityType` deliberately **excludes `event`, `note` and `protocol_item`**: each
+names a table that no longer exists, and a type that can be named but not
+constructed is a constructor for something that cannot exist. `protocol_item`
+outlived its table until this survey found it, having pointed at nothing in any
+column above — which is exactly what kept it invisible.
 
 ---
 
