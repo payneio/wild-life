@@ -66,9 +66,6 @@ async def upsert_moment(
     started_at: datetime | None = None,
     ended_at: datetime | None = None,
     all_day: bool = False,
-    window_start: datetime | None = None,
-    window_end: datetime | None = None,
-    expected_minutes: int | None = None,
     title: str | None = None,
     body: str = "",
     source: str = "authored",
@@ -84,9 +81,6 @@ async def upsert_moment(
         "started_at": started_at,
         "ended_at": ended_at,
         "all_day": all_day,
-        "window_start": window_start,
-        "window_end": window_end,
-        "expected_minutes": expected_minutes,
         "title": title,
         "body": body,
         "source": source,
@@ -193,10 +187,10 @@ async def unlink_intention(
 async def record_task(session: AsyncSession, task: Any) -> None:
     """A task's completion, and its intention to work on it.
 
-    Two moments, not one: finishing is an occurrence and being scheduled for
-    Tuesday is an intention with a window. Either may vanish — reopening a task
-    clears `completed_at`, unscheduling clears the window — so the absent case
-    deletes rather than leaving a moment asserting a finish that was undone.
+    One moment, not two. Finishing is an occurrence and belongs here; being
+    scheduled for Tuesday is an *intention*, which lives on the task itself and
+    needs no shadow on the spine. Reopening deletes rather than leaving a moment
+    asserting a finish that was undone.
     """
     if task.completed_at is not None:
         mid = await upsert_moment(
@@ -222,27 +216,11 @@ async def record_task(session: AsyncSession, task: Any) -> None:
             session, intention_type="task", intention_id=task.id, role="discharges"
         )
 
-    if task.scheduled_date is not None:
-        timed = getattr(task, "scheduled_time", None)
-        if timed is not None:
-            start = datetime.combine(task.scheduled_date, timed, tzinfo=timezone.utc)
-            minutes = task.estimated_minutes or 60
-        else:
-            start = instant(task.scheduled_date)
-            minutes = task.estimated_minutes
-        mid = await upsert_moment(
-            session,
-            f"task:{task.id}:work",
-            kind="work",
-            all_day=timed is None,
-            window_start=start,
-            window_end=start,
-            expected_minutes=minutes,
-            title=task.title,
-        )
-        await set_links(session, mid, [("subject", "task", task.id)])
-    else:
-        await forget(session, f"task:{task.id}:work")
+    # No `work` moment. A scheduled task *is* the intention, and a shadow
+    # moment restating `tasks.scheduled_date` was the same fact in two places —
+    # the duplication this model exists to remove. Its completion counterpart
+    # stays, because finishing is an occurrence and belongs on the spine.
+    await forget(session, f"task:{task.id}:work")
 
 
 async def record_routine_instance(
@@ -251,21 +229,25 @@ async def record_routine_instance(
     """A logged protocol step: a dose if it names a medication, else an activity.
 
     The medication may be on the instance or on the rule it fulfils, and only the
-    first was counted once before — hence reading both. `scheduled_date` is the
-    intention and `completed_at` the occurrence, which is the shape the rest of
-    the spine has; a skipped step keeps the window and has no occurrence.
+    first was counted once before — hence reading both.
+
+    Only a *taken* step is a moment. A pending one is the rule's projection, which
+    the calendar already computes and never stores; a skipped one is a decision,
+    recorded on the instance as its status and its reason. Both were moments once,
+    placed by a window that stood in for the occurrence they lacked — and a moment
+    that never happened, sitting on the timeline of things that did, is the
+    confusion the windows were removed to end.
     """
+    if inst.completed_at is None:
+        await forget(session, f"routine_instance:{inst.id}")
+        return
     med = inst.medication_id or (routine.medication_id if routine else None)
     kind = "dose" if med else "activity"
-    window = instant(inst.scheduled_date)
     mid = await upsert_moment(
         session,
         f"routine_instance:{inst.id}",
         kind=kind,
         started_at=inst.completed_at,
-        all_day=inst.completed_at is None,
-        window_start=window,
-        window_end=window,
         title=routine.name if routine else None,
     )
     edges: list[Edge] = []

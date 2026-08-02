@@ -51,9 +51,6 @@ class MomentCreate(BaseModel):
     started_at: datetime | None = None
     ended_at: datetime | None = None
     all_day: bool = False
-    window_start: datetime | None = None
-    window_end: datetime | None = None
-    expected_minutes: int | None = None
     title: str | None = None
     body: str = ""
     source: MomentSource = "authored"
@@ -71,9 +68,6 @@ class MomentUpdate(BaseModel):
     started_at: datetime | None = None
     ended_at: datetime | None = None
     all_day: bool | None = None
-    window_start: datetime | None = None
-    window_end: datetime | None = None
-    expected_minutes: int | None = None
     title: str | None = None
     body: str | None = None
     source: MomentSource | None = None
@@ -98,9 +92,6 @@ class MomentRead(Entity):
     started_at: datetime | None
     ended_at: datetime | None
     all_day: bool
-    window_start: datetime | None
-    window_end: datetime | None
-    expected_minutes: int | None
     title: str | None
     body: str
     source: MomentSource

@@ -7,7 +7,13 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-from wild_life.schemas.common import EndingCause, EntityType, Entity, Priority, TaskStatus
+from wild_life.schemas.common import (
+    EndingCause,
+    EntityType,
+    Entity,
+    Priority,
+    TaskStatus,
+)
 
 
 class TaskCreate(BaseModel):
@@ -31,6 +37,7 @@ class TaskCreate(BaseModel):
     accountable_owner_id: uuid.UUID | None = None
     responsible_id: uuid.UUID | None = None
     assignee_id: uuid.UUID | None = None
+    not_before: date | None = None
     due_date: date | None = None
     scheduled_date: date | None = None
     scheduled_time: time | None = None
@@ -82,6 +89,7 @@ class TaskUpdate(BaseModel):
     accountable_owner_id: uuid.UUID | None = None
     responsible_id: uuid.UUID | None = None
     assignee_id: uuid.UUID | None = None
+    not_before: date | None = None
     due_date: date | None = None
     scheduled_date: date | None = None
     scheduled_time: time | None = None
@@ -105,6 +113,7 @@ class TaskRead(Entity):
     accountable_owner_id: uuid.UUID | None
     responsible_id: uuid.UUID | None
     assignee_id: uuid.UUID | None
+    not_before: date | None
     due_date: date | None
     scheduled_date: date | None
     scheduled_time: time | None

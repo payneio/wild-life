@@ -21,12 +21,12 @@ from sqlalchemy.orm import Mapped, mapped_column
 from wild_life.db.base import Base
 from wild_life.models.mixins import TimestampMixin, UUIDPrimaryKey
 
+
 # A task hangs off exactly one rung of Area → Program → Project, or off none at
 # all while it is still in the inbox. Not "exactly one": capture takes a title
 # and nothing else, so unfiled is a designed state, not a defect.
 class Task(UUIDPrimaryKey, TimestampMixin, Base):
     __tablename__ = "tasks"
-
 
     title: Mapped[str] = mapped_column(Text, nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
@@ -72,6 +72,12 @@ class Task(UUIDPrimaryKey, TimestampMixin, Base):
     assignee_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("people.id", ondelete="SET NULL"), index=True
     )
+    # The earliest end of the commitment's window. `due_date` is the latest;
+    # narrowing is the two closing on each other. Distinct from
+    # `scheduled_date`, which is when you plan to give it attention — if the
+    # thing you were waiting for arrives early, the task becomes available
+    # rather than staying hidden until a day you happened to pick.
+    not_before: Mapped[date | None] = mapped_column(Date)
     due_date: Mapped[date | None] = mapped_column(Date)
     scheduled_date: Mapped[date | None] = mapped_column(Date)
     # Optional time-of-day for calendar time-blocking; with estimated_minutes it

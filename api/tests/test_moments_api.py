@@ -5,7 +5,7 @@ Writes to the real castle Postgres like the rest of the suite, so everything is
 """
 
 from collections.abc import Iterator
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 
 import pytest
 from fastapi.testclient import TestClient
@@ -157,70 +157,51 @@ class TestTheTimelineOfAThing:
         assert made["id"] not in [m["id"] for m in subjects]
 
 
-class TestALapseIsDerived:
-    def test_a_passed_window_with_no_occurrence_is_unfulfilled(
-        self, client: TestClient, auth_headers: dict, require_db: None, cleanup: list
-    ) -> None:
-        past = datetime.now(UTC) - timedelta(days=2)
-        made = _make(
-            client,
-            auth_headers,
-            cleanup,
-            kind="work",
-            window_start=past.isoformat(),
-            window_end=past.isoformat(),
-        )
-        listed = client.get("/moments?unfulfilled=true", headers=auth_headers).json()
-        assert made["id"] in [m["id"] for m in listed]
+class TestAMomentIsWhatHappened:
+    """A moment carries no window, and an intention is not one.
 
-    def test_withdrawing_it_takes_it_out(
+    It did carry one, and every one of the 485 ever written was zero-width: the
+    writers were fed single dates and could not have produced anything else. The
+    two-ended commitment those columns were reaching for lives on the intention,
+    where the ends can close on each other as a plan sharpens.
+    """
+
+    def test_a_moment_has_no_window(
         self, client: TestClient, auth_headers: dict, require_db: None, cleanup: list
     ) -> None:
-        past = datetime.now(UTC) - timedelta(days=2)
         made = _make(
             client,
             auth_headers,
             cleanup,
-            kind="work",
-            window_start=past.isoformat(),
-            window_end=past.isoformat(),
+            kind="observation",
+            started_at=datetime.now(UTC).isoformat(),
         )
-        client.patch(
-            f"/moments/{made['id']}",
+        assert "window_start" not in made
+        assert "window_end" not in made
+
+    def test_a_commitment_has_two_ends_and_they_are_on_the_task(
+        self, client: TestClient, auth_headers: dict, require_db: None
+    ) -> None:
+        """ "Redo the deck sometime this summer" — a season, not a deadline.
+
+        A due date alone had to lie about this, reporting overdue on the first
+        day after a window nothing bad happened in.
+        """
+        task = client.post(
+            "/tasks",
             json={
-                "withdrawn_at": datetime.now(UTC).isoformat(),
-                "withdrawal_reason": f"{MARK} decided against it",
+                "title": f"{MARK} redo the deck",
+                "not_before": "2026-06-01",
+                "due_date": "2026-08-31",
             },
             headers=auth_headers,
-        )
-        listed = client.get("/moments?unfulfilled=true", headers=auth_headers).json()
-        # Abandoned by choice is an act and is recorded; abandoned by neglect is
-        # a silence. Only the second is unfulfilled.
-        assert made["id"] not in [m["id"] for m in listed]
-
-    def test_an_occurrence_takes_it_out(
-        self, client: TestClient, auth_headers: dict, require_db: None, cleanup: list
-    ) -> None:
-        past = datetime.now(UTC) - timedelta(days=2)
-        made = _make(
-            client,
-            auth_headers,
-            cleanup,
-            kind="work",
-            window_start=past.isoformat(),
-            window_end=past.isoformat(),
-        )
-        client.patch(
-            f"/moments/{made['id']}",
-            json={"started_at": past.isoformat()},
-            headers=auth_headers,
-        )
-        after = client.get(f"/moments/{made['id']}", headers=auth_headers).json()
-        listed = client.get("/moments?unfulfilled=true", headers=auth_headers).json()
-        # The intention survives the occurrence: the delta between what you
-        # planned and what happened is the only way estimation improves.
-        assert after["window_start"] is not None
-        assert made["id"] not in [m["id"] for m in listed]
+        ).json()
+        try:
+            got = client.get(f"/tasks/{task['id']}", headers=auth_headers).json()
+            assert got["not_before"] == "2026-06-01"
+            assert got["due_date"] == "2026-08-31"
+        finally:
+            client.delete(f"/tasks/{task['id']}", headers=auth_headers)
 
 
 class TestEditing:
@@ -362,8 +343,8 @@ class TestTheJournalIsAKind:
         noise that made "every moment with Melissa" unanswerable.
         """
         # With the occurrence the composer always writes: prose is day-precision,
-        # and a moment with neither occurrence nor window sorts `nullslast`,
-        # which past 200 rows is off the end of the page.
+        # and a moment with no occurrence sorts `nullslast`, which past 200 rows
+        # is off the end of the page.
         reflected = _make(
             client,
             auth_headers,

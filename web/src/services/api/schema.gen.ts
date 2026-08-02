@@ -1042,10 +1042,9 @@ export interface paths {
          *     her at all"). It is repeatable, because the useful questions are about sets
          *     of roles rather than one: a record's Log asks for ``TIMELINE_ROLES`` and its
          *     backlinks panel asks for ``mention``, which is the same distinction the role
-         *     vocabulary was defined to make. ``unfulfilled`` is the derived lapse — a
-         *     window that has passed with nothing having happened in it and no decision to
-         *     drop it — which is a query rather than a stored state precisely so it can
-         *     never go stale.
+         *     vocabulary was defined to make. A lapsed intention is a question about
+         *     `tasks`, not about moments: a moment is what happened, so it cannot be the
+         *     thing that failed to.
          */
         get: operations["moments_list"];
         put?: never;
@@ -2454,6 +2453,40 @@ export interface paths {
         get: operations["whiteboard_get"];
         /** Set Whiteboard */
         put: operations["whiteboard_set"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/whiteboard/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Revisions */
+        get: operations["whiteboard_revisions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/whiteboard/revisions/{revision_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Revision */
+        get: operations["whiteboard_revision"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -4199,13 +4232,11 @@ export interface components {
             body: string;
             /** Ended At */
             ended_at?: Instant | null;
-            /** Expected Minutes */
-            expected_minutes?: number | null;
             /**
              * Kind
              * @enum {string}
              */
-            kind: "capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "work" | "completion" | "withdrawal" | "decision";
+            kind: "capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "completion" | "withdrawal" | "decision";
             /**
              * Links
              * @default []
@@ -4225,10 +4256,6 @@ export interface components {
             started_at?: Instant | null;
             /** Title */
             title?: string | null;
-            /** Window End */
-            window_end?: Instant | null;
-            /** Window Start */
-            window_start?: Instant | null;
         };
         /** MomentImageRead */
         MomentImageRead: {
@@ -4331,8 +4358,6 @@ export interface components {
             created_at: Instant;
             /** Ended At */
             ended_at: Instant | null;
-            /** Expected Minutes */
-            expected_minutes: number | null;
             /**
              * Id
              * Format: uuid
@@ -4342,7 +4367,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "work" | "completion" | "withdrawal" | "decision";
+            kind: "capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "completion" | "withdrawal" | "decision";
             /**
              * Links
              * @default []
@@ -4368,10 +4393,6 @@ export interface components {
              * Format: date-time
              */
             updated_at: Instant;
-            /** Window End */
-            window_end: Instant | null;
-            /** Window Start */
-            window_start: Instant | null;
             /** Withdrawal Reason */
             withdrawal_reason: string | null;
             /** Withdrawn At */
@@ -4385,10 +4406,8 @@ export interface components {
             body?: string | null;
             /** Ended At */
             ended_at?: Instant | null;
-            /** Expected Minutes */
-            expected_minutes?: number | null;
             /** Kind */
-            kind?: ("capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "work" | "completion" | "withdrawal" | "decision") | null;
+            kind?: ("capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "completion" | "withdrawal" | "decision") | null;
             /** Links */
             links?: components["schemas"]["MomentLinkRef"][] | null;
             /** Occurrence At */
@@ -4401,10 +4420,6 @@ export interface components {
             started_at?: Instant | null;
             /** Title */
             title?: string | null;
-            /** Window End */
-            window_end?: Instant | null;
-            /** Window Start */
-            window_start?: Instant | null;
             /** Withdrawal Reason */
             withdrawal_reason?: string | null;
             /** Withdrawn At */
@@ -4439,7 +4454,7 @@ export interface components {
              * @default occasion
              * @enum {string}
              */
-            kind: "capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "work" | "completion" | "withdrawal" | "decision";
+            kind: "capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "completion" | "withdrawal" | "decision";
             /**
              * Links
              * @default []
@@ -4642,6 +4657,8 @@ export interface components {
             kind: "standard" | "target";
             /** Metric Id */
             metric_id?: string | null;
+            /** Not Before */
+            not_before?: CalendarDay | null;
             /** Satisfied At */
             satisfied_at?: Instant | null;
             /** Statement */
@@ -4743,6 +4760,8 @@ export interface components {
             kind: "standard" | "target";
             /** Metric Id */
             metric_id: string | null;
+            /** Not Before */
+            not_before: CalendarDay | null;
             /** Satisfied At */
             satisfied_at: Instant | null;
             /** Statement */
@@ -4782,6 +4801,8 @@ export interface components {
             kind?: ("standard" | "target") | null;
             /** Metric Id */
             metric_id?: string | null;
+            /** Not Before */
+            not_before?: CalendarDay | null;
             /** Satisfied At */
             satisfied_at?: Instant | null;
             /** Statement */
@@ -5773,7 +5794,7 @@ export interface components {
              */
             interval_days: number;
             /** Kind */
-            kind?: ("capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "work" | "completion" | "withdrawal" | "decision") | null;
+            kind?: ("capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "completion" | "withdrawal" | "decision") | null;
             /** Medication Id */
             medication_id?: string | null;
             /**
@@ -5960,7 +5981,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "work" | "completion" | "withdrawal" | "decision";
+            kind: "capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "completion" | "withdrawal" | "decision";
             /** Medication Id */
             medication_id: string | null;
             /** Months */
@@ -6023,7 +6044,7 @@ export interface components {
             /** Interval Days */
             interval_days?: number | null;
             /** Kind */
-            kind?: ("capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "work" | "completion" | "withdrawal" | "decision") | null;
+            kind?: ("capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "completion" | "withdrawal" | "decision") | null;
             /** Medication Id */
             medication_id?: string | null;
             /** Months */
@@ -6130,6 +6151,8 @@ export interface components {
             estimated_minutes?: number | null;
             /** Generated By Moment Id */
             generated_by_moment_id?: string | null;
+            /** Not Before */
+            not_before?: CalendarDay | null;
             /** Position */
             position?: number | null;
             /**
@@ -6221,6 +6244,8 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Not Before */
+            not_before: CalendarDay | null;
             /** Position */
             position: number;
             /**
@@ -6277,6 +6302,8 @@ export interface components {
             ending_note?: string | null;
             /** Estimated Minutes */
             estimated_minutes?: number | null;
+            /** Not Before */
+            not_before?: CalendarDay | null;
             /** Position */
             position?: number | null;
             /** Priority */
@@ -6376,9 +6403,52 @@ export interface components {
             content: string;
             /** Updated At */
             updated_at?: Instant | null;
+            /**
+             * Version
+             * @default 0
+             */
+            version: number;
+        };
+        /** WhiteboardRevisionContent */
+        WhiteboardRevisionContent: {
+            /** Content */
+            content: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Replaced At
+             * Format: date-time
+             */
+            replaced_at: Instant;
+            /** Version */
+            version: number;
+        };
+        /** WhiteboardRevisionRead */
+        WhiteboardRevisionRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Preview */
+            preview: string;
+            /**
+             * Replaced At
+             * Format: date-time
+             */
+            replaced_at: Instant;
+            /** Size */
+            size: number;
+            /** Version */
+            version: number;
         };
         /** WhiteboardWrite */
         WhiteboardWrite: {
+            /** Base Version */
+            base_version: number;
             /**
              * Content
              * @default
@@ -9137,13 +9207,12 @@ export interface operations {
     moments_list: {
         parameters: {
             query?: {
-                kind?: ("capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "work" | "completion" | "withdrawal" | "decision") | null;
+                kind?: ("capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "completion" | "withdrawal" | "decision") | null;
                 linked_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
                 linked_id?: string | null;
                 role?: ("participant" | "place" | "subject" | "mention")[] | null;
                 since?: Instant | null;
                 until?: Instant | null;
-                unfulfilled?: boolean | null;
                 unfiled?: boolean | null;
             };
             header?: never;
@@ -9208,7 +9277,7 @@ export interface operations {
     moments_calendar: {
         parameters: {
             query?: {
-                kind?: ("capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "work" | "completion" | "withdrawal" | "decision") | null;
+                kind?: ("capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "completion" | "withdrawal" | "decision") | null;
                 linked_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
                 linked_id?: string | null;
                 role?: ("participant" | "place" | "subject" | "mention")[] | null;
@@ -9694,7 +9763,7 @@ export interface operations {
                 since: Instant;
                 /** @description Window end (inclusive) */
                 until: Instant;
-                kind?: ("capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "work" | "completion" | "withdrawal" | "decision")[] | null;
+                kind?: ("capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "completion" | "withdrawal" | "decision")[] | null;
                 linked_type?: string | null;
                 linked_id?: string | null;
             };
@@ -12763,6 +12832,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WhiteboardRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    whiteboard_revisions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WhiteboardRevisionRead"][];
+                };
+            };
+        };
+    };
+    whiteboard_revision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                revision_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WhiteboardRevisionContent"];
                 };
             };
             /** @description Validation Error */

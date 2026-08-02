@@ -66,7 +66,7 @@ function PriorityField() {
 }
 
 /** Quick-set chips over a date column. */
-function DateChips({ field }: { field: "scheduled_date" | "due_date" }) {
+function DateChips({ field }: { field: "scheduled_date" | "due_date" | "not_before" }) {
   const { value, save } = useField(field)
   return <ScheduleChips value={value as CalendarDay | null} onSet={(d) => save(d)} />
 }
@@ -107,6 +107,18 @@ export function TaskDetail({ entity, onClose }: { entity: Entity; onClose: () =>
           <div className="mt-0.5 space-y-1.5">
             <DateChips field="scheduled_date" />
             <F.Time field="scheduled_time" />
+          </div>
+        </div>
+        {/* The two ends of the commitment, not two ways of saying "when". A
+            deadline alone made "sometime this summer" report overdue on
+            September 1, and made a task that waits on something else — the K-1,
+            the permit — indistinguishable from one you simply had not started. */}
+        <div>
+          <div className="text-[11px] font-medium uppercase tracking-wide text-slate-400">
+            Not before
+          </div>
+          <div className="mt-0.5">
+            <DateChips field="not_before" />
           </div>
         </div>
         <div>

@@ -39,7 +39,6 @@ export const KIND_LABEL: Record<MomentKind, string> = {
   measurement: "Measurement",
   dose: "Dose",
   activity: "Activity",
-  work: "Work",
   completion: "Completed",
   withdrawal: "Withdrawn",
   decision: "Decision",
@@ -56,7 +55,6 @@ export const KIND_PLURAL: Record<MomentKind, string> = {
   measurement: "measurements",
   dose: "doses",
   activity: "activities",
-  work: "work sessions",
   completion: "completed",
   withdrawal: "withdrawn",
   decision: "decisions",
@@ -74,7 +72,6 @@ export const KIND_CLASS: Record<MomentKind, string> = {
   measurement: "bg-teal-100 text-teal-700",
   dose: "bg-teal-100 text-teal-700",
   activity: "bg-teal-100 text-teal-700",
-  work: "bg-violet-100 text-violet-700",
   completion: "bg-emerald-100 text-emerald-700",
   withdrawal: "bg-slate-100 text-slate-400",
   decision: "bg-violet-100 text-violet-700",
@@ -101,7 +98,6 @@ export const FAMILY_OF: Record<MomentKind, KindFamily> = {
   measurement: "body",
   dose: "body",
   activity: "body",
-  work: "work",
   completion: "work",
   withdrawal: "work",
   decision: "work",
@@ -130,7 +126,6 @@ export const WEIGHT_OF: Record<MomentKind, Weight> = {
   activity: "small",
   visit: "small",
   completion: "medium",
-  work: "medium",
   withdrawal: "medium",
   exchange: "medium",
   capture: "medium",
@@ -148,29 +143,16 @@ export const FAMILIES: { key: KindFamily; label: string; color: string }[] = [
 ]
 
 /**
- * Where a moment sits in time: what happened, or failing that where it is meant
- * to.
+ * Where a moment sits in time.
  *
  * The same expression as `_WHEN` in `routers/moments.py`, and it has to stay
  * that way — the server sorts and buckets the rail by it, so a client that
  * grouped by a different column would draw day headings the stream disagrees
- * with. Tense is not a type: a planned lunch has no occurrence to sort by, only
- * a window.
+ * with. It was a fallback to an intention window until the windows left; a
+ * timeline is of what happened, so there is nothing to fall back to.
  */
 export function whenOf(m: Moment): Instant | null {
-  return m.started_at ?? m.window_start
-}
-
-/** An intention nothing came of, and that wasn't dropped on purpose. Derived,
- *  never stored (`window_end < now AND !started_at AND !withdrawn_at`), so it
- *  cannot go stale — the same predicate the API's `unfulfilled` filter applies. */
-export function isLapsed(m: Moment, now = new Date()): boolean {
-  return (
-    !!m.window_end &&
-    new Date(m.window_end) < now &&
-    m.started_at === null &&
-    m.withdrawn_at === null
-  )
+  return m.started_at
 }
 
 export function linksOf(m: Moment, role: MomentRole): MomentLink[] {

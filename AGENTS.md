@@ -100,7 +100,7 @@ Iterate with the dev servers; they never touch the live URLs. Publish separately
   `routers/stream.py`) triggers a global React Query invalidation. Your edits and
   external edits travel the same path, so a new page stays live using normal hooks.
 - **Writing is a moment, and it is about something.** Prose in `body`, placed by
-  `started_at` (or a window), joined to what it concerns by `moment_links` — role
+  `started_at`, joined to what it concerns by `moment_links` — role
   `subject` for what it is about, `mention` for what it merely names. There is
   deliberately **no genre column**: a genre only ever restates the root, so a note
   about a meeting is an `observation` whose subject is the occasion. `moment` is

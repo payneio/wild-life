@@ -5,21 +5,19 @@ medications are their subjects and objects, not their owners. See
 ``api/docs/moments.md`` for the kind vocabulary and the migration mapping, and
 the design record for why.
 
-Four properties of the model are load-bearing enough to state here:
+Three properties of the model are load-bearing enough to state here:
 
-- **Tense is not a type.** Occurrence (``started_at``) and intention
-  (``window_start``/``window_end``) are separate columns on one row, so a planned
-  lunch and a lunch you ate differ by which is filled. Both may be set: the delta
-  between "planned two hours" and "took four" is the only way estimation ever
-  improves, so an occurrence never overwrites the intention that preceded it.
-- **Precision is window width.** There is no precision enum. "Sometime in June"
-  is a month-wide window; "4pm Tuesday" is a window as wide as the duration.
-  Scheduling is the window contracting until it equals ``expected_minutes``.
-- **A lapse is derived, never written**: ``window_end < now AND started_at IS
-  NULL AND withdrawn_at IS NULL``. No tick maintains it and nothing can go
-  stale. ``withdrawn_at`` is the opposite case and *is* stored — deciding not to
-  do something is an act, and telling it apart from letting a date pass is worth
-  a column.
+- **A moment is what happened.** It carries no window and no intention. That is
+  not a simplification of an earlier design so much as the correction of one:
+  `window_start`/`window_end` sat here for a while and every one of the 485 ever
+  written was zero-width, because a thing that happened happened at a time and
+  there is nothing for a range to say about it. Commitment lives on the
+  intention — `tasks.not_before`/`due_date` — where its two ends can close on
+  each other as a plan sharpens.
+- **A lapse is derived, never written.** An intention whose window passed with
+  nothing having happened is a *silence*, and telling that apart from a decision
+  is the point: `ending_cause` records the decisions and nothing records the
+  silence.
 - **Involvement, not rootedness.** A moment has no single home; it links to what
   it involves (see :class:`MomentLink`), so an appointment can concern the
   program *and* the medication without choosing.
@@ -50,9 +48,6 @@ class Moment(UUIDPrimaryKey, TimestampMixin, Base):
     __table_args__ = (
         Index("ix_moments_started_at", "started_at"),
         Index("ix_moments_kind_started_at", "kind", "started_at"),
-        # The unfulfilled-intention query: a window that has passed with nothing
-        # having happened in it.
-        Index("ix_moments_window_end", "window_end"),
         Index("uq_moments_source_ref", "source_ref", unique=True),
         Index("uq_moments_rule_occurrence", "rule_id", "occurrence_at", unique=True),
     )
@@ -72,9 +67,6 @@ class Moment(UUIDPrimaryKey, TimestampMixin, Base):
     )
 
     # --- intention: where it should land, and for how long -------------------
-    window_start: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    window_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    expected_minutes: Mapped[int | None] = mapped_column(Integer)
 
     title: Mapped[str | None] = mapped_column(Text)
     body: Mapped[str] = mapped_column(Text, nullable=False, server_default="")

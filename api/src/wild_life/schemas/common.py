@@ -116,7 +116,7 @@ DelegationStatus = Literal[
 # you typed something and have not said what it is — and that *is* the inbox.
 #
 # See `api/docs/moments.md` for the full table, including what is deliberately
-# absent (`appointment`, `milestone`, `intention`, `lapsed`).
+# absent (`appointment`, `milestone`, `intention`, `work`, `lapsed`).
 MomentKind = Literal[
     "capture",
     "reflection",
@@ -127,7 +127,6 @@ MomentKind = Literal[
     "measurement",
     "dose",
     "activity",
-    "work",
     "completion",
     "withdrawal",
     "decision",

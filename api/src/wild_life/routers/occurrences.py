@@ -78,7 +78,7 @@ def _from_moment(
     at: datetime | None = None,
     start: datetime | None = None,
 ) -> Occurrence:
-    begins = start or moment.started_at or moment.window_start
+    begins = start or moment.started_at
     ends = moment.ended_at
     if start is not None and moment.started_at and moment.ended_at:
         # An expanded occurrence keeps the series' duration, not the master's end.
@@ -156,7 +156,6 @@ async def collect(
             or_(
                 # In the window on its own account...
                 Moment.started_at.between(since, until),
-                Moment.window_start.between(since, until),
                 # ...or a series that may reach into it from before.
                 CalendarRecord.recurrence.isnot(None),
                 # ...or a materialised occurrence, placed by its slot.
@@ -185,7 +184,7 @@ async def collect(
             continue
         if record is not None and record.recurrence:
             # The wire rule we could not translate: expand it as we were given it.
-            anchor = moment.started_at or moment.window_start
+            anchor = moment.started_at
             if anchor is None:
                 continue
             for occ in expand(
@@ -201,7 +200,7 @@ async def collect(
                         )
                     )
             continue
-        when = moment.started_at or moment.window_start
+        when = moment.started_at
         if when is not None and since <= when <= until:
             out.append(_from_moment(moment, record, links[moment.id]))
 

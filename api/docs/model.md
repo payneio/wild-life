@@ -48,7 +48,10 @@ of attention, at every altitude. *(S7)*
 
 **A2 · Intention.** An intention names exactly one scope, at any altitude, by one
 polymorphic reference — not by a nullable foreign key per rung. It carries RACI
-and a window. *(S2, S8)*
+and a window: two bounds (`not_before`, `due_date`/`by_when`) that close on each
+other as the plan sharpens. A deadline alone cannot say "not until the K-1
+arrives", and reports overdue the day after a season nothing bad happened in.
+The window is the *intention's* — an occurrence has none. *(S2, S8)*
 
 **A3 · Satisfaction follows monotonicity, not altitude.** A *monotonic* claim
 ("the paper is published") is satisfied at a moment and stays satisfied. A
@@ -187,7 +190,7 @@ working — nothing here is a flag day.
 
 | # | axiom | state | phase |
 |---|---|---|---|
-| 1 | windows on `moments` | ✗ still zero-width. **The one axiom nothing yet honours:** A2 puts the window on the intention, and intentions do not carry one — a task has `scheduled_date` (attention) and `due_date` (a deadline), neither of which is "sometime in June" narrowing. Deleting `moments.window_*` waits on that | open |
+| 1 | A2 windows on intentions | ✓ done — `not_before` on `tasks` and `outcomes` gives the commitment two ends; `moments.window_*`/`expected_minutes` dropped along with the 402 `work` moments (`c1d2e3f4a5b6`). `scheduled_date` stays and is a different question: when I mean to *touch* it, not when it is allowed to happen | ~~0~~ |
 | 2 | A11 inert objectives | ✓ done — reported on the review dashboard | ~~0~~ |
 | 3 | A1/A10 cadence + examination | ~ cadence on areas and programs, **not** projects; no inheritance; projects judged by `last_activity_date`, which is activity, **not** examination | **0** |
 | 4 | A2 one scope reference | ✓ done — `tasks.scope_type`/`scope_id`; the `ck_tasks_single_parent` check is gone because the shape it enforced is now unrepresentable | ~~1~~ |
@@ -198,7 +201,7 @@ working — nothing here is a flag day.
 | 9 | A7 assignment lifecycle | ✓ `POST /tasks/{id}/assignment` — offer/accept/decline/withdraw moves Responsible only, recorded as a moment. RACI still lives on the row rather than on a separate intention type | ~~5~~ |
 | — | A8 deliberation in prose | ✓ the Journal — though nothing marks where prose becomes commitment | — |
 
-**Phase 0 — needs no new structure.** Stop collapsing windows; report inert
+**Phase 0 — needs no new structure.** Report inert
 objectives; give projects a cadence and derive examination from review events
 rather than from activity. Independently useful even if the rest never happens.
 
@@ -223,9 +226,10 @@ written as a moment about the intention.
 become events on the assignment rather than on the commitment.
 
 **What disappears on the way.** `moments.window_start`/`window_end`/
-`expected_minutes`/`withdrawn_at`/`withdrawal_reason`, once intention lives on
-intentions; the `work` kind, since a scheduled task *is* the intention and needs
-no shadow moment; and `tasks.area_id`/`program_id`.
+`expected_minutes` and the `work` kind are gone already (`c1d2e3f4a5b6`): the
+window belongs to the intention, and a scheduled task *is* the intention, so the
+shadow moment said the same thing twice. `withdrawn_at`/`withdrawal_reason`
+follow once intention lives on intentions, as do `tasks.area_id`/`program_id`.
 
 ## How to use this
 

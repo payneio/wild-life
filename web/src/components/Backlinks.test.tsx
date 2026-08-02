@@ -8,7 +8,6 @@ const elsewhere = {
   title: "Written under a program",
   body: "",
   started_at: null,
-  window_start: null,
   links: [],
 }
 

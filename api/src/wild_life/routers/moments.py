@@ -22,7 +22,7 @@ from fastapi import (
     status,
 )
 from fastapi.responses import Response
-from sqlalchemy import delete, func, or_, select, text
+from sqlalchemy import delete, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wild_life.config import settings
@@ -52,10 +52,10 @@ from wild_life.schemas.moments import (
 
 router = APIRouter(prefix="/moments", tags=["moments"])
 
-# Where a moment sits in time: what happened, or failing that where it is meant
-# to. One expression, because a timeline shows both and a planned lunch has no
-# occurrence to sort by.
-_WHEN = func.coalesce(Moment.started_at, Moment.window_start)
+# Where a moment sits in time. Named rather than spelled out at each of its five
+# uses, because it was a coalesce over an intention window until the windows left
+# — and a timeline is of what happened, so there is nothing to fall back to.
+_WHEN = Moment.started_at
 
 
 # The roles that put a moment on a thing's *timeline*, as opposed to in its
@@ -185,7 +185,6 @@ async def list_moments(
     role: list[MomentRole] | None = Query(None),
     since: datetime | None = None,
     until: datetime | None = None,
-    unfulfilled: bool | None = None,
     unfiled: bool | None = None,
 ) -> list[MomentRead]:
     """Moments, newest first.
@@ -195,10 +194,9 @@ async def list_moments(
     her at all"). It is repeatable, because the useful questions are about sets
     of roles rather than one: a record's Log asks for ``TIMELINE_ROLES`` and its
     backlinks panel asks for ``mention``, which is the same distinction the role
-    vocabulary was defined to make. ``unfulfilled`` is the derived lapse — a
-    window that has passed with nothing having happened in it and no decision to
-    drop it — which is a query rather than a stored state precisely so it can
-    never go stale.
+    vocabulary was defined to make. A lapsed intention is a question about
+    `tasks`, not about moments: a moment is what happened, so it cannot be the
+    thing that failed to.
     """
     stmt = select(Moment)
     if kind is not None:
@@ -206,9 +204,9 @@ async def list_moments(
     if linked_type is not None and linked_id is not None:
         stmt = stmt.where(Moment.id.in_(_linked(linked_type, linked_id, role)))
     if since is not None:
-        stmt = stmt.where(or_(Moment.started_at >= since, Moment.window_end >= since))
+        stmt = stmt.where(Moment.started_at >= since)
     if until is not None:
-        stmt = stmt.where(or_(Moment.started_at <= until, Moment.window_start <= until))
+        stmt = stmt.where(Moment.started_at <= until)
     if unfiled is not None:
         # Nobody has said what it is about. The triage predicate — and its
         # inverse, which is how the Inbox learns a home for a repeated title.
@@ -218,12 +216,6 @@ async def list_moments(
             MomentLink.moment_id == Moment.id, MomentLink.role == "subject"
         )
         stmt = stmt.where(~has_subject.exists() if unfiled else has_subject.exists())
-    if unfulfilled:
-        stmt = stmt.where(
-            Moment.window_end < func.now(),
-            Moment.started_at.is_(None),
-            Moment.withdrawn_at.is_(None),
-        )
     stmt = stmt.order_by(_WHEN.desc().nullslast(), Moment.created_at.desc())
     stmt, limit, offset = apply_query(stmt, Moment, request.query_params)
     if offset is not None:

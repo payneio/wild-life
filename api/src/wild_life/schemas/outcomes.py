@@ -5,7 +5,13 @@ from datetime import date, datetime
 
 from pydantic import BaseModel
 
-from wild_life.schemas.common import EndingCause, Entity, EntityType, OutcomeKind, OutcomeStatus
+from wild_life.schemas.common import (
+    EndingCause,
+    Entity,
+    EntityType,
+    OutcomeKind,
+    OutcomeStatus,
+)
 
 
 class OutcomeCreate(BaseModel):
@@ -19,6 +25,7 @@ class OutcomeCreate(BaseModel):
     target_min: float | None = None
     target_max: float | None = None
     baseline: float | None = None
+    not_before: date | None = None
     by_when: date | None = None
     satisfied_at: datetime | None = None
     ending_cause: EndingCause | None = None
@@ -36,6 +43,7 @@ class OutcomeUpdate(BaseModel):
     target_min: float | None = None
     target_max: float | None = None
     baseline: float | None = None
+    not_before: date | None = None
     by_when: date | None = None
     satisfied_at: datetime | None = None
     ending_cause: EndingCause | None = None
@@ -53,6 +61,7 @@ class OutcomeRead(Entity):
     target_min: float | None
     target_max: float | None
     baseline: float | None
+    not_before: date | None
     by_when: date | None
     satisfied_at: datetime | None
     ending_cause: EndingCause | None

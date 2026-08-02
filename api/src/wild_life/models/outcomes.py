@@ -56,6 +56,9 @@ class Outcome(UUIDPrimaryKey, TimestampMixin, Base):
 
     # `target` kind: where we started and when it has to be true by.
     baseline: Mapped[float | None] = mapped_column(Float)
+    #: The earliest end of the window; `by_when` is the latest. See
+    #: `Task.not_before`.
+    not_before: Mapped[date | None] = mapped_column(Date)
     by_when: Mapped[date | None] = mapped_column(Date)
 
     # When the claim became true — and *stayed* true, which is why this belongs

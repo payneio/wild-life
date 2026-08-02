@@ -6224,17 +6224,6 @@
             ],
             "title": "Ended At"
           },
-          "expected_minutes": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Expected Minutes"
-          },
           "kind": {
             "enum": [
               "capture",
@@ -6246,7 +6235,6 @@
               "measurement",
               "dose",
               "activity",
-              "work",
               "completion",
               "withdrawal",
               "decision"
@@ -6318,30 +6306,6 @@
               }
             ],
             "title": "Title"
-          },
-          "window_end": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Window End"
-          },
-          "window_start": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Window Start"
           }
         },
         "required": [
@@ -6594,17 +6558,6 @@
             ],
             "title": "Ended At"
           },
-          "expected_minutes": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Expected Minutes"
-          },
           "id": {
             "format": "uuid",
             "title": "Id",
@@ -6621,7 +6574,6 @@
               "measurement",
               "dose",
               "activity",
-              "work",
               "completion",
               "withdrawal",
               "decision"
@@ -6709,30 +6661,6 @@
             "title": "Updated At",
             "type": "string"
           },
-          "window_end": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Window End"
-          },
-          "window_start": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Window Start"
-          },
           "withdrawal_reason": {
             "anyOf": [
               {
@@ -6765,9 +6693,6 @@
           "started_at",
           "ended_at",
           "all_day",
-          "window_start",
-          "window_end",
-          "expected_minutes",
           "title",
           "body",
           "source",
@@ -6816,17 +6741,6 @@
             ],
             "title": "Ended At"
           },
-          "expected_minutes": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Expected Minutes"
-          },
           "kind": {
             "anyOf": [
               {
@@ -6840,7 +6754,6 @@
                   "measurement",
                   "dose",
                   "activity",
-                  "work",
                   "completion",
                   "withdrawal",
                   "decision"
@@ -6930,30 +6843,6 @@
             ],
             "title": "Title"
           },
-          "window_end": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Window End"
-          },
-          "window_start": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Window Start"
-          },
           "withdrawal_reason": {
             "anyOf": [
               {
@@ -7028,7 +6917,6 @@
               "measurement",
               "dose",
               "activity",
-              "work",
               "completion",
               "withdrawal",
               "decision"
@@ -7900,6 +7788,18 @@
             ],
             "title": "Metric Id"
           },
+          "not_before": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Not Before"
+          },
           "satisfied_at": {
             "anyOf": [
               {
@@ -8189,6 +8089,18 @@
             ],
             "title": "Metric Id"
           },
+          "not_before": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Not Before"
+          },
           "satisfied_at": {
             "anyOf": [
               {
@@ -8257,6 +8169,7 @@
           "target_min",
           "target_max",
           "baseline",
+          "not_before",
           "by_when",
           "satisfied_at",
           "ending_cause",
@@ -8402,6 +8315,18 @@
               }
             ],
             "title": "Metric Id"
+          },
+          "not_before": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Not Before"
           },
           "satisfied_at": {
             "anyOf": [
@@ -12443,7 +12368,6 @@
                   "measurement",
                   "dose",
                   "activity",
-                  "work",
                   "completion",
                   "withdrawal",
                   "decision"
@@ -13093,7 +13017,6 @@
               "measurement",
               "dose",
               "activity",
-              "work",
               "completion",
               "withdrawal",
               "decision"
@@ -13429,7 +13352,6 @@
                   "measurement",
                   "dose",
                   "activity",
-                  "work",
                   "completion",
                   "withdrawal",
                   "decision"
@@ -13848,6 +13770,18 @@
             ],
             "title": "Generated By Moment Id"
           },
+          "not_before": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Not Before"
+          },
           "position": {
             "anyOf": [
               {
@@ -14227,6 +14161,18 @@
             "title": "Id",
             "type": "string"
           },
+          "not_before": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Not Before"
+          },
           "position": {
             "title": "Position",
             "type": "number"
@@ -14384,6 +14330,7 @@
           "accountable_owner_id",
           "responsible_id",
           "assignee_id",
+          "not_before",
           "due_date",
           "scheduled_date",
           "scheduled_time",
@@ -14521,6 +14468,18 @@
               }
             ],
             "title": "Estimated Minutes"
+          },
+          "not_before": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Not Before"
           },
           "position": {
             "anyOf": [
@@ -14890,6 +14849,11 @@
               }
             ],
             "title": "Updated At"
+          },
+          "version": {
+            "default": 0,
+            "title": "Version",
+            "type": "integer"
           }
         },
         "required": [
@@ -14898,14 +14862,86 @@
         "title": "WhiteboardRead",
         "type": "object"
       },
+      "WhiteboardRevisionContent": {
+        "properties": {
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "replaced_at": {
+            "format": "date-time",
+            "title": "Replaced At",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "replaced_at",
+          "content"
+        ],
+        "title": "WhiteboardRevisionContent",
+        "type": "object"
+      },
+      "WhiteboardRevisionRead": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "preview": {
+            "title": "Preview",
+            "type": "string"
+          },
+          "replaced_at": {
+            "format": "date-time",
+            "title": "Replaced At",
+            "type": "string"
+          },
+          "size": {
+            "title": "Size",
+            "type": "integer"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "replaced_at",
+          "size",
+          "preview"
+        ],
+        "title": "WhiteboardRevisionRead",
+        "type": "object"
+      },
       "WhiteboardWrite": {
         "properties": {
+          "base_version": {
+            "title": "Base Version",
+            "type": "integer"
+          },
           "content": {
             "default": "",
             "title": "Content",
             "type": "string"
           }
         },
+        "required": [
+          "base_version"
+        ],
         "title": "WhiteboardWrite",
         "type": "object"
       }
@@ -18677,7 +18713,7 @@
     },
     "/moments": {
       "get": {
-        "description": "Moments, newest first.\n\n``linked_type``/``linked_id`` is the timeline of a thing; add ``role`` to ask\na narrower question (\"moments *with* Melissa\" rather than \"moments involving\nher at all\"). It is repeatable, because the useful questions are about sets\nof roles rather than one: a record's Log asks for ``TIMELINE_ROLES`` and its\nbacklinks panel asks for ``mention``, which is the same distinction the role\nvocabulary was defined to make. ``unfulfilled`` is the derived lapse \u2014 a\nwindow that has passed with nothing having happened in it and no decision to\ndrop it \u2014 which is a query rather than a stored state precisely so it can\nnever go stale.",
+        "description": "Moments, newest first.\n\n``linked_type``/``linked_id`` is the timeline of a thing; add ``role`` to ask\na narrower question (\"moments *with* Melissa\" rather than \"moments involving\nher at all\"). It is repeatable, because the useful questions are about sets\nof roles rather than one: a record's Log asks for ``TIMELINE_ROLES`` and its\nbacklinks panel asks for ``mention``, which is the same distinction the role\nvocabulary was defined to make. A lapsed intention is a question about\n`tasks`, not about moments: a moment is what happened, so it cannot be the\nthing that failed to.",
         "operationId": "moments_list",
         "parameters": [
           {
@@ -18697,7 +18733,6 @@
                     "measurement",
                     "dose",
                     "activity",
-                    "work",
                     "completion",
                     "withdrawal",
                     "decision"
@@ -18830,22 +18865,6 @@
           },
           {
             "in": "query",
-            "name": "unfulfilled",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "boolean"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Unfulfilled"
-            }
-          },
-          {
-            "in": "query",
             "name": "unfiled",
             "required": false,
             "schema": {
@@ -18954,7 +18973,6 @@
                     "measurement",
                     "dose",
                     "activity",
-                    "work",
                     "completion",
                     "withdrawal",
                     "decision"
@@ -19940,7 +19958,6 @@
                       "measurement",
                       "dose",
                       "activity",
-                      "work",
                       "completion",
                       "withdrawal",
                       "decision"
@@ -24334,6 +24351,74 @@
           }
         },
         "summary": "Set Whiteboard",
+        "tags": [
+          "whiteboard"
+        ]
+      }
+    },
+    "/whiteboard/revisions": {
+      "get": {
+        "operationId": "whiteboard_revisions",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WhiteboardRevisionRead"
+                  },
+                  "title": "Response Whiteboard Revisions",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Revisions",
+        "tags": [
+          "whiteboard"
+        ]
+      }
+    },
+    "/whiteboard/revisions/{revision_id}": {
+      "get": {
+        "operationId": "whiteboard_revision",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "revision_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Revision Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WhiteboardRevisionContent"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Revision",
         "tags": [
           "whiteboard"
         ]

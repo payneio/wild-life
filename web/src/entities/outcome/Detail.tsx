@@ -38,6 +38,9 @@ export function OutcomeRecord({
         <F.Number field="target_min" label="At least" />
         <F.Number field="target_max" label="At most" />
         {outcome.kind === "target" && <F.Number field="baseline" label="Baseline" />}
+        {/* Both ends, and only for a target: a standard is judged today and
+            again next month, so neither bound means anything to it. */}
+        {outcome.kind === "target" && <F.Date field="not_before" label="Not before" />}
         {outcome.kind === "target" && <F.Date field="by_when" label="By when" />}
         {/* When the claim became true. No longer gated by kind: an outcome being
             satisfied is a resolution worth dating whichever kind it is. */}

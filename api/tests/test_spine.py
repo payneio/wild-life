@@ -48,8 +48,8 @@ def _moments(source_ref: str) -> list[dict]:
         with eng.connect() as conn:
             rows = conn.execute(
                 text(
-                    "SELECT id, kind, title, started_at, window_start, all_day,"
-                    " expected_minutes FROM wild_life.moments WHERE source_ref = :r"
+                    "SELECT id, kind, title, started_at, all_day"
+                    " FROM wild_life.moments WHERE source_ref = :r"
                 ),
                 {"r": source_ref},
             ).mappings()
@@ -107,24 +107,33 @@ class TestATaskWritesAsItFinishes:
         finally:
             client.delete(f"/tasks/{task['id']}", headers=h)
 
-    def test_scheduling_writes_an_intention_with_a_window(
+    def test_scheduling_writes_no_moment(
         self, client: TestClient, auth_headers: dict, require_db: None
     ) -> None:
-        """Being scheduled for Tuesday is an intention, not an occurrence."""
+        """Being scheduled for Tuesday is an intention, and stays on the task.
+
+        It had a moment once — kind `work`, placed by a window — which said in a
+        second table what `tasks.scheduled_date` already said, and put on the
+        timeline of what happened something that had not.
+        """
         h = auth_headers
         task = _post(
-            client, h, "/tasks", title=f"{MARK} plan me", scheduled_date="2026-08-04"
+            client,
+            h,
+            "/tasks",
+            title=f"{MARK} plan me",
+            scheduled_date="2026-08-04",
+            not_before="2026-08-01",
         )
         try:
-            got = _moments(f"task:{task['id']}:work")
-            assert len(got) == 1
-            assert got[0]["kind"] == "work"
-            assert got[0]["window_start"] is not None
-            assert got[0]["started_at"] is None, "an intention has not happened yet"
+            assert _moments(f"task:{task['id']}:work") == []
+            got = client.get(f"/tasks/{task['id']}", headers=h).json()
+            assert got["not_before"] == "2026-08-01"
+            assert got["scheduled_date"] == "2026-08-04"
         finally:
             client.delete(f"/tasks/{task['id']}", headers=h)
 
-    def test_deleting_the_task_takes_both_moments(
+    def test_deleting_the_task_takes_its_moment(
         self, client: TestClient, auth_headers: dict, require_db: None
     ) -> None:
         h = auth_headers
@@ -132,9 +141,8 @@ class TestATaskWritesAsItFinishes:
             client, h, "/tasks", title=f"{MARK} delete me", scheduled_date="2026-08-04"
         )
         _patch(client, h, f"/tasks/{task['id']}", status="completed")
-        assert len(_moments(f"task:{task['id']}:work")) == 1
+        assert len(_moments(f"task:{task['id']}:completion")) == 1
         client.delete(f"/tasks/{task['id']}", headers=h)
-        assert _moments(f"task:{task['id']}:work") == []
         assert _moments(f"task:{task['id']}:completion") == []
 
 

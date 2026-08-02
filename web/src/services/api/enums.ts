@@ -51,7 +51,6 @@ export const MOMENT_KIND = [
   "measurement",
   "dose",
   "activity",
-  "work",
   "completion",
   "withdrawal",
   "decision",

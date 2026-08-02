@@ -14,9 +14,9 @@ type, or its tense.
   meant "about me", meeting meant "about an event").
 - Not the target type — that is what the links say. A reading of a metric is a
   `measurement` because of the act, not because a metric is on the other end.
-- Not the tense — a planned lunch and a lunch you ate are both `occasion`; the
-  difference is that one has a window and no occurrence. Kind is orthogonal to
-  when.
+- Not the tense — there is only one tense left. A moment is what happened; a
+  lunch you *plan* is an intention, which lives on the intention tables and has a
+  window, and only the lunch you ate is a moment.
 
 **Every kind is written by the surface that creates the moment. No surface asks
 the user.** A hand-set facet does not get set, and `kind` carries the inbox
@@ -37,7 +37,6 @@ capture, and its unresolved kind *is* the inbox.
 | `measurement` | recording a value | metric form, panel form | subject (metric) | reading |
 | `dose` | taking a medication | dose logger, protocol step completion | subject (medication) | dose |
 | `activity` | doing a non-dose protocol step | protocol step completion | subject (rule) | — |
-| `work` | a session spent on a piece of work | task timer, manual entry | subject (task) | — |
 | `completion` | finishing something | the six finish paths | subject | — |
 | `withdrawal` | deciding not to do something | withdraw action | subject | — |
 | `decision` | settling a question | decision record | subject | — |
@@ -49,10 +48,15 @@ Deliberately absent:
   are links. `occasion` is the generic, and neither earns a kind.
 - **`milestone`** — a judgment about importance, not an act. A shipped release is
   an `observation` about the project.
-- **`intention`** — not a kind. An intention is any kind with a window and no
-  occurrence.
-- **`lapsed`** — derived, never written (`window_end < now AND started_at IS NULL
-  AND withdrawn_at IS NULL`).
+- **`intention`** — not a kind, and no longer a moment at all. It was one for a
+  while, kind `work`, placed by a window: 402 rows restating `tasks.scheduled_date`
+  in a second table, on the timeline of what happened. A commitment's two ends are
+  `not_before` and `due_date`, on the task (`c1d2e3f4a5b6`).
+- **`work`** — the kind those rows carried. Nothing writes it now; a session
+  actually spent on something is an `observation` about the task.
+- **`lapsed`** — an intention nothing came of, and a question about intentions
+  rather than about moments: a moment is what happened, so it cannot be the thing
+  that failed to.
 
 ## The shape, after the inversion
 
@@ -109,13 +113,12 @@ Five things the diagram is making a point about:
 | `notes` rooted elsewhere | `observation` | `entry_date`, all-day | root → `subject`, mentions → `mention` | — |
 | `notes` unrooted | `capture` | `entry_date`, all-day | — | — |
 | `events` | `occasion`; `event_type` in (`note`, `symptom`, `injury`) → `observation` | `start_at`/`end_at`, `all_day` | `location_id` → `place`; `entity_*` → `subject`; resolved attendees → `participant` | — |
-| `routine_instances` with a medication | `dose` | `completed_at`; `scheduled_date` → window | medication → `subject` | dose |
+| `routine_instances` with a medication | `dose` | `completed_at` (a step not taken is no moment) | medication → `subject` | dose |
 | `routine_instances` without | `activity` | as above | rule → `subject` | — |
 | `metric_entries` | `measurement` | `recorded_at` | metric → `subject` | reading (`value`, `context`) |
 | `group_readings` | `measurement` (one moment per act) | `recorded_at` | one `subject` link per member metric | one reading per link |
 | `location_visits` | `visit`, `source: derived` | `entered_at`/`exited_at` | location → `place` | — |
 | `tasks.completed_at` | `completion` | the timestamp | task → `subject` | — |
-| `tasks.scheduled_date` + `scheduled_time` + `estimated_minutes` | `work` | none; window + expected duration | task → `subject` | — |
 | `delegations.date_delegated`, `accepted_date`, `delivered_date`, `last_contact_date` | `exchange` | the date, all-day | ask → `subject`, counterparty → `participant` | — |
 | `requests.resolved_at`, `commitments.date_made`, `outcomes.satisfied_at`, `reviews.completed_at`, `decisions.decided_on` | `completion` / `decision` | the timestamp | the row → `subject` | — |
 | `allergies.noted_on` | `observation` | the date, all-day | allergy → `subject` | — |
@@ -147,7 +150,7 @@ from the interval rather than stored beside it.
 | piece | state |
 | --- | --- |
 | Schema (`moments`, links, payloads, `calendar_records`, `dependencies`, `moment_images`) | applied |
-| `/moments` — CRUD, timeline-by-any-end, `unfiled`, `unfulfilled`, rail, images | live |
+| `/moments` — CRUD, timeline, `unfiled`, rail, images | live |
 | **Every act writes a moment inline**, in its own transaction (`spine.py`) | live |
 | **Prose surfaces** — Journal, Inbox, every record's Log, both composers | on moments |
 | **A moment's own Log** — a moment is a legal `subject`, so an occasion has notes | live; no exception by kind |

@@ -52,7 +52,7 @@ class Occasion:
 
     @property
     def start_at(self) -> datetime | None:
-        return self.moment.started_at or self.moment.window_start
+        return self.moment.started_at
 
     @property
     def end_at(self) -> datetime | None:

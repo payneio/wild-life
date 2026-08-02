@@ -10,7 +10,6 @@ const at = (started: string): Moment =>
     id: started,
     kind: "dose",
     started_at: started as Instant,
-    window_start: null,
     created_at: started as Instant,
     links: [],
   }) as unknown as Moment

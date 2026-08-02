@@ -126,7 +126,7 @@ function Provenance() {
 function When() {
   const { row } = useFields([])
   const m = row as unknown as Moment
-  const start = m.started_at ?? m.window_start
+  const start = m.started_at
   if (!start) return null
   const from = new Date(start)
   const to = m.ended_at ? new Date(m.ended_at) : null
@@ -374,20 +374,11 @@ export function MomentDetail({ entity, onClose }: { entity: Entity; onClose: () 
 
       <Description />
 
-      <Fold label="Times and intention">
+      <Fold label="Times">
         <RecordSection title="What happened">
           <F.DateTime field="started_at" label="Started" />
           <F.DateTime field="ended_at" label="Ended" />
           <F.Checkbox field="all_day" label="All day" />
-        </RecordSection>
-
-        {/* Tense is not a type: a planned lunch and a lunch you ate differ by
-            which of these is filled, and both may be set — the delta between
-            "planned two hours" and "took four" is how estimation improves. */}
-        <RecordSection title="What was intended">
-          <F.DateTime field="window_start" label="No earlier than" />
-          <F.DateTime field="window_end" label="No later than" />
-          <F.Number field="expected_minutes" label="Expected minutes" />
         </RecordSection>
 
         {/* Deciding not to do something is an act and is recorded. Letting a

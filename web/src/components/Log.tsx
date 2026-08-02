@@ -25,7 +25,6 @@ import type { EntityType, Moment, MomentKind } from "@/services/api/types"
 import {
   describeMoment,
   groupMomentsByDay,
-  isLapsed,
   isProse,
   KIND_CLASS,
   KIND_LABEL,
@@ -192,7 +191,6 @@ const ProseEntry = memo(function ProseEntry({
 const RecordedRow = memo(function RecordedRow({ moment }: { moment: Moment }) {
   const resolve = useEntityResolver()
   const to = routeForMoment(moment)
-  const lapsed = isLapsed(moment)
   return (
     <Link
       to={to}
@@ -204,11 +202,6 @@ const RecordedRow = memo(function RecordedRow({ moment }: { moment: Moment }) {
       </span>
       {moment.withdrawn_at ? (
         <span className="shrink-0 text-xs text-slate-400">withdrawn</span>
-      ) : lapsed ? (
-        // Derived, never stored — a window that passed with nothing in it and no
-        // decision to drop it. Surfaced rather than hidden: the past holds what
-        // you meant as well as what came of it.
-        <span className="shrink-0 text-xs text-amber-600">didn't happen</span>
       ) : null}
       <span className="shrink-0 text-xs text-slate-400">{entryTime(moment)}</span>
     </Link>
