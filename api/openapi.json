@@ -1349,7 +1349,6 @@
                   "decision",
                   "medication",
                   "protocol",
-                  "protocol_item",
                   "insurance_plan",
                   "allergy",
                   "moment"
@@ -1510,7 +1509,6 @@
                   "decision",
                   "medication",
                   "protocol",
-                  "protocol_item",
                   "insurance_plan",
                   "allergy",
                   "moment"
@@ -1695,7 +1693,6 @@
                   "decision",
                   "medication",
                   "protocol",
-                  "protocol_item",
                   "insurance_plan",
                   "allergy",
                   "moment"
@@ -1877,7 +1874,6 @@
                   "decision",
                   "medication",
                   "protocol",
-                  "protocol_item",
                   "insurance_plan",
                   "allergy",
                   "moment"
@@ -2023,7 +2019,6 @@
                   "decision",
                   "medication",
                   "protocol",
-                  "protocol_item",
                   "insurance_plan",
                   "allergy",
                   "moment"
@@ -2186,7 +2181,6 @@
                   "decision",
                   "medication",
                   "protocol",
-                  "protocol_item",
                   "insurance_plan",
                   "allergy",
                   "moment"
@@ -2373,7 +2367,6 @@
                   "decision",
                   "medication",
                   "protocol",
-                  "protocol_item",
                   "insurance_plan",
                   "allergy",
                   "moment"
@@ -2619,7 +2612,6 @@
                   "decision",
                   "medication",
                   "protocol",
-                  "protocol_item",
                   "insurance_plan",
                   "allergy",
                   "moment"
@@ -2895,7 +2887,6 @@
                   "decision",
                   "medication",
                   "protocol",
-                  "protocol_item",
                   "insurance_plan",
                   "allergy",
                   "moment"
@@ -5272,7 +5263,6 @@
               "decision",
               "medication",
               "protocol",
-              "protocol_item",
               "insurance_plan",
               "allergy",
               "moment"
@@ -5357,7 +5347,6 @@
               "decision",
               "medication",
               "protocol",
-              "protocol_item",
               "insurance_plan",
               "allergy",
               "moment"
@@ -5631,7 +5620,6 @@
               "decision",
               "medication",
               "protocol",
-              "protocol_item",
               "insurance_plan",
               "allergy",
               "moment"
@@ -5696,7 +5684,6 @@
               "decision",
               "medication",
               "protocol",
-              "protocol_item",
               "insurance_plan",
               "allergy",
               "moment"
@@ -5779,7 +5766,6 @@
                   "decision",
                   "medication",
                   "protocol",
-                  "protocol_item",
                   "insurance_plan",
                   "allergy",
                   "moment"
@@ -5880,7 +5866,6 @@
               "decision",
               "medication",
               "protocol",
-              "protocol_item",
               "insurance_plan",
               "allergy",
               "moment"
@@ -6083,7 +6068,6 @@
                   "decision",
                   "medication",
                   "protocol",
-                  "protocol_item",
                   "insurance_plan",
                   "allergy",
                   "moment"
@@ -6426,7 +6410,6 @@
               "decision",
               "medication",
               "protocol",
-              "protocol_item",
               "insurance_plan",
               "allergy",
               "moment"
@@ -6504,7 +6487,6 @@
               "decision",
               "medication",
               "protocol",
-              "protocol_item",
               "insurance_plan",
               "allergy",
               "moment"
@@ -7760,7 +7742,6 @@
               "decision",
               "medication",
               "protocol",
-              "protocol_item",
               "insurance_plan",
               "allergy",
               "moment"
@@ -8056,7 +8037,6 @@
               "decision",
               "medication",
               "protocol",
-              "protocol_item",
               "insurance_plan",
               "allergy",
               "moment"
@@ -8276,7 +8256,6 @@
                   "decision",
                   "medication",
                   "protocol",
-                  "protocol_item",
                   "insurance_plan",
                   "allergy",
                   "moment"
@@ -9173,7 +9152,6 @@
                 "decision",
                 "medication",
                 "protocol",
-                "protocol_item",
                 "insurance_plan",
                 "allergy",
                 "moment"
@@ -9355,7 +9333,6 @@
                 "decision",
                 "medication",
                 "protocol",
-                "protocol_item",
                 "insurance_plan",
                 "allergy",
                 "moment"
@@ -9547,7 +9524,6 @@
                     "decision",
                     "medication",
                     "protocol",
-                    "protocol_item",
                     "insurance_plan",
                     "allergy",
                     "moment"
@@ -10815,7 +10791,6 @@
                   "decision",
                   "medication",
                   "protocol",
-                  "protocol_item",
                   "insurance_plan",
                   "allergy",
                   "moment"
@@ -11005,7 +10980,6 @@
                   "decision",
                   "medication",
                   "protocol",
-                  "protocol_item",
                   "insurance_plan",
                   "allergy",
                   "moment"
@@ -11244,7 +11218,6 @@
                   "decision",
                   "medication",
                   "protocol",
-                  "protocol_item",
                   "insurance_plan",
                   "allergy",
                   "moment"
@@ -11433,7 +11406,6 @@
                   "decision",
                   "medication",
                   "protocol",
-                  "protocol_item",
                   "insurance_plan",
                   "allergy",
                   "moment"
@@ -11532,7 +11504,6 @@
                   "decision",
                   "medication",
                   "protocol",
-                  "protocol_item",
                   "insurance_plan",
                   "allergy",
                   "moment"
@@ -11644,7 +11615,6 @@
                   "decision",
                   "medication",
                   "protocol",
-                  "protocol_item",
                   "insurance_plan",
                   "allergy",
                   "moment"
@@ -13910,7 +13880,6 @@
                   "decision",
                   "medication",
                   "protocol",
-                  "protocol_item",
                   "insurance_plan",
                   "allergy",
                   "moment"
@@ -14269,7 +14238,6 @@
                   "decision",
                   "medication",
                   "protocol",
-                  "protocol_item",
                   "insurance_plan",
                   "allergy",
                   "moment"
@@ -14615,7 +14583,6 @@
                   "decision",
                   "medication",
                   "protocol",
-                  "protocol_item",
                   "insurance_plan",
                   "allergy",
                   "moment"
@@ -17715,7 +17682,6 @@
                     "decision",
                     "medication",
                     "protocol",
-                    "protocol_item",
                     "insurance_plan",
                     "allergy",
                     "moment"
@@ -18773,7 +18739,6 @@
                     "decision",
                     "medication",
                     "protocol",
-                    "protocol_item",
                     "insurance_plan",
                     "allergy",
                     "moment"
@@ -19013,7 +18978,6 @@
                     "decision",
                     "medication",
                     "protocol",
-                    "protocol_item",
                     "insurance_plan",
                     "allergy",
                     "moment"
@@ -19209,7 +19173,6 @@
                     "decision",
                     "medication",
                     "protocol",
-                    "protocol_item",
                     "insurance_plan",
                     "allergy",
                     "moment"

@@ -2923,7 +2923,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment") | null;
             /** Evidence */
             evidence?: string | null;
             /** Owner Id */
@@ -2957,7 +2957,7 @@ export interface components {
             /** Entity Id */
             entity_id: string | null;
             /** Entity Type */
-            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment") | null;
             /** Evidence */
             evidence: string | null;
             /**
@@ -2995,7 +2995,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment") | null;
             /** Evidence */
             evidence?: string | null;
             /** Owner Id */
@@ -3044,7 +3044,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment") | null;
             /** Options Considered */
             options_considered?: string | null;
             /** Owner Id */
@@ -3072,7 +3072,7 @@ export interface components {
             /** Entity Id */
             entity_id: string | null;
             /** Entity Type */
-            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment") | null;
             /**
              * Id
              * Format: uuid
@@ -3105,7 +3105,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment") | null;
             /** Options Considered */
             options_considered?: string | null;
             /** Owner Id */
@@ -3139,7 +3139,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment") | null;
             /**
              * Escalation Level
              * @default 0
@@ -3196,7 +3196,7 @@ export interface components {
             /** Entity Id */
             entity_id: string | null;
             /** Entity Type */
-            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment") | null;
             /** Escalation Level */
             escalation_level: number;
             /** Expected Completion Date */
@@ -3253,7 +3253,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment") | null;
             /** Escalation Level */
             escalation_level?: number | null;
             /** Expected Completion Date */
@@ -3977,7 +3977,7 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment";
+            type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment";
         };
         /** MetricCreate */
         MetricCreate: {
@@ -3996,7 +3996,7 @@ export interface components {
              * Entity Type
              * @enum {string}
              */
-            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment";
+            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment";
             /** Measurement Frequency */
             measurement_frequency?: ("daily" | "weekly" | "monthly" | "quarterly" | "yearly") | null;
             /** Name */
@@ -4089,7 +4089,7 @@ export interface components {
              * Entity Type
              * @enum {string}
              */
-            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment";
+            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment";
             /** Name */
             name: string;
         };
@@ -4111,7 +4111,7 @@ export interface components {
              * Entity Type
              * @enum {string}
              */
-            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment";
+            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment";
             /**
              * Id
              * Format: uuid
@@ -4132,7 +4132,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment") | null;
             /** Name */
             name?: string | null;
         };
@@ -4158,7 +4158,7 @@ export interface components {
              * Entity Type
              * @enum {string}
              */
-            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment";
+            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment";
             /**
              * Id
              * Format: uuid
@@ -4200,7 +4200,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment") | null;
             /** Measurement Frequency */
             measurement_frequency?: ("daily" | "weekly" | "monthly" | "quarterly" | "yearly") | null;
             /** Name */
@@ -4313,7 +4313,7 @@ export interface components {
              * Entity Type
              * @enum {string}
              */
-            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment";
+            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment";
             /**
              * Role
              * @enum {string}
@@ -4338,7 +4338,7 @@ export interface components {
              * Entity Type
              * @enum {string}
              */
-            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment";
+            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment";
             /**
              * Role
              * @enum {string}
@@ -4649,7 +4649,7 @@ export interface components {
              * Entity Type
              * @enum {string}
              */
-            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment";
+            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment";
             /**
              * Kind
              * @enum {string}
@@ -4747,7 +4747,7 @@ export interface components {
              * Entity Type
              * @enum {string}
              */
-            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment";
+            entity_type: "area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment";
             /**
              * Id
              * Format: uuid
@@ -4796,7 +4796,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment") | null;
             /** Kind */
             kind?: ("standard" | "target") | null;
             /** Metric Id */
@@ -5034,7 +5034,7 @@ export interface components {
              * Involves
              * @default []
              */
-            involves: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment")[];
+            involves: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment")[];
             /** Name */
             name: string;
             /** Purpose */
@@ -5075,7 +5075,7 @@ export interface components {
              */
             id: string;
             /** Involves */
-            involves: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment")[];
+            involves: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment")[];
             /** Name */
             name: string;
             /** Purpose */
@@ -5110,7 +5110,7 @@ export interface components {
             /** Ended Date */
             ended_date?: CalendarDay | null;
             /** Involves */
-            involves?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment")[] | null;
+            involves?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment")[] | null;
             /** Name */
             name?: string | null;
             /** Purpose */
@@ -5443,7 +5443,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment") | null;
             /** External Label */
             external_label?: string | null;
             /** Follow Up Date */
@@ -5487,7 +5487,7 @@ export interface components {
             /** Entity Id */
             entity_id: string | null;
             /** Entity Type */
-            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment") | null;
             /** External Label */
             external_label: string | null;
             /** Follow Up Date */
@@ -5541,7 +5541,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment") | null;
             /** External Label */
             external_label?: string | null;
             /** Follow Up Date */
@@ -5570,7 +5570,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment") | null;
             /** Resource Type */
             resource_type?: string | null;
             /** Title */
@@ -5590,7 +5590,7 @@ export interface components {
             /** Entity Id */
             entity_id: string | null;
             /** Entity Type */
-            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+            entity_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment") | null;
             /**
              * Id
              * Format: uuid
@@ -5615,7 +5615,7 @@ export interface components {
             /** Entity Id */
             entity_id?: string | null;
             /** Entity Type */
-            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+            entity_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment") | null;
             /** Resource Type */
             resource_type?: string | null;
             /** Title */
@@ -6176,7 +6176,7 @@ export interface components {
             /** Scope Id */
             scope_id?: string | null;
             /** Scope Type */
-            scope_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+            scope_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment") | null;
             /**
              * Status
              * @default inbox
@@ -6264,7 +6264,7 @@ export interface components {
             /** Scope Id */
             scope_id: string | null;
             /** Scope Type */
-            scope_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+            scope_type: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment") | null;
             /**
              * Status
              * @enum {string}
@@ -6323,7 +6323,7 @@ export interface components {
             /** Scope Id */
             scope_id?: string | null;
             /** Scope Type */
-            scope_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+            scope_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment") | null;
             /** Status */
             status?: ("inbox" | "planned" | "in_progress" | "waiting" | "delegated" | "delivered" | "completed" | "cancelled") | null;
             /** Title */
@@ -8472,7 +8472,7 @@ export interface operations {
     merge_duplicates: {
         parameters: {
             query?: {
-                type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+                type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment") | null;
             };
             header?: never;
             path?: never;
@@ -9208,7 +9208,7 @@ export interface operations {
         parameters: {
             query?: {
                 kind?: ("capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "completion" | "withdrawal" | "decision") | null;
-                linked_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+                linked_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment") | null;
                 linked_id?: string | null;
                 role?: ("participant" | "place" | "subject" | "mention")[] | null;
                 since?: Instant | null;
@@ -9278,7 +9278,7 @@ export interface operations {
         parameters: {
             query?: {
                 kind?: ("capture" | "reflection" | "observation" | "occasion" | "exchange" | "visit" | "measurement" | "dose" | "activity" | "completion" | "withdrawal" | "decision") | null;
-                linked_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+                linked_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment") | null;
                 linked_id?: string | null;
                 role?: ("participant" | "place" | "subject" | "mention")[] | null;
             };
@@ -9346,7 +9346,7 @@ export interface operations {
     moments_density: {
         parameters: {
             query?: {
-                linked_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "protocol_item" | "insurance_plan" | "allergy" | "moment") | null;
+                linked_type?: ("area" | "program" | "project" | "task" | "routine" | "outcome" | "metric" | "metric_group" | "person" | "organization" | "location" | "commitment" | "request" | "delegation" | "review" | "resource" | "decision" | "medication" | "protocol" | "insurance_plan" | "allergy" | "moment") | null;
                 linked_id?: string | null;
             };
             header?: never;

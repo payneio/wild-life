@@ -157,11 +157,14 @@ ReviewType = Literal[
 
 # Soft polymorphic-link target types.
 #
-# `event` and `note` are deliberately absent. Both were retired by the inversion
-# — an event is an `occasion` moment and a note is a prose one — and a type that
-# can still be *named* but no longer constructed is a constructor for something
-# that cannot exist. Every consumer had to carry a branch for two cases that
-# could only 404.
+# `event`, `note` and `protocol_item` are deliberately absent. Each names a table
+# that no longer exists — an event is an `occasion` moment, a note is a prose one,
+# and a dose line is a `Routine` since the unification (`d2f4a6c8e0b1`) — and a
+# type that can still be *named* but no longer constructed is a constructor for
+# something that cannot exist. Every consumer had to carry a branch for cases that
+# could only 404. `protocol_item` outlived its table by three weeks because
+# nothing pointed at it: zero rows in every soft-poly column, which is precisely
+# why it was invisible.
 EntityType = Literal[
     "area",
     "program",
@@ -182,7 +185,6 @@ EntityType = Literal[
     "decision",
     "medication",
     "protocol",
-    "protocol_item",
     "insurance_plan",
     "allergy",
     # A moment can be about another moment — the 38 notes rooted at an event are

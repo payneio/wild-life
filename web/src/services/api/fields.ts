@@ -186,9 +186,6 @@ export const PROTOCOL_FIELDS: FieldSpec[] = [
   { name: "intended_outcome", label: "Intended outcome", type: "textarea", full: true },
 ]
 
-// Dose-line (protocol_item) fields, shared by the protocol Steps editor and the
-// medication standing-dose editor. Cadence follows FHIR Timing (see api regimen).
-
 export const INSURANCE_FIELDS: FieldSpec[] = [
   { name: "name", label: "Plan name" },
   { name: "plan_type", label: "Type", type: "select", options: PLAN_TYPE },
