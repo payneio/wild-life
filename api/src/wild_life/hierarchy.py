@@ -37,6 +37,7 @@ def tasks_rooted_at(entity_type: str, entity_id: uuid.UUID) -> Any | None:
     Returns ``None`` for a root that cannot hold tasks, so callers can treat an
     unsupported root as "no rows" rather than as "all rows".
     """
+
     # One shape at every altitude: the scope itself, plus the scopes beneath it.
     # A task names its scope once, so "at or below" is a membership test over a
     # set of references rather than a disjunction over three columns — and the

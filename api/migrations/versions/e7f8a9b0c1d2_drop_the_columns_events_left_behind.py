@@ -92,9 +92,7 @@ def downgrade() -> None:
     without their foreign key — which is the honest shape, since there is
     nothing left for them to reference.
     """
-    op.drop_constraint(
-        "fk_sent_reminders_moment", "sent_reminders", schema="wild_life"
-    )
+    op.drop_constraint("fk_sent_reminders_moment", "sent_reminders", schema="wild_life")
     op.execute(
         "ALTER TABLE wild_life.sent_reminders DROP CONSTRAINT IF EXISTS uq_sent_reminder"
     )

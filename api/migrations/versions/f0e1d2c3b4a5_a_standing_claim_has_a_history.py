@@ -35,7 +35,10 @@ def upgrade() -> None:
     op.create_table(
         "outcome_evaluations",
         sa.Column(
-            "id", sa.UUID(), primary_key=True, server_default=sa.text("gen_random_uuid()")
+            "id",
+            sa.UUID(),
+            primary_key=True,
+            server_default=sa.text("gen_random_uuid()"),
         ),
         sa.Column(
             "outcome_id",

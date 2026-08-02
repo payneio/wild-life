@@ -39,7 +39,10 @@ def upgrade() -> None:
     op.create_table(
         "intention_moments",
         sa.Column(
-            "id", sa.UUID(), primary_key=True, server_default=sa.text("gen_random_uuid()")
+            "id",
+            sa.UUID(),
+            primary_key=True,
+            server_default=sa.text("gen_random_uuid()"),
         ),
         sa.Column("intention_type", sa.Text(), nullable=False),
         sa.Column("intention_id", sa.UUID(), nullable=False),
@@ -81,7 +84,10 @@ def upgrade() -> None:
     op.create_table(
         "task_objectives",
         sa.Column(
-            "id", sa.UUID(), primary_key=True, server_default=sa.text("gen_random_uuid()")
+            "id",
+            sa.UUID(),
+            primary_key=True,
+            server_default=sa.text("gen_random_uuid()"),
         ),
         sa.Column(
             "task_id",

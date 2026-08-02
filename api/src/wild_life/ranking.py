@@ -38,9 +38,7 @@ def siblings_of(task: Task) -> Any:
     # Siblings share a scope. One comparison, where three branches used to pick
     # whichever column happened to be filled.
     if task.scope_id is not None:
-        return and_(
-            Task.scope_type == task.scope_type, Task.scope_id == task.scope_id
-        )
+        return and_(Task.scope_type == task.scope_type, Task.scope_id == task.scope_id)
     return and_(
         Task.scope_id.is_(None),
     )

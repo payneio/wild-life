@@ -51,7 +51,9 @@ def upgrade() -> None:
         "tasks", sa.Column("not_before", sa.Date(), nullable=True), schema="wild_life"
     )
     op.add_column(
-        "outcomes", sa.Column("not_before", sa.Date(), nullable=True), schema="wild_life"
+        "outcomes",
+        sa.Column("not_before", sa.Date(), nullable=True),
+        schema="wild_life",
     )
 
     # A scheduled task is the intention; the shadow moment said it twice.

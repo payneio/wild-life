@@ -16,7 +16,13 @@ from wild_life.authz import (
     scope_task_create,
 )
 from wild_life.db.session import get_session
-from wild_life.spine import forget_for, link_intention, record_task, set_links, upsert_moment
+from wild_life.spine import (
+    forget_for,
+    link_intention,
+    record_task,
+    set_links,
+    upsert_moment,
+)
 from wild_life.hierarchy import tasks_rooted_at
 from wild_life.identity import Identity, current_identity
 from wild_life.lifecycle import closed_statuses
