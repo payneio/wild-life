@@ -27,7 +27,14 @@ def require_db() -> None:
 # Children first: a leaked area can only be removed once nothing points at it.
 _MARKED = (
     ("metric_entries", None),  # cascades from metrics; listed so the sweep reports it
+    ("group_readings", None),  # cascades from metric_groups
     ("outcomes", "statement"),
+    # A panel's moment is the one derived moment with no title — `record_reading`
+    # gives it a body and nothing else — so it slips past the title sweep below.
+    # Deleting the group is what reaches it: the reading cascades, which orphans
+    # the moment, which the orphan pass then collects. Left out, 36 groups and 34
+    # measurement moments accumulated in the live app's timeline.
+    ("metric_groups", "name"),
     ("metrics", "name"),
     ("tasks", "title"),
     ("projects", "name"),

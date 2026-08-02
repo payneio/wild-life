@@ -93,7 +93,7 @@ flowchart TB
 
 ---
 
-## 1. Moments — what happened (2,870 moments · 2,718 links)
+## 1. Moments — what happened (2,837 moments · 2,657 links)
 
 A life is a series of moments; every other object is their *subject* rather than
 their owner.
@@ -108,7 +108,7 @@ The apparent exception is not one. **6 rows have `started_at` in the future, all
 `occasion`** — scheduled meetings, the furthest 2026-08-28. A meeting next week is
 an occurrence whose time is already settled and has yet to arrive; that is not a
 range still closing, which is the thing moments deliberately cannot express.
-`started_at` is nullable but **null on none of the 2,870 rows**.
+`started_at` is nullable but **null on none of the 2,837 rows**.
 
 Payload hangs off the **link**, not the moment: a reading belongs to
 *this moment concerning that metric*, so one measurement moment can carry a whole
@@ -119,7 +119,7 @@ erDiagram
     moments {
         uuid id PK
         text kind "MomentKind — 12 permitted, 10 in use"
-        timestamptz started_at "nullable; null on 0 of 2,870 rows"
+        timestamptz started_at "nullable; null on 0 of 2,837 rows"
         timestamptz ended_at
         boolean all_day
         text title
@@ -221,22 +221,19 @@ erDiagram
 
 | kind | rows | | kind | rows |
 |---|---:|---|---|---:|
-| occasion | 1,316 | | activity | 59 |
+| occasion | 1,316 | | activity | 60 |
 | observation | 622 | | dose | 56 |
 | completion | 424 | | decision | 8 |
 | reflection | 257 | | visit | 7 |
-| measurement | 120 | | capture | 1 |
+| measurement | 86 | | capture | 1 |
 | **exchange** | **0** | | **withdrawal** | **0** |
-
-**34 of those 120 `measurement` rows are test residue, not life** — see
-[What the ERD makes visible](#what-the-erd-makes-visible). Real total: 2,836.
 
 `work` was removed with its 402 rows (`c1d2e3f4a5b6`) — the window belonged to
 the intention, so a shadow moment said the same thing twice. `exchange` and
 `withdrawal` have never been written; `exchange` is the delegation half that has
 not been built.
 
-**Link roles**: `subject` 1,585 · `mention` 1,008 · `participant` 118 · `place` 7.
+**Link roles**: `subject` 1,524 · `mention` 1,008 · `participant` 118 · `place` 7.
 
 ---
 
@@ -812,25 +809,17 @@ erDiagram
 `record_reading` for a whole panel (`source_ref=group_reading:<id>`), the latter
 folding a panel's members into **one** measurement moment carrying many readings.
 
-**It reconciles exactly**, once the test suite's leavings are excluded:
+**It reconciles exactly**, on both counts:
 
 | | |
 |---|---:|
-| real panels | 58 |
-| panels where entries and readings agree | **58 of 58** |
-| `metric_entries` in those panels | 297 |
-| `moment_readings` under those panels | **297** |
-| standalone entries · their readings | 28 · 28 |
+| panels · standalone entries | 58 · 28 |
+| `measurement` moments (58 + 28) | **86** |
+| `metric_entries` | 325 |
+| `moment_readings` | **325** |
 
-92 panels + 28 standalone entries = 120 `measurement` moments, which reconciles
-exactly too.
-
-> **A first pass at this reported a 56-reading discrepancy. That was wrong.** The
-> query did not exclude rows the test suite leaves behind, and every one of the
-> panels it called over-counted was a `ZZ-` fixture. Corrected here rather than
-> quietly dropped, because the retraction is the more useful record: a
-> reconciliation query run against a database the tests write to has to exclude
-> them, and this one did not.
+Nothing enforces that correspondence, though — there is no constraint and no
+test. It holds because one writer produces both.
 
 ---
 
@@ -1039,7 +1028,7 @@ the application's job, not Postgres's**.
 
 | table | columns | permitted | observed |
 |---|---|---|---|
-| `moment_links` | `entity_type` / `entity_id` | all of `EntityType` (22) | task 827 · person 787 · metric 381 · project 144 · location 123 · organization 113 · area 108 · program 66 · medication 61 · routine 50 · moment 40 · decision 8 · request 1 |
+| `moment_links` | `entity_type` / `entity_id` | all of `EntityType` (22) | task 827 · person 787 · metric 325 · project 144 · location 123 · organization 113 · area 108 · program 66 · medication 61 · routine 54 · moment 40 · decision 8 · request 1 |
 | `rule_links` | `entity_type` / `entity_id` | all | medication 15 · person 2 |
 | `tasks` | `scope_type` / `scope_id` | area, program, project | project 460 · program 5 · area 4 · null 1 |
 | `outcomes` | `entity_type` / `entity_id` | any scope | area 11 · program 10 |
@@ -1065,7 +1054,7 @@ column above — which is exactly what kept it invisible.
 
 ## What the ERD makes visible
 
-Three things are easier to see here than in the code, stated as observations
+Two things are easier to see here than in the code, stated as observations
 rather than proposals.
 
 **1. The empty tables split into two kinds.** `commitments`, `delegations` and
@@ -1075,17 +1064,7 @@ rather than proposals.
 would write to it. Reading either group as "unused, therefore droppable" would be
 a mistake in one of the two directions.
 
-**2. The test suite leaks rows into the live database.** 36 `ZZ-` metric groups,
-34 group readings, and 34 `measurement` moments carrying 62 readings are sitting
-in the app's real data, and they accumulate with every run. Three gaps compound:
-`conftest.py` sweeps `moments WHERE title LIKE 'ZZ-%'`, but `record_reading`
-gives a panel's moment a body and **no title**, so those escape; `metric_groups`
-and `group_readings` are not in the sweep's `_MARKED` list, so the source rows
-survive; and the orphan pass that would catch a derived moment whose source is
-gone therefore never fires. The sweep runs at session start, so a run's own
-residue always outlives it.
-
-**3. Attention has no representation.** Every moment has a duration
+**2. Attention has no representation.** Every moment has a duration
 (`started_at`→`ended_at`) and nothing records whose attention it consumed, because
 `moments` was built by inverting nine tables that were all one person's. It
 has no actor column. As long as only one person writes moments this is a saving;
