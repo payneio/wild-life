@@ -172,7 +172,16 @@ export function useDuplicates(type?: EntityType) {
 // --- whiteboard (one buffer, deliberately not an entity) ---
 export interface WhiteboardRead {
   content: string
+  version: number
   updated_at: string | null
+}
+
+export interface WhiteboardRevision {
+  id: string
+  version: number
+  replaced_at: string
+  size: number
+  preview: string
 }
 
 export function useWhiteboard() {
@@ -185,10 +194,29 @@ export function useWhiteboard() {
 export function useSaveWhiteboard() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (content: string) => apiClient.put<WhiteboardRead>("/whiteboard", { content }),
+    // `base_version` is not optional, so a caller with no loaded buffer cannot
+    // construct this argument. The type is the guard: the page cannot save what
+    // it never read, which is the failure that emptied the buffer once.
+    mutationFn: ({ content, base_version }: { content: string; base_version: number }) =>
+      apiClient.put<WhiteboardRead>("/whiteboard", { content, base_version }),
+    // Offline, the default `networkMode` would park each debounced save and
+    // release the whole queue on reconnect — a burst of writes all claiming the
+    // same base version, of which every one after the first is stale. Fail while
+    // offline instead; the page holds the draft and saves it once, on reconnect.
+    networkMode: "always",
+    retry: false,
     // No SSE fan-out reaches this (it is unaudited by design), so seed the cache
     // from the response rather than waiting for an invalidation that never comes.
     onSuccess: (board) => qc.setQueryData(["whiteboard"], board),
+  })
+}
+
+/** What the buffer used to hold — most recently displaced first. */
+export function useWhiteboardRevisions(enabled: boolean) {
+  return useQuery({
+    queryKey: ["whiteboard", "revisions"],
+    queryFn: () => apiClient.get<WhiteboardRevision[]>("/whiteboard/revisions"),
+    enabled,
   })
 }
 

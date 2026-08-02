@@ -117,6 +117,18 @@ Iterate with the dev servers; they never touch the live URLs. Publish separately
     single-row table, `__audit__ = False`, absent from `EntityType`, the registry
     and `change_log`. A scratch space has no subject, no date and no identity,
     which is why it is not a note.
+    **A write to it must name the version it replaces.** `PUT` carries
+    `base_version` and is refused with 409 if the buffer has moved on, because a
+    whole-document write that names nothing cannot tell "replacing what I read"
+    from "replacing something I never saw" — and on 2026-08-01 it didn't: the
+    page was opened offline, where a paused query leaves the buffer undefined,
+    rendered that as *empty*, and flushed the three things typed into it on
+    reconnect. Recovery meant reading dead tuples out of the heap before
+    autovacuum ran. So `whiteboard_revisions` now keeps the displaced text, one
+    entry per editing session (the first write after a 15-minute gap snapshots
+    how the last session ended). That is an undo buffer, not history in the
+    sense the exclusions above deny: still no identity, no subject, no place in
+    the timeline, still out of `change_log`.
 - **No tagging.** Tags do one job nothing else can — recall by a theme that isn't
   an object — and search does that job without anyone maintaining a vocabulary,
   which is the real cost. If thematic recall is wanted, build vector search over
