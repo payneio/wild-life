@@ -12,7 +12,7 @@ they key on (what, when) rather than carrying a payload.
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import Date, DateTime, ForeignKey, Integer, Text, UniqueConstraint
+from sqlalchemy import Date, DateTime, Integer, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -36,25 +36,33 @@ class PushSubscription(UUIDPrimaryKey, TimestampMixin, Base):
 class SentReminder(UUIDPrimaryKey, TimestampMixin, Base):
     """Ledger of reminders already delivered — makes the tick idempotent.
 
-    Keyed by (event, occurrence start, lead) so a recurring event fires one
+    Keyed by (subject, occurrence start, lead) so a recurring event fires one
     reminder per occurrence per lead time, and re-ticks never resend.
+
+    The subject is a **soft polymorphic edge** (``erd.md`` §Soft polymorphic
+    edges), not a foreign key. It is a ``moment`` for a one-off or materialised
+    occasion and a ``routine`` for a projected series — and a projection is not
+    a row (``domain.md``: a rule's occurrences are *computed, never
+    materialised*), so there is nothing for a FK to point at. A reminder firing
+    is an external notification event, not "something happening to" the
+    occurrence, so it must not fabricate a moment to key against.
     """
 
     __tablename__ = "sent_reminders"
     __table_args__ = (
         UniqueConstraint(
-            "moment_id",
+            "subject_type",
+            "subject_id",
             "occurrence_start",
             "lead_minutes",
             name="uq_sent_reminder",
         ),
     )
 
-    moment_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("moments.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
+    # "moment" | "routine" — a member of EntityType, no FK behind it.
+    subject_type: Mapped[str] = mapped_column(Text, nullable=False)
+    subject_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), nullable=False, index=True
     )
     occurrence_start: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False

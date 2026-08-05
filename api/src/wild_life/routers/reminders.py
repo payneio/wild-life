@@ -69,10 +69,14 @@ async def tick(session: AsyncSession = Depends(get_session)) -> ReminderTickResu
             continue
         if entry.withdrawn_at is not None:
             continue
-        # A projection is not a row, so a reminder is recorded against the series
-        # and the slot it fired for.
-        subject_id = entry.moment_id or entry.rule_id
-        if subject_id is None:
+        # A projection is not a row, so a reminder is recorded against the
+        # series (routine) and the slot it fired for; a stored occasion is
+        # recorded against its moment. Soft polymorphic subject, no FK.
+        if entry.moment_id is not None:
+            subject_type, subject_id = "moment", entry.moment_id
+        elif entry.rule_id is not None:
+            subject_type, subject_id = "routine", entry.rule_id
+        else:
             continue
         minutes_out = (occ - now).total_seconds() / 60
         due = [ln for ln in leads if 0 < minutes_out <= ln]
@@ -83,7 +87,8 @@ async def tick(session: AsyncSession = Depends(get_session)) -> ReminderTickResu
             (
                 await session.execute(
                     select(SentReminder.lead_minutes).where(
-                        SentReminder.moment_id == subject_id,
+                        SentReminder.subject_type == subject_type,
+                        SentReminder.subject_id == subject_id,
                         SentReminder.occurrence_start == occ,
                     )
                 )
@@ -134,7 +139,10 @@ async def tick(session: AsyncSession = Depends(get_session)) -> ReminderTickResu
         for ln in fresh:
             session.add(
                 SentReminder(
-                    moment_id=subject_id, occurrence_start=occ, lead_minutes=ln
+                    subject_type=subject_type,
+                    subject_id=subject_id,
+                    occurrence_start=occ,
+                    lead_minutes=ln,
                 )
             )
 
