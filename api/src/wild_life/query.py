@@ -114,8 +114,6 @@ SEARCH_FIELDS: dict[str, tuple[str, list[str]]] = {
     "outcome": ("statement", ["statement", "description"]),
     "metric": ("name", ["name", "unit", "data_source", "scale"]),
     "metric_group": ("name", ["name", "description"]),
-    "event": ("title", ["title", "description", "location"]),
-    "note": ("title", ["title", "body", "mood"]),
     "medication": ("name", ["name", "brand", "reason", "instructions", "adjustments"]),
     "protocol": ("name", ["name", "category", "purpose", "adjustments"]),
     "insurance_plan": ("name", ["name", "network", "member_id"]),

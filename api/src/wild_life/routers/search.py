@@ -60,7 +60,11 @@ async def search(
     results: list[dict[str, Any]] = []
 
     for t in wanted:
-        model = TYPE_TO_MODEL[t]
+        # A type declared in SEARCH_FIELDS but no longer backed by a model is a
+        # leftover from a retirement; skip it rather than 500 the whole endpoint.
+        model = TYPE_TO_MODEL.get(t)
+        if model is None:
+            continue
         label_col, text_cols = SEARCH_FIELDS[t]
         cols = model.__table__.columns
         present = [c for c in text_cols if c in cols]
