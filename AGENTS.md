@@ -165,6 +165,16 @@ wildpc secret set WILD_LIFE_TOKEN      # prompts for value
   moment kind, status value, migration — goes through the `change-the-model`
   skill. Two questions (which scenario forces this; what else can write this
   fact) that have to be answered before the edit, not after.
+- **Asking what a concept *is*** goes through the `model-the-domain` skill first,
+  and this is the rule most often missed, because such questions sound directly
+  answerable and get answered on the spot. They are not a request for an opinion.
+  The shapes to recognise: *"should X be its own entity?"*, *"are X and Y the
+  same thing?"*, *"is a Habit different from a Routine?"*, *"what if everything
+  were a Moment?"*, *"is this status vocabulary right or did we just accrete
+  it?"*, *"we have four overlapping tables — what should the one concept be?"*.
+  Answering from the current schema is the failure mode: it is a hypothesis under
+  test, so it cannot be its own evidence. Read @api/docs/domain.md and go find
+  who has modelled this before.
 - **Say which kind of claim you are making**: what the code does, what the domain
   requires, or what you believe and on what grounds. The first does not stand in
   for the second — this is a system one person is building, so the current schema
