@@ -160,3 +160,16 @@ wildpc secret set WILD_LIFE_TOKEN      # prompts for value
 - A global git `commit-msg` hook rejects any commit message mentioning "claude".
 - Backend datetime columns are all tz-aware (`DateTime(timezone=True)`); statuses
   are `Literal`-validated Text — see @api/AGENTS.md.
+- **Changing the shape of what the system can say** — a column, table, entity,
+  moment kind, status value, migration — goes through the `change-the-model`
+  skill. Two questions (which scenario forces this; what else can write this
+  fact) that have to be answered before the edit, not after.
+- **Say which kind of claim you are making**: what the code does, what the domain
+  requires, or what you believe and on what grounds. The first does not stand in
+  for the second — this is a system one person is building, so the current schema
+  is a hypothesis under test, and row counts are evidence about past guesses. Cite
+  outside work or drop the claim.
+- **A failing check beats a written instruction.** Prefer making a mistake
+  impossible — a `Literal` the generated types police, a unique constraint, a
+  coverage test — over describing it as a rule. `.claude/hooks/ruff-clean.sh`
+  runs on Stop for the same reason.
