@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from wild_life.db.session import get_session
 from wild_life.derivations import series_for
-from wild_life.models.links import EntityLink
+from wild_life.models.intentions import TaskObjective
 from wild_life.models.metrics import Metric, MetricEntry
 from wild_life.models.outcomes import Outcome, OutcomeEvaluation
 from wild_life.routers.crud import crud_router
@@ -95,14 +95,16 @@ async def evaluate_outcome(
     outcome = await _get_outcome(session, outcome_id)
     today = date.today()
 
+    # How many tasks serve this outcome. `task_objectives` is the means-end edge
+    # and the only one with a writer (`POST /tasks/{id}/objectives`); this
+    # counted `entity_links(relation='advances')` instead, which nothing has ever
+    # written, so the number was structurally always zero. Contribution is still
+    # not satisfaction — this counts effort aimed at the claim, and never moves
+    # `state`, which only the metric or an evaluation can do.
     advanced_by = await session.scalar(
         select(func.count())
-        .select_from(EntityLink)
-        .where(
-            EntityLink.target_type == "outcome",
-            EntityLink.target_id == outcome_id,
-            EntityLink.relation == "advances",
-        )
+        .select_from(TaskObjective)
+        .where(TaskObjective.outcome_id == outcome_id)
     )
 
     result: dict = {

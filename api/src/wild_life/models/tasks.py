@@ -66,6 +66,10 @@ class Task(UUIDPrimaryKey, TimestampMixin, Base):
     accountable_owner_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("people.id", ondelete="SET NULL")
     )
+    # RACI's R. `assignee_id` below holds the same person on every row today, and
+    # which of the two is canonical is unsettled (`docs/domain.md`). Anything that
+    # *routes* work must read both: `POST /tasks/{id}/assignment` moves this one,
+    # and reading only the other meant an accepted assignment queued for nobody.
     responsible_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("people.id", ondelete="SET NULL")
     )

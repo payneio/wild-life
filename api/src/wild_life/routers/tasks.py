@@ -134,6 +134,13 @@ def _spawn_next_occurrence(task: Task) -> Task | None:
         responsible_id=task.responsible_id,
         assignee_id=task.assignee_id,
         scheduled_date=nxt if task.scheduled_date else None,
+        # Both ends of the window move together. `not_before` was added after
+        # this function and was not carried, so a recurring task with an
+        # earliest-start bound lost it on every cycle — the next occurrence
+        # became available immediately instead of when it should.
+        not_before=(task.not_before + timedelta(days=shift))
+        if task.not_before
+        else None,
         due_date=(task.due_date + timedelta(days=shift)) if task.due_date else None,
         estimated_minutes=task.estimated_minutes,
         recurrence=task.recurrence,
@@ -295,9 +302,17 @@ async def my_tasks(
     ):
         if ids:
             triage.append(and_(Task.scope_type == kind, Task.scope_id.in_(ids)))
-    actionable = [Task.assignee_id == pid]
+    # Either person column routes work. `record_assignment` moves *responsible*
+    # (delegation moves Responsible, never Accountable), so reading only
+    # `assignee_id` meant accepting an assignment queued the task for nobody —
+    # invisible while the two columns agree on every row, which they do today.
+    # Which of the two is canonical is an open question (`domain.md`); until it
+    # is settled the read accepts both rather than picking a winner here.
+    assigned_to_me = or_(Task.assignee_id == pid, Task.responsible_id == pid)
+    unassigned = and_(Task.assignee_id.is_(None), Task.responsible_id.is_(None))
+    actionable = [assigned_to_me]
     if triage:
-        actionable.append(and_(Task.assignee_id.is_(None), or_(*triage)))
+        actionable.append(and_(unassigned, or_(*triage)))
     stmt = select(Task).where(or_(*actionable))
     # 'waiting' means blocked on a Request/decision — not actionable until unblocked
     # (resolving the blocking Request flips it back to in_progress, re-queueing it).
