@@ -66,7 +66,12 @@ export type RelationSpec =
       label: string
       type: EntityType
       fkField: string
+      /** Parent columns copied onto the new row under the same name. */
       inherit?: string[]
+      /** Literal prefills, as on `soft-backref` — for what the gesture knows but
+       *  the parent doesn't carry (an outcome created from a metric is a
+       *  target). */
+      defaults?: Record<string, unknown>
       hideWhenEmpty?: boolean
       /** List but don't link. For a collection reached *through* something else
        *  — an Area's projects, which belong to its programs — where the rows are
@@ -142,9 +147,20 @@ export interface EntityDef {
   /** The field the entity's display title reads from (e.g. "name" | "title").
    *  Used by inline quick-create to name a new row from the picker query. */
   titleField?: string
-  /** Whether this type can be created inline from a picker with just its title
-   *  (i.e. its Create schema requires nothing beyond `titleField`). */
+  /** Whether this type can be created inline from a picker, given its title and
+   *  whatever `createRequires` names. */
   quickCreate?: boolean
+  /**
+   * Fields the Create schema demands *beyond* `titleField`, which the surface
+   * offering quick-create must therefore supply as `createDefaults`.
+   *
+   * Declared because `quickCreate` alone was a claim about the API that nothing
+   * checked: four types are rooted or parented at birth, so a picker with no
+   * context to hand them posted `{name}` and got a 422 back — the picker offered
+   * a gesture the server would always refuse. A picker that can't satisfy these
+   * now withholds the Create row instead.
+   */
+  createRequires?: readonly string[]
   /** The entity's detail layout, composed from the `Record` primitives. It owns
    *  the whole surface — there is no generic field-grid renderer to coordinate
    *  with, which is what made a field render twice. `fields` below is now only
@@ -243,18 +259,22 @@ export const REGISTRY: Record<string, EntityDef> = {
   // got prose about the project back, because before every record carried a Log
   // there was nowhere else for that to go. A project's completion is its tasks
   // and its status, and tasks are what define when things get done.
-  project: { key: "project", label: "Project", crud: projects, fields: PROJECT_FIELDS, title: (e) => e.name, parent: (e) => ({ type: "program", id: e.program_id }), entityType: "project", titleField: "name", quickCreate: true, detail: ProjectRecord, relations: [
+  project: { key: "project", label: "Project", crud: projects, fields: PROJECT_FIELDS, title: (e) => e.name, parent: (e) => ({ type: "program", id: e.program_id }), entityType: "project", titleField: "name", quickCreate: true, createRequires: ["program_id"], detail: ProjectRecord, relations: [
     { mode: "soft-backref", label: "Resources", type: "resource" },
     { mode: "soft-backref", label: "Decisions", type: "decision" },
   ] },
-  outcome: { key: "outcome", label: "Outcome", crud: outcomes, fields: OUTCOME_FIELDS, title: (e) => e.statement, parent: (e) => (e.entity_type && e.entity_id ? { type: e.entity_type, id: e.entity_id } : undefined), entityType: "outcome", titleField: "statement", quickCreate: true, detail: OutcomeRecord, relations: [
+  outcome: { key: "outcome", label: "Outcome", crud: outcomes, fields: OUTCOME_FIELDS, title: (e) => e.statement, parent: (e) => (e.entity_type && e.entity_id ? { type: e.entity_type, id: e.entity_id } : undefined), entityType: "outcome", titleField: "statement", quickCreate: true, createRequires: ["kind", "entity_type", "entity_id"], detail: OutcomeRecord, relations: [
   ] },
   // Rooted soft-polymorphically, not on an `area_id` — the subtitle used to read
   // one, years after the column moved, and printed nothing on every row.
-  metric: { key: "metric", label: "Metric", crud: metrics, fields: METRIC_FIELDS, title: (e) => e.name, parent: (e) => (e.entity_type && e.entity_id ? { type: e.entity_type, id: e.entity_id } : undefined), entityType: "metric", titleField: "name", quickCreate: true, detail: MetricRecord, relations: [
-    { mode: "fk-children", label: "Outcomes measured by this", type: "outcome", fkField: "metric_id" },
+  metric: { key: "metric", label: "Metric", crud: metrics, fields: METRIC_FIELDS, title: (e) => e.name, parent: (e) => (e.entity_type && e.entity_id ? { type: e.entity_type, id: e.entity_id } : undefined), entityType: "metric", titleField: "name", quickCreate: true, createRequires: ["entity_type", "entity_id"], detail: MetricRecord, relations: [
+    // The new outcome is filed where the metric is: a claim about a number
+    // belongs under whatever that number is measured for. Without the inherit
+    // it was created with a `metric_id` and no root at all, which the API
+    // refuses — the panel offered an Add that could only ever fail.
+    { mode: "fk-children", label: "Outcomes measured by this", type: "outcome", fkField: "metric_id", inherit: ["entity_type", "entity_id"], defaults: { kind: "target" } },
   ] },
-  metricGroup: { key: "metricGroup", label: "Metric group", crud: metricGroups, fields: METRIC_GROUP_FIELDS, title: (e) => e.name, parent: (e) => (e.entity_type && e.entity_id ? { type: e.entity_type, id: e.entity_id } : undefined), entityType: "metric_group", titleField: "name", quickCreate: true, detail: MetricGroupRecord },
+  metricGroup: { key: "metricGroup", label: "Metric group", crud: metricGroups, fields: METRIC_GROUP_FIELDS, title: (e) => e.name, parent: (e) => (e.entity_type && e.entity_id ? { type: e.entity_type, id: e.entity_id } : undefined), entityType: "metric_group", titleField: "name", quickCreate: true, createRequires: ["entity_type", "entity_id"], detail: MetricGroupRecord },
   // The rule table also holds `occasion` rules (recurring calendar series), which
   // are not routines to a reader and get their own surface in the calendar step.
   routine: { key: "routine", label: "Routine", crud: routines, listParams: { kind__in: "dose,activity", limit: "200" }, fields: ROUTINE_FIELDS, title: (e) => e.name ?? "Routine", parent: (e) => refOf(e, ["protocol_id", "protocol"], ["program_id", "program"], ["area_id", "area"]), entityType: "routine", titleField: "name", quickCreate: true, detail: RoutineRecord },

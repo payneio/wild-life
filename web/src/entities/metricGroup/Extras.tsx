@@ -321,6 +321,9 @@ export function GroupMembers({ group }: { group: MetricGroup }) {
             lookup="metric"
             value={null}
             intent="assign"
+            // A metric named while filling a group is measured for whatever the
+            // group is about, so it's filed there.
+            createDefaults={{ entity_type: group.entity_type, entity_id: group.entity_id }}
             onChange={(id) => {
               if (id && !memberIds.includes(id)) write([...memberIds, id])
               setAdding(false)

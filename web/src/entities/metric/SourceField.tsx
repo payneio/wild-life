@@ -28,6 +28,9 @@ export function MetricSourceField({ entity }: { entity: Entity }) {
   ])
   const { data: derivations } = useDerivations()
   const chosen = derivations?.find((d) => d.key === metric.derivation)
+  // An operand named here is measured for the same thing the ratio is, so a
+  // metric created from this picker is filed where this one is.
+  const operandRoot = { entity_type: metric.entity_type, entity_id: metric.entity_id }
 
   return (
     <RecordSection title="Readings">
@@ -75,6 +78,7 @@ export function MetricSourceField({ entity }: { entity: Entity }) {
                 intent="assign"
                 value={metric.numerator_metric_id}
                 onChange={(id) => save({ numerator_metric_id: id })}
+                createDefaults={operandRoot}
               />
             </label>
             <label className="text-sm">
@@ -86,6 +90,7 @@ export function MetricSourceField({ entity }: { entity: Entity }) {
                 intent="assign"
                 value={metric.denominator_metric_id}
                 onChange={(id) => save({ denominator_metric_id: id })}
+                createDefaults={operandRoot}
               />
             </label>
           </div>
