@@ -195,7 +195,8 @@ erDiagram
     }
     sent_reminders {
         uuid id PK
-        uuid moment_id FK
+        text subject_type "soft link — moment | routine"
+        uuid subject_id "soft link — no FK constraint"
         timestamptz occurrence_start
         integer lead_minutes
         timestamptz created_at
@@ -207,7 +208,6 @@ erDiagram
     moments ||--o| calendar_records : "is shareable as"
     moments ||--o{ sent_invites : "invited via"
     moments ||--o{ attendee_responses : "answered by"
-    moments ||--o{ sent_reminders : "reminded of"
     moments ||--o{ calendar_records : "recurrence_parent_id"
     moment_links ||--o| moment_readings : "measured"
     moment_links ||--o| moment_doses : "dosed"
@@ -1035,7 +1035,7 @@ likewise. Neither is pruned.
 
 ## Soft polymorphic edges
 
-Fifteen places where a reference has no constraint behind it, because the target
+Sixteen places where a reference has no constraint behind it, because the target
 may be any of the types in `EntityType`. This is the price of one moments table
 rather than many, and it is paid knowingly — but it means **referential integrity here is
 the application's job, not Postgres's**.
@@ -1056,6 +1056,7 @@ the application's job, not Postgres's**.
 | `resources` | `entity_type` / `entity_id` | all | **yes** |
 | `decisions` | `entity_type` / `entity_id` | all | **yes** |
 | `entity_links` | `source_*` / `target_*` | all | no |
+| `sent_reminders` | `subject_type` / `subject_id` | moment, routine | no |
 | `change_log` | `entity_type` / `entity_id` | *(a different vocabulary — see below)* | no |
 
 **A nullable soft reference is two defects, not one.** It cannot be checked by
