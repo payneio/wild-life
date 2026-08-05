@@ -16,8 +16,8 @@ repository spent an evening deleting rotted.
 
 ## 1. Which scenario forces this?
 
-`api/docs/model.md` holds the axioms and the scenarios S1–S9 that force them,
-and states its own test: *a change is legitimate if every scenario still has an
+`api/docs/domain.md` holds the definitions and the scenarios S1–S9, and states
+its own test: *a change is legitimate only if every scenario still has an
 answer.* Run that test **before** the migration, not after.
 
 Name the scenario that fails without the change. If you cannot name one, the
@@ -25,7 +25,7 @@ change is a guess — say so plainly and let Paul decide, rather than shipping
 structure and reasoning about it later.
 
 Adding a scenario is allowed and is how the model grows. It is a claim about the
-domain, so it gets written down in `model.md` where the next change is tested
+domain, so it gets written down in `domain.md` where the next change is tested
 against it.
 
 ## 2. What else can write this fact?

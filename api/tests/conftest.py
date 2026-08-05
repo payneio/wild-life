@@ -57,8 +57,15 @@ def sweep_test_rows() -> Generator[None, None, None]:
     tidiness bug rather than a leak into a life-management app someone uses.
     """
     yield
+    # Both `create_engine` and `begin()` are lazy — neither connects, so neither
+    # raises on bad credentials, and the original guard around `create_engine`
+    # alone never fired. Every run without a reachable database ended in a
+    # teardown error, which is how a pure-filesystem test came to look like it
+    # needed Postgres. Probe explicitly, and leave the sweep itself unguarded so
+    # a *failing* sweep still shouts.
     try:
         eng = create_engine(settings.sync_database_url)
+        eng.connect().close()
     except Exception:  # pragma: no cover - no database, nothing to sweep
         return
     with eng.begin() as conn:
