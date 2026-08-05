@@ -1,6 +1,6 @@
 """Attention: cadence, examination, and what counts as neglect.
 
-The third category in `docs/model.md`, and the one neither literature this model
+The third category in `docs/domain.md`, and the one neither literature this model
 draws on supplies whole. A scope is a bounded amount of regard you allocate; it
 does not get discharged like a commitment, it gets *examined*, and it fails by
 not being.

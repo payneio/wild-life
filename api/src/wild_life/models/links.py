@@ -1,8 +1,12 @@
 """EntityLink — a generic soft-polymorphic edge between any two entities.
 
-The many-links complement to the single primary link (entity_type/entity_id). Both
-ends are soft (no FK). `relation` names the edge — the first user is `"attendee"`
-(event → person). Reverse lookups (e.g. a person's events) use the target index.
+The many-links complement to the single primary link (`entity_type`/`entity_id`).
+Both ends are soft (no FK), so referential integrity here is the application's
+job. Reverse lookups use the target index.
+
+**`relation` is part of the primary key**, so one pair of entities may carry
+several distinct relations — that is deliberate, and it is why the key is five
+columns rather than four.
 """
 
 import uuid

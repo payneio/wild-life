@@ -1,4 +1,10 @@
-"""API credentials — token-hash → Person + role (owner or delegated worker)."""
+"""API credentials — token hash -> Person + role.
+
+**External** in the `docs/domain.md` sense: operational, not part of the life
+model. Notable only because `role='worker'` is how a non-human actor acts as a
+Person — which is the point at which "whose attention did this moment consume?"
+stops being answerable, since a moment has no actor column.
+"""
 
 import uuid
 from datetime import datetime

@@ -1,7 +1,7 @@
 // The moment vocabulary, on the frontend side.
 //
 // `MomentKind` names **the act a moment is** — never its subject, never its
-// target type, never its tense (see `api/docs/moments.md`). Every kind is
+// target type, never its tense (see `api/docs/domain.md`). Every kind is
 // written by the surface that creates the moment; no surface asks the user. So
 // what lives here is what the *reader* needs: how to say a kind out loud, which
 // kinds carry prose you wrote, and where a moment sits in time.

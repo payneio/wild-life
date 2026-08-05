@@ -1,4 +1,19 @@
-"""Append-only change log — one row per insert/update/delete of any entity."""
+"""ChangeLog — the write-ahead feed. External to the model, not part of it.
+
+One row per insert/update/delete, driving LISTEN/NOTIFY -> SSE -> a global React
+Query invalidation. Nothing in the domain reads it; it exists because clients
+need to know something moved.
+
+Two properties to know before using it as evidence about anything:
+
+- **`entity_type` is a different vocabulary from `EntityType`.** It stores plural
+  *table* names (`tasks`, `moments`), not the singular type names every soft
+  polymorphic reference uses. The two sets share no values.
+- **It is never pruned**, so it still carries the names of tables that no longer
+  exist (`events`, `notes`, `protocol_items`). That is correct — a record of what
+  changed is supposed to outlive the table it changed — but it means the set of
+  values here is not a statement about what the schema currently holds.
+"""
 
 import uuid
 from datetime import datetime

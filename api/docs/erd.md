@@ -1,15 +1,15 @@
 # The schema — an ERD
 
 > **Status: description, not design.** Every table, column and foreign key below
-> was read out of the live database on **2026-08-02**, not from the models and
-> not from memory. If it disagrees with the code, the code is right and this file
-> has rotted — regenerate it rather than patching it (the queries are at the
-> bottom).
+> was read out of the live database, not from the models and not from memory. If
+> it disagrees with the code, the code is right and this file has rotted —
+> regenerate it rather than patching it (the queries are at the bottom).
 >
-> The three documents in this folder answer different questions:
-> `model.md` is **where the model is going** (axioms, phases, an explicit gap
-> statement). `moments.md` is **why the moments model is shaped as it is**.
-> This one is **what is actually in Postgres** — all 54 tables, nothing elided.
+> **No row counts.** This file describes the *shape* of the schema, which is what
+> you read it to find fault with. How many rows a table happens to hold is
+> evidence about past guesses, not about what the model needs, and putting it
+> here invited exactly that confusion. `domain.md` says what the concepts mean;
+> this one says what Postgres actually holds — all 54 tables, nothing elided.
 
 ## How to read the diagrams
 
@@ -17,12 +17,8 @@
   constraint in `wild_life`.
 - **Dashed lines** (`||..o{`) are **soft polymorphic edges** — an
   `entity_type`/`entity_id` pair with no constraint behind it, because the target
-  may be any of two dozen tables. They are drawn only to the types actually
-  observed in the data; the permitted sets are tabulated in
+  may be any of two dozen tables. The permitted sets are tabulated in
   [Soft polymorphic edges](#soft-polymorphic-edges).
-- **Row counts** are exact as of 2026-08-02 and appear as `(n)` in the section
-  headings. `(0)` is called out wherever it appears, because an empty table is
-  either unfinished work or a retirement in progress, and the difference matters.
 
 ---
 
@@ -93,7 +89,7 @@ flowchart TB
 
 ---
 
-## 1. Moments — what happened (2,837 moments · 2,657 links)
+## 1. Moments — what happened
 
 A life is a series of moments; every other object is their *subject* rather than
 their owner.
@@ -101,14 +97,14 @@ their owner.
 **A moment is what happened.** It carries no window and no intention — those live
 on the intention (`tasks.not_before`/`due_date`, `outcomes.by_when`), where the
 two ends close on each other as a plan sharpens. `moments.window_start`/
-`window_end` did sit here once and all 485 ever written were zero-width, which is
-what retired them along with the `work` kind (`c1d2e3f4a5b6`).
+`window_end` did sit here once; every window ever written was zero-width, which
+is what retired them along with the `work` kind (`c1d2e3f4a5b6`).
 
-The apparent exception is not one. **6 rows have `started_at` in the future, all
-`occasion`** — scheduled meetings, the furthest 2026-08-28. A meeting next week is
-an occurrence whose time is already settled and has yet to arrive; that is not a
-range still closing, which is the thing moments deliberately cannot express.
-`started_at` is nullable but **null on none of the 2,837 rows**.
+The apparent exception is not one. `started_at` may be **in the future** — a
+scheduled meeting is an occurrence whose time is already settled and has yet to
+arrive. That is not a range still closing, which is the thing moments
+deliberately cannot express. `started_at` is nullable in the schema and set in
+practice by every writer.
 
 Payload hangs off the **link**, not the moment: a reading belongs to
 *this moment concerning that metric*, so one measurement moment can carry a whole
@@ -119,7 +115,7 @@ erDiagram
     moments {
         uuid id PK
         text kind "MomentKind — 12 permitted, 10 in use"
-        timestamptz started_at "nullable; null on 0 of 2,837 rows"
+        timestamptz started_at "nullable in schema; every writer sets it"
         timestamptz ended_at
         boolean all_day
         text title
@@ -217,27 +213,23 @@ erDiagram
     moment_links ||--o| moment_doses : "dosed"
 ```
 
-**Kinds in use** (`MomentKind` permits 12):
+**`MomentKind` permits twelve**, and every one is written by the surface that
+creates the moment — no surface asks the user:
 
-| kind | rows | | kind | rows |
-|---|---:|---|---|---:|
-| occasion | 1,316 | | activity | 60 |
-| observation | 622 | | dose | 56 |
-| completion | 424 | | decision | 8 |
-| reflection | 257 | | visit | 7 |
-| measurement | 86 | | capture | 1 |
-| **exchange** | **0** | | **withdrawal** | **0** |
+`capture` · `reflection` · `observation` · `occasion` · `exchange` · `visit` ·
+`measurement` · `dose` · `activity` · `completion` · `withdrawal` · `decision`
 
-`work` was removed with its 402 rows (`c1d2e3f4a5b6`) — the window belonged to
-the intention, so a shadow moment said the same thing twice. `exchange` and
-`withdrawal` have never been written; `exchange` is the delegation half that has
-not been built.
+`work` was removed (`c1d2e3f4a5b6`) — the window belonged to the intention, so a
+shadow moment said the same thing twice. `exchange` is the delegation half that
+has no writer; see §4.
 
-**Link roles**: `subject` 1,524 · `mention` 1,008 · `participant` 118 · `place` 7.
+**Link roles** are four and closed: `subject` puts the moment on a thing's
+timeline, `mention` puts it in that thing's backlinks, and `participant` /
+`place` say who and where.
 
 ---
 
-## 2. Rules — one cadence for everything that recurs (92)
+## 2. Rules — one cadence for everything that recurs
 
 `Routine` is a rule, not a habit. `kind` says what its occurrences *are*, exactly
 as `Moment.kind` names an act. Occurrences are **computed, never materialised** —
@@ -305,15 +297,18 @@ erDiagram
     routines ||--o{ moments : "projects (rule_id)"
 ```
 
-`rule_links` holds 17 rows — 15 `subject/medication`, 2 `participant/person`.
+`rule_links` carries the same four roles as `moment_links`, against the same
+unconstrained `entity_type`.
 
 ---
 
-## 3. Attention — the scopes (8 areas · 24 programs · 37 projects)
+## 3. Attention — the scopes
 
-Scopes nest, one parent each. A cadence declared at a scope is meant to inherit;
-`model.md` records that **inheritance is not implemented**, and that projects are
-judged by `last_activity_date`, which is activity rather than examination.
+Scopes nest, one parent each. Each carries a `review_frequency`, and a cadence
+declared at a scope is **not** inherited by the scopes below it — nothing in the
+schema or the code propagates one. Projects are judged by `last_activity_date`,
+which records activity rather than examination: a project can look alive because
+something touched it and still be unexamined.
 
 ```mermaid
 erDiagram
@@ -391,16 +386,18 @@ erDiagram
     people ||--o{ project_contributors : "contributes to"
 ```
 
-`project_contributors` is **empty (0)**. `reviews` holds 3.
+`project_contributors` is the one table in the schema with **no write path in
+the API at all** — no router references it. Every other unused table has a
+surface; this one has none.
 
 ---
 
-## 4. Intention — what has been committed to (470 tasks · 21 outcomes)
+## 4. Intention — what has been committed to
 
-Two species today, and `model.md` phase 2 proposes giving them one shape. A task
-names its scope by a **single polymorphic reference** (`scope_type`/`scope_id`) —
-the three nullable rung FKs are gone, and so is the check constraint that
-policed them.
+Two species today — `tasks` and `outcomes` — with different shapes for what is
+arguably one concept (see `domain.md`). A task names its scope by a **single
+polymorphic reference** (`scope_type`/`scope_id`); the three nullable rung FKs
+are gone, and so is the check constraint that policed them.
 
 ```mermaid
 erDiagram
@@ -560,27 +557,48 @@ erDiagram
     people ||--o{ tasks : "accountable / responsible / assignee / claimed_by"
 ```
 
-Where the intention cluster actually stands:
+**Six places model the same loop, and they do not agree.** This is the largest
+structural defect visible in the schema:
 
-| table | rows | reading |
-|---|---:|---|
-| `tasks` | 470 | live; 460 scoped to a project, 5 to a program, 4 to an area, 1 unscoped |
-| `intention_moments` | 423 | **all `discharges`** — the `generates` edge has 0 rows |
-| `outcomes` | 21 | 11 on areas, 10 on programs |
-| `requests` | 3 | live but barely used |
-| `outcome_evaluations` | **0** | the truth history is built and unwritten |
-| `task_objectives` | **0** | means-end edges exist as a table only |
-| `commitments` | **0** | pre-inversion; folds into `requests` |
-| `delegations` | **0** | pre-inversion; folds into `requests` |
-| `dependencies` | **0** | superseded by `tasks.blocked_by_task_id` |
+| where | its version of the loop |
+|---|---|
+| `tasks` | `assignee_id`, `responsible_id`, `claimed_by_id` + `claimed_at`, `acceptance_required` |
+| `delegations` | a twelve-state `status`, `accepted_date`, `delivered_date`, `escalation_level` |
+| `commitments` | `acceptance_status`, owner / beneficiary / responsible, `evidence` |
+| `requests` | requester / addressee, `needed_by`, `resolution`, `resolved_at` |
+| `POST /tasks/{id}/assignment` | offer · accept · decline · withdraw, written as `exchange` moments — **complete, correct, and never called** |
+| `TaskStatus` | `delegated` and `delivered` — assignment states inside the *intention's* enum |
 
-Task assignment, by contrast, *is* in use: 447 tasks carry an `assignee_id`.
-`claimed_by_id` and `acceptance_required` are 0 — the loop is half-built, not
-abandoned.
+The last two are not tables, which is why a schema-only reading misses them. The
+endpoint matters most: it already separates assignment from intention exactly as
+the model requires, so the work here is to *call* it, not to build it.
+`TaskStatus.delegated`/`delivered` matter because they are the one place the
+constraint is already broken — no row uses either value today, so removing them
+is free now and will not be later.
+
+`tasks` carries **both** `assignee_id` and `responsible_id`, and they hold the
+same person on every row. Which is canonical is undecided; `GET /tasks/mine`
+therefore routes on either.
+
+`DelegationStatus` in `common.py` reads `requested → accepted | declined →
+in_progress → delivered → revision_requested | accepted_as_complete`. That is the
+*conversation for action* — request, promise, performance, declaration of
+satisfaction, with counter-offer and decline as first-class moves — from Winograd
+& Flores, *Understanding Computers and Cognition* (1986), built as The
+Coordinator and later Action Workflow (Medina-Mora et al., CSCW '92). The schema
+rediscovered fragments of it four times without converging on one.
+
+The only path with a UI gesture behind it is `tasks.assignee_id`, which is the
+degenerate case: it names a person and skips the loop entirely. `MomentKind`
+reserves `exchange` for the transitions and nothing writes it.
+
+`dependencies` is superseded by `tasks.blocked_by_task_id`. `task_objectives`
+(means-end, M:N) and `outcome_evaluations` (the truth history of a standing
+claim) both have API writers and no gesture that calls them.
 
 ---
 
-## 5. People & organizations (315 people · 106 orgs)
+## 5. People & organizations
 
 ```mermaid
 erDiagram
@@ -651,11 +669,11 @@ erDiagram
     people ||--o{ api_tokens : "acts through"
 ```
 
-`api_tokens` holds 3, all `role='worker'` — the agents.
+`api_tokens.role` is `full | worker`; worker tokens are how agents act.
 
 ---
 
-## 6. Health (20 medications · 6 protocols)
+## 6. Health
 
 A medication is an **identity**; protocols own all scheduling, and every schedule
 is a rule (§2). There is no PRN flag and no `notes` column — `adjustments`,
@@ -729,11 +747,12 @@ erDiagram
     medications ||--o{ routines : "dosed by"
 ```
 
-`allergies` 1 · `insurance_plans` 3.
+`allergies` and `insurance_plans` hang off no other health table — they are
+reference facts about the person, not part of a protocol.
 
 ---
 
-## 7. Metrics (80 metrics · 325 entries)
+## 7. Metrics
 
 A metric names a scope polymorphically, the same way an outcome does. A *group*
 is a panel taken together — a lipid panel is one draw with six numbers — which is
@@ -809,21 +828,15 @@ erDiagram
 `record_reading` for a whole panel (`source_ref=group_reading:<id>`), the latter
 folding a panel's members into **one** measurement moment carrying many readings.
 
-**It reconciles exactly**, on both counts:
-
-| | |
-|---|---:|
-| panels · standalone entries | 58 · 28 |
-| `measurement` moments (58 + 28) | **86** |
-| `metric_entries` | 325 |
-| `moment_readings` | **325** |
-
-Nothing enforces that correspondence, though — there is no constraint and no
-test. It holds because one writer produces both.
+Every `metric_entry` is expected to have exactly one `moment_reading`, and every
+panel exactly one `measurement` moment. **Nothing enforces either correspondence**
+— no foreign key, no constraint, no test. It holds only because one function
+produces both sides in one transaction, and it would break silently the day a
+second writer appears.
 
 ---
 
-## 8. Places (69 locations · 62 pings)
+## 8. Places
 
 The only cluster with a raw sensor feed. `location_visits` are *derived* — a
 visit is a fold over pings — which is the property a rebuild must respect, and
@@ -919,7 +932,8 @@ erDiagram
     location_visits }o..o{ location_pings : "folded from (no FK)"
 ```
 
-`location_visits` 7 · `place_candidates` 2 · `geocode_cache` 2.
+`place_candidates` is the staging table for promotion into `locations`;
+`geocode_cache` is a provider cache keyed by rounded coordinate, not domain data.
 
 ---
 
@@ -946,7 +960,7 @@ erDiagram
         uuid source_id PK
         text target_type PK
         uuid target_id PK
-        text relation "attendee 443 | diagnosed_by 4"
+        text relation PK "attendee 443 | diagnosed_by 4 — part of the key, so a pair may carry several"
     }
     resources {
         uuid id PK
@@ -1014,57 +1028,79 @@ erDiagram
     people ||--o{ decisions : "owns"
 ```
 
-`change_log` 73,418 · `entity_links` 447 · `resources` 70 · `sent_nudges` 16 ·
-`decisions` 8 · `whiteboard` 1 · `push_subscriptions` 2 · `preferences` **0**.
+`change_log` is append-only and grows with every write; `whiteboard_revisions`
+likewise. Neither is pruned.
 
 ---
 
 ## Soft polymorphic edges
 
-Fourteen places where a reference has no constraint behind it, because the target
+Fifteen places where a reference has no constraint behind it, because the target
 may be any of the types in `EntityType`. This is the price of one moments table
 rather than many, and it is paid knowingly — but it means **referential integrity here is
 the application's job, not Postgres's**.
 
-| table | columns | permitted | observed |
+| table | columns | permitted target | nullable |
 |---|---|---|---|
-| `moment_links` | `entity_type` / `entity_id` | all of `EntityType` (22) | task 827 · person 787 · metric 325 · project 144 · location 123 · organization 113 · area 108 · program 66 · medication 61 · routine 54 · moment 40 · decision 8 · request 1 |
-| `rule_links` | `entity_type` / `entity_id` | all | medication 15 · person 2 |
-| `tasks` | `scope_type` / `scope_id` | area, program, project | project 460 · program 5 · area 4 · null 1 |
-| `outcomes` | `entity_type` / `entity_id` | any scope | area 11 · program 10 |
-| `metrics` | `entity_type` / `entity_id` | any scope | area 66 · program 14 |
-| `metric_groups` | `entity_type` / `entity_id` | any scope | — |
-| `intention_moments` | `intention_type` / `intention_id` | task, outcome | task 423 |
-| `requests` | `entity_type` / `entity_id` | all | — |
-| `commitments` | `entity_type` / `entity_id` | all | *(empty table)* |
-| `delegations` | `entity_type` / `entity_id` | all | *(empty table)* |
-| `dependencies` | `dependent_*` / `blocker_*` | all | *(empty table)* |
-| `resources` | `entity_type` / `entity_id` | all | — |
-| `decisions` | `entity_type` / `entity_id` | all | — |
-| `entity_links` | `source_*` / `target_*` | all | attendee 443 · diagnosed_by 4 |
-| `change_log` | `entity_type` / `entity_id` | all + non-entities | — |
+| `moment_links` | `entity_type` / `entity_id` | all of `EntityType` (22) | no |
+| `rule_links` | `entity_type` / `entity_id` | all | no |
+| `tasks` | `scope_type` / `scope_id` | area, program, project | **yes** |
+| `outcomes` | `entity_type` / `entity_id` | any scope | no |
+| `metrics` | `entity_type` / `entity_id` | any scope | no |
+| `metric_groups` | `entity_type` / `entity_id` | any scope | no |
+| `intention_moments` | `intention_type` / `intention_id` | task, outcome | no |
+| `requests` | `entity_type` / `entity_id` | all | **yes** |
+| `commitments` | `entity_type` / `entity_id` | all | **yes** |
+| `delegations` | `entity_type` / `entity_id` | all | **yes** |
+| `dependencies` | `dependent_*` / `blocker_*` | all | no |
+| `resources` | `entity_type` / `entity_id` | all | **yes** |
+| `decisions` | `entity_type` / `entity_id` | all | **yes** |
+| `entity_links` | `source_*` / `target_*` | all | no |
+| `change_log` | `entity_type` / `entity_id` | *(a different vocabulary — see below)* | no |
+
+**A nullable soft reference is two defects, not one.** It cannot be checked by
+Postgres *and* it need not be present, so `resources` and `decisions` can hold
+rows that belong to nothing — with no constraint, no default, and nothing that
+would ever notice.
+
+**`change_log.entity_type` is not `EntityType`.** It stores *plural table names*
+(`tasks`, `moments`, `events`), so it shares not one value with the singular
+vocabulary every other row in this table draws from — a second namespace, not a
+superset of the first. It is also unpruned: it still carries the names of tables
+that no longer exist (`events`, `notes`, `note_mentions`, `protocol_items`,
+`entity_tags`, `note_images`, `health_events`, `tags`, `conditions`,
+`medication_doses`, `goals`, `waiting_items`, `interactions`). That is harmless
+as history — a feed of what changed is *supposed* to remember tables that have
+since gone — but it means `protocol_items` is still a live string in this
+database, which is the thing the note below says cannot be constructed.
 
 `EntityType` deliberately **excludes `event`, `note` and `protocol_item`**: each
 names a table that no longer exists, and a type that can be named but not
 constructed is a constructor for something that cannot exist. `protocol_item`
 outlived its table until this survey found it, having pointed at nothing in any
-column above — which is exactly what kept it invisible.
+soft reference above — which is exactly what kept it invisible. (`change_log`
+still holds `protocol_items` rows, but that is the plural table name in the other
+vocabulary, and history is meant to outlive its table.)
 
 ---
 
 ## What the ERD makes visible
 
-Two things are easier to see here than in the code, stated as observations
+Three things are easier to see here than in the code, stated as observations
 rather than proposals.
 
-**1. The empty tables split into two kinds.** `commitments`, `delegations` and
-`dependencies` are *pre-inversion* — superseded, awaiting retirement.
-`outcome_evaluations`, `task_objectives`, `project_contributors` and
-`preferences` are the opposite: structure built ahead of the surfaces that
-would write to it. Reading either group as "unused, therefore droppable" would be
-a mistake in one of the two directions.
+**1. One concept is modelled four times.** `tasks`, `delegations`, `commitments`
+and `requests` each hold a partial, mutually inconsistent version of the same
+request-and-acceptance loop (§4). No amount of finishing any one of them resolves
+this; it is a question about what the concept *is*, and it is the strongest
+argument in this file for `domain.md` existing.
 
-**2. Attention has no representation.** Every moment has a duration
+**2. Soft references outnumber the constraints that could police them.** Fifteen
+places carry a type-plus-id pair Postgres cannot check, six of them nullable.
+That is the price of one moments table rather than many, and it is the reason a
+referential bug here surfaces as a 404 in the UI rather than an error at write.
+
+**3. Attention has no representation.** Every moment has a duration
 (`started_at`→`ended_at`) and nothing records whose attention it consumed, because
 `moments` was built by inverting nine tables that were all one person's. It
 has no actor column. As long as only one person writes moments this is a saving;
@@ -1078,7 +1114,7 @@ the first agent that writes one makes it a defect.
 export PGPASSWORD="$(wildpc secret get POSTGRES_PASSWORD)"
 PSQL="psql -h localhost -U castle -d castle -At -F|"
 
-# tables + exact row counts
+# every table
 $PSQL -c "SELECT relname FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
           WHERE n.nspname='wild_life' AND relkind='r' ORDER BY 1;"
 

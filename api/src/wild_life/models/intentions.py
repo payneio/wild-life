@@ -1,6 +1,8 @@
 """How an intention meets a moment, and how a means meets an end.
 
-`docs/model.md` A4 and A9. Both relations existed before this — as a naming
+`docs/domain.md` -> Occurrence ("moments and intentions relate two ways") and
+Intention ("contribution is not satisfaction"). Both relations existed before
+this — as a naming
 convention. A task's completion moment was called `task:<id>:completion`, so
 asking "did this intention happen" meant `replace(source_ref, ':work',
 ':completion')`: a string transformation standing in for a join. It could not be

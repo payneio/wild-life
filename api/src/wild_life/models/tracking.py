@@ -1,4 +1,25 @@
-"""Commitments, waiting items, and delegations — the oversight cluster."""
+"""Commitment and Delegation — two of four overlapping answers to one question.
+
+**Read `docs/domain.md` -> "What the domain has not decided" before extending
+anything here.** `tasks`, `requests`, `commitments` and `delegations` each hold a
+partial and mutually inconsistent version of the same request-and-acceptance
+loop, and which of them is the concept has never been settled. `erd.md` §4 lays
+the four side by side.
+
+`DelegationStatus` is the *conversation for action* — request, promise,
+performance, declaration of satisfaction, with counter-offer and decline as
+first-class moves (Winograd & Flores, 1986; built as The Coordinator, later
+Action Workflow). That is the prior art any resolution should be measured
+against rather than re-derived a fifth time.
+
+Two constraints hold whatever the answer turns out to be:
+
+- **Delegation moves Responsible, never Accountable.** `accountable_owner_id`
+  stays with the delegator; accountability does not fan out.
+- **Assignment and intention must not share a state machine**, or a decline
+  ("they said no") reads as the intention ending ("it is over"). A decline ends
+  the assignment and returns responsibility; the commitment survives it.
+"""
 
 import uuid
 from datetime import date

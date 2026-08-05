@@ -1,4 +1,18 @@
-"""Resource and Decision — reusable references and recorded choices."""
+"""Resource and Decision — references held, and choices recorded.
+
+A **Decision** is the one place deliberation is durably represented. The model
+otherwise declines to hold it: competing routes live in prose and the system's
+entry point is commitment (`docs/domain.md` -> "What this is not"). A Decision is
+the *outcome* of deliberating, with its rationale and assumptions, not the
+deliberation itself.
+
+`review_date` exists because an assumption can expire — a decision worth
+recording is one worth revisiting when what it assumed stops holding.
+
+Both carry a nullable `entity_type`/`entity_id` scope, which means a row can
+belong to nothing and nothing will notice. See `erd.md` -> Soft polymorphic
+edges.
+"""
 
 import uuid
 from datetime import date

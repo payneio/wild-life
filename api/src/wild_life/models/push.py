@@ -1,4 +1,13 @@
-"""Web Push — browser push subscriptions and the sent-reminder ledger."""
+"""Web Push — browser subscriptions and the ledgers of what was already sent.
+
+**External**, in the `docs/domain.md` sense: none of this would mean anything if
+the Web Push protocol went away. Nothing in the domain references it; it
+references the domain.
+
+`SentReminder` and `SentNudge` are idempotency ledgers, not history. They exist
+so a restart or a re-run cannot deliver the same notification twice, which is why
+they key on (what, when) rather than carrying a payload.
+"""
 
 import uuid
 from datetime import date, datetime

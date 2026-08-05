@@ -2,8 +2,8 @@
 
 A life is a series of moments; areas, programs, people and
 medications are their subjects and objects, not their owners. See
-``api/docs/moments.md`` for the kind vocabulary and the migration mapping, and
-the design record for why.
+``api/docs/domain.md`` -> Occurrence for what a moment is, what ``kind`` names,
+and why the four link roles are the ones they are.
 
 Three properties of the model are load-bearing enough to state here:
 

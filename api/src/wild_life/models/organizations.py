@@ -1,4 +1,17 @@
-"""Organizations and the people affiliated with them."""
+"""Organization, and the Affiliations that attach people to it.
+
+An organization is a **reference entity**: it is a subject of moments, never a
+moment itself, and it has no lifecycle of its own beyond `status`.
+
+Affiliation is deliberately its own row rather than a column on Person, because
+it is time-bounded (`start_date`/`end_date`, null end = current) and a person may
+hold several at once. `is_primary` picks the one to show in a reference chip.
+Retaining ended affiliations is what lets "who did I know at Acme in 2024" be a
+query rather than a memory.
+
+Postal components follow the vCard `ADR` / schema.org `PostalAddress`
+intersection, the same vocabulary Location and Person use.
+"""
 
 import uuid
 from datetime import date

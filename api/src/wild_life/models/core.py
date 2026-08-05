@@ -1,4 +1,27 @@
-"""Core hierarchy: Area -> (Program) -> Project."""
+"""Attention — the scopes you allocate finite regard to.
+
+Area -> Program -> Project, nesting one parent each. See `docs/domain.md`; the
+definitions that decide which rung a thing belongs on are:
+
+- **Area** — *a standard you maintain indefinitely, not a goal you complete*
+  (GTD's Areas of Focus & Responsibility). If it can be finished it is not an
+  area. Areas never end, which is why they attract standing claims rather than
+  objectives that get satisfied.
+- **Program** — a sustained effort inside an area, with a start and an expected
+  end. Where an area is a standard, a program is a campaign to move one.
+- **Project** — a bounded, finishable piece of work inside a program.
+
+Every rung carries `review_frequency`, because the failure this cluster exists to
+make visible is *a scope unexamined past its cadence* — which is a different
+failure from anything being overdue, and is why attention is modelled separately
+from intention at all.
+
+`accountable_owner_id` and `responsible_lead_id` are RACI's A and R. Delegation
+moves Responsible; Accountable does not move.
+
+`Project.last_activity_date` records **activity, not examination**: a project can
+look alive because something touched it and still be unexamined.
+"""
 
 import uuid
 from datetime import date, datetime

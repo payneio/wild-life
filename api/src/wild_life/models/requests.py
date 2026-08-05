@@ -1,9 +1,15 @@
-"""Request — the two-party ask/answer primitive that powers every actor's inbox.
+"""Request — "requester needs <something> from addressee".
 
-A Request is "requester needs <something> from addressee". Each Person's inbox is the
-open Requests addressed to them; "waiting on others" is the open Requests they made.
-Folds in the retired WaitingItem (a deliverable you're waiting on is a Request you
-made with kind='deliverable').
+Each Person's inbox is the open Requests addressed to them; "waiting on others"
+is the open Requests they made. Folds in the retired WaitingItem (a deliverable
+you are waiting on is a Request you made with `kind='deliverable'`).
+
+**This is one of four overlapping answers to the same question** — see
+`models/tracking.py` and `docs/domain.md` -> "What the domain has not decided".
+Whether asking someone a question, assigning a task and delegating an outcome are
+one loop or three concepts is unsettled. Do not extend this to cover a case
+`tasks` or `delegations` already covers without settling that first; that is how
+there came to be four.
 """
 
 import uuid
