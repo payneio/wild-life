@@ -20,8 +20,10 @@ repository spent an evening deleting rotted.
 its own test: *a change is legitimate only if every scenario still has an
 answer.* Run that test **before** the migration, not after.
 
-Name the scenario that fails without the change. If you cannot name one, the
-change is a guess — say so plainly and let Paul decide, rather than shipping
+Name the scenario that fails without the change — an S number from `domain.md`
+(what must be representable) or a U number from `docs/scenarios.md` (what must be
+doable). Both count, and a change that satisfies every S while breaking a U is
+still a regression. If you cannot name either, the change is a guess — say so plainly and let Paul decide, rather than shipping
 structure and reasoning about it later.
 
 Adding a scenario is allowed and is how the model grows. It is a claim about the

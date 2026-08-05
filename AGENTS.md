@@ -23,6 +23,10 @@ preserved here under `web/` and `api/`.
   only — it says nothing about what is built, so a claim there may be unmet but
   cannot be out of date. Read it before proposing a change to how planning,
   commitment or scope work.
+- **@docs/scenarios.md** — what a person must be able to *do*, U1–U42, each with
+  the failure it guards against. The companion test to `domain.md`'s S1–S9: that
+  file asks what the model can represent, this one what the app lets you get done.
+  Read it before designing a surface, and cite a U when justifying a change.
 - **`api/`** — the authoritative model and REST surface. Read **@api/CLAUDE.md**
   before non-trivial backend work: it documents the Area→Program→Project→Task
   hierarchy, every entity/router, the pure-ASGI bearer auth, the isolated

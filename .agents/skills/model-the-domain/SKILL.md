@@ -89,7 +89,8 @@ the repository for two weeks, because it had no destination.
 | finding | lands in |
 |---|---|
 | what a concept *is*; a boundary; prior art followed or declined | `api/docs/domain.md` |
-| a new scenario the model must satisfy | `api/docs/domain.md` -> *The scenarios* |
+| a new scenario the model must *represent* | `api/docs/domain.md` -> *The scenarios* |
+| a new scenario a person must be able to *do* | `docs/scenarios.md` |
 | why *this column* has this shape; which standard it follows | the docstring beside it in `models/` |
 | what the schema currently holds | nothing — `erd.md` is regenerated, never written |
 

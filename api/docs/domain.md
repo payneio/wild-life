@@ -203,6 +203,11 @@ one of these still has an answer.** Adding a scenario is how the model grows; it
 is a claim about the domain, so it goes here where the next change is tested
 against it.
 
+These are competency questions: what the model must be able to *represent*. What
+a person must be able to *do* is a different test and lives in `docs/scenarios.md`
+(U1–U42) — the data model answered correctly in both interaction defects of
+2026-07-30, so a change can satisfy every S and still be a regression.
+
 **S1 · Deliberation becoming commitment.** Weeks of writing about being tired, no
 commitment. Then a decision: sort the gut problem. It becomes a program with
 measured objectives, a protocol, a project, tasks. At week six the doses stop.
