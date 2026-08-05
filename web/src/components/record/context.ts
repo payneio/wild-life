@@ -44,6 +44,13 @@ export function useField(field: string) {
   return { value: row[field], save: onSave }
 }
 
+/** Read the record being edited without claiming any of its fields — for
+ *  controls that need the row as *context* rather than as data to render, like
+ *  a ref field donating this record's root to the row it's about to create. */
+export function useRecordRow(): Record<string, unknown> {
+  return useRecordCtx().row
+}
+
 /** Bind several fields at once: the row, a multi-field save, and their claims. */
 export function useFields(fields: readonly string[]) {
   const { row, saveMany, register } = useRecordCtx()

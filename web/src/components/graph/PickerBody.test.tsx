@@ -27,6 +27,10 @@ const PEOPLE = [
 
 const createProject = vi.fn(async () => ({ ...PROJECT, id: "new", name: "Atlas" }))
 
+/** What a surface with context hands the picker — a project is born under a
+ *  program, so a picker with no program to name can't offer to create one. */
+const INHERITED = { program_id: "program-1" }
+
 // Override only the projects crud; every other source stays real (and returns
 // nothing in test), so this can't drift from the hooks the picker actually uses.
 vi.mock("@/services/api/hooks", async (importOriginal) => ({
@@ -115,7 +119,7 @@ describe("PickerBody", () => {
   it("does not offer to create a name that exists but is hidden", async () => {
     // The defect the filter would otherwise introduce: `exact` computed over the
     // filtered rows would miss archived "Atlas" and offer to create a duplicate.
-    mount(<PickerBody type="project" intent="assign" allowCreate onSelect={vi.fn()} />)
+    mount(<PickerBody type="project" intent="assign" allowCreate createDefaults={INHERITED} onSelect={vi.fn()} />)
     await userEvent.type(screen.getByRole("textbox"), "Atlas")
 
     expect(screen.queryByText(/Create/)).toBeNull()
@@ -124,9 +128,18 @@ describe("PickerBody", () => {
   })
 
   it("still offers to create a genuinely new name", async () => {
-    mount(<PickerBody type="project" intent="assign" allowCreate onSelect={vi.fn()} />)
+    mount(<PickerBody type="project" intent="assign" allowCreate createDefaults={INHERITED} onSelect={vi.fn()} />)
     await userEvent.type(screen.getByRole("textbox"), "Brand New Thing")
     expect(screen.getByText(/Create/)).toBeTruthy()
+  })
+
+  it("withholds create when the type needs context the caller hasn't got", async () => {
+    // A project is born under a program, a metric under whatever it measures.
+    // Offering "Create" with nothing to file it under posted a bare title and
+    // got a 422 back — the picker advertised a gesture the API always refused.
+    mount(<PickerBody type="project" intent="assign" allowCreate onSelect={vi.fn()} />)
+    await userEvent.type(screen.getByRole("textbox"), "Brand New Thing")
+    expect(screen.queryByText(/Create/)).toBeNull()
   })
 
   it("keeps one source from crowding out the others when untyped", () => {

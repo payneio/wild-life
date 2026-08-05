@@ -67,9 +67,14 @@ export function PickerBody({
 
   const trimmed = q.trim()
   const creator = allowCreate && type ? creators[type] : undefined
+  // A metric, a metric group, an outcome and a project are all rooted or
+  // parented at birth. Offering "Create" without that context posted a title
+  // alone and got a 422 back, so the offer is conditional on the caller having
+  // handed over everything the type asks for.
+  const equipped = !!creator && creator.requires.every((f) => createDefaults?.[f] != null)
   // `exact` comes from the *unfiltered* set, so hiding an archived "Atlas" can
   // never make the picker offer to create a second one.
-  const canCreate = !!creator && trimmed.length > 0 && !exact
+  const canCreate = equipped && trimmed.length > 0 && !exact
   const createIndex = rows.length
   const count = rows.length + (canCreate ? 1 : 0)
 
@@ -77,7 +82,7 @@ export function PickerBody({
     if (!creator || busy) return
     setBusy(true)
     try {
-      onSelect(await creator(trimmed, createDefaults))
+      onSelect(await creator.create(trimmed, createDefaults))
     } finally {
       setBusy(false)
     }

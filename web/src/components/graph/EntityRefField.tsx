@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils"
 import { EntityPicker } from "@/components/graph/EntityPicker"
 import { LOOKUP_TO_TYPE } from "@/components/graph/lookupType"
 import { useEntityResolver, type PickerIntent } from "@/services/api/mentions"
+import type { Body } from "@/services/api/crud"
 import type { LookupKey } from "@/services/api/lookups"
 
 /**
@@ -18,12 +19,21 @@ export function EntityRefField({
   onChange,
   required,
   intent = "assign",
+  createDefaults,
 }: {
   lookup: LookupKey
   value: string | null
   onChange: (id: string | null) => void
   /** Non-nullable column: offer no clear, since the API would reject null. */
   required?: boolean
+  /**
+   * Context the picker's inline create should inherit. A scalar FK field sits
+   * inside a record that usually knows where the new row belongs — the metric
+   * you name on an outcome is measured for whatever that outcome is about — and
+   * without it the picker has to withhold "Create" for any type the API roots
+   * at birth. See `EntityDef.createRequires`.
+   */
+  createDefaults?: Body
   /**
    * Setting a scalar FK is normally assignment, so that's the default and the
    * ~45 `F.Ref` fields say nothing. The exception is the health domain, where
@@ -75,6 +85,7 @@ export function EntityRefField({
           getAnchor={() => btnRef.current}
           type={type}
           intent={intent}
+          createDefaults={createDefaults}
           onClose={() => setOpen(false)}
           onSelect={(r) => {
             onChange(r.id)

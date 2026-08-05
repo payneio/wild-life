@@ -76,6 +76,7 @@ export function RelatedPanel({
               .map((f) => [f, parentRow[f]])
               .filter(([, v]) => v != null),
           ),
+          ...(spec.defaults ?? {}),
         }
       : { entity_type: parentType, entity_id: parent.id, ...(spec.defaults ?? {}) }
 

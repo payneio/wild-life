@@ -4,9 +4,10 @@ import { RecurrenceEditor } from "@/components/RecurrenceEditor"
 import { RootField } from "@/components/graph/RootField"
 import { AttendeeEditor } from "@/components/calendar/AttendeeEditor"
 import { MentionText } from "@/components/MentionText"
-import { useField, useFields } from "@/components/record/context"
+import { useField, useFields, useRecordRow } from "@/components/record/context"
 import { instantToLocalInput, localInputToInstant } from "@/lib/date"
 import { cn } from "@/lib/utils"
+import type { Body } from "@/services/api/crud"
 import type { LookupKey } from "@/services/api/lookups"
 import type { PickerIntent } from "@/services/api/mentions"
 import { formatPhone, formatWhileTyping, toE164 } from "@/lib/phone"
@@ -428,20 +429,39 @@ export function RecordCheckbox({ field, label }: { field: string; label: string 
   )
 }
 
+/**
+ * The soft-polymorphic root, the one piece of context a record can hand to a
+ * row it creates without knowing what either of them is.
+ *
+ * Only this pair, deliberately: it means the same thing on every record that
+ * carries it, so copying it across is always the filing the user meant. Name
+ * equality is not meaning equality in general — a moment's `kind` and an
+ * outcome's `kind` are different vocabularies — so anything else a type needs
+ * has to be passed explicitly.
+ */
+function rootOf(row: Record<string, unknown>): Body | undefined {
+  const { entity_type, entity_id } = row
+  return entity_type && entity_id ? { entity_type, entity_id } : undefined
+}
+
 export function RecordRef({
   field,
   label,
   lookup,
   required,
   intent,
+  createDefaults,
 }: {
   field: string
   label?: string
   lookup: LookupKey
   required?: boolean
   intent?: PickerIntent
+  /** Overrides the inherited root — for a target that needs something else. */
+  createDefaults?: Body
 }) {
   const { value, save } = useField(field)
+  const row = useRecordRow()
   return (
     <Wrap label={label}>
       <EntityRefField
@@ -450,6 +470,7 @@ export function RecordRef({
         onChange={(id) => save(id ?? null)}
         required={required}
         intent={intent}
+        createDefaults={createDefaults ?? rootOf(row)}
       />
     </Wrap>
   )
